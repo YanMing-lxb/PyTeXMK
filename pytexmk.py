@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-02-28 23:30:49 +0800
+LastEditTime : 2024-02-28 23:36:52 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/pytexmk.py
 Description  : 
@@ -246,6 +246,7 @@ if __name__ == "__main__":
     if args.clean:
         remove_aux()
     elif args.Clean:
+        remove_aux()
         remove_result()
     else:
         main()
