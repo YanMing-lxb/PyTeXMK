@@ -1,0 +1,25 @@
+[project]
+name = "pytexmk"
+version = "0.0.1"
+authors = [
+  { name = "焱铭", email = "lxb-yanming@foxmail.com" },
+]
+dependencies = []
+description = "LaTeX 快速自动化编译工具"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+"Homepage" = "https://github.com/YanMing-lxb/PyTeXMK"
+"Bug Tracker" = "https://github.com/YanMing-lxb/PyTeXMK/issues"
