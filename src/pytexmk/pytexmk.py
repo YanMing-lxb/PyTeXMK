@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-02-28 23:36:52 +0800
+LastEditTime : 2024-02-29 10:24:13 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/pytexmk.py
+FilePath     : /PyTeXMK/src/pytexmk/pytexmk.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     start_time = datetime.now() # 计算开始时间
 
     parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序.")
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 0.0.2.240229')
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
