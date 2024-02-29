@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-02-29 16:11:54 +0800
+LastEditTime : 2024-02-29 18:05:12 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -72,7 +72,8 @@ def compile_bib(file_name, quiet):
             bib_compile_tex_times = 0
             bib_print = "没有参考文献或编译工具不属于 bibtex 或 biber "
     except FileNotFoundError:
-        print("找不到辅助文件")
+        bib_compile_tex_times = 0
+        bib_print("找不到辅助文件，存在错误，请用 -nq 模式运行查看报错！")
         
     return bib_compile_tex_times, bib_print
 

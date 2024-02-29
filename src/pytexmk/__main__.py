@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-02-29 16:11:42 +0800
+LastEditTime : 2024-02-29 17:20:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -25,9 +25,9 @@ Description  :
 
 import argparse
 from datetime import datetime
-from version import script_name, version
-from compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from additional_operation import remove_aux, remove_result, move_result
+from .version import script_name, version
+from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
+from .additional_operation import remove_aux, remove_result, move_result
 # # 获取当前目录中所有以 .tex 结尾的文件列表
 # files = [f for f in os.listdir() if f.endswith('.tex')]
 
