@@ -1,6 +1,6 @@
 # 包含所有文件和目录
 include src/pytexmk/Makefile
-include src/pytexmk/Makefile.bat
-include src/pytexmk/Makefile.sh
+include src/pytexmk/makefile.bat
+include src/pytexmk/makefile.sh
 # 排除不需要的文件和目录
 exclude proj-test/
