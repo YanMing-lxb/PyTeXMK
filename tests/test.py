@@ -1,28 +1,3 @@
-'''
- =======================================================================
- ····Y88b···d88P················888b·····d888·d8b·······················
- ·····Y88b·d88P·················8888b···d8888·Y8P·······················
- ······Y88o88P··················88888b·d88888···························
- ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
- ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
- ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
- ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
- ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
- ·······························································888·····
- ··························································Y8b·d88P·····
- ···························································"Y88P"······
- =======================================================================
-
- -----------------------------------------------------------------------
-Author       : 焱铭
-Date         : 2024-02-29 14:16:25 +0800
-LastEditTime : 2024-02-29 20:57:21 +0800
-Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/tests/test.py
-Description  : 
- -----------------------------------------------------------------------
-'''
-
 import os
 import shutil
 import subprocess
@@ -34,12 +9,12 @@ test_files = [
     "contents-test",
     "glossaries-test",
     "nomencl-test"
-    ]
+]
 test_file_type = ['biblatex', 'bibtex', '图表目录', '目录', 'glossaries', 'nomencl']
 command = ['-v', '-h', '-c', '-C']
 
 # 源文件夹路径
-source_folder =  'src/pytexmk'
+source_folder = 'src/pytexmk'
 tests_folder = 'tests'
 
 # 目标文件夹路径
@@ -54,7 +29,7 @@ def copy(source_folder, destination_folder):
     for filename in os.listdir(source_folder):
         source_file = os.path.join(source_folder, filename)
         destination_file = os.path.join(destination_folder, filename)
-        
+
         # 判断源文件是否是文件
         if os.path.isfile(source_file):
             # 复制文件到目标文件夹
@@ -75,7 +50,8 @@ updated_content = original_content.replace("from .", "from ")
 with open(f"{destination_folder}/__main__.py", "w") as file:
     file.write(updated_content)
 
-
+# 存储所有要打印的内容
+print_output = []
 
 # 开始测试
 
@@ -83,30 +59,32 @@ with open(f"{destination_folder}/__main__.py", "w") as file:
 for i in range(len(test_files)):
     try:
         subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
-        print(f'{test_file_type[i]} 测试通过！')
+        print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
     except Exception as e:
-        print(f'{test_file_type[i]} 测试没通过！发生错误：{e}')
-    finally:
-        print('')
+        print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
 
 for i in command:
     try:
         if i == "-c" and "-C":
-            subprocess.run(['xelatex', 'main'], cwd= destination_folder)
-        subprocess.run(['python3', '__main__.py', i], cwd= destination_folder)
-        print(f'{i} 测试通过！')
+            subprocess.run(['xelatex', 'main'], cwd=destination_folder)
+        subprocess.run(['python3', '__main__.py', i], cwd=destination_folder)
+        print_output.append([i, "\033[92m通过\033[0m"])  # 绿色
     except Exception as e:
-        print(f'{i} 测试没通过！发生错误：{e}')
-    finally:
-        print('')
-    
+        print_output.append([i, "\033[91m未通过\033[0m"])  # 红色
+
 try:
-    subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd= destination_folder)
-    print('-nq 测试通过！')
+    subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
+    print_output.append(["-nq", "\033[92m通过\033[0m"])  # 绿色
 except Exception as e:
-    print('-nq 测试没通过！发生错误：{e}')
-finally:
-    print('')
+    print_output.append(["-nq", "\033[91m未通过\033[0m"])  # 红色
 
+# 打印表头
+print("\033[93m{:<20} {:<20} {:<20} {:<20}\033[0m".format("测试项目", "测试状态", "测试项目", "测试状态"))  # 黄色
+# 打印表格内容
+for i in range(0, len(print_output), 2):
+    item1, status1 = print_output[i]
+    item2, status2 = print_output[i+1] if i+1 < len(print_output) else ("", "")
+    print("{:<20} {:<20} {:<20} {:<20}".format(item1, status1, item2, status2))
 
+# 删除临时文件夹
 shutil.rmtree(destination_folder)

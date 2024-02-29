@@ -11,3 +11,5 @@ html:
 
 rst:
 	pandoc -s -t rst README.md > README.rst
+test:
+	python3 tests/test.py
