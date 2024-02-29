@@ -1,6 +1,6 @@
 [project]
 name = "pytexmk"
-version = "0.0.1"
+version = "0.0.2.240229"
 authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=68.2"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
