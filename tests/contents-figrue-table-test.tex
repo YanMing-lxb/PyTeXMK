@@ -15,92 +15,81 @@
 % 
 %  -----------------------------------------------------------------------
 % Author       : 焱铭
-% Date         : 2024-02-28 23:14:41 +0800
-% LastEditTime : 2024-02-29 19:08:17 +0800
+% Date         : 2024-02-29 18:57:01 +0800
+% LastEditTime : 2024-02-29 18:57:05 +0800
 % Github       : https://github.com/YanMing-lxb/
-% FilePath     : /PyTeXMK/tests/main.tex
+% FilePath     : /PyTeXMK/tests/contents-figrue-table-test.tex
 % Description  : 
 %  -----------------------------------------------------------------------
 %
 
-\documentclass{article} % 指定文档类型为文章
+\documentclass{article}
+\usepackage{graphicx}
 \usepackage[UTF8]{ctex} % 加载ctex宏包以支持中文排版
-
-% 导入必要的宏包
-\usepackage{graphicx} % 支持插图
-\usepackage{caption} % 支持设置图表标题格式
-\usepackage{tocbibind} % 添加参考文献到目录
-\usepackage{nomencl} % 符号索引
-
-% 设置符号索引标题
-\renewcommand{\nomname}{符号索引}
-
-\makenomenclature % 创建符号索引
-
-% 示例符号定义
-\nomenclature{$c$}{光速}
-\nomenclature{$h$}{普朗克常数}
-\nomenclature{$G$}{引力常数}
-
-\title{我的第一个LaTeX文档} % 设置文档标题
-\author{测试者} % 设置作者姓名
-\date{\today} % 设置文档日期
-
 \begin{document}
 
-\maketitle % 生成标题页
+\title{具有目录、图目录和表目录的LaTeX测试文档}
+\author{作者}
+\date{\today}
 
-% 插入目录、图目录和表目录
-\tableofcontents % 目录
-\listoffigures % 图目录
-\listoftables % 表目录
+\maketitle
+
+\tableofcontents % 自动生成目录
+\listoffigures % 自动生成图目录
+\listoftables % 自动生成表目录
 
 \section{引言}
-LaTeX 是一种基于ΤΕΧ的排版系统，被广泛用于生成高印刷质量的科技和数学文档。它允许用户专注于内容的编写，而不用担心页面布局和格式问题。
+这是一个具有目录、图目录和表目录的LaTeX测试文档。它将演示如何创建这三种目录。
 
-\section{LaTeX 基本用法}
-LaTeX 使用特殊的标记语言来格式化文本。例如，\textbf{粗体}、\textit{斜体}和\texttt{计算机字体}可以用以下方式实现：
-
-这是一些\textbf{粗体文本}，这是一些\textit{斜体文本}，以及一些\texttt{计算机字体文本}。
-
-\section{数学公式}
-LaTeX 非常适合编写数学公式。例如：
-
-\[ e^{i\pi} + 1 = 0 \]
-
-这是欧拉公式，它被认为是数学中最美丽的公式之一。
-
-% 插入图表示例
 \section{图示例}
-\begin{figure}[htbp]
+在这个部分，我们将插入一些图像。
+
+\subsection{第一个图}
+\begin{figure}[htb]
     \centering
     \includegraphics[width=0.5\textwidth]{example-image-a}
-    \caption{这是一个示例图}
-    \label{fig:example}
+    \caption{示例图像 A}
+\end{figure}
+
+\subsection{第二个图}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{example-image-b}
+    \caption{示例图像 B}
 \end{figure}
 
 \section{表示例}
-\begin{table}[htbp]
+在这个部分，我们将插入一些表格。
+
+\subsection{第一个表}
+\begin{table}[htb]
     \centering
     \begin{tabular}{|c|c|}
-        \hline
-        姓名 & 分数 \\
-        \hline
-        小明 & 85 \\
-        小红 & 92 \\
-        \hline
+    \hline
+    姓名 & 分数 \\
+    \hline
+    小明 & 85 \\
+    小红 & 92 \\
+    \hline
     \end{tabular}
-    \caption{这是一个示例表}
-    \label{tab:example}
+    \caption{示例表格 A}
 \end{table}
 
-% 插入参考文献
-\section{参考文献}
-\nocite{*}
-\bibliographystyle{plain}
-\bibliography{bibtex-references}
+\subsection{第二个表}
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    姓名 & 年龄 \\
+    \hline
+    小张 & 25 \\
+    小王 & 30 \\
+    \hline
+    \end{tabular}
+    \caption{示例表格 B}
+\end{table}
 
-% 生成符号索引
-\printnomenclature
+\section{结论}
+这是文档的结论部分。
 
 \end{document}
