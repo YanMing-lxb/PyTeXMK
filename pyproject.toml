@@ -1,11 +1,12 @@
 [project]
 name = "pytexmk"
-version = "0.0.2.240229"
+version = "0.1.0.240229"
 authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
+description = "LaTeX 辅助编译工具"
+keywords = ["LaTeX", "build", "latexmk"]
 dependencies = []
-description = "LaTeX 快速自动化编译工具"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -15,9 +16,12 @@ classifiers = [
 ]
 
 [build-system]
-requires = ["setuptools>=68.2"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project.urls]
 "Homepage" = "https://github.com/YanMing-lxb/PyTeXMK"
 "Bug Tracker" = "https://github.com/YanMing-lxb/PyTeXMK/issues"
+
+[project.scripts]
+pytexmk = "pytexmk:main"
