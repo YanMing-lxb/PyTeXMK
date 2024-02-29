@@ -16,5 +16,4 @@ test:
 	python3 tests/test.py
 
 upload:
-	twine upload dist/*y
-	
+	twine upload dist/*
