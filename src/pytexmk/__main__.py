@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 16:55:00 +0800
+LastEditTime : 2024-03-01 17:05:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -28,7 +28,7 @@ import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result, time_count, search_tex, check_tex_extension
+from .additional_operation import remove_aux, remove_result, move_result, time_count, search_file, check_file_name
 # # 获取当前目录中所有以 .tex 结尾的文件列表
 # files = [f for f in os.listdir() if f.endswith('.tex')]
 
@@ -109,7 +109,6 @@ def compile(tex_name, file_name, quiet, build_path):
 
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-    file_name = "main"
     tex_name = "xelatex"
     build_path = "./Build/"
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
@@ -144,11 +143,11 @@ def main():
         remove_result(build_path)
     else:
         if args.document: # 指定 latex 文件
-            file_name = check_tex_extension(args.document) # 检查 args.document 参数输入的文件名是否正确
+            file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
         else: # 未指定 latex 文件
-            file_name = search_tex() # 运行 search_tex 函数判断
-            if file_name: # 如果存在 file_name
-                compile(tex_name, file_name, not args.no_quiet, build_path)
+            file_name = search_file() # 运行 search_file 函数判断
+        if file_name: # 如果存在 file_name
+            compile(tex_name, file_name, not args.no_quiet, build_path)
 
     # --------------------------------------------------------------------------------
     # 统计编译时长
