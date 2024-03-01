@@ -12,8 +12,13 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-    
-    - name: Set up Python
+
+    - uses: actions/checkout@v4
+    - uses: xu-cheng/texlive-action@v2
+      with:
+          scheme: full
+
+      - name: Set up Python
       uses: actions/setup-python@v2
       with:
         python-version: '3.11'  # Specify the Python version you want to use
@@ -22,10 +27,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install rich
-
-    - name: Set up LaTeX
-      uses: xu-cheng/latex-action@v2
-      
     # - name: Install TeX Live
     #   run: |
     #     sudo apt-get update
