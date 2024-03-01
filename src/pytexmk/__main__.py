@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 19:29:00 +0800
+LastEditTime : 2024-03-01 20:44:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -28,13 +28,6 @@ import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import remove_aux, remove_result, move_result, time_count, search_file, check_file_name
-# # 获取当前目录中所有以 .tex 结尾的文件列表
-# files = [f for f in os.listdir() if f.endswith('.tex')]
-
-# # 处理每个符合条件的文件名
-# for file in files:
-#     file_name += os.path.splitext(file)[0] + "\n"  # 使用 os.path.splitext 去掉后缀并添加到 file_name 中
-
 
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
