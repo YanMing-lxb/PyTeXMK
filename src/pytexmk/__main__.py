@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-02 01:40:39 +0800
+LastEditTime : 2024-03-02 01:49:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -139,7 +139,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 统计编译时长
     # --------------------------------------------------------------------------------
-    if not args.clean and not args.Clean:    
+    if not args.clean and not args.Clean and not file_name:    
         end_time = datetime.datetime.now() # 计算结束时间
         run_time = end_time - start_time
         hours, remainder = divmod(run_time.seconds, 3600)
