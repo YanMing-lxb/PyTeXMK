@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 14:16:25 +0800
-LastEditTime : 2024-03-01 18:35:52 +0800
+LastEditTime : 2024-03-01 19:12:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/tests/test.py
 Description  : 
@@ -25,7 +25,10 @@ Description  :
 
 import os
 import shutil
+import datetime
 import subprocess
+
+start_time = datetime.datetime.now() # 计算开始时间
 
 test_files = [
     "biblatex-test",
@@ -36,7 +39,7 @@ test_files = [
     "nomencl-test"
 ]
 test_file_type = ['biblatex', 'bibtex', '图表目录', '目录', 'glossaries', 'nomencl']
-command = ['-v', '-h', '-c', '-C']
+command = ['-nq', '-v', '-h', '-c', '-C']
 
 # 源文件夹路径
 source_folder = 'src/pytexmk'
@@ -91,27 +94,31 @@ for i in range(len(test_files)):
     except Exception as e:
         print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
 
-for i in command:
+for i in range(len(command)):
     try:
-        if i == "-c" and "-C":
-            subprocess.run(['xelatex', 'main'], cwd=destination_folder)
-        subprocess.run(['python3', '__main__.py', i], cwd=destination_folder)
-        if result.returncode == 0:
-            print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+        if command[i] == "-nq":
+            result = subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
+            print_output.append(["-nq", "\033[92m通过\033[0m"])  # 绿色
+            if result.returncode == 0:
+                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+            else:
+                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  
+        elif command[i] == "-c" and "-C":
+            subprocess.run(['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main'], cwd=destination_folder)
+            result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+            if result.returncode == 0:
+                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+            else:
+                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
         else:
-            print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
+            result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+            if result.returncode == 0:
+                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+            else:
+                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
     except Exception as e:
         print_output.append([i, "\033[91m未通过\033[0m"])  # 红色
 
-try:
-    subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
-    print_output.append(["-nq", "\033[92m通过\033[0m"])  # 绿色
-    if result.returncode == 0:
-        print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
-    else:
-        print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
-except Exception as e:
-    print_output.append(["-nq", "\033[91m未通过\033[0m"])  # 红色
 
 # 打印表头
 print("\033[93m{:<20} {:<20} {:<20} {:<20}\033[0m".format("测试项目", "测试状态", "测试项目", "测试状态"))  # 黄色
@@ -123,3 +130,11 @@ for i in range(0, len(print_output), 2):
 
 # 删除临时文件夹
 shutil.rmtree(destination_folder)
+
+end_time = datetime.datetime.now() # 计算开始时间
+run_time = end_time - start_time
+hours, remainder = divmod(run_time.seconds, 3600)
+minutes, seconds = divmod(remainder, 60)
+milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
+print("\n" + "=" * 80)
+print(f"测试时长为：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)\n")
