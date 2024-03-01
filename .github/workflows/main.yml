@@ -23,10 +23,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install rich
 
-    - name: Install TeX Live
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y texlive-full
+    - name: Set up Git repository
+      uses: actions/checkout@v3
+    # - name: Install TeX Live
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install -y texlive-full
 
     - name: Run tests
       run: |
