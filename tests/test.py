@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 14:16:25 +0800
-LastEditTime : 2024-03-01 19:12:06 +0800
+LastEditTime : 2024-03-01 19:50:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/tests/test.py
 Description  : 
@@ -27,6 +27,8 @@ import os
 import shutil
 import datetime
 import subprocess
+from rich.console import Console
+from rich.table import Table
 
 start_time = datetime.datetime.now() # 计算开始时间
 
@@ -82,51 +84,61 @@ with open(f"{destination_folder}/__main__.py", "w") as file:
 print_output = []
 
 # 开始测试
-
 # 测试 biblatex, bibtex, 图目录表目录目录, 目录, glossaries, nomencl
 for i in range(len(test_files)):
     try:
         result = subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
         if result.returncode == 0:
-            print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+            print_output.append([test_file_type[i], "[green]通过"])  # 绿色
         else:
-            print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
+            print_output.append([test_file_type[i], "[red]未通过"])  # 红色
     except Exception as e:
-        print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
+        print_output.append([test_file_type[i], "[red]未通过"])  # 红色
 
 for i in range(len(command)):
     try:
         if command[i] == "-nq":
             result = subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
-            print_output.append(["-nq", "\033[92m通过\033[0m"])  # 绿色
+            print_output.append(["-nq", "[green]通过"])  # 绿色
             if result.returncode == 0:
-                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+                print_output.append([command[i], "[green]通过"])  # 绿色
             else:
-                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  
+                print_output.append([command[i], "[red]未通过"])  
         elif command[i] == "-c" and "-C":
             subprocess.run(['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main'], cwd=destination_folder)
             result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
             if result.returncode == 0:
-                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+                print_output.append([command[i], "[green]通过"])  # 绿色
             else:
-                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
+                print_output.append([command[i], "[red]未通过"])  # 红色
         else:
             result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
             if result.returncode == 0:
-                print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+                print_output.append([command[i], "[green]通过"])  # 绿色
             else:
-                print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
+                print_output.append([command[i], "[red]未通过"])  # 红色
     except Exception as e:
-        print_output.append([i, "\033[91m未通过\033[0m"])  # 红色
+        print_output.append([i, "[red]未通过"])  # 红色
 
+# 创建Console对象
+console = Console()
 
-# 打印表头
-print("\033[93m{:<20} {:<20} {:<20} {:<20}\033[0m".format("测试项目", "测试状态", "测试项目", "测试状态"))  # 黄色
-# 打印表格内容
+# 创建Table对象
+table = Table(title="测试项目和状态")
+
+# 添加表头
+table.add_column("测试项目", style="cyan", no_wrap=True)
+table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
+table.add_column("测试项目", style="cyan", no_wrap=True)
+table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
+
 for i in range(0, len(print_output), 2):
-    item1, status1 = print_output[i]
-    item2, status2 = print_output[i+1] if i+1 < len(print_output) else ("", "")
-    print("{:<20} {:<20} {:<20} {:<20}".format(item1, status1, item2, status2))
+    row1 = print_output[i]
+    row2 = print_output[i+1] if i+1 < len(print_output) else ["", ""]
+    table.add_row(row1[0], row1[1], row2[0], row2[1])
+
+# 打印表格
+console.print(table)
 
 # 删除临时文件夹
 shutil.rmtree(destination_folder)
