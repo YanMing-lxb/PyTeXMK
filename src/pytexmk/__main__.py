@@ -23,7 +23,6 @@ Description  :
  -----------------------------------------------------------------------
 '''
 
-import os
 import argparse
 import datetime
 from .version import script_name, version
