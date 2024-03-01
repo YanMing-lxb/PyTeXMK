@@ -16,15 +16,15 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-02-29 19:53:25 +0800
+LastEditTime : 2024-03-01 11:44:56 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 
 import argparse
-from datetime import datetime
+import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import remove_aux, remove_result, move_result
@@ -88,7 +88,7 @@ def main():
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
-    start_time = datetime.now() # 计算开始时间
+    start_time = datetime.datetime.now() # 计算开始时间
 
     if args.xelatex:
         tex_name = "xelatex"
@@ -108,7 +108,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 统计编译时长
     # --------------------------------------------------------------------------------
-    end_time = datetime.now() # 计算开始时间
+    end_time = datetime.datetime.now() # 计算开始时间
     run_time = end_time - start_time
     hours, remainder = divmod(run_time.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
@@ -116,7 +116,12 @@ def main():
     print("\n" + "=" * 80)
     print(f"编译时长为：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)\n")
 
-
 if __name__ == "__main__":
 
     main()
+
+# 总时长
+# 调用程序时长
+# 其他操作时长
+# pytexmk运行时长
+# 运行规则数目

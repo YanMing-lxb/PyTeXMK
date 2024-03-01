@@ -16,14 +16,16 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-02-29 18:47:21 +0800
+LastEditTime : 2024-03-01 12:49:31 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
+FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 
 import os
+import time
+import datetime 
 import shutil
 # --------------------------------------------------------------------------------
 # 定义清除辅助文件命令
@@ -59,4 +61,19 @@ def move_result(file_name, build_path):
     for file in result_files:
         if os.path.exists(file):
             shutil.move(file, build_path)
+        else:
+            print(f'{file} 不存在！')
     print(f"移动结果文件到 {build_path}")
+
+def time_count(fun):
+    time_start = datetime.datetime.now()
+    fun_return = fun
+    time_end = datetime.datetime.now()
+    time_run = time_end - time_start
+
+    # hours, remainder = divmod(time_run.seconds, 3600)
+    # minutes, seconds = divmod(remainder, 60)
+    # milliseconds = time_run.microseconds // 1000  # 获取毫秒部分
+
+    print_time = f'{round(time_run.total_seconds(), 6)} s'
+    return time_run, print_time, fun_return
