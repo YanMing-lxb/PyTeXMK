@@ -16,13 +16,14 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 15:42:20 +0800
+LastEditTime : 2024-03-01 15:55:32 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 
+import os
 import argparse
 import datetime
 from .version import script_name, version
@@ -164,37 +165,3 @@ if __name__ == "__main__":
 # 其他操作时长
 # pytexmk运行时长
 # 运行规则数目
-    
-# import os
-
-# def compile():
-#     # 获取当前路径
-#     current_path = os.getcwd()
-    
-#     # 遍历当前路径下的所有文件
-#     tex_files = [file for file in os.listdir(current_path) if file.endswith('.tex')]
-    
-#     if tex_files:
-#         # 如果只有一个.tex文件，则直接提取文件名并打印
-#         if len(tex_files) == 1:
-#             filename = os.path.splitext(tex_files[0])[0]
-#             print("Found .tex file:", filename)
-#         else:
-#             # 如果存在多个.tex文件
-#             main_tex_file = 'main.tex'
-#             if main_tex_file in tex_files:
-#                 # 存在名为main.tex的文件，打印'main'
-#                 print("Found 'main.tex' file")
-#             else:
-#                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
-#                 print("Found multiple .tex files:")
-#                 for tex_file in tex_files:
-#                     filename = os.path.splitext(tex_file)[0]
-#                     print(filename)
-#     else:
-#         # 不存在.tex文件，打印当前路径并提示
-#         print("No .tex files found in the current directory:", current_path)
-#         return
-
-# # 调用compile函数
-# compile()
