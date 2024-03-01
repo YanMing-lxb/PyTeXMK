@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-01 20:43:13 +0800
+LastEditTime : 2024-03-01 23:50:41 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -72,18 +72,6 @@ def move_result(file_name, build_path):
     print(f"移动结果文件到 {build_path}")
 
 # --------------------------------------------------------------------------------
-# 定义时间统计函数
-# --------------------------------------------------------------------------------
-def time_count(fun, *args):
-    time_start = datetime.datetime.now()
-    fun_return = fun(*args)
-    time_end = datetime.datetime.now()
-    time_run = time_end - time_start
-
-    print_time = f'{round(time_run.total_seconds(), 6)} s'
-    return time_run, print_time, fun_return
-
-# --------------------------------------------------------------------------------
 # 定义输入检查函数
 # --------------------------------------------------------------------------------
 def check_file_name(file_name):
@@ -134,3 +122,15 @@ def search_file():
         print("在当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
 
     return tex_name
+
+# --------------------------------------------------------------------------------
+# 定义时间统计函数
+# --------------------------------------------------------------------------------
+def time_count(fun, *args):
+    time_start = datetime.datetime.now()
+    fun_return = fun(*args)
+    time_end = datetime.datetime.now()
+    time_run = time_end - time_start
+
+    time_run = round(time_run.total_seconds(), 4)
+    return time_run, fun_return

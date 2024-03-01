@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 
 script_name = 'pytexmk'
-version = '0.1.9.240301'
+version = '0.2.0.240302'

@@ -16,13 +16,16 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 20:44:50 +0800
+LastEditTime : 2024-03-02 01:11:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
-
+from rich import print
+from rich.console import Console
+from rich.table import Table
+from rich import box
 import argparse
 import datetime
 from .version import script_name, version
@@ -34,17 +37,15 @@ from .additional_operation import remove_aux, remove_result, move_result, time_c
 # ================================================================================
 def compile(tex_name, file_name, quiet, build_path):
     name_target_list = []
-    time_com_list = []
-    print_time_list = []
+    time_run_list = []
 
-    time_com_remove_aux, print_time_remove_aux, _ = time_count(remove_aux, file_name) # 清除已有辅助文件
+    time_run_remove_aux, _ = time_count(remove_aux, file_name) # 清除已有辅助文件
     name_target_list.append("清除辅助文件")
-    time_com_list.append(time_com_remove_aux)
-    print_time_list.append(print_time_remove_aux)
+    time_run_list.append(time_run_remove_aux)
 
-    time_com_tex, print_time_com_tex, _ = time_count(compile_tex, tex_name, file_name, 1, quiet) # 首次编译 tex 文档
-    time_com_bib, print_time_com_bib, return_com_bib = time_count(compile_bib, file_name, quiet) # 编译参考文献
-    time_com_index, print_time_com_index, return_com_index = time_count(compile_index, file_name) # 编译目录索引
+    time_run_tex, _ = time_count(compile_tex, tex_name, file_name, 1, quiet) # 首次编译 tex 文档
+    time_run_bib, return_com_bib = time_count(compile_bib, file_name, quiet) # 编译参考文献
+    time_run_index, return_com_index = time_count(compile_index, file_name) # 编译目录索引
     
     times_compile_tex_bib, print_bib, name_target_bib = return_com_bib # 获取 compile_bib 函数得到的参数
     times_compile_tex_index, print_index, name_target_index = return_com_index # 获取 compile_index 函数得到的参数
@@ -52,28 +53,23 @@ def compile(tex_name, file_name, quiet, build_path):
 
     # 将获取到的编译项目名称 添加到对应的列表中
     name_target_list.append(f'{tex_name} 1')
-    time_com_list.append(time_com_tex)
-    print_time_list.append(print_time_com_tex)
+    time_run_list.append(time_run_tex)
     if times_compile_tex_bib != 0: # 存在参考文献编译过程
         name_target_list.append(name_target_bib)
-        time_com_list.append(time_com_bib)
-        print_time_list.append(print_time_com_bib)
+        time_run_list.append(time_run_bib)
     if times_compile_tex_index != 0: # 存在目录索引编译过程
         name_target_list.append(name_target_index)
-        time_com_list.append(time_com_index)
-        print_time_list.append(print_time_com_index)
+        time_run_list.append(time_run_index)
 
     for i in range(times_extra_complie): # 进行额外编译 tex
-        time_com_tex, print_time_com_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
+        time_run_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
         name_target_list.append(f'{tex_name} {i+2}')
-        time_com_list.append(time_com_tex)
-        print_time_list.append(print_time_com_tex)
+        time_run_list.append(time_run_tex)
 
     if tex_name == "xelatex":  # 判断是否编译 xdv 文件
-        time_com_xdv, print_time_com_xdv, _ = time_count(compile_xdv, file_name) # 编译 xdv 文件
+        time_run_xdv, _ = time_count(compile_xdv, file_name) # 编译 xdv 文件
         name_target_list.append('xdvipdfmx')
-        time_com_list.append(time_com_xdv)
-        print_time_list.append(print_time_com_xdv)
+        time_run_list.append(time_run_xdv)
 
     print("\n\n" + "=" * 80 + "\n" +
           "▓" * 33 + " 完成所有编译 " + "▓" * 33 + "\n" +
@@ -85,19 +81,17 @@ def compile(tex_name, file_name, quiet, build_path):
           "X" * 26 + " 开始执行编译以外的附加命令！" + "X" * 25 + "\n" +
           "=" * 80 + "\n")
     
-    time_com_remove_res, print_time_remove_res, _ = time_count(remove_result, build_path) # 清除已有结果文件
+    time_run_remove_res, _ = time_count(remove_result, build_path) # 清除已有结果文件
     name_target_list.append("清除旧结果文件")
-    time_com_list.append(time_com_remove_res)
-    print_time_list.append(print_time_remove_res)
-    time_com_move_res, print_time_move_res, _ = time_count(move_result, file_name, build_path) # 移动生成结果文件
+    time_run_list.append(time_run_remove_res)
+    time_run_move_res, _ = time_count(move_result, file_name, build_path) # 移动生成结果文件
     name_target_list.append("移动结果文件")
-    time_com_list.append(time_com_move_res)
-    print_time_list.append(print_time_move_res)
-    time_com_remove_aux, print_time_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
+    time_run_list.append(time_run_move_res)
+    time_run_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
     name_target_list.append("清除辅助文件")
-    time_com_list.append(time_com_remove_aux)
-    print_time_list.append(print_time_remove_aux)
+    time_run_list.append(time_run_remove_aux)
 
+    return name_target_list, time_run_list
 
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
@@ -105,6 +99,8 @@ def main():
     build_path = "./Build/"
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 
+    start_time = datetime.datetime.now() # 计算开始时间
+    
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
@@ -118,8 +114,6 @@ def main():
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
-
-    start_time = datetime.datetime.now() # 计算开始时间
 
     if args.xelatex:
         tex_name = "xelatex"
@@ -140,19 +134,72 @@ def main():
             remove_aux(file_name)
             remove_result(build_path)
         else:
-            compile(tex_name, file_name, not args.no_quiet, build_path)
+            name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
 
     # --------------------------------------------------------------------------------
     # 统计编译时长
     # --------------------------------------------------------------------------------
-    end_time = datetime.datetime.now() # 计算开始时间
+            
+    end_time = datetime.datetime.now() # 计算结束时间
     run_time = end_time - start_time
     hours, remainder = divmod(run_time.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
-    print("\n" + "=" * 80)
-    print(f"编译时长为：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)\n")
 
+    number_programmes_run = len(name_target_list)
+    
+    time_compile = sum(time_run_list)
+    name_target_list.append('总编译时长')
+    time_run_list.append(time_compile)
+
+    time_other_operating = float(run_time.total_seconds()) - time_compile
+    name_target_list.append('其他操作时长')
+    time_run_list.append(time_other_operating)
+
+    time_pytexmk = float(run_time.total_seconds())
+    name_target_list.append('PyTeXMK 运行时长')
+    time_run_list.append(time_pytexmk)
+
+    console = Console() # 创建控制台对象
+
+    # 创建表格对象
+    table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
+                  title="PyTeXMK 运行时长统计表")
+
+    # 定义列名
+    table.add_column("序号", justify="center", no_wrap=True)
+    table.add_column("运行项目", style="cyan", justify="left", no_wrap=True)
+    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
+    table.add_column("序号", justify="center", no_wrap=True)
+    table.add_column("运行项目", style="cyan", justify="left")
+    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
+
+    # 添加数据到表格
+    
+    length = len(name_target_list)/2
+    row_num = None
+
+    if length - int(length) < 0.5:
+        row_num = int(length)
+    else:
+        row_num = int(length) + 1
+
+    for i in range(row_num):
+        table.add_row(
+            str(i+1),
+            name_target_list[i],
+            "{:.4f} s".format(time_run_list[i]),
+            str(i+1+row_num) if i+row_num < len(name_target_list) else "",
+            name_target_list[i+row_num] if i+row_num < len(name_target_list) else "",
+            "{:.4f} s".format(time_run_list[i+row_num]) if i++row_num < len(name_target_list) else ""  
+        )
+
+    print("\n" + "=" * 80 + "\n")
+    console.print(table) # 打印表格
+
+    print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
+    print(f"运行函数：{number_programmes_run} 个\n")
+    
 if __name__ == "__main__":
 
     main()
