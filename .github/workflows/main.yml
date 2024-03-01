@@ -1,9 +1,9 @@
-name: Build
+# name: Build
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
 # jobs:
 #   build:
@@ -17,42 +17,17 @@ on:
 #       uses: actions/setup-python@v2
 #       with:
 #         python-version: '3.11'  # Specify the Python version you want to use
-  
       
-#     - name: Check if TeX Live is installed
-#       id: texlive-check
-#       run: |
-#         if ! command -v pdflatex &> /dev/null; then
-#           echo "TeX Live not found, installing..."
-#           sudo apt-get update
-#           sudo apt-get install -y texlive-full
-#           echo "TeX Live installed successfully."
-#         else
-#           echo "TeX Live is already installed."
-#         fi
-    
 #     - name: Install dependencies
 #       run: |
 #         python -m pip install --upgrade pip
 #         pip install rich
     
+#     - name: Install TeX Live
+#       run: |
+#         sudo apt-get update
+#         sudo apt-get install -y texlive-full
+
 #     - name: Run tests
 #       run: |
 #         python tests/test.py
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Set up TeX Live
-      uses: xu-cheng/texlive-action@v2
-      with:
-        scheme: full
-        run: |
-            python -m pip install --upgrade pip
-            pip install rich
-            python tests/test.py
