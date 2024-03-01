@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-01 16:11:51 +0800
+LastEditTime : 2024-03-01 16:56:51 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -98,9 +98,27 @@ def search_tex():
                 print("编译 'main.tex' 文件")
             else:
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
+                tex_name = None
                 print("存在多个 .tex 文件，请添加 main.tex 文件或终端输入：pytexmk <主文件名> 名进行编译")
     else:
         # 不存在.tex文件，打印当前路径并提示
+        tex_name = None
         print("在当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
     
     return tex_name
+
+def check_tex_extension(file_name):
+    base_name, file_extension = os.path.splitext(os.path.basename(file_name)) # 去掉路径，提取文件名和后缀
+    if file_extension == '.tex': # 判断后缀是否是 .tex
+        file_name_return = base_name
+    elif '.' not in file_name: # 判断输入 file_name 中没有 后缀
+        if '/' in file_name or '\\' in file_name: # 判断是否是没有后缀的路径
+            file_name_return = None
+            print("错误：文件路径无效")
+        else:
+            file_name_return = file_name
+    else:
+        file_name_return = None
+        print("提示：文件后缀不是.tex")
+    
+    return file_name_return

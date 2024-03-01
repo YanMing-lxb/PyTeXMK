@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 15:55:32 +0800
+LastEditTime : 2024-03-01 16:55:00 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -28,7 +28,7 @@ import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result, time_count
+from .additional_operation import remove_aux, remove_result, move_result, time_count, search_tex, check_tex_extension
 # # 获取当前目录中所有以 .tex 结尾的文件列表
 # files = [f for f in os.listdir() if f.endswith('.tex')]
 
@@ -143,7 +143,12 @@ def main():
         remove_aux(file_name)
         remove_result(build_path)
     else:
-        compile(tex_name, args.document if args.document else file_name, not args.no_quiet, build_path)
+        if args.document: # 指定 latex 文件
+            file_name = check_tex_extension(args.document) # 检查 args.document 参数输入的文件名是否正确
+        else: # 未指定 latex 文件
+            file_name = search_tex() # 运行 search_tex 函数判断
+            if file_name: # 如果存在 file_name
+                compile(tex_name, file_name, not args.no_quiet, build_path)
 
     # --------------------------------------------------------------------------------
     # 统计编译时长
