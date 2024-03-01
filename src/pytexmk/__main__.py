@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 11:44:56 +0800
+LastEditTime : 2024-03-01 15:28:38 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -27,7 +27,7 @@ import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result
+from .additional_operation import remove_aux, remove_result, move_result, time_count
 # # 获取当前目录中所有以 .tex 结尾的文件列表
 # files = [f for f in os.listdir() if f.endswith('.tex')]
 
@@ -40,31 +40,70 @@ from .additional_operation import remove_aux, remove_result, move_result
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
 def compile(tex_name, file_name, quiet, build_path):
-    remove_aux(file_name) # 清除旧辅助文件
+    name_target_list = []
+    time_com_list = []
+    print_time_list = []
 
-    compile_tex(tex_name, file_name, 1, quiet) # 首次编译 tex 文档
-    bib_compile_return = compile_bib(file_name, quiet) # 编译参考文献
-    index_compile_return = compile_index(file_name) # 编译索引
+    time_com_remove_aux, print_time_remove_aux, _ = time_count(remove_aux, file_name) # 清除已有辅助文件
+    name_target_list.append("清除辅助文件")
+    time_com_list.append(time_com_remove_aux)
+    print_time_list.append(print_time_remove_aux)
 
-    extra_complie_times = max(bib_compile_return[0], index_compile_return[0]) # 额外编译 tex 文档
-    for time in range(extra_complie_times):
-        compile_tex(tex_name, file_name, time + 2, quiet)
+    time_com_tex, print_time_com_tex, _ = time_count(compile_tex, tex_name, file_name, 1, quiet) # 首次编译 tex 文档
+    time_com_bib, print_time_com_bib, return_com_bib = time_count(compile_bib, file_name, quiet) # 编译参考文献
+    time_com_index, print_time_com_index, return_com_index = time_count(compile_index, file_name) # 编译目录索引
+    
+    times_compile_tex_bib, print_bib, name_target_bib = return_com_bib # 获取 compile_bib 函数得到的参数
+    times_compile_tex_index, print_index, name_target_index = return_com_index # 获取 compile_index 函数得到的参数
+    times_extra_complie = max(times_compile_tex_bib, times_compile_tex_index) # 计算额外编译 tex 文档次数
 
-    compile_xdv(tex_name, file_name) # 编译 xdv 文件
+    # 将获取到的编译项目名称 添加到对应的列表中
+    name_target_list.append(f'{tex_name} 1')
+    time_com_list.append(time_com_tex)
+    print_time_list.append(print_time_com_tex)
+    if times_compile_tex_bib != 0: # 存在参考文献编译过程
+        name_target_list.append(name_target_bib)
+        time_com_list.append(time_com_bib)
+        print_time_list.append(print_time_com_bib)
+    if times_compile_tex_index != 0: # 存在目录索引编译过程
+        name_target_list.append(name_target_index)
+        time_com_list.append(time_com_index)
+        print_time_list.append(print_time_com_index)
+
+    for i in range(times_extra_complie): # 进行额外编译 tex
+        time_com_tex, print_time_com_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
+        name_target_list.append(f'{tex_name} {i+2}')
+        time_com_list.append(time_com_tex)
+        print_time_list.append(print_time_com_tex)
+
+    if tex_name == "xelatex":  # 判断是否编译 xdv 文件
+        time_com_xdv, print_time_com_xdv, _ = time_count(compile_xdv, file_name) # 编译 xdv 文件
+        name_target_list.append('xdvipdfmx')
+        time_com_list.append(time_com_xdv)
+        print_time_list.append(print_time_com_xdv)
 
     print("\n\n" + "=" * 80 + "\n" +
           "▓" * 33 + " 完成所有编译 " + "▓" * 33 + "\n" +
           "=" * 80 + "\n")
-    print(f"文档整体：{tex_name} 编译 {extra_complie_times+1} 次")
-    print(f"参考文献：{bib_compile_return[1]}")
-    print(f"目录索引：{index_compile_return[1]}")
+    print(f"文档整体：{tex_name} 编译 {times_extra_complie+1} 次")
+    print(f"参考文献：{print_bib}")
+    print(f"目录索引：{print_index}")
     print("\n" + "=" * 80 + "\n" +
           "X" * 26 + " 开始执行编译以外的附加命令！" + "X" * 25 + "\n" +
           "=" * 80 + "\n")
     
-    remove_result(build_path)
-    move_result(file_name, build_path)
-    remove_aux(file_name)
+    time_com_remove_res, print_time_remove_res, _ = time_count(remove_result, build_path) # 清除已有结果文件
+    name_target_list.append("清除旧结果文件")
+    time_com_list.append(time_com_remove_res)
+    print_time_list.append(print_time_remove_res)
+    time_com_move_res, print_time_move_res, _ = time_count(move_result, file_name, build_path) # 移动生成结果文件
+    name_target_list.append("移动结果文件")
+    time_com_list.append(time_com_move_res)
+    print_time_list.append(print_time_move_res)
+    time_com_remove_aux, print_time_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
+    name_target_list.append("清除辅助文件")
+    time_com_list.append(time_com_remove_aux)
+    print_time_list.append(print_time_remove_aux)
 
 
 def main():

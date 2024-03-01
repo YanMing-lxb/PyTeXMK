@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-01 12:50:42 +0800
+LastEditTime : 2024-03-01 15:03:21 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -64,9 +64,9 @@ def move_result(file_name, build_path):
             print(f'{file} 不存在！')
     print(f"移动结果文件到 {build_path}")
 
-def time_count(fun):
+def time_count(fun, *args):
     time_start = datetime.datetime.now()
-    fun_return = fun
+    fun_return = fun(*args)
     time_end = datetime.datetime.now()
     time_run = time_end - time_start
 
