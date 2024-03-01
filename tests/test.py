@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 14:16:25 +0800
-LastEditTime : 2024-03-01 19:50:47 +0800
+LastEditTime : 2024-03-02 01:40:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/tests/test.py
 Description  : 
@@ -120,6 +120,7 @@ for i in range(len(command)):
     except Exception as e:
         print_output.append([i, "[red]未通过"])  # 红色
 
+# subprocess.run(['python3', '__main__.py', '-C'], cwd=destination_folder)
 # 创建Console对象
 console = Console()
 
