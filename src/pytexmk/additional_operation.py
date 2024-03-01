@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-01 12:49:31 +0800
+LastEditTime : 2024-03-01 12:50:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -24,7 +24,6 @@ Description  :
 '''
 
 import os
-import time
 import datetime 
 import shutil
 # --------------------------------------------------------------------------------
@@ -70,10 +69,6 @@ def time_count(fun):
     fun_return = fun
     time_end = datetime.datetime.now()
     time_run = time_end - time_start
-
-    # hours, remainder = divmod(time_run.seconds, 3600)
-    # minutes, seconds = divmod(remainder, 60)
-    # milliseconds = time_run.microseconds // 1000  # 获取毫秒部分
 
     print_time = f'{round(time_run.total_seconds(), 6)} s'
     return time_run, print_time, fun_return
