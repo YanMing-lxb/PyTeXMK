@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-01 15:40:41 +0800
+LastEditTime : 2024-03-01 18:36:18 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
+FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -71,9 +71,10 @@ def compile_bib(file_name, quiet):
                 name_target = "bibtex"
                 print_bib = "bibtex 编译参考文献"
         else:
-            bib_compile_tex_times = 0
+            compile_tex_times = 0
             name_target = None
             print_bib = "没有参考文献或编译工具不属于 bibtex 或 biber "
+        print(print_bib)
     except FileNotFoundError:
         compile_tex_times = 0
         name_target = None

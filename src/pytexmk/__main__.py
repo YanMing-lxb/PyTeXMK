@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-01 17:05:53 +0800
+LastEditTime : 2024-03-01 18:21:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -135,17 +135,18 @@ def main():
     if args.lualatex:
         tex_name = "lualatex"
 
-    if args.clean:
-        remove_aux(file_name)
-    elif args.Clean:
-        remove_aux(file_name)
-        remove_result(build_path)
-    else:
-        if args.document: # 指定 latex 文件
-            file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
-        else: # 未指定 latex 文件
-            file_name = search_file() # 运行 search_file 函数判断
-        if file_name: # 如果存在 file_name
+    if args.document: # 指定 latex 文件
+        file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
+    else: # 未指定 latex 文件
+        file_name = search_file() # 运行 search_file 函数判断
+
+    if file_name: # 如果存在 file_name
+        if args.clean:
+            remove_aux(file_name)
+        elif args.Clean:
+            remove_aux(file_name)
+            remove_result(build_path)
+        else:
             compile(tex_name, file_name, not args.no_quiet, build_path)
 
     # --------------------------------------------------------------------------------

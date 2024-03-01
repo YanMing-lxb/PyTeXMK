@@ -1,3 +1,28 @@
+'''
+ =======================================================================
+ ····Y88b···d88P················888b·····d888·d8b·······················
+ ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ ······Y88o88P··················88888b·d88888···························
+ ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ ·······························································888·····
+ ··························································Y8b·d88P·····
+ ···························································"Y88P"······
+ =======================================================================
+
+ -----------------------------------------------------------------------
+Author       : 焱铭
+Date         : 2024-02-29 14:16:25 +0800
+LastEditTime : 2024-03-01 18:35:52 +0800
+Github       : https://github.com/YanMing-lxb/
+FilePath     : /PyTeXMK/tests/test.py
+Description  : 
+ -----------------------------------------------------------------------
+'''
+
 import os
 import shutil
 import subprocess
@@ -58,8 +83,11 @@ print_output = []
 # 测试 biblatex, bibtex, 图目录表目录目录, 目录, glossaries, nomencl
 for i in range(len(test_files)):
     try:
-        subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
-        print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+        result = subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
+        if result.returncode == 0:
+            print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+        else:
+            print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
     except Exception as e:
         print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
 
@@ -68,13 +96,20 @@ for i in command:
         if i == "-c" and "-C":
             subprocess.run(['xelatex', 'main'], cwd=destination_folder)
         subprocess.run(['python3', '__main__.py', i], cwd=destination_folder)
-        print_output.append([i, "\033[92m通过\033[0m"])  # 绿色
+        if result.returncode == 0:
+            print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+        else:
+            print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
     except Exception as e:
         print_output.append([i, "\033[91m未通过\033[0m"])  # 红色
 
 try:
     subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
     print_output.append(["-nq", "\033[92m通过\033[0m"])  # 绿色
+    if result.returncode == 0:
+        print_output.append([test_file_type[i], "\033[92m通过\033[0m"])  # 绿色
+    else:
+        print_output.append([test_file_type[i], "\033[91m未通过\033[0m"])  # 红色
 except Exception as e:
     print_output.append(["-nq", "\033[91m未通过\033[0m"])  # 红色
 
