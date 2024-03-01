@@ -23,8 +23,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install rich
 
-    - name: Set up Git repository
-      uses: actions/checkout@v3
+    - name: Set up LaTeX
+      uses: xu-cheng/latex-action@v2
+      
     # - name: Install TeX Live
     #   run: |
     #     sudo apt-get update
