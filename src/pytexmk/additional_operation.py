@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-01 18:02:23 +0800
+LastEditTime : 2024-03-01 20:43:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -53,8 +53,6 @@ def remove_aux(file_name):
 # --------------------------------------------------------------------------------
 # 定义清除已有结果文件
 # --------------------------------------------------------------------------------
-
-
 def remove_result(build_path):
     if os.path.exists(build_path):
         shutil.rmtree(build_path)  # 删除整个文件夹

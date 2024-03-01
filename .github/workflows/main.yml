@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: LaTeX
+    - name: latex
     - uses: xu-cheng/texlive-action@v2
       with:
           scheme: full
