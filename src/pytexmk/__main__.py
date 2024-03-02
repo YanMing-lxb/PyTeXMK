@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-02 10:54:37 +0800
+LastEditTime : 2024-03-02 11:07:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -48,7 +48,7 @@ def compile(tex_name, file_name, quiet, build_path):
     times_extra_complie = max(times_compile_tex_bib, times_compile_tex_index) # 计算额外编译 tex 文档次数
 
     # 将获取到的编译项目名称 添加到对应的列表中
-    name_target_list.append(f'{tex_name} 1')
+    name_target_list.append(f'{tex_name} 1 次')
     time_run_list.append(time_run_tex)
     if times_compile_tex_bib != 0: # 存在参考文献编译过程
         name_target_list.append(name_target_bib)
@@ -59,7 +59,7 @@ def compile(tex_name, file_name, quiet, build_path):
 
     for i in range(times_extra_complie): # 进行额外编译 tex
         time_run_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
-        name_target_list.append(f'{tex_name} {i+2}')
+        name_target_list.append(f'{tex_name} {i+2} 次')
         time_run_list.append(time_run_tex)
 
     if tex_name == "xelatex":  # 判断是否编译 xdv 文件
