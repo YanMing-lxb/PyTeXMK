@@ -17,8 +17,10 @@ jobs:
         with:
           scheme: full
           run: |
-            apk update
+            python3.11 -m venv venv3.11
+            source venv3.11/bin/activate
             apk add py3-pip
             pip install rich
             python3 --version
             python3 tests/test.py
+            deactivate
