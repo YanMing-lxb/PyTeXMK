@@ -3,7 +3,8 @@ name: test pytemk
 on:
   push:
     branches: [ main ]
-
+  repository_dispatch:
+      types: [manual-trigger]
 jobs:
   build:
     runs-on: ubuntu-latest
