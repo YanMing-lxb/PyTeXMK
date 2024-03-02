@@ -32,6 +32,7 @@ on:
 #       run: |
 #         python tests/test.py
 
+on: [push]
 jobs:
   build_latex:
     runs-on: ubuntu-latest
@@ -43,5 +44,7 @@ jobs:
           run: |
             apk add make python3 py3-pip  # Add Python 3.11 and pip
             python3 -m pip install --upgrade pip  # Upgrade pip
+            python3 -m venv venv  # Create a virtual environment
+            source venv/bin/activate  # Activate the virtual environment
             pip install rich  # Install rich library
             python3 tests/test.py  # Run tests using Python 3
