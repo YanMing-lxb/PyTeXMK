@@ -18,7 +18,7 @@ jobs:
           scheme: full
           run: |
             apk update
-            apk add python3 py3-pip
+            apk add py3-pip
             pip install rich
             python3 --version
             python3 tests/test.py
