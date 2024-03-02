@@ -16,21 +16,17 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-02 01:49:53 +0800
+LastEditTime : 2024-03-02 10:54:37 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
-from rich import print
-from rich.console import Console
-from rich.table import Table
-from rich import box
 import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result, time_count, search_file, check_file_name
+from .additional_operation import remove_aux, remove_result, move_result, time_count, search_file, check_file_name, time_print
 
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -135,77 +131,8 @@ def main():
             remove_result(build_path)
         else:
             name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
+            time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
 
-    # --------------------------------------------------------------------------------
-    # 统计编译时长
-    # --------------------------------------------------------------------------------
-    if not args.clean and not args.Clean and not file_name:    
-        end_time = datetime.datetime.now() # 计算结束时间
-        run_time = end_time - start_time
-        hours, remainder = divmod(run_time.seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
-
-        number_programmes_run = len(name_target_list)
-        
-        time_compile = sum(time_run_list)
-        name_target_list.append('总编译时长')
-        time_run_list.append(time_compile)
-
-        time_other_operating = float(run_time.total_seconds()) - time_compile
-        name_target_list.append('其他操作时长')
-        time_run_list.append(time_other_operating)
-
-        time_pytexmk = float(run_time.total_seconds())
-        name_target_list.append('PyTeXMK 运行时长')
-        time_run_list.append(time_pytexmk)
-
-        console = Console() # 创建控制台对象
-
-        # 创建表格对象
-        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
-                    title="PyTeXMK 运行时长统计表")
-
-        # 定义列名
-        table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column("运行项目", style="cyan", justify="left", no_wrap=True)
-        table.add_column("运行时长", style="green", justify="left", no_wrap=True)
-        table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column("运行项目", style="cyan", justify="left")
-        table.add_column("运行时长", style="green", justify="left", no_wrap=True)
-
-        # 添加数据到表格
-        
-        length = len(name_target_list)/2
-        row_num = None
-
-        if length - int(length) < 0.5:
-            row_num = int(length)
-        else:
-            row_num = int(length) + 1
-
-        for i in range(row_num):
-            table.add_row(
-                str(i+1),
-                name_target_list[i],
-                "{:.4f} s".format(time_run_list[i]),
-                str(i+1+row_num) if i+row_num < len(name_target_list) else "",
-                name_target_list[i+row_num] if i+row_num < len(name_target_list) else "",
-                "{:.4f} s".format(time_run_list[i+row_num]) if i++row_num < len(name_target_list) else ""  
-            )
-
-        print("\n" + "=" * 80 + "\n")
-        console.print(table) # 打印表格
-
-        print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
-        print(f"运行函数：{number_programmes_run} 个\n")
-    
 if __name__ == "__main__":
 
     main()
-
-# 总时长
-# 调用程序时长
-# 其他操作时长
-# pytexmk运行时长
-# 运行规则数目
