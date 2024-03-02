@@ -1,0 +1,21 @@
+name: test pytemk
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+      - name: use texlive-action
+      - uses: xu-cheng/texlive-action@v2
+        with:
+            scheme: full
+            run: |
+              apk update
+              apk add python3 py3-pip
+              python3 --version
+              
