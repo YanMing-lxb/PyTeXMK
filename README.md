@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-02 20:00:32 +0800
+ * LastEditTime : 2024-03-02 20:07:25 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -49,7 +49,7 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认使用 `xelatex` 编译，默认主文件名为 main，默认 batch 模式编译，编译过程信息不显示（如需显示编译过程信息请使用 `-nq` 参数），默认将编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得latex workshop 能够找到pdf )。
+PyTeXMK 默认使用 `xelatex` 编译，默认主文件名为 main（如果不是 main 就在 `pytexmk` 命令后添加文件名），默认 batch 模式编译，编译过程信息不显示（如需显示编译过程信息请使用 `-nq` 参数），默认将编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得latex workshop 能够找到pdf )。
 
 在终端打开 LaTeX 项目所在文件夹，输入 `pytexmk` 即可使用默认参数进行编译，编译结果默认存放在 LaTeX 项目的 Build 文件夹下。
 
