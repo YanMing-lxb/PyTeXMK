@@ -5,18 +5,18 @@ on:
     branches: [ main ]
   repository_dispatch:
       types: [manual-trigger]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
-      - name: use texlive-action
-      - uses: xu-cheng/texlive-action@v2
+      - name: Use texlive-action
+        uses: xu-cheng/texlive-action@v2
         with:
-            scheme: full
-            run: |
-              apk update
-              apk add python3 py3-pip
-              python3 --version
-              
+          scheme: full
+          run: |
+            apk update
+            apk add python3 py3-pip
+            python3 --version
