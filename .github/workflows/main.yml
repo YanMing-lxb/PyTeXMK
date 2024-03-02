@@ -17,10 +17,22 @@ jobs:
         with:
           scheme: full
           run: |
+            python3.10 -m venv venv3.10
+            source venv3.10/bin/activate
+            apk add py3-pip
+            pip install rich
+            python3 --version
+            python3 tests/test.py
+            echo "Python 3.10 Test Results:"
+            cat test_results.txt  # Assuming your test script writes results to a file
+            deactivate
+
             python3.11 -m venv venv3.11
             source venv3.11/bin/activate
             apk add py3-pip
             pip install rich
             python3 --version
             python3 tests/test.py
+            echo "Python 3.11 Test Results:"
+            cat test_results.txt  # Assuming your test script writes results to a file
             deactivate
