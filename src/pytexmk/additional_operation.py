@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-02 10:58:49 +0800
+LastEditTime : 2024-03-02 21:53:05 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -108,24 +108,24 @@ def search_file():
     if tex_files:
         # 如果只有一个.tex文件，则直接提取文件名并打印
         if len(tex_files) == 1:
-            tex_name = os.path.splitext(tex_files[0])[0]
-            print(f"编译 {tex_name}.tex 文件:")
+            file_name = os.path.splitext(tex_files[0])[0]
+            print(f"编译 {file_name}.tex 文件:")
         else:
             # 如果存在多个.tex文件
             if 'main.tex' in tex_files:
                 # 存在名为main.tex的文件，打印'main'
-                tex_name = 'main'
+                file_name = 'main'
                 print("编译 'main.tex' 文件")
             else:
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
-                tex_name = None
+                file_name = None
                 print("存在多个 .tex 文件，请添加 main.tex 文件或终端输入：pytexmk <主文件名> 名进行编译")
     else:
         # 不存在.tex文件，打印当前路径并提示
-        tex_name = None
+        file_name = None
         print("在当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
 
-    return tex_name
+    return file_name
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
