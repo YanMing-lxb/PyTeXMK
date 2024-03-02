@@ -32,7 +32,7 @@ on:
 #       run: |
 #         python tests/test.py
 
-on: [push]
+
 jobs:
   build_latex:
     runs-on: ubuntu-latest
