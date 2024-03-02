@@ -1,6 +1,6 @@
 [project]
 name = "pytexmk"
-version = "0.2.6.240302"
+version = "0.2.7.240302"
 authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
