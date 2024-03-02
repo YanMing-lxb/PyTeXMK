@@ -1,4 +1,4 @@
-name: test pytemk
+name: Build
 
 on:
   push:
