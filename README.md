@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-02 20:20:14 +0800
+ * LastEditTime : 2024-03-02 20:57:36 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -38,7 +38,7 @@ LaTeX 辅助编译命令行程序 LaTeX Auxiliary Compilation Command Line Tool
 请注意，您必须使用 Python 3 版本pip：
 
 ```
-pip3 install you-get
+pip3 install pytexmk
 ```
 
 ## 升级
