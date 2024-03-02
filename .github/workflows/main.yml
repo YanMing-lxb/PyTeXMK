@@ -20,3 +20,4 @@ jobs:
             apk update
             apk add python3 py3-pip
             python3 --version
+            python3 tests/test.py
