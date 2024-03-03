@@ -4,12 +4,17 @@ on:
   push:
     branches: [ main ]
   repository_dispatch:
+      types: [manual-trigger]
+
+on:
+  push:
+    branches: [ main ]
+  repository_dispatch:
     types: [manual-trigger]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
@@ -19,42 +24,19 @@ jobs:
         with:
           scheme: full
         run: echo "texlive have been activated"
-
-      - name: Prepare python3 environment
-        run: |
-          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
-            python3.11 -m venv venv3.11
-            source venv3.11/bin/activate
-          '
-          
+      
+      - name: Build python3 environment
+        run: docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c 'python3.11 -m venv venv3.11'
+      
       - name: Install pip and dependencies
-        run: |
-          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
-            source venv3.11/bin/activate
-            apt-get update
-            apt-get install -y python3-pip
-            pip install rich build setuptools
-          '
-
+        run: docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c 'source venv3.11/bin/activate && apt-get update && apt-get install -y python3-pip && pip install rich build setuptools'
+      
       - name: Check python version
-        run: |
-          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
-            source venv3.11/bin/activate
-            python3 --version
-          '
-
+        run: docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c 'source venv3.11/bin/activate && python3 --version'
+      
       - name: Test source code   
-        run: |
-          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
-            source venv3.11/bin/activate
-            make test
-          '
-
+        run: docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c 'source venv3.11/bin/activate && make test'
+      
       - name: Testing the constructed wheel
-        run: |
-          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
-            source venv3.11/bin/activate
-            make testwhl
-            deactivate
-          '
+        run: docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c 'source venv3.11/bin/activate && make testwhl && deactivate'
 
