@@ -16,12 +16,13 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-03 15:16:18 +0800
+LastEditTime : 2024-03-03 15:37:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
+# -*- coding: utf-8 -*-
 import argparse
 import datetime
 from .version import script_name, version

@@ -22,7 +22,7 @@ FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
-
+# -*- coding: utf-8 -*-
 import os
 import shutil
 from rich import print

@@ -16,12 +16,13 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-03 11:55:33 +0800
+LastEditTime : 2024-03-03 15:37:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
+# -*- coding: utf-8 -*-
 import datetime
 from rich.console import Console
 from rich.table import Table

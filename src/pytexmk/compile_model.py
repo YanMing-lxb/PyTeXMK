@@ -22,7 +22,7 @@ FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
-
+# -*- coding: utf-8 -*-
 import os
 import re
 import subprocess
