@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 15:22:18 +0800
+LastEditTime : 2024-03-03 19:25:10 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
+FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -70,7 +70,7 @@ def remove_result_in_root(file_name):
             except FileNotFoundError:
                 print(f"{file} 未能删除！")
         else:
-            print(f"根目录下不存在 {file}！")
+            print(f"根目录下不存在 {file}")
 
 # --------------------------------------------------------------------------------
 # 定义移动生成文件
@@ -81,7 +81,7 @@ def move_result(file_name, build_path):
     for file in result_files:
         if os.path.exists(file):
             shutil.move(file, build_path)
-            print(f"{file} 移动到 {build_path}！")
+            print(f"{file} 移动到 {build_path}")
         else:
             print(f'{file} 不存在！')
 
@@ -101,7 +101,7 @@ def check_file_name(file_name):
             file_name_return = file_name
     else:
         file_name_return = None
-        print("提示：文件后缀不是.tex！")
+        print("提示：文件后缀不是.tex")
 
     return file_name_return
 
