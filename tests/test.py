@@ -33,68 +33,109 @@ def file_modify(destination_folder):
     with open(f"{destination_folder}/__main__.py", "w") as file:
         file.write(updated_content)
 
+# --------------------------------------------------------------------------------
 # 测试函数
+# --------------------------------------------------------------------------------
 def test(test_files, test_file_type, command, destination_folder):
     # 存储所有要打印的内容
     print_output = []
     # 测试 biblatex, bibtex, 图目录表目录目录, 目录, glossaries, nomencl
     for i in range(len(test_files)):
         try:
+            time_start = datetime.datetime.now()
             result = subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
+            time_end = datetime.datetime.now()
+            time_run = round((time_end - time_start).total_seconds(), 4)
             if result.returncode == 0:
-                print_output.append([test_file_type[i], "[green]通过"])  # 绿色
+                print_output.append([test_file_type[i], time_run, "[green]通过"])  # 绿色
             else:
-                print_output.append([test_file_type[i], "[red]未通过"])  # 红色
+                print_output.append([test_file_type[i], time_run, "[red]未通过"])  # 红色
         except Exception as e:
-            print_output.append([test_file_type[i], "[red]未通过"])  # 红色
+            print_output.append([test_file_type[i], 0, "[red]未通过"])  # 红色
     # 测试 pytexmk 参数
     for i in range(len(command)):
         try:
             if command[i] == "-nq":
+                time_start = datetime.datetime.now()
                 result = subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
-                print_output.append(["-nq", "[green]通过"])  # 绿色
+                time_end = datetime.datetime.now()
+                time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
-                    print_output.append([command[i], "[green]通过"])  # 绿色
+                    print_output.append([command[i], time_run, "[green]通过"])  # 绿色
                 else:
-                    print_output.append([command[i], "[red]未通过"])  
+                    print_output.append([command[i], time_run, "[red]未通过"])  
             elif command[i] == "-c" and "-C":
+                time_start = datetime.datetime.now()
                 subprocess.run(['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main'], cwd=destination_folder)
                 result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+                time_end = datetime.datetime.now()
+                time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
-                    print_output.append([command[i], "[green]通过"])  # 绿色
+                    print_output.append([command[i], time_run, "[green]通过"])  # 绿色
                 else:
-                    print_output.append([command[i], "[red]未通过"])  # 红色
+                    print_output.append([command[i], time_run, "[red]未通过"])  # 红色
             else:
+                time_start = datetime.datetime.now()
                 result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+                time_end = datetime.datetime.now()
+                time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
-                    print_output.append([command[i], "[green]通过"])  # 绿色
+                    print_output.append([command[i], time_run, "[green]通过"])  # 绿色
                 else:
-                    print_output.append([command[i], "[red]未通过"])  # 红色
+                    print_output.append([command[i], time_run, "[red]未通过"])  # 红色
         except Exception as e:
-            print_output.append([i, "[red]未通过"])  # 红色
+            print_output.append([i, 0, "[red]未通过"])  # 红色
     return print_output
 
+# --------------------------------------------------------------------------------
+# 清除临时测试文件夹函数
+# --------------------------------------------------------------------------------
 def remove(path):
     if os.path.exists(path):
         shutil.rmtree(path)  # 删除整个文件夹
-        print("删除临时测试文件夹")
+        print("删除临时测试文件夹\n")
     os.mkdir(path)  # 创建空的 path 文件夹
 
+# --------------------------------------------------------------------------------
+# 测试统计表打印函数
+# --------------------------------------------------------------------------------
 def print_table(data):
     console = Console() # 创建Console对象
 
-    table = Table(title="测试项目和状态") # 创建Table对象
+    table = Table(show_header=True, header_style="bold magenta", 
+                title="PyTeXMK 测试统计表")
 
-    # 添加表头
-    table.add_column("测试项目", style="cyan", no_wrap=True)
-    table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
-    table.add_column("测试项目", style="cyan", no_wrap=True)
-    table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
+    # 定义列名
+    table.add_column("序号", style="yellow", justify="center", no_wrap=True)
+    table.add_column("测试项目", style="cyan", justify="left", no_wrap=True)
+    table.add_column("测试时长", style="green", justify="left", no_wrap=True)
+    table.add_column("状态", justify="center", no_wrap=True)
+    table.add_column("序号", style="yellow", justify="center", no_wrap=True)
+    table.add_column("测试项目", style="cyan", justify="left")
+    table.add_column("测试时长", style="green", justify="left", no_wrap=True)
+    table.add_column("状态", justify="center", no_wrap=True)
 
-    for i in range(0, len(data), 2):
-        row1 = data[i]
-        row2 = data[i+1] if i+1 < len(data) else ["", ""]
-        table.add_row(row1[0], row1[1], row2[0], row2[1])
+    # 判断统计项目列数是否是偶数
+    length = len(data)/2 # 计算打印表格列数
+    row_num = None
+    # 判断统计项目列数是否是偶数
+    if length - int(length) < 0.5:
+        row_num = int(length)
+    else: # 是偶数则加一
+        row_num = int(length) + 1
+
+    # 添加数据到表格
+    for i in range(row_num):
+        table.add_row(
+            str(i+1),
+            data[i][0],
+            "{:.4f} s".format(data[i][1]),
+            data[i][2],
+            str(i+1+row_num) if i+row_num <= len(data) else "",
+            data[i+row_num][0] if i+row_num < len(data) else "",
+            "{:.4f} s".format(data[i+row_num][1]) if i+row_num < len(data) else "",
+            data[i+row_num][2] if i+row_num < len(data) else ""
+        )
 
     console.print(table) # 打印表格
 
@@ -104,14 +145,15 @@ def print_table(data):
 test_files = [
     "biblatex-test",
     "bibtex-test",
+    "thebibliography-test",
     "contents-figrue-table-test",
     "contents-test",
     "glossaries-test",
     "nomencl-test",
     "makeidx-test"
 ]
-test_file_type = ['biblatex', 'bibtex', '图表目录', '目录', 'glossaries', 'nomencl', "makeidx"]
-command = ['-nq', '-v', '-h', '-c', '-C']
+test_file_type = ['biblatex', 'bibtex', 'thebibliography', '图表目录', '目录', 'glossaries', 'nomencl', "makeidx"]
+command = ['-v', '-h', '-nq', '-c', '-C']
 
 source_folder = 'src/pytexmk' # 源文件夹路径
 tests_folder = 'tests' # 测试文件路径
