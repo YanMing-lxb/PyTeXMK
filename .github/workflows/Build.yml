@@ -4,11 +4,12 @@ on:
   push:
     branches: [ main ]
   repository_dispatch:
-      types: [manual-trigger]
+    types: [manual-trigger]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Set up Git repository
         uses: actions/checkout@v4
@@ -17,22 +18,43 @@ jobs:
         uses: xu-cheng/texlive-action@v2
         with:
           scheme: full
+        run: echo "texlive have been activated"
+
+      - name: Prepare python3 environment
         run: |
-          echo "texlive have been activated"
+          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
+            python3.11 -m venv venv3.11
+            source venv3.11/bin/activate
+          '
           
-      - name: Build python3 environment
+      - name: Install pip and dependencies
         run: |
-          python3.11 -m venv venv3.11
-          source venv3.11/bin/activate
-          apt-get install -y python3-pip  # Assuming you are using Ubuntu
-          pip install rich build setuptools
-          python3 --version
+          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
+            source venv3.11/bin/activate
+            apt-get update
+            apt-get install -y python3-pip
+            pip install rich build setuptools
+          '
+
+      - name: Check python version
+        run: |
+          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
+            source venv3.11/bin/activate
+            python3 --version
+          '
 
       - name: Test source code   
         run: |
-          make test
+          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
+            source venv3.11/bin/activate
+            make test
+          '
 
       - name: Testing the constructed wheel
         run: |
-          make testwhl
-          deactivate
+          docker run -v $PWD:/github/workspace xu-cheng/texlive-action@v2 /bin/bash -c '
+            source venv3.11/bin/activate
+            make testwhl
+            deactivate
+          '
+
