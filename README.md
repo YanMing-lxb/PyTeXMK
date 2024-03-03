@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-02 20:57:36 +0800
+ * LastEditTime : 2024-03-03 19:50:55 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -56,8 +56,8 @@ PyTeXMK 默认使用 `xelatex` 编译，默认主文件名为 main（如果不�
 PyTeXMK 支持：
 
 - 编译命令：`xelatex` `pdflatex` `lualatex`
-- 参考文献：`bibtex` `biblatex`
-- 符号索引：`glossaries` `nomencl`
+- 参考文献：`bibtex` `biblatex` `thebibliography`
+- 符号索引：`glossaries` `nomencl` `mkeidx`
 
 位置参数:
 | Option              | Description                    |
