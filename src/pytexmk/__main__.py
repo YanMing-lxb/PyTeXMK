@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-03 10:37:08 +0800
+LastEditTime : 2024-03-03 13:56:09 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -27,7 +27,7 @@ import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import remove_aux, remove_result, move_result, search_file, check_file_name
-from info_print import time_count, time_print
+from info_print import time_count, time_print, print_message
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
@@ -73,9 +73,7 @@ def compile(tex_name, file_name, quiet, build_path):
     print(f"文档整体：{tex_name} 编译 {times_extra_complie+1} 次")
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
-    print("\n" + "=" * 80 + "\n" +
-          "X" * 26 + " 开始执行编译以外的附加命令！" + "X" * 25 + "\n" +
-          "=" * 80 + "\n")
+    print_message("开始执行编译以外的附加命令！")
     
     time_run_remove_res, _ = time_count(remove_result, build_path) # 清除已有结果文件
     name_target_list.append("清除旧结果文件")
