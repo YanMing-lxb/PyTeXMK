@@ -23,7 +23,7 @@ def copy(source_folder, destination_folder):
 # 修改函数为可运行函数
 def file_modify(destination_folder):
     # 读取原始文件内容
-    with open(f"{destination_folder}/__main__.py", "r") as file:
+    with open(f"{destination_folder}/__main__.py", "r", encoding='utf-8') as file:
         original_content = file.read()
 
     # 替换 from . 为 from
@@ -34,7 +34,7 @@ def file_modify(destination_folder):
         file.write(updated_content)
 
 # 测试函数
-def test(test_files, test_file_type, command, destination_folder, ):
+def test(test_files, test_file_type, command, destination_folder):
     # 存储所有要打印的内容
     print_output = []
     # 测试 biblatex, bibtex, 图目录表目录目录, 目录, glossaries, nomencl
@@ -74,7 +74,11 @@ def test(test_files, test_file_type, command, destination_folder, ):
             print_output.append([i, "[red]未通过"])  # 红色
     return print_output
 
-
+def remove(path):
+    if os.path.exists(path):
+        shutil.rmtree(path)  # 删除整个文件夹
+        print("删除临时测试文件夹")
+    os.mkdir(path)  # 创建空的 path 文件夹
 
 
 # --------------------------------------------------------------------------------
@@ -100,11 +104,12 @@ destination_folder = 'test-temp' # 目标文件夹路径
 # 运行测试流程
 # --------------------------------------------------------------------------------
 start_time = datetime.datetime.now() # 计算开始时间
+remove(destination_folder) # 删除临时测试文件夹
 copy(source_folder, destination_folder) # 复制测试对象到目标位置
 copy(tests_folder, destination_folder) # 复制测试文件到目标位置
 file_modify(destination_folder) # 修改测试对象使其可运行
-print_output = test(test_files, command, destination_folder)
-shutil.rmtree(destination_folder) # 删除临时测试文件夹
+print_output = test(test_files, test_file_type, command, destination_folder)
+remove(destination_folder) # 删除临时测试文件夹
 # subprocess.run(['python3', '__main__.py', '-C'], cwd=destination_folder)
 end_time = datetime.datetime.now() # 计算结束时间
 

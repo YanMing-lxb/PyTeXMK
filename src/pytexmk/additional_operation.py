@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-02 21:53:05 +0800
+LastEditTime : 2024-03-03 10:04:32 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
+FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -163,7 +163,7 @@ def time_print(start_time, name_target_list, time_run_list):
     name_target_list.append('PyTeXMK 运行时长')
     time_run_list.append(time_pytexmk)
 
-    console = Console() # 创建控制台对象
+    console = Console(width=100) # 创建控制台对象
 
     # 创建表格对象
     table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
@@ -204,4 +204,4 @@ def time_print(start_time, name_target_list, time_run_list):
 
     print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
     print(f"运行函数：{number_programmes_run} 个\n")
-    
+
