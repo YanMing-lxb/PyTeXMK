@@ -80,6 +80,23 @@ def remove(path):
         print("删除临时测试文件夹")
     os.mkdir(path)  # 创建空的 path 文件夹
 
+def print_table(data):
+    console = Console() # 创建Console对象
+
+    table = Table(title="测试项目和状态") # 创建Table对象
+
+    # 添加表头
+    table.add_column("测试项目", style="cyan", no_wrap=True)
+    table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
+    table.add_column("测试项目", style="cyan", no_wrap=True)
+    table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
+
+    for i in range(0, len(data), 2):
+        row1 = data[i]
+        row2 = data[i+1] if i+1 < len(data) else ["", ""]
+        table.add_row(row1[0], row1[1], row2[0], row2[1])
+
+    console.print(table) # 打印表格
 
 # --------------------------------------------------------------------------------
 # 测试目标
@@ -108,32 +125,15 @@ remove(destination_folder) # 删除临时测试文件夹
 copy(source_folder, destination_folder) # 复制测试对象到目标位置
 copy(tests_folder, destination_folder) # 复制测试文件到目标位置
 file_modify(destination_folder) # 修改测试对象使其可运行
-print_output = test(test_files, test_file_type, command, destination_folder)
-remove(destination_folder) # 删除临时测试文件夹
+# data = test(test_files, test_file_type, command, destination_folder)
+# remove(destination_folder) # 删除临时测试文件夹
+# print_table(data)
 # subprocess.run(['python3', '__main__.py', '-C'], cwd=destination_folder)
+
+# --------------------------------------------------------------------------------
+# 打印统计s
+# --------------------------------------------------------------------------------
 end_time = datetime.datetime.now() # 计算结束时间
-
-
-# --------------------------------------------------------------------------------
-# 打印统计结果
-# --------------------------------------------------------------------------------
-console = Console() # 创建Console对象
-
-table = Table(title="测试项目和状态") # 创建Table对象
-
-# 添加表头
-table.add_column("测试项目", style="cyan", no_wrap=True)
-table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
-table.add_column("测试项目", style="cyan", no_wrap=True)
-table.add_column("测试状态", justify = "center", style="magenta", no_wrap=True)
-
-for i in range(0, len(print_output), 2):
-    row1 = print_output[i]
-    row2 = print_output[i+1] if i+1 < len(print_output) else ["", ""]
-    table.add_row(row1[0], row1[1], row2[0], row2[1])
-
-console.print(table) # 打印表格
-
 run_time = end_time - start_time
 hours, remainder = divmod(run_time.seconds, 3600)
 minutes, seconds = divmod(remainder, 60)
