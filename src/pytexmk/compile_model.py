@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-01 18:36:18 +0800
+LastEditTime : 2024-03-03 09:37:54 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
+FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -86,10 +86,7 @@ def compile_bib(file_name, quiet):
 # 定义编译目录索引命令
 # --------------------------------------------------------------------------------
 def compile_index(file_name):
-    if any(os.path.exists(f"{file_name}{ext}") for ext in [".glo", ".nlo", ".toc"]):
-        print("\n\n" + "=" * 80+"\n"+
-            "X" * 33 + " 符号索引编译 " + "X" * 33 + "\n" + 
-            "=" * 80 + "\n\n")
+    if any(os.path.exists(f"{file_name}{ext}") for ext in [".glo", ".nlo", ".idx", ".toc"]):
         if os.path.exists(f"{file_name}.glo"):
             with open(f"{file_name}.glo", "r", encoding='utf-8') as f:
                 content = f.read()
@@ -114,16 +111,31 @@ def compile_index(file_name):
             else:
                 compile_tex_times = 0
                 name_target = None
-                print_catalogs = "nomencl 宏包没有进行索引"      
+                print_catalogs = "nomencl 宏包没有进行索引"
+        elif os.path.exists(f"{file_name}.idx"):
+            with open(f"{file_name}.idx", "r", encoding='utf-8') as f:
+                content = f.read()
+            if content.strip():  # Check if content is not empty
+                subprocess.run(["makeindex", f"{file_name}.idx"])
+                compile_tex_times = 1
+                name_target = "makeidx"
+                print_catalogs = "makeidx 宏包生成索引"
+            else:
+                compile_tex_times = 0
+                name_target = None
+                print_catalogs = "makeidx 宏包没有进行索引"         
         else:
             if os.path.exists(f"{file_name}.toc"):
                 compile_tex_times = 1 # 目录需要额外编译 1 次
-                name_target = "makeindex"
+                name_target = "判定目录存在"
                 print_catalogs = "含有图\表\章节目录"
             else:
                 compile_tex_times = 0
                 name_target = None
                 print_catalogs = "没有插入任何目录"
+        print("\n\n" + "=" * 80+"\n"+
+            "X" * 33 + f" {name_target} " + "X" * 33 + "\n" + 
+            "=" * 80 + "\n\n")
 
         print(print_catalogs)
     else: 

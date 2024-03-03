@@ -1,6 +1,6 @@
 [project]
 name = "pytexmk"
-version = "0.2.10.240302"
+version = "0.2.11.240303"
 authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
@@ -8,12 +8,11 @@ description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Com
 keywords = ["LaTeX", "build", "latexmk"]
 dependencies = ["rich"]
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers ",
     "Intended Audience :: End Users/Desktop",
-    "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
