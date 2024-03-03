@@ -51,7 +51,7 @@ def compile_bib(file_name, quiet):
         with open(f"{file_name}.aux", 'r', encoding='utf-8') as aux_file:
             aux_content = aux_file.read()
 
-        if re.search(r'\\citation|\\abx@aux@cite', aux_content):
+        if re.search(r'\\bibdata|\\abx@aux@cite', aux_content):
             if re.search(r'\\abx@aux@refcontext', aux_content):
                 name_target = "biber"
                 print_message(f'{name_target} 文献编译')
@@ -66,6 +66,10 @@ def compile_bib(file_name, quiet):
                 subprocess.run(options)
             compile_tex_times = 2 # 参考文献需要额外编译的次数
             print_bib = f"{name_target} 编译参考文献"
+        elif re.search(r'\\bibcite', aux_content):
+            compile_tex_times = 1
+            name_target = None
+            print_bib = "thebibliography 环境实现排版 "
         else:
             compile_tex_times = 0
             name_target = None
@@ -73,7 +77,7 @@ def compile_bib(file_name, quiet):
     else:
         compile_tex_times = 0
         name_target = None
-        
+        print_bib = "文档没有参考文献"
     return compile_tex_times, print_bib, name_target
 
 # --------------------------------------------------------------------------------
