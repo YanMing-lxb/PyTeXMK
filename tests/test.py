@@ -125,9 +125,9 @@ remove(destination_folder) # 删除临时测试文件夹
 copy(source_folder, destination_folder) # 复制测试对象到目标位置
 copy(tests_folder, destination_folder) # 复制测试文件到目标位置
 file_modify(destination_folder) # 修改测试对象使其可运行
-# data = test(test_files, test_file_type, command, destination_folder)
-# remove(destination_folder) # 删除临时测试文件夹
-# print_table(data)
+data = test(test_files, test_file_type, command, destination_folder)
+remove(destination_folder) # 删除临时测试文件夹
+print_table(data)
 # subprocess.run(['python3', '__main__.py', '-C'], cwd=destination_folder)
 
 # --------------------------------------------------------------------------------
