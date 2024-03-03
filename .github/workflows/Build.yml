@@ -17,7 +17,9 @@ jobs:
         with:
           scheme: full
           run: |
-
+            echo "texlive have been activated"
+          
+    steps:
       - name: Build python3 environment
           run: |
             python3.11 -m venv venv3.11
@@ -25,9 +27,11 @@ jobs:
             apk add py3-pip
             pip install rich build setuptools
             python3 --version
+    steps:
       - name: Test source code   
           run: |
             make test
+    steps:
       - name: Testing the constructed wheel
           run: |
             make testwhl
