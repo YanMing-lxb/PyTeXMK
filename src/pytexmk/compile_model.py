@@ -33,7 +33,7 @@ from info_print import print_message
 # --------------------------------------------------------------------------------
 def compile_tex(tex_name, file_name, tex_times, quiet):
     options = ["-shell-escape", "-file-line-error", "-halt-on-error", "--synctex=1"]
-    print_message(f"开始 {tex_times} 次 {tex_name} 编译")
+    print_message(f"{tex_times} 次 {tex_name} 编译")
     if tex_name == 'xelatex':
         options.insert(3, "-no-pdf")
     if quiet:

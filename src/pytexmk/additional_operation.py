@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 10:36:52 +0800
+LastEditTime : 2024-03-03 13:49:59 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -96,23 +96,21 @@ def check_file_name(file_name):
 # 定义 tex 文件检索函数
 # --------------------------------------------------------------------------------
 def search_file():
-    # 获取当前路径
-    current_path = os.getcwd()
+    current_path = os.getcwd() # 获取当前路径
     # 遍历当前路径下的所有文件
-    tex_files = [file for file in os.listdir(
-        current_path) if file.endswith('.tex')]
+    tex_files = [file for file in os.listdir(current_path) if file.endswith('.tex')]
 
     if tex_files:
         # 如果只有一个.tex文件，则直接提取文件名并打印
         if len(tex_files) == 1:
             file_name = os.path.splitext(tex_files[0])[0]
-            print(f"编译 {file_name}.tex 文件:")
+            print(f"找到 {file_name}.tex 文件！")
         else:
             # 如果存在多个.tex文件
             if 'main.tex' in tex_files:
-                # 存在名为main.tex的文件，打印'main'
+                # 存在名为main.tex的文件
                 file_name = 'main'
-                print("编译 'main.tex' 文件")
+                print(f"找到 {file_name}.tex 文件！")
             else:
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
                 file_name = None
@@ -120,6 +118,6 @@ def search_file():
     else:
         # 不存在.tex文件，打印当前路径并提示
         file_name = None
-        print("在当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
+        print("当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
 
     return file_name
