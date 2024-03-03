@@ -39,9 +39,11 @@ def compile_tex(tex_name, file_name, tex_times, quiet):
 
     if tex_name == 'xelatex':
         options.insert(3, "-no-pdf")
+        print("xelatex 自动启用 -no-pdf 参数")
 
     if quiet:
         options.insert(0, "-interaction=batchmode") # 静默编译
+        print(f"{tex_name} 进行 batch 模式编译")
     else:
         options.insert(3, "-interaction=nonstopmode") # 非静默编译
 
