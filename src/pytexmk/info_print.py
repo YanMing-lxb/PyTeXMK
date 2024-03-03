@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-03 15:37:45 +0800
+LastEditTime : 2024-03-03 19:20:14 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -108,7 +108,7 @@ def time_print(start_time, name_target_list, time_run_list):
             "{:.4f} s".format(time_run_list[i]),
             str(i+1+row_num) if i+row_num < len(name_target_list) else "",
             name_target_list[i+row_num] if i+row_num < len(name_target_list) else "",
-            "{:.4f} s".format(time_run_list[i+row_num]) if i++row_num < len(name_target_list) else ""  
+            "{:.4f} s".format(time_run_list[i+row_num]) if i+row_num < len(name_target_list) else ""  
         )
 
     print("\n" + "=" * 80 + "\n")
