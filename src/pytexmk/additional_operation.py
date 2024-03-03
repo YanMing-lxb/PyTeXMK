@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 10:04:32 +0800
+LastEditTime : 2024-03-03 10:36:52 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -24,12 +24,9 @@ Description  :
 '''
 
 import os
-import datetime
 import shutil
 from rich import print
-from rich.console import Console
-from rich.table import Table
-from rich import box
+
 
 # --------------------------------------------------------------------------------
 # 定义清除辅助文件命令
@@ -126,82 +123,3 @@ def search_file():
         print("在当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
 
     return file_name
-
-# --------------------------------------------------------------------------------
-# 定义时间统计函数
-# --------------------------------------------------------------------------------
-def time_count(fun, *args):
-    time_start = datetime.datetime.now()
-    fun_return = fun(*args)
-    time_end = datetime.datetime.now()
-    time_run = time_end - time_start
-
-    time_run = round(time_run.total_seconds(), 4)
-    return time_run, fun_return
-
-# --------------------------------------------------------------------------------
-# 定义统计时间打印函数
-# --------------------------------------------------------------------------------
-def time_print(start_time, name_target_list, time_run_list):
-    end_time = datetime.datetime.now() # 计算结束时间
-    run_time = end_time - start_time
-    hours, remainder = divmod(run_time.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
-
-    number_programmes_run = len(name_target_list)-4
-    
-    time_compile = sum(time_run_list)
-    name_target_list.append('总编译时长')
-    time_run_list.append(time_compile)
-
-    time_other_operating = float(run_time.total_seconds()) - time_compile
-    name_target_list.append('其他操作时长')
-    time_run_list.append(time_other_operating)
-
-    time_pytexmk = float(run_time.total_seconds())
-    name_target_list.append('PyTeXMK 运行时长')
-    time_run_list.append(time_pytexmk)
-
-    console = Console(width=100) # 创建控制台对象
-
-    # 创建表格对象
-    table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
-                title="PyTeXMK 运行时长统计表")
-
-    # 定义列名
-    table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="left", no_wrap=True)
-    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
-    table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="left")
-    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
-
-    
-    # 判断统计项目列数是否是偶数
-    length = len(name_target_list)/2 # 计算打印表格列数
-    row_num = None
-
-    # 判断统计项目列数是否是偶数
-    if length - int(length) < 0.5:
-        row_num = int(length)
-    else: # 是偶数则加一
-        row_num = int(length) + 1 
-
-    # 添加数据到表格
-    for i in range(row_num):
-        table.add_row(
-            str(i+1),
-            name_target_list[i],
-            "{:.4f} s".format(time_run_list[i]),
-            str(i+1+row_num) if i+row_num < len(name_target_list) else "",
-            name_target_list[i+row_num] if i+row_num < len(name_target_list) else "",
-            "{:.4f} s".format(time_run_list[i+row_num]) if i++row_num < len(name_target_list) else ""  
-        )
-
-    print("\n" + "=" * 80 + "\n")
-    console.print(table) # 打印表格
-
-    print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
-    print(f"运行函数：{number_programmes_run} 个\n")
-

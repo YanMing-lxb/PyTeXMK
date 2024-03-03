@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-02 11:07:30 +0800
+LastEditTime : 2024-03-03 10:37:08 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -26,8 +26,8 @@ import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result, time_count, search_file, check_file_name, time_print
-
+from .additional_operation import remove_aux, remove_result, move_result, search_file, check_file_name
+from info_print import time_count, time_print
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
