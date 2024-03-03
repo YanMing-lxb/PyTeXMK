@@ -16,12 +16,18 @@ jobs:
         uses: xu-cheng/texlive-action@v2
         with:
           scheme: full
+
+      - name: Build python3 environment
           run: |
             python3.11 -m venv venv3.11
             source venv3.11/bin/activate
             apk add py3-pip
             pip install rich build setuptools
             python3 --version
+      - name: Test source code   
+          run: |
             make test
+      - name: Testing the constructed wheel
+          run: |
             make testwhl
             deactivate
