@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-03 10:35:07 +0800
+LastEditTime : 2024-03-03 11:55:33 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\infor_print.py
+FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -27,7 +27,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print
-
+console = Console(width=100) # 创建控制台对象
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
 # --------------------------------------------------------------------------------
@@ -39,6 +39,19 @@ def time_count(fun, *args):
 
     time_run = round(time_run.total_seconds(), 4)
     return time_run, fun_return
+
+# --------------------------------------------------------------------------------
+# 定义信息打印函数
+# --------------------------------------------------------------------------------
+def print_message(message):
+    padding_size = 80 - (len(message) + sum(1 for c in message if not c.isascii()))-4  # 计算左右两侧 X 的数量
+    left_padding = int(padding_size / 2)
+    right_padding = padding_size - left_padding
+    banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding
+    console.print("\n\n" + "=" * 80, style="yellow bold")
+    console.print(banner, style="red on white bold")
+    console.print("=" * 80 + "\n\n", style="yellow bold")
+    
 
 # --------------------------------------------------------------------------------
 # 定义统计时间打印函数
@@ -63,8 +76,6 @@ def time_print(start_time, name_target_list, time_run_list):
     time_pytexmk = float(run_time.total_seconds())
     name_target_list.append('PyTeXMK 运行时长')
     time_run_list.append(time_pytexmk)
-
-    console = Console(width=100) # 创建控制台对象
 
     # 创建表格对象
     table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
@@ -105,4 +116,3 @@ def time_print(start_time, name_target_list, time_run_list):
 
     print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
     print(f"运行函数：{number_programmes_run} 个\n")
-
