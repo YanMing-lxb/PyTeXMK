@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-03 13:43:50 +0800
+LastEditTime : 2024-03-03 14:38:36 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -154,7 +154,8 @@ def compile_index(file_name):
 # --------------------------------------------------------------------------------
 # 定义编译 xdv 文件命令
 # --------------------------------------------------------------------------------
-def compile_xdv(file_name):
+def compile_xdv(file_name, quiet):
     print_message("xdvipdfmx PDF 编译")
-    print("运行命令：[xdvipdfmx", "-V", "1.6", f"{file_name}]")
-    subprocess.run(["xdvipdfmx", "-V", "1.6", f"{file_name}"]) # 将 xelatex 生成的 xdv 转换成 pdf
+    options = ["xdvipdfmx", "-q" if quiet else "", "-V", "1.6", f"{file_name}"]
+    print(f"运行命令：{options}")
+    subprocess.run(options) # 将 xelatex 生成的 xdv 转换成 pdf
