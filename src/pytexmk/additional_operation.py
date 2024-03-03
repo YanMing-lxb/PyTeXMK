@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 14:42:00 +0800
+LastEditTime : 2024-03-03 15:22:18 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -47,9 +47,9 @@ def remove_aux(file_name):
             except FileNotFoundError:
                 pass
     if file_exists:
-        print("已清除辅助文件")
+        print("已清除辅助文件！")
     else:
-        print("未找到辅助文件")
+        print("未找到辅助文件！")
 
 # --------------------------------------------------------------------------------
 # 定义清除已有结果文件
@@ -57,20 +57,33 @@ def remove_aux(file_name):
 def remove_result(build_path):
     if os.path.exists(build_path):
         shutil.rmtree(build_path)  # 删除整个文件夹
-        print("删除上次生成的结果文件")
-    os.mkdir(build_path)  # 创建空的 build_path 文件夹
+        print(f"已删除 {build_path} 中的旧结果文件！")
+    
+def remove_result_in_root(file_name):
+    extensions = [".pdf", ".synctex.gz", ".synctex"]
+    for ext in extensions:
+        file = file_name + ext
+        if os.path.exists(file):
+            try:
+                os.remove(file)
+                print(f"{file} 已删除！")
+            except FileNotFoundError:
+                print(f"{file} 未能删除！")
+        else:
+            print(f"根目录下不存在 {file}！")
 
 # --------------------------------------------------------------------------------
 # 定义移动生成文件
 # --------------------------------------------------------------------------------
 def move_result(file_name, build_path):
     result_files = [f"{file_name}{ext}" for ext in [".pdf", ".synctex.gz"]]
+    os.mkdir(build_path)  # 创建空的 build_path 文件夹
     for file in result_files:
         if os.path.exists(file):
             shutil.move(file, build_path)
+            print(f"{file} 移动到 {build_path}！")
         else:
             print(f'{file} 不存在！')
-    print(f"移动结果文件到 {build_path}")
 
 # --------------------------------------------------------------------------------
 # 定义输入检查函数
@@ -83,12 +96,12 @@ def check_file_name(file_name):
     elif '.' not in file_name:  # 判断输入 file_name 中没有 后缀
         if '/' in file_name or '\\' in file_name:  # 判断是否是没有后缀的路径
             file_name_return = None
-            print("错误：文件路径无效")
+            print("错误：文件路径无效！")
         else:
             file_name_return = file_name
     else:
         file_name_return = None
-        print("提示：文件后缀不是.tex")
+        print("提示：文件后缀不是.tex！")
 
     return file_name_return
 
@@ -115,9 +128,10 @@ def search_file():
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
                 file_name = None
                 print("存在多个 .tex 文件，请添加 main.tex 文件或终端输入：pytexmk <主文件名> 名进行编译")
+                print("例如终端输入: pytexmk test")
     else:
         # 不存在.tex文件，打印当前路径并提示
         file_name = None
-        print("终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
+        print("终端路径下不存在 .tex 文件！\n请检查终端显示路径是否是项目路径:", current_path)
 
     return file_name

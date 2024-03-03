@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-03 14:40:19 +0800
+LastEditTime : 2024-03-03 15:16:18 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -26,7 +26,7 @@ import argparse
 import datetime
 from .version import script_name, version
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, move_result, search_file, check_file_name
+from .additional_operation import remove_aux, remove_result, remove_result_in_root, move_result, search_file, check_file_name
 from info_print import time_count, time_print, print_message
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -127,6 +127,7 @@ def main():
         elif args.Clean:
             remove_aux(file_name)
             remove_result(build_path)
+            remove_result_in_root(file_name)
         else:
             name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
             time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计

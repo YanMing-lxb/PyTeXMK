@@ -89,7 +89,6 @@ def time_print(start_time, name_target_list, time_run_list):
     table.add_column("运行项目", style="cyan", justify="left")
     table.add_column("运行时长", style="green", justify="left", no_wrap=True)
 
-    
     # 判断统计项目列数是否是偶数
     length = len(name_target_list)/2 # 计算打印表格列数
     row_num = None
