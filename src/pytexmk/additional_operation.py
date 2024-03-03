@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 13:49:59 +0800
+LastEditTime : 2024-03-03 14:42:00 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -118,6 +118,6 @@ def search_file():
     else:
         # 不存在.tex文件，打印当前路径并提示
         file_name = None
-        print("当前终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
+        print("终端路径下不存在 .tex 文件，请检查终端显示路径是否是项目路径:", current_path)
 
     return file_name
