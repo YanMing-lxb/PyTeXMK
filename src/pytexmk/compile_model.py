@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-03 19:22:28 +0800
+LastEditTime : 2024-03-03 19:41:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -27,6 +27,8 @@ import os
 import re
 import subprocess
 from info_print import print_message
+from rich import console
+console = console.Console(width=80)  # 设置宽度为80
 
 # --------------------------------------------------------------------------------
 # 定义编译 TeX 文件命令
@@ -40,7 +42,7 @@ def compile_tex(tex_name, file_name, tex_times, quiet):
         options.insert(0, "-interaction=batchmode") # 静默编译
     else:
         options.insert(3, "-interaction=nonstopmode") # 非静默编译
-    print(f"运行命令：{options}\n")
+    console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
     subprocess.run([tex_name] + options + [f"{file_name}.tex"])
 
 # --------------------------------------------------------------------------------
@@ -56,13 +58,13 @@ def compile_bib(file_name, quiet):
                 name_target = "biber"
                 print_message(f'{name_target} 文献编译')
                 options = [name_target, "-quiet" if quiet else "", file_name]
-                print(f"运行命令：{options}\n")
+                console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             elif re.search(r'\\bibdata', aux_content):
                 name_target = 'bibtex'
                 print_message(f'{name_target} 文献编译')
                 options = [name_target, file_name]
-                print(f"运行命令：{options}\n")
+                console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             compile_tex_times = 2 # 参考文献需要额外编译的次数
             print_bib = f"{name_target} 编译参考文献"
@@ -93,9 +95,9 @@ def compile_index(file_name):
                 name_target = "glossaries"
                 print_message(f"{name_target} 宏包编译")
                 print_index = "glossaries 宏包生成符号索引"
-                print(print_index)
+                print(print_index,"\n")
                 options = ["makeindex", "-s", f"{file_name}.ist", "-o", f"{file_name}.gls", f"{file_name}.glo"]
-                print(f"运行命令：{options}\n")
+                console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             else:
                 compile_tex_times = 0
@@ -110,9 +112,9 @@ def compile_index(file_name):
                 name_target = "nomencl"
                 print_message(f"{name_target} 宏包编译")
                 print_index = "nomencl 宏包生成符号索引"
-                print(print_index)
+                print(print_index,"\n")
                 options = ["makeindex", "-s", "nomencl.ist", "-o", f"{file_name}.nls", f"{file_name}.nlo"]
-                print(f"运行命令：{options}\n")
+                console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             else:
                 compile_tex_times = 0
@@ -126,9 +128,9 @@ def compile_index(file_name):
                 name_target = "makeidx"
                 print_message(f"{name_target} 宏包编译")
                 print_index = "makeidx 宏包生成索引"
-                print(print_index)
+                print(print_index,"\n")
                 options = ["makeindex", f"{file_name}.idx"]
-                print(f"运行命令：{options}\n")
+                console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             else:
                 compile_tex_times = 0
@@ -157,5 +159,5 @@ def compile_index(file_name):
 def compile_xdv(file_name, quiet):
     print_message("xdvipdfmx PDF 编译")
     options = ["xdvipdfmx", "-q" if quiet else "", "-V", "1.6", f"{file_name}"]
-    print(f"运行命令：{options}\n")
+    console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
     subprocess.run(options) # 将 xelatex 生成的 xdv 转换成 pdf
