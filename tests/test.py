@@ -23,15 +23,15 @@ def copy(source_folder, destination_folder):
 # 修改函数为可运行函数
 def file_modify(destination_folder):
     # 读取原始文件内容
-    with open(f"{destination_folder}/__main__.py", "r", encoding='utf-8') as file:
-        original_content = file.read()
-
-    # 替换 from . 为 from
-    updated_content = original_content.replace("from .", "from ")
-
-    # 写入更新后的内容到同一文件
-    with open(f"{destination_folder}/__main__.py", "w") as file:
-        file.write(updated_content)
+    for root, dirs, files in os.walk(destination_folder):
+        for file_name in files:
+            if file_name.endswith('.py'):
+                file_path = os.path.join(root, file_name)
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    content = file.read()
+                content = content.replace('from .', 'from ') # 替换 from . 为 from
+                with open(file_path, 'w', encoding='utf-8') as file: 
+                    file.write(content) # 写入更新后的内容到同一文件
 
 # --------------------------------------------------------------------------------
 # 测试函数
