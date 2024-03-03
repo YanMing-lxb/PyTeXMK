@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+import argparse
 import subprocess
 from rich.console import Console
 from rich.table import Table
@@ -36,14 +37,14 @@ def file_modify(destination_folder):
 # --------------------------------------------------------------------------------
 # 测试函数
 # --------------------------------------------------------------------------------
-def test(test_files, test_file_type, command, destination_folder):
+def test(test_files, test_file_type, command, run_command, destination_folder):
     # 存储所有要打印的内容
     print_output = []
     # 测试 biblatex, bibtex, 图目录表目录目录, 目录, glossaries, nomencl
     for i in range(len(test_files)):
         try:
             time_start = datetime.datetime.now()
-            result = subprocess.run(['python3', '__main__.py', test_files[i]], cwd=destination_folder)
+            result = subprocess.run(run_command + [test_files[i]], cwd=destination_folder)
             time_end = datetime.datetime.now()
             time_run = round((time_end - time_start).total_seconds(), 4)
             if result.returncode == 0:
@@ -57,7 +58,7 @@ def test(test_files, test_file_type, command, destination_folder):
         try:
             if command[i] == "-nq":
                 time_start = datetime.datetime.now()
-                result = subprocess.run(['python3', '__main__.py', '-nq', 'main'], cwd=destination_folder)
+                result = subprocess.run(run_command + ['-nq', 'main'], cwd=destination_folder)
                 time_end = datetime.datetime.now()
                 time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
@@ -67,7 +68,7 @@ def test(test_files, test_file_type, command, destination_folder):
             elif command[i] == "-c" and "-C":
                 time_start = datetime.datetime.now()
                 subprocess.run(['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main'], cwd=destination_folder)
-                result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+                result = subprocess.run(run_command + [command[i]], cwd=destination_folder)
                 time_end = datetime.datetime.now()
                 time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
@@ -76,7 +77,7 @@ def test(test_files, test_file_type, command, destination_folder):
                     print_output.append([command[i], time_run, "[red]未通过"])  # 红色
             else:
                 time_start = datetime.datetime.now()
-                result = subprocess.run(['python3', '__main__.py', command[i]], cwd=destination_folder)
+                result = subprocess.run(run_command + [command[i]], cwd=destination_folder)
                 time_end = datetime.datetime.now()
                 time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
@@ -117,7 +118,7 @@ def print_table(data):
 
     # 判断统计项目列数是否是偶数
     length = len(data)/2 # 计算打印表格列数
-    row_num = None
+    row_num = ""
     # 判断统计项目列数是否是偶数
     if length - int(length) < 0.5:
         row_num = int(length)
@@ -142,6 +143,12 @@ def print_table(data):
 # --------------------------------------------------------------------------------
 # 测试目标
 # --------------------------------------------------------------------------------
+parser = argparse.ArgumentParser(description="辅助测试文件.")
+parser.add_argument('-v', '--version', action='version', version='test: v 0.1')
+parser.add_argument('-w', '--whl', action='store_true', help="测试 whl 文件")
+args = parser.parse_args()
+
+
 test_files = [
     "biblatex-test",
     "bibtex-test",
@@ -158,6 +165,10 @@ command = ['-v', '-h', '-nq', '-c', '-C']
 source_folder = 'src/pytexmk' # 源文件夹路径
 tests_folder = 'tests' # 测试文件路径
 destination_folder = 'test-temp' # 目标文件夹路径
+run_file = "__main__.py"
+run_command = ["python3", "__main__.py"]
+if args.whl:
+    run_command = ["pytexmk"]
 
 # --------------------------------------------------------------------------------
 # 运行测试流程
@@ -167,10 +178,10 @@ remove(destination_folder) # 删除临时测试文件夹
 copy(source_folder, destination_folder) # 复制测试对象到目标位置
 copy(tests_folder, destination_folder) # 复制测试文件到目标位置
 file_modify(destination_folder) # 修改测试对象使其可运行
-data = test(test_files, test_file_type, command, destination_folder)
+data = test(test_files, test_file_type, command, run_command, destination_folder)
 remove(destination_folder) # 删除临时测试文件夹
 print_table(data)
-# subprocess.run(['python3', '__main__.py', '-C'], cwd=destination_folder)
+# subprocess.run([run_command, test_file, '-C'], cwd=destination_folder)
 
 # --------------------------------------------------------------------------------
 # 打印统计s

@@ -15,5 +15,15 @@ rst:
 test:
 	python3 tests/test.py
 
+testwhl: clean all
+	yes | pip uninstall pytexmk
+	@pip install dist/*.whl
+	@python3 tests/test.py -w
+	yes | pip uninstall pytexmk
+	@$(MAKE) clean
+
+
+
 upload:
-	twine upload dist/*
+	@twine upload dist/*
+	@$(MAKE) clean
