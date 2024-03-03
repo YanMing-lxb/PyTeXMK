@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 20:29:38 +0800
+LastEditTime : 2024-03-03 21:32:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -26,7 +26,6 @@ Description  :
 import os
 import shutil
 from rich import print
-
 
 # --------------------------------------------------------------------------------
 # 定义清除辅助文件命令
@@ -49,7 +48,7 @@ def remove_aux(file_name):
     if file_exists:
         print("已清除辅助文件！")
     else:
-        print("未找到辅助文件！")
+        print("当前没有辅助文件！")
 
 # --------------------------------------------------------------------------------
 # 定义清除已有结果文件
