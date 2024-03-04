@@ -13,12 +13,12 @@ rst:
 	@pandoc -s -t rst README.md > README.rst
 
 test:
-	@python3 tests/test.py
+	@python tests/test.py
 
 testwhl: clean all
 	yes | pip uninstall pytexmk
 	@pip install dist/*.whl
-	@python3 tests/test.py -w
+	@python tests/test.py -w
 	yes | pip uninstall pytexmk
 	@$(MAKE) clean
 
