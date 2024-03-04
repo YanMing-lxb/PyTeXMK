@@ -16,9 +16,9 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-03 19:50:55 +0800
+ * LastEditTime : 2024-03-04 10:57:21 +0800
  * Github       : https://github.com/YanMing-lxb/
- * FilePath     : /PyTeXMK/README.md
+ * FilePath     : \PyTeXMK\README.md
  * Description  : 
  *  -----------------------------------------------------------------------
  -->
@@ -77,3 +77,14 @@ PyTeXMK 支持：
 | -l, --lualatex   | lualatex 进行编译                           |
 
 
+# 未来工作方向
+
+- [ ] 完善检索主 LaTeX 文件的功能：
+    - [ ] 根据魔法注释 `% !TEX root = relative/or/absolute/path/to/root/file.tex` 找到主 LaTeX 文件
+    - [ ] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
+- [ ] 完善自动判断编译类型：
+    - [ ] 根据魔法注释 `% !TEX program = xelatex` 设置需要编译的类型
+    - [ ] 检索文档中是否有关于存在 `ctex` 相关内容，存在则尝试使用 `xelatex` 编译
+- [ ] 增加配置文件功能，用于改变默认设置
+    - [ ] 指定生成的结果文件存放位置（目前默认存放在 `Build` 子文件夹下）
+    - [ ] 默认的编译命令（目前默认编译命令是 `xelatex`）
