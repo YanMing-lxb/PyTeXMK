@@ -95,7 +95,6 @@ def remove(path):
     if os.path.exists(path):
         shutil.rmtree(path)  # 删除整个文件夹
         print("删除临时测试文件夹\n")
-    os.mkdir(path)  # 创建空的 path 文件夹
 
 # --------------------------------------------------------------------------------
 # 测试统计表打印函数
