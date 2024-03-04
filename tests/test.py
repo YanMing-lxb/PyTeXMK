@@ -166,7 +166,7 @@ source_folder = 'src/pytexmk' # 源文件夹路径
 tests_folder = 'tests' # 测试文件路径
 destination_folder = 'test-temp' # 目标文件夹路径
 run_file = "__main__.py"
-run_command = ["python3", "__main__.py"]
+run_command = ["python", "__main__.py"]
 if args.whl:
     run_command = ["pytexmk"]
 
