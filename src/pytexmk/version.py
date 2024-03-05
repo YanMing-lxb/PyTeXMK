@@ -26,4 +26,4 @@ Description  :
 #!/usr/bin/env python
 
 script_name = 'pytexmk'
-version = '0.2.15.240303'
+version = '0.2.16.240306'
