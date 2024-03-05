@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-03 19:20:14 +0800
+LastEditTime : 2024-03-05 23:50:25 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/info_print.py
+FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -115,4 +115,4 @@ def time_print(start_time, name_target_list, time_run_list):
     console.print(table) # 打印表格
 
     print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
-    print(f"运行函数：{number_programmes_run} 个\n")
+    print(f"运行函数：{number_programmes_run} 个")
