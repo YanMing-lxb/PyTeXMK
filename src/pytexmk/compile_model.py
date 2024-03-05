@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-03 20:08:20 +0800
+LastEditTime : 2024-03-06 00:57:32 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
+FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -42,7 +42,7 @@ def compile_tex(tex_name, file_name, tex_times, quiet):
         options.insert(0, "-interaction=batchmode") # 静默编译
     else:
         options.insert(3, "-interaction=nonstopmode") # 非静默编译
-    console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+    console.print(f"[bold]运行命令：[/bold][red][cyan]{tex_name, ' '.join(options)}[/cyan][/red]\n")
     subprocess.run([tex_name] + options + [f"{file_name}.tex"])
 
 # --------------------------------------------------------------------------------
