@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-06 00:57:32 +0800
+LastEditTime : 2024-03-06 01:15:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -57,7 +57,9 @@ def compile_bib(file_name, quiet):
             if re.search(r'\\abx@aux@refcontext', aux_content):
                 name_target = "biber"
                 print_message(f'{name_target} 文献编译')
-                options = [name_target, "-quiet" if quiet else "", file_name]
+                options = [name_target, file_name]
+                if quiet:
+                    options.insert(1, "-quiet") # 静默编译
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             elif re.search(r'\\bibdata', aux_content):
@@ -158,6 +160,8 @@ def compile_index(file_name):
 # --------------------------------------------------------------------------------
 def compile_xdv(file_name, quiet):
     print_message("xdvipdfmx PDF 编译")
-    options = ["xdvipdfmx", "-q" if quiet else "", "-V", "1.6", f"{file_name}"]
+    options = ["xdvipdfmx", "-V", "1.6", f"{file_name}"]
+    if quiet:
+        options.insert(1, "-q") # 静默编译
     console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
     subprocess.run(options) # 将 xelatex 生成的 xdv 转换成 pdf
