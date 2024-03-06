@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-03 20:08:56 +0800
+LastEditTime : 2024-03-06 11:27:57 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -51,12 +51,15 @@ def compile(tex_name, file_name, quiet, build_path):
     # 将获取到的编译项目名称 添加到对应的列表中
     name_target_list.append(f'{tex_name} 1 次')
     time_run_list.append(time_run_tex)
+    
     if times_compile_tex_bib != 0: # 存在参考文献编译过程
-        name_target_list.append(name_target_bib)
-        time_run_list.append(time_run_bib)
+        if not name_target_bib:
+            name_target_list.append(name_target_bib)
+            time_run_list.append(time_run_bib)
     if times_compile_tex_index != 0: # 存在目录索引编译过程
-        name_target_list.append(name_target_index)
-        time_run_list.append(time_run_index)
+        if not name_target_index:
+            name_target_list.append(name_target_index)
+            time_run_list.append(time_run_index)
 
     for i in range(times_extra_complie): # 进行额外编译 tex
         time_run_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
