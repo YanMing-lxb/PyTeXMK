@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-06 11:27:57 +0800
+LastEditTime : 2024-03-06 12:07:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -68,7 +68,7 @@ def compile(tex_name, file_name, quiet, build_path):
 
     if tex_name == "xelatex":  # 判断是否编译 xdv 文件
         time_run_xdv, _ = time_count(compile_xdv, file_name, quiet) # 编译 xdv 文件
-        name_target_list.append('xdvipdfmx')
+        name_target_list.append('xdvipdfmx 编译')
         time_run_list.append(time_run_xdv)
 
     print("\n\n" + "=" * 80 + "\n" +

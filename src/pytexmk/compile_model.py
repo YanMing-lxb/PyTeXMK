@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-06 01:15:29 +0800
+LastEditTime : 2024-03-06 12:07:12 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
+FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -55,21 +55,21 @@ def compile_bib(file_name, quiet):
 
         if re.search(r'\\bibdata|\\abx@aux@cite', aux_content):
             if re.search(r'\\abx@aux@refcontext', aux_content):
-                name_target = "biber"
-                print_message(f'{name_target} 文献编译')
-                options = [name_target, file_name]
+                name_target = "biber 编译"
+                print_message('biber 文献编译')
+                options = ["biber", file_name]
                 if quiet:
                     options.insert(1, "-quiet") # 静默编译
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             elif re.search(r'\\bibdata', aux_content):
-                name_target = 'bibtex'
-                print_message(f'{name_target} 文献编译')
-                options = [name_target, file_name]
+                name_target = 'bibtex 编译'
+                print_message('bibtex 文献编译')
+                options = ['bibtex', file_name]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 subprocess.run(options)
             compile_tex_times = 2 # 参考文献需要额外编译的次数
-            print_bib = f"{name_target} 编译参考文献"
+            print_bib = f"{name_target}参考文献"
         elif re.search(r'\\bibcite', aux_content):
             compile_tex_times = 1
             name_target = None
@@ -94,8 +94,8 @@ def compile_index(file_name):
                 content = f.read()
             if content.strip():  # Check if content is not empty
                 compile_tex_times = 1 # 目录和符号索引需要额外编译的次数
-                name_target = "glossaries"
-                print_message(f"{name_target} 宏包编译")
+                name_target = "glossaries 宏包"
+                print_message("glossaries 宏包")
                 print_index = "glossaries 宏包生成符号索引"
                 print(print_index,"\n")
                 options = ["makeindex", "-s", f"{file_name}.ist", "-o", f"{file_name}.gls", f"{file_name}.glo"]
@@ -111,8 +111,8 @@ def compile_index(file_name):
                 content = f.read()
             if content.strip():  # Check if content is not empty
                 compile_tex_times = 1
-                name_target = "nomencl"
-                print_message(f"{name_target} 宏包编译")
+                name_target = "nomencl 宏包"
+                print_message("nomencl 宏包")
                 print_index = "nomencl 宏包生成符号索引"
                 print(print_index,"\n")
                 options = ["makeindex", "-s", "nomencl.ist", "-o", f"{file_name}.nls", f"{file_name}.nlo"]
@@ -127,8 +127,8 @@ def compile_index(file_name):
                 content = f.read()
             if content.strip():  # Check if content is not empty
                 compile_tex_times = 1
-                name_target = "makeidx"
-                print_message(f"{name_target} 宏包编译")
+                name_target = "makeidx 宏包"
+                print_message("makeidx 宏包")
                 print_index = "makeidx 宏包生成索引"
                 print(print_index,"\n")
                 options = ["makeindex", f"{file_name}.idx"]
@@ -159,7 +159,7 @@ def compile_index(file_name):
 # 定义编译 xdv 文件命令
 # --------------------------------------------------------------------------------
 def compile_xdv(file_name, quiet):
-    print_message("xdvipdfmx PDF 编译")
+    print_message("xdvipdfmx 编译")
     options = ["xdvipdfmx", "-V", "1.6", f"{file_name}"]
     if quiet:
         options.insert(1, "-q") # 静默编译
