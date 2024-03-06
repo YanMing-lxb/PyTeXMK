@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-05 23:50:25 +0800
+LastEditTime : 2024-03-06 12:21:29 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -67,11 +67,11 @@ def time_print(start_time, name_target_list, time_run_list):
     number_programmes_run = len(name_target_list)-4
     
     time_compile = sum(time_run_list)
-    name_target_list.append('总编译时长')
+    name_target_list.append('LaTeX 编译时长')
     time_run_list.append(time_compile)
 
     time_other_operating = float(run_time.total_seconds()) - time_compile
-    name_target_list.append('其他操作时长')
+    name_target_list.append('Python 运行时长')
     time_run_list.append(time_other_operating)
 
     time_pytexmk = float(run_time.total_seconds())
@@ -84,11 +84,11 @@ def time_print(start_time, name_target_list, time_run_list):
 
     # 定义列名
     table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="left", no_wrap=True)
-    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
+    table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
+    table.add_column("运行时长", style="green", justify="center", no_wrap=True)
     table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="left")
-    table.add_column("运行时长", style="green", justify="left", no_wrap=True)
+    table.add_column("运行项目", style="cyan", justify="center")
+    table.add_column("运行时长", style="green", justify="center", no_wrap=True)
 
     # 判断统计项目列数是否是偶数
     length = len(name_target_list)/2 # 计算打印表格列数
