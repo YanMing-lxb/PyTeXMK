@@ -53,11 +53,11 @@ def compile(tex_name, file_name, quiet, build_path):
     time_run_list.append(time_run_tex)
     
     if times_compile_tex_bib != 0: # 存在参考文献编译过程
-        if not name_target_bib:
+        if name_target_bib:
             name_target_list.append(name_target_bib)
             time_run_list.append(time_run_bib)
     if times_compile_tex_index != 0: # 存在目录索引编译过程
-        if not name_target_index:
+        if name_target_index:
             name_target_list.append(name_target_index)
             time_run_list.append(time_run_index)
 
