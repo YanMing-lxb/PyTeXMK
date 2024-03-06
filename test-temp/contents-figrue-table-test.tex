@@ -1,0 +1,95 @@
+%
+%  =======================================================================
+%  ····Y88b···d88P················888b·····d888·d8b·······················
+%  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+%  ······Y88o88P··················88888b·d88888···························
+%  ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+%  ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+%  ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+%  ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+%  ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+%  ·······························································888·····
+%  ··························································Y8b·d88P·····
+%  ···························································"Y88P"······
+%  =======================================================================
+% 
+%  -----------------------------------------------------------------------
+% Author       : 焱铭
+% Date         : 2024-02-29 18:57:01 +0800
+% LastEditTime : 2024-02-29 18:57:05 +0800
+% Github       : https://github.com/YanMing-lxb/
+% FilePath     : /PyTeXMK/tests/contents-figrue-table-test.tex
+% Description  : 
+%  -----------------------------------------------------------------------
+%
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[UTF8]{ctex} % 加载ctex宏包以支持中文排版
+\begin{document}
+
+\title{具有目录、图目录和表目录的LaTeX测试文档}
+\author{作者}
+\date{\today}
+
+\maketitle
+
+\tableofcontents % 自动生成目录
+\listoffigures % 自动生成图目录
+\listoftables % 自动生成表目录
+
+\section{引言}
+这是一个具有目录、图目录和表目录的LaTeX测试文档。它将演示如何创建这三种目录。
+
+\section{图示例}
+在这个部分，我们将插入一些图像。
+
+\subsection{第一个图}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{example-image-a}
+    \caption{示例图像 A}
+\end{figure}
+
+\subsection{第二个图}
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.5\textwidth]{example-image-b}
+    \caption{示例图像 B}
+\end{figure}
+
+\section{表示例}
+在这个部分，我们将插入一些表格。
+
+\subsection{第一个表}
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    姓名 & 分数 \\
+    \hline
+    小明 & 85 \\
+    小红 & 92 \\
+    \hline
+    \end{tabular}
+    \caption{示例表格 A}
+\end{table}
+
+\subsection{第二个表}
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{|c|c|}
+    \hline
+    姓名 & 年龄 \\
+    \hline
+    小张 & 25 \\
+    小王 & 30 \\
+    \hline
+    \end{tabular}
+    \caption{示例表格 B}
+\end{table}
+
+\section{结论}
+这是文档的结论部分。
+
+\end{document}
