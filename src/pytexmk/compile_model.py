@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-06 12:07:12 +0800
+LastEditTime : 2024-03-06 12:35:16 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -34,16 +34,16 @@ console = console.Console(width=80)  # 设置宽度为80
 # 定义编译 TeX 文件命令
 # --------------------------------------------------------------------------------
 def compile_tex(tex_name, file_name, tex_times, quiet):
-    options = ["-shell-escape", "-file-line-error", "-halt-on-error", "--synctex=1"]
+    options = [tex_name, "-shell-escape", "-file-line-error", "-halt-on-error", "--synctex=1", f'{file_name}.tex']
     print_message(f"{tex_times} 次 {tex_name} 编译")
     if tex_name == 'xelatex':
-        options.insert(3, "-no-pdf")
+        options.insert(1, "-no-pdf")
     if quiet:
-        options.insert(0, "-interaction=batchmode") # 静默编译
+        options.insert(2, "-interaction=batchmode") # 静默编译
     else:
-        options.insert(3, "-interaction=nonstopmode") # 非静默编译
-    console.print(f"[bold]运行命令：[/bold][red][cyan]{tex_name, ' '.join(options)}[/cyan][/red]\n")
-    subprocess.run([tex_name] + options + [f"{file_name}.tex"])
+        options.insert(2, "-interaction=nonstopmode") # 非静默编译
+    console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+    subprocess.run(options)
 
 # --------------------------------------------------------------------------------
 # 定义编译参考文献命令
