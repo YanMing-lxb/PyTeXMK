@@ -1,6 +1,10 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pytexmk"
-version = "0.2.17.240306"
+dynamic = ["version"]
 authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
@@ -23,13 +27,12 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
-
 [project.urls]
 "Homepage" = "https://github.com/YanMing-lxb/PyTeXMK"
 "Bug Tracker" = "https://github.com/YanMing-lxb/PyTeXMK/issues"
 
 [project.scripts]
 pytexmk = "pytexmk:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "pytexmk.version.__version__"}

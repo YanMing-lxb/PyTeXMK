@@ -25,5 +25,5 @@ Description  :
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-script_name = 'pytexmk'
-version = '0.2.17.240306'
+script_name = 'PyTeXMK'
+__version__ = '0.2.17.240306'

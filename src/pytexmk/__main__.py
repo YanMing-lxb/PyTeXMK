@@ -16,16 +16,16 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-06 12:23:16 +0800
+LastEditTime : 2024-03-07 10:50:18 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
 import argparse
 import datetime
-from .version import script_name, version
+from .version import script_name, __version__
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import remove_aux, remove_result, remove_result_in_root, move_result, search_file, check_file_name
 from .info_print import time_count, time_print, print_message
@@ -107,7 +107,7 @@ def main():
     # 定义命令行参数
     # --------------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序.")
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {version}')
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
