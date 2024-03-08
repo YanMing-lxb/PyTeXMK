@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-08 15:33:30 +0800
+LastEditTime : 2024-03-09 00:06:03 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -159,8 +159,8 @@ def compile_index(file_name):
 # 定义编译 xdv 文件命令
 # --------------------------------------------------------------------------------
 def compile_xdv(file_name, quiet):
-    print_message("xdvipdfmx 编译")
-    options = ["xdvipdfmx", "-V", "1.6", f"{file_name}"]
+    print_message("dvipdfmx 编译")
+    options = ["dvipdfmx", "-V", "1.6", f"{file_name}"]
     if quiet:
         options.insert(1, "-q") # 静默编译
     console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
