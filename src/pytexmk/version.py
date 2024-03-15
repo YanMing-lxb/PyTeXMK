@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-01 15:52:28 +0800
-LastEditTime : 2024-03-07 18:22:01 +0800
+LastEditTime : 2024-03-15 22:03:48 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\version.py
+FilePath     : /PyTeXMK/src/pytexmk/version.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -26,4 +26,4 @@ Description  :
 #!/usr/bin/env python
 
 script_name = 'PyTeXMK'
-__version__ = '0.0.18.240309'
+__version__ = '0.2.19.240315'
