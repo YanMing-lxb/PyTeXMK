@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-15 22:02:59 +0800
+LastEditTime : 2024-03-16 20:17:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -28,7 +28,7 @@ import re
 import subprocess
 from .info_print import print_message
 from rich import console
-console = console.Console(width=80)  # 设置宽度为80
+console = console.Console(width=100)  # 设置宽度为80
 
 # --------------------------------------------------------------------------------
 # 定义编译 TeX 文件命令
