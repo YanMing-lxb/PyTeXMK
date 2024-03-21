@@ -20,7 +20,7 @@ jobs:
             python3.11 -m venv venv3.11
             source venv3.11/bin/activate
             apk add py3-pip
-            pip install rich build setuptools
+            pip install rich build setuptools pymupdf
             python3 --version
             make test
             make testwhl
