@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-21 23:25:46 +0800
+LastEditTime : 2024-03-21 23:30:23 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -127,7 +127,7 @@ def main():
     if args.lualatex:
         tex_name = "lualatex"
         
-    if args.clean_pdf:
+    if args.clean_pdf: # 清理 pdf 文件
         clean_all_pdf('.')
     else:
         if args.document: # 指定 latex 文件
@@ -135,16 +135,16 @@ def main():
         else: # 未指定 latex 文件
             file_name = search_file() # 运行 search_file 函数判断
 
-    if file_name: # 如果存在 file_name
-        if args.clean:
-            remove_aux(file_name)
-        elif args.Clean:
-            remove_aux(file_name)
-            remove_result(build_path)
-            remove_result_in_root(file_name)
-        else:
-            name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
-            time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
+        if file_name: # 如果存在 file_name
+            if args.clean:
+                remove_aux(file_name)
+            elif args.Clean:
+                remove_aux(file_name)
+                remove_result(build_path)
+                remove_result_in_root(file_name)
+            else:
+                name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
+                time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
     
 
 if __name__ == "__main__":

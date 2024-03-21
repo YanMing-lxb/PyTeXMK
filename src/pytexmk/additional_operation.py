@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-21 23:20:05 +0800
+LastEditTime : 2024-03-21 23:30:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -86,7 +86,7 @@ def move_result(file_name, build_path):
             print(f'{file} 不存在！')
 
 # --------------------------------------------------------------------------------
-# 定义清除所有 pdf 文件
+# 定义清理所有 pdf 文件
 # --------------------------------------------------------------------------------
 def clean_all_pdf(root_dir):
     pdf_files = []
