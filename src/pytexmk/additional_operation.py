@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-03 21:32:14 +0800
+LastEditTime : 2024-03-21 23:20:05 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -24,6 +24,7 @@ Description  :
 '''
 # -*- coding: utf-8 -*-
 import os
+import fitz
 import shutil
 from rich import print
 
@@ -83,6 +84,40 @@ def move_result(file_name, build_path):
             print(f"{file} 移动到 {build_path}")
         else:
             print(f'{file} 不存在！')
+
+# --------------------------------------------------------------------------------
+# 定义清除所有 pdf 文件
+# --------------------------------------------------------------------------------
+def clean_all_pdf(root_dir):
+    pdf_files = []
+    for root, dirs, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith('.pdf'):
+                pdf_files.append(os.path.join(root, file))
+
+    if pdf_files:
+        print(f"共发现 {len(pdf_files)} 个PDF文件。")
+        for pdf_file in pdf_files:
+            try:
+                doc = fitz.open(pdf_file)
+                clean_doc = fitz.open()
+                
+                for page_num in range(doc.page_count):
+                    page = doc.load_page(page_num)
+                    clean_doc.insert_page(page_num, width=page.rect.width, height=page.rect.height)
+                    clean_doc[page_num].show_pdf_page(page.rect, doc, page_num)
+                
+                output_path = f"{pdf_file}.cleancopied.pdf"
+                clean_doc.save(output_path)
+                clean_doc.close()
+                
+                os.replace(output_path, pdf_file)
+                print(f"已处理: {pdf_file}")
+            except Exception as e:
+                print(f"处理出错 {pdf_file}: {e}")
+        print("所有PDF文件已处理完成。")
+    else:
+        print("未发现PDF文件。")
 
 # --------------------------------------------------------------------------------
 # 定义输入检查函数
