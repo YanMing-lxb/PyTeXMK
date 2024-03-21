@@ -82,6 +82,7 @@ PyTeXMK 支持：
 
 # 未来工作方向
 
+- [ ] 完善编译过程出错后的中断处理机制
 - [ ] 完善检索主 LaTeX 文件的功能：
     - [ ] 根据魔法注释 `% !TEX root = relative/or/absolute/path/to/root/file.tex` 找到主 LaTeX 文件
     - [ ] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
