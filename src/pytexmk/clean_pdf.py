@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-11 22:56:29 +0800
-LastEditTime : 2024-03-21 22:30:54 +0800
+LastEditTime : 2024-03-21 23:08:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/clean_pdf.py
 Description  : 
@@ -39,28 +39,32 @@ def get_all_pdf_files(root_dir):
 
 def clean(pdf_files):
     # 遍历PDF文件列表
-    for pdf_file in pdf_files:
-        # 使用pymupdf库处理PDF文件
-        try:
-            doc = fitz.open(pdf_file)
-            clean_doc = fitz.open()
-            
-            for page_num in range(doc.page_count):
-                page = doc.load_page(page_num)
-                clean_doc.insert_page(page_num, width=page.rect.width, height=page.rect.height)
-                clean_doc[page_num].show_pdf_page(page.rect, doc, page_num)
-            
-            output_path = f"{pdf_file}.cleancopied.pdf"
-            clean_doc.save(output_path)
-            clean_doc.close()
-            
-            # 如果处理成功，替换原文件
-            os.replace(output_path, pdf_file)
-            print(f"已处理: {pdf_file}")
-        except Exception as e:
-            print(f"处理出错 {pdf_file}: {e}")
-
-    print("所有PDF文件已处理完成。")
+    if pdf_files:
+        print(f"共发现 {len(pdf_files)} 个PDF文件。")
+        for pdf_file in pdf_files:
+            # 使用pymupdf库处理PDF文件
+            try:
+                doc = fitz.open(pdf_file)
+                clean_doc = fitz.open()
+                
+                for page_num in range(doc.page_count):
+                    page = doc.load_page(page_num)
+                    clean_doc.insert_page(page_num, width=page.rect.width, height=page.rect.height)
+                    clean_doc[page_num].show_pdf_page(page.rect, doc, page_num)
+                
+                output_path = f"{pdf_file}.cleancopied.pdf"
+                clean_doc.save(output_path)
+                clean_doc.close()
+                
+                # 如果处理成功，替换原文件
+                os.replace(output_path, pdf_file)
+                print(f"已处理: {pdf_file}")
+            except Exception as e:
+                print(f"处理出错 {pdf_file}: {e}")
+        print("所有PDF文件已处理完成。")
+    else:
+        print("未发现PDF文件。")
+    
 
 # 获取当前目录及子目录下的所有PDF文件
 pdf_files = get_all_pdf_files('.')
