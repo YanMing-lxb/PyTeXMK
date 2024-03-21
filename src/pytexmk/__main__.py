@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-07 10:50:18 +0800
+LastEditTime : 2024-03-21 22:58:21 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -29,6 +29,8 @@ from .version import script_name, __version__
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import remove_aux, remove_result, remove_result_in_root, move_result, search_file, check_file_name
 from .info_print import time_count, time_print, print_message
+import clean_pdf
+
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
@@ -108,12 +110,14 @@ def main():
     # --------------------------------------------------------------------------------
     parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序.")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
-    parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
-    parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
-    parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
     parser.add_argument('-x', '--xelatex', action='store_true', help="xelatex 进行编译")
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
+    parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
+    parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
+    parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
+    parser.add_argument('-cp', '--clean-pdf', action='store_true', help="清理 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数清理所有 pdf 文件")
+    
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
@@ -139,6 +143,8 @@ def main():
         else:
             name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
             time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
+    if args.clean_pdf:
+        clean_pdf
 
 if __name__ == "__main__":
 
