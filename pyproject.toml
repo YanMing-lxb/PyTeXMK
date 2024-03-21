@@ -12,7 +12,7 @@ description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Com
 keywords = ["LaTeX", "build", "latexmk"]
 dependencies = ["rich","pymupdf"]
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers ",
