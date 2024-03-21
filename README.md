@@ -69,13 +69,16 @@ PyTeXMK 支持：
 |------------------|--------------------------------------------|
 | -h, --help       | 显示帮助信息                                 |
 | -v, --version    | 显示程序版本号                               |
-| -c, --clean      | 清除所有辅助文件                              |
-| -C, --Clean      | 清除所有辅助文件和 pdf 文件                    |
-| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程             |
 | -p, --pdflatex   | pdflatex 进行编译                           |
 | -x, --xelatex    | xelatex 进行编译                            |
 | -l, --lualatex   | lualatex 进行编译                           |
+| -c, --clean      | 清除所有辅助文件                              |
+| -C, --Clean      | 清除所有辅助文件和 pdf 文件                    |
+| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程             |
+| -np, --clean-pdf  | 清理所有 pdf 文件             |
 
+**说明：**
+`-np` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
 
 # 未来工作方向
 
