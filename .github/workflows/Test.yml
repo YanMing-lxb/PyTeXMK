@@ -21,7 +21,7 @@ jobs:
             source venv3.11/bin/activate
             apk add py3-pip
             pip install --upgrade pip
-            pip install rich build setuptools pymupdf
+            pip install rich build setuptools wheel pymupdf
             python3 --version
             make test
             make testwhl
