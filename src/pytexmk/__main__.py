@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-22 10:35:41 +0800
+LastEditTime : 2024-03-22 11:07:12 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -95,7 +95,22 @@ def compile(tex_name, file_name, quiet, build_path):
     time_run_list.append(time_run_remove_aux)
 
     return name_target_list, time_run_list
+# def your_function():
+#     try:
+#         # 主要函数代码
+#         print("Executing main function code")
+#         return  # 此处可以根据需要添加返回语句
+#     except Exception as e:
+#         # 如果发生异常，则在此处执行特定函数
+#         print("Exception occurred:", e)
+#         your_special_function()  # 在函数跳出时执行特定函数
+#     finally:
+#         # 无论try块是否发生异常，都会执行此处的代码
+#         print("Executing finally block")
 
+# def your_special_function():
+#     # 在此处定义要在函数跳出时执行的特定函数的代码
+#     print("Executing special function")
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
     tex_name = "xelatex"
