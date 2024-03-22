@@ -16,9 +16,9 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-04 11:33:28 +0800
+ * LastEditTime : 2024-03-22 12:19:41 +0800
  * Github       : https://github.com/YanMing-lxb/
- * FilePath     : \PyTeXMK\README.md
+ * FilePath     : /PyTeXMK/README.md
  * Description  : 
  *  -----------------------------------------------------------------------
  -->
@@ -75,10 +75,10 @@ PyTeXMK 支持：
 | -c, --clean      | 清除所有辅助文件                              |
 | -C, --Clean      | 清除所有辅助文件和 pdf 文件                    |
 | -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程             |
-| -np, --clean-pdf  | 清理所有 pdf 文件             |
+| -cp, --clean-pdf  | 清理所有 pdf 文件             |
 
 **说明：**
-`-np` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
+`-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
 
 # 未来工作方向
 
