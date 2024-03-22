@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-21 23:38:11 +0800
+LastEditTime : 2024-03-22 10:29:37 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -88,12 +88,15 @@ def move_result(file_name, build_path):
 # --------------------------------------------------------------------------------
 # 定义清理所有 pdf 文件
 # --------------------------------------------------------------------------------
-def clean_all_pdf(root_dir):
+def clean_all_pdf(root_dir,excluded_folder):
     pdf_files = []
     for root, dirs, files in os.walk(root_dir):
+        if excluded_folder in dirs:
+            dirs.remove(excluded_folder)  # 不包括名为Build的文件夹中的pdf文件
+
         for file in files:
-            if file.endswith('.pdf'):
-                pdf_files.append(os.path.join(root, file))
+            if file.endswith('.pdf') and root != root_dir:
+                pdf_files.append(os.path.join(root, file))  # 仅清理子文件夹中的pdf文件
 
     if pdf_files:
         print(f"共发现 {len(pdf_files)} 个PDF文件。")
