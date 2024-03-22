@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-22 12:19:41 +0800
+ * LastEditTime : 2024-03-22 14:39:36 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -80,9 +80,13 @@ PyTeXMK 支持：
 **说明：**
 `-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
 
+# 更新日志
+
+- 2024-03-22 完善编译过程出错后的中断处理机制：在编译过程中出现错误时，程序会自动中断，并提示 `请用 -nq 模式运行以显示错误信息！`,使用 `-nq` 参数运行时，则会显示错误信息。
+
 # 未来工作方向
 
-- [ ] 完善编译过程出错后的中断处理机制
+- [X] 完善编译过程出错后的中断处理机制
 - [ ] 完善检索主 LaTeX 文件的功能：
     - [ ] 根据魔法注释 `% !TEX root = relative/or/absolute/path/to/root/file.tex` 找到主 LaTeX 文件
     - [ ] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
