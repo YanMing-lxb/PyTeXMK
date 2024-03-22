@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-06 12:42:13 +0800
+LastEditTime : 2024-03-22 14:50:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -28,7 +28,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print
-console = Console(width=100) # 创建控制台对象
+console = Console() # 创建控制台对象
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
 # --------------------------------------------------------------------------------
