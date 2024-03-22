@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-22 10:54:10 +0800
+LastEditTime : 2024-03-22 13:49:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -124,8 +124,8 @@ def clean_all_pdf(root_dir, excluded_folder, file_name):
                 print(f"处理出错 {pdf_file}: {e}")
         print("所有PDF文件已处理完成。")
     else:
-        print("当前路径下未发现PDF文件。")
-
+        print("当前路径下未发现PDF文件。") 
+    
 # --------------------------------------------------------------------------------
 # 定义输入检查函数
 # --------------------------------------------------------------------------------

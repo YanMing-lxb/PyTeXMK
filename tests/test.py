@@ -192,3 +192,18 @@ minutes, seconds = divmod(remainder, 60)
 milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
 print("\n" + "=" * 80)
 print(f"测试时长为：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)\n")
+# def your_function():
+#     try:
+#         command = ['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main.tex']
+#         completed_process = subprocess.run(command, check=True, text=True, capture_output=True)
+#         print("Process completed successfully!")
+#     except subprocess.CalledProcessError as e:
+#         # print(f"Error running command: {e}")
+#         # print(f"Return code: {e.returncode}")
+#         print(f"Output: {e.output}")
+#         # print(f"Error running command: {e.stderr}")
+#         return
+
+#     print("Done!")
+
+# your_function()

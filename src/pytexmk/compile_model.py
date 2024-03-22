@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-16 20:17:45 +0800
+LastEditTime : 2024-03-22 13:49:12 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -43,8 +43,13 @@ def compile_tex(tex_name, file_name, tex_times, quiet):
     else:
         options.insert(4, "-interaction=nonstopmode") # 非静默编译
     console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
-    subprocess.run(options)
-
+    
+    try:
+        subprocess.run(options, check=True, text=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        return False
 # --------------------------------------------------------------------------------
 # 定义编译参考文献命令
 # --------------------------------------------------------------------------------
@@ -61,15 +66,19 @@ def compile_bib(file_name, quiet):
                 if quiet:
                     options.insert(1, "-quiet") # 静默编译
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-                subprocess.run(options)
             elif re.search(r'\\bibdata', aux_content):
                 name_target = 'bibtex 编译'
                 print_message('bibtex 文献编译')
                 options = ['bibtex', file_name]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-                subprocess.run(options)
-            compile_tex_times = 2 # 参考文献需要额外编译的次数
-            print_bib = f"{name_target}参考文献"
+            try:
+                subprocess.run(options, check=True, text=True, capture_output=True)
+                compile_tex_times = 2 # 参考文献需要额外编译的次数
+                print_bib = f"{name_target}参考文献"
+            except subprocess.CalledProcessError as e:
+                print(e.output)
+                return compile_tex_times, print_bib, name_target, False
+            
         elif re.search(r'\\bibcite', aux_content):
             compile_tex_times = 1
             name_target = None
@@ -82,7 +91,7 @@ def compile_bib(file_name, quiet):
         compile_tex_times = 0
         name_target = None
         print_bib = "文档没有参考文献"
-    return compile_tex_times, print_bib, name_target
+    return compile_tex_times, print_bib, name_target, True
 
 # --------------------------------------------------------------------------------
 # 定义编译目录索引命令
@@ -100,7 +109,11 @@ def compile_index(file_name):
                 print(print_index,"\n")
                 options = ["makeindex", "-s", f"{file_name}.ist", "-o", f"{file_name}.gls", f"{file_name}.glo"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-                subprocess.run(options)
+                try:
+                    subprocess.run(options, check=True, text=True, capture_output=True)
+                except subprocess.CalledProcessError as e:
+                    print(e.output)
+                    return compile_tex_times, print_index, name_target, False
             else:
                 compile_tex_times = 0
                 name_target = None
@@ -117,7 +130,11 @@ def compile_index(file_name):
                 print(print_index,"\n")
                 options = ["makeindex", "-s", "nomencl.ist", "-o", f"{file_name}.nls", f"{file_name}.nlo"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-                subprocess.run(options)
+                try:
+                    subprocess.run(options, check=True, text=True, capture_output=True)
+                except subprocess.CalledProcessError as e:
+                    print(e.output)
+                    return compile_tex_times, print_index, name_target, False
             else:
                 compile_tex_times = 0
                 name_target = None
@@ -133,7 +150,11 @@ def compile_index(file_name):
                 print(print_index,"\n")
                 options = ["makeindex", f"{file_name}.idx"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-                subprocess.run(options)
+                try:
+                    subprocess.run(options, check=True, text=True, capture_output=True)
+                except subprocess.CalledProcessError as e:
+                    print(e.output)
+                    return compile_tex_times, print_index, name_target, False
             else:
                 compile_tex_times = 0
                 name_target = None
@@ -153,7 +174,7 @@ def compile_index(file_name):
         name_target = None
         print_index = "没有插入任何目录或者使用 makeidx、glossaries、nomencl 等宏包"
 
-    return compile_tex_times, print_index, name_target
+    return compile_tex_times, print_index, name_target, True
 
 # --------------------------------------------------------------------------------
 # 定义编译 xdv 文件命令
@@ -164,4 +185,9 @@ def compile_xdv(file_name, quiet):
     if quiet:
         options.insert(1, "-q") # 静默编译
     console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-    subprocess.run(options) # 将 xelatex 生成的 xdv 转换成 pdf
+    try:
+        subprocess.run(options, check=True, text=True, capture_output=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(e.output)
+        return False

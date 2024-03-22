@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-22 11:07:12 +0800
+LastEditTime : 2024-03-22 14:26:56 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -33,7 +33,7 @@ from .info_print import time_count, time_print, print_message
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
-def compile(tex_name, file_name, quiet, build_path):
+def compile(start_time,tex_name, file_name, quiet, build_path):
     name_target_list = []
     time_run_list = []
 
@@ -41,12 +41,15 @@ def compile(tex_name, file_name, quiet, build_path):
     name_target_list.append("清除旧辅助文件")
     time_run_list.append(time_run_remove_aux)
 
-    time_run_tex, _ = time_count(compile_tex, tex_name, file_name, 1, quiet) # 首次编译 tex 文档
+    time_run_tex, try_bool_tex = time_count(compile_tex, tex_name, file_name, 1, quiet) # 首次编译 tex 文档
+    if not try_bool_tex: print(f"{tex_name} 1st 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     time_run_bib, return_com_bib = time_count(compile_bib, file_name, quiet) # 编译参考文献
+    times_compile_tex_bib, print_bib, name_target_bib, try_bool_bib = return_com_bib # 获取 compile_bib 函数得到的参数
+    if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     time_run_index, return_com_index = time_count(compile_index, file_name) # 编译目录索引
+    times_compile_tex_index, print_index, name_target_index, try_bool_index = return_com_index # 获取 compile_index 函数得到的参数
+    if not try_bool_index: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     
-    times_compile_tex_bib, print_bib, name_target_bib = return_com_bib # 获取 compile_bib 函数得到的参数
-    times_compile_tex_index, print_index, name_target_index = return_com_index # 获取 compile_index 函数得到的参数
     times_extra_complie = max(times_compile_tex_bib, times_compile_tex_index) # 计算额外编译 tex 文档次数
 
     # 将获取到的编译项目名称 添加到对应的列表中
@@ -63,16 +66,19 @@ def compile(tex_name, file_name, quiet, build_path):
             time_run_list.append(time_run_index)
 
     for i in range(times_extra_complie): # 进行额外编译 tex
-        time_run_tex, _ = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
+        time_run_tex, try_bool_tex = time_count(compile_tex, tex_name, file_name, i + 2, quiet)
         if i+2 == 2: 
+            if not try_bool_tex: print(f"{tex_name} {i+2}nd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
             name_target_list.append(f'{tex_name} {i+2}nd')
-        elif i+2 == 3:
+        if i+2 == 3:
+            if not try_bool_tex: print(f"{tex_name} {i+2}rd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
             name_target_list.append(f'{tex_name} {i+2}rd')
-
+            
         time_run_list.append(time_run_tex)
 
     if tex_name == "xelatex":  # 判断是否编译 xdv 文件
-        time_run_xdv, _ = time_count(compile_xdv, file_name, quiet) # 编译 xdv 文件
+        time_run_xdv, try_bool_xdv = time_count(compile_xdv, file_name, quiet) # 编译 xdv 文件
+        if not try_bool_xdv: print("dvipdfmx 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
         name_target_list.append('dvipdfmx 编译')
         time_run_list.append(time_run_xdv)
 
@@ -94,23 +100,8 @@ def compile(tex_name, file_name, quiet, build_path):
     name_target_list.append("清除辅助文件")
     time_run_list.append(time_run_remove_aux)
 
-    return name_target_list, time_run_list
-# def your_function():
-#     try:
-#         # 主要函数代码
-#         print("Executing main function code")
-#         return  # 此处可以根据需要添加返回语句
-#     except Exception as e:
-#         # 如果发生异常，则在此处执行特定函数
-#         print("Exception occurred:", e)
-#         your_special_function()  # 在函数跳出时执行特定函数
-#     finally:
-#         # 无论try块是否发生异常，都会执行此处的代码
-#         print("Executing finally block")
+    time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
 
-# def your_special_function():
-#     # 在此处定义要在函数跳出时执行的特定函数的代码
-#     print("Executing special function")
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
     tex_name = "xelatex"
@@ -157,8 +148,8 @@ def main():
         elif args.clean_pdf:
             clean_all_pdf('.')
         else:
-            name_target_list, time_run_list = compile(tex_name, file_name, not args.no_quiet, build_path)
-            time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
+            compile(start_time, tex_name, file_name, not args.no_quiet, build_path)
+            
     
 
 if __name__ == "__main__":
