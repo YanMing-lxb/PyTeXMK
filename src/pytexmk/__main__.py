@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-03-22 14:26:56 +0800
+LastEditTime : 2024-03-22 14:44:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -146,7 +146,7 @@ def main():
             remove_result(build_path,build_path,file_name)
             remove_result_in_root(file_name)
         elif args.clean_pdf:
-            clean_all_pdf('.')
+            clean_all_pdf('.', build_path, file_name)
         else:
             compile(start_time, tex_name, file_name, not args.no_quiet, build_path)
             
