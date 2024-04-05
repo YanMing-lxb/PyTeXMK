@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-03-22 13:49:42 +0800
+LastEditTime : 2024-04-05 08:55:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -102,29 +102,19 @@ def clean_all_pdf(root_dir, excluded_folder, file_name):
             if file.endswith('.pdf') and file != f'{file_name}.pdf':
                 pdf_files.append(os.path.join(root, file))  # 仅清理子文件夹中的pdf文件
     
+    # 对pdf文件进行打开和关闭操作，解决origin批量导出pdf文件时由于未关闭pdf导致的报错
     if pdf_files:
         print(f"共发现 {len(pdf_files)} 个PDF文件。")
         for pdf_file in pdf_files:
             try:
                 doc = fitz.open(pdf_file)
-                clean_doc = fitz.open()
-                
-                for page_num in range(doc.page_count):
-                    page = doc.load_page(page_num)
-                    clean_doc.insert_page(page_num, width=page.rect.width, height=page.rect.height)
-                    clean_doc[page_num].show_pdf_page(page.rect, doc, page_num)
-                
-                output_path = f"{pdf_file}.cleancopied.pdf"
-                clean_doc.save(output_path)
-                clean_doc.close()
-                
-                os.replace(output_path, pdf_file)
+                doc.close()
                 print(f"已处理: {pdf_file}")
             except Exception as e:
                 print(f"处理出错 {pdf_file}: {e}")
         print("所有PDF文件已处理完成。")
     else:
-        print("当前路径下未发现PDF文件。") 
+        print("当前路径下未发现PDF文件。")
     
 # --------------------------------------------------------------------------------
 # 定义输入检查函数
