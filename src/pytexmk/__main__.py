@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-04-26 22:43:47 +0800
+LastEditTime : 2024-04-26 23:19:03 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -127,13 +127,13 @@ def main():
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
-    tex_files = search_tex_file # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
+    tex_files = search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
     magic_comments = search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
     # --------------------------------------------------------------------------------
-    if magic_comments['outdir']: # 如果存在 magic comments 且 outdir 存在
+    if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
         print(f"通过魔法注释找到输出目录为 {outdir}！")
 
@@ -143,7 +143,7 @@ def main():
     if args.document: # pytexmk 指定 latex 文件
         file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
     else: # pytexmk 未指定 latex 文件
-        if magic_comments['root']: # 如果存在 magic comments 且 root 存在
+        if magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
             file_name = check_file_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
             print(f"通过魔法注释找到 {file_name}.tex 文件！")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
@@ -157,7 +157,7 @@ def main():
         tex_name = "pdflatex"
     elif args.lualatex:
         tex_name = "lualatex"
-    elif magic_comments['program']: # 如果存在 magic comments 且 program 存在
+    elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         tex_name = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
         print(f"通过魔法注释设置编译器为 {tex_name}！")
 

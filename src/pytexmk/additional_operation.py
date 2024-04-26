@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-04-26 22:32:56 +0800
+LastEditTime : 2024-04-26 23:10:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -188,12 +188,13 @@ def search_main_file(tex_files):
 # --------------------------------------------------------------------------------
 def search_magic_comments(tex_files, magic_comments_keys):
     magic_comments = {}  # 创建空字典用于存储结果
-    for file_path in tex_files:  # 遍历tex文件列表
-        with open(file_path, 'r') as file:  # 打开文件
-            for _ in range(50):  # 遍历文件的前50行
-                line = file.readline()  # 读取一行内容
-                for magic_comments_key in magic_comments_keys:  # 遍历关键字列表
-                    if f"% !TEX {magic_comments_key} =" in line:  # 如果关键字出现在这一行
-                        magic_comment = line.split(f"% !TEX {magic_comments_key} = ")[1].strip()  # 提取对应的值
-                        magic_comments[magic_comments_key] = magic_comment  # 将键值对存入字典
+    if len(tex_files):
+        for file_path in tex_files:  # 遍历tex文件列表
+            with open(file_path, 'r') as file:  # 打开文件
+                for _ in range(50):  # 遍历文件的前50行
+                    line = file.readline()  # 读取一行内容
+                    for magic_comments_key in magic_comments_keys:  # 遍历关键字列表
+                        if f"% !TEX {magic_comments_key} =" in line:  # 如果关键字出现在这一行
+                            magic_comment = line.split(f"% !TEX {magic_comments_key} = ")[1].strip()  # 提取对应的值
+                            magic_comments[magic_comments_key] = magic_comment  # 将键值对存入字典
     return magic_comments  # 返回提取的键值对字典
