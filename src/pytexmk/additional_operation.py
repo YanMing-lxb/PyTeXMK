@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-04-05 08:55:30 +0800
+LastEditTime : 2024-04-26 22:32:56 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -54,10 +54,10 @@ def remove_aux(file_name):
 # --------------------------------------------------------------------------------
 # 定义清除已有结果文件
 # --------------------------------------------------------------------------------
-def remove_result(build_path):
-    if os.path.exists(build_path):
-        shutil.rmtree(build_path)  # 删除整个文件夹
-        print(f"已删除 {build_path} 中的旧结果文件！")
+def remove_result(outdir):
+    if os.path.exists(outdir):
+        shutil.rmtree(outdir)  # 删除整个文件夹
+        print(f"已删除 {outdir} 中的旧结果文件！")
     
 def remove_result_in_root(file_name):
     extensions = [".pdf", ".synctex.gz", ".synctex"]
@@ -75,13 +75,13 @@ def remove_result_in_root(file_name):
 # --------------------------------------------------------------------------------
 # 定义移动生成文件
 # --------------------------------------------------------------------------------
-def move_result(file_name, build_path):
+def move_result(file_name, outdir):
     result_files = [f"{file_name}{ext}" for ext in [".pdf", ".synctex.gz"]]
-    os.mkdir(build_path)  # 创建空的 build_path 文件夹
+    os.mkdir(outdir)  # 创建空的 outdir 文件夹
     for file in result_files:
         if os.path.exists(file):
-            shutil.move(file, build_path)
-            print(f"{file} 移动到 {build_path}")
+            shutil.move(file, outdir)
+            print(f"{file} 移动到 {outdir}")
         else:
             print(f'{file} 不存在！')
 
@@ -139,27 +139,42 @@ def check_file_name(file_name):
 # --------------------------------------------------------------------------------
 # 定义 tex 文件检索函数
 # --------------------------------------------------------------------------------
-def search_file():
+def search_tex_file():
     current_path = os.getcwd() # 获取当前路径
     # 遍历当前路径下的所有文件
     tex_files = [file for file in os.listdir(current_path) if file.endswith('.tex')]
+    return tex_files
 
+# --------------------------------------------------------------------------------
+# 定义 tex 主文件检索函数
+# --------------------------------------------------------------------------------
+def search_main_file(tex_files):
+    current_path = os.getcwd() # 获取当前路径
     if tex_files:
+        # 如果存在多个.tex文件
+        if 'main.tex' in tex_files:
+            # 存在名为main.tex的文件
+            file_name = 'main'
+            print(f"找到 {file_name}.tex 文件！")
         # 如果只有一个.tex文件，则直接提取文件名并打印
-        if len(tex_files) == 1:
+        elif len(tex_files) == 1:
             file_name = os.path.splitext(tex_files[0])[0]
             print(f"找到 {file_name}.tex 文件！")
+        elif len(tex_files) > 1:
+            # 存在多个.tex文件，但没有名为main.tex的文件
+            for file_path in tex_files:  # 遍历tex文件列表
+                with open(file_path, 'r') as file:  # 打开文件
+                    for _ in range(200):  # 遍历文件的前200行
+                        line = file.readline()  # 读取一行内容
+                        if "\documentclass" in line or "\begin{document}" in line:
+                            # 找到 \documentclass 或 \begin{document} 指令，提取文件名
+                            file_name = check_file_name(file_path)
+                            print(f"找到 {file_name}.tex 文件！")
         else:
-            # 如果存在多个.tex文件
-            if 'main.tex' in tex_files:
-                # 存在名为main.tex的文件
-                file_name = 'main'
-                print(f"找到 {file_name}.tex 文件！")
-            else:
-                # 不存在名为main.tex的文件，打印所有找到的.tex文件
-                file_name = None
-                print("存在多个 .tex 文件，请添加 main.tex 文件或终端输入：pytexmk <主文件名> 名进行编译")
-                print("例如终端输入: pytexmk test")
+            # 不存在名为main.tex的文件，打印所有找到的.tex文件
+            file_name = None
+            print("存在多个 .tex 文件，请：修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入：pytexmk <主文件名> 名进行编译")
+            print("[bold][red]注意：主文件名一定要放在项目根目录下[/red][/bold]")
     else:
         # 不存在.tex文件，打印当前路径并提示
         file_name = None
@@ -167,3 +182,18 @@ def search_file():
         print(f"当前终端路径是：{current_path}")
 
     return file_name
+
+# --------------------------------------------------------------------------------
+# 定义魔法注释检索函数
+# --------------------------------------------------------------------------------
+def search_magic_comments(tex_files, magic_comments_keys):
+    magic_comments = {}  # 创建空字典用于存储结果
+    for file_path in tex_files:  # 遍历tex文件列表
+        with open(file_path, 'r') as file:  # 打开文件
+            for _ in range(50):  # 遍历文件的前50行
+                line = file.readline()  # 读取一行内容
+                for magic_comments_key in magic_comments_keys:  # 遍历关键字列表
+                    if f"% !TEX {magic_comments_key} =" in line:  # 如果关键字出现在这一行
+                        magic_comment = line.split(f"% !TEX {magic_comments_key} = ")[1].strip()  # 提取对应的值
+                        magic_comments[magic_comments_key] = magic_comment  # 将键值对存入字典
+    return magic_comments  # 返回提取的键值对字典

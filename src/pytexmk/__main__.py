@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-04-05 09:03:28 +0800
+LastEditTime : 2024-04-26 22:43:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -27,13 +27,13 @@ import argparse
 import datetime
 from .version import script_name, __version__
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
-from .additional_operation import remove_aux, remove_result, remove_result_in_root, move_result, search_file, check_file_name, clean_all_pdf
+from .additional_operation import *
 from .info_print import time_count, time_print, print_message
 
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
-def compile(start_time,tex_name, file_name, quiet, build_path):
+def compile(start_time,tex_name, file_name, quiet, outdir):
     name_target_list = []
     time_run_list = []
 
@@ -90,10 +90,10 @@ def compile(start_time,tex_name, file_name, quiet, build_path):
     print(f"目录索引：{print_index}")
     print_message("开始执行编译以外的附加命令！")
     
-    time_run_remove_res, _ = time_count(remove_result, build_path) # 清除已有结果文件
+    time_run_remove_res, _ = time_count(remove_result, outdir) # 清除已有结果文件
     name_target_list.append("清除旧结果文件")
     time_run_list.append(time_run_remove_res)
-    time_run_move_res, _ = time_count(move_result, file_name, build_path) # 移动生成结果文件
+    time_run_move_res, _ = time_count(move_result, file_name, outdir) # 移动生成结果文件
     name_target_list.append("移动结果文件")
     time_run_list.append(time_run_move_res)
     time_run_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
@@ -105,7 +105,8 @@ def compile(start_time,tex_name, file_name, quiet, build_path):
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
     tex_name = "xelatex"
-    build_path = "./Build/"
+    outdir = "./Build/"
+    magic_comments_keys = ["program", "root", "outdir"]
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 
     start_time = datetime.datetime.now() # 计算开始时间
@@ -126,29 +127,55 @@ def main():
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
+    tex_files = search_tex_file # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
+    magic_comments = search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
+
+    # --------------------------------------------------------------------------------
+    # 输出文件路径判断
+    # --------------------------------------------------------------------------------
+    if magic_comments['outdir']: # 如果存在 magic comments 且 outdir 存在
+        outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
+        print(f"通过魔法注释找到输出目录为 {outdir}！")
+
+    # --------------------------------------------------------------------------------
+    # 主文件逻辑判断
+    # --------------------------------------------------------------------------------
+    if args.document: # pytexmk 指定 latex 文件
+        file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
+    else: # pytexmk 未指定 latex 文件
+        if magic_comments['root']: # 如果存在 magic comments 且 root 存在
+            file_name = check_file_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
+            print(f"通过魔法注释找到 {file_name}.tex 文件！")
+        else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
+            file_name = search_main_file(tex_files)
+    # --------------------------------------------------------------------------------
+    # 编译类型判断
+    # --------------------------------------------------------------------------------
     if args.xelatex:
         tex_name = "xelatex"
-    if args.pdflatex:
+    elif args.pdflatex:
         tex_name = "pdflatex"
-    if args.lualatex:
+    elif args.lualatex:
         tex_name = "lualatex"
-        
-    if args.document: # 指定 latex 文件
-        file_name = check_file_name(args.document) # check_file_name 函数检查 args.document 参数输入的文件名是否正确
-    else: # 未指定 latex 文件
-        file_name = search_file() # 运行 search_file 函数判断
+    elif magic_comments['program']: # 如果存在 magic comments 且 program 存在
+        tex_name = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
+        print(f"通过魔法注释设置编译器为 {tex_name}！")
+
+    # --------------------------------------------------------------------------------
+    # 编译程序运行
+    # --------------------------------------------------------------------------------
 
     if file_name: # 如果存在 file_name
         if args.clean:
             remove_aux(file_name)
         elif args.Clean:
             remove_aux(file_name)
-            remove_result(build_path)
+            remove_result(outdir)
             remove_result_in_root(file_name)
         elif args.clean_pdf:
-            clean_all_pdf('.', build_path, file_name)
+            clean_all_pdf('.', outdir, file_name)
         else:
-            compile(start_time, tex_name, file_name, not args.no_quiet, build_path)
+            compile(start_time, tex_name, file_name, not args.no_quiet, outdir)
             
     
 

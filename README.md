@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-03-22 14:39:36 +0800
+ * LastEditTime : 2024-04-26 22:37:00 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -49,10 +49,11 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认使用 `xelatex` 编译，默认主文件名为 main（如果不是 main 就在 `pytexmk` 命令后添加文件名），默认 batch 模式编译，编译过程信息不显示（如需显示编译过程信息请使用 `-nq` 参数），默认将编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得latex workshop 能够找到pdf )。
+PyTeXMK 默认参数：`xelatex` 编译、主文件名 main、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得latex workshop 能够找到pdf )。
 
-在终端打开 LaTeX 项目所在文件夹，输入 `pytexmk` 即可使用默认参数进行编译，编译结果默认存放在 LaTeX 项目的 Build 文件夹下。
+请仔细阅读：[主文件及编译类型选定逻辑](#主文件及编译类型选定逻辑)
 
+### 编译命令
 PyTeXMK 支持：
 
 - 编译命令：`xelatex` `pdflatex` `lualatex`
@@ -80,18 +81,47 @@ PyTeXMK 支持：
 **说明：**
 `-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
 
+### 魔法注释
+
+PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等。    
+
+| Magic Comment | Description                                |
+|---------------|----------|
+| `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex` |
+| `% !TEX root = file.tex` | 指定主 LaTeX 文件名，仅支持主文件在项目根目录下的情况 |
+| `% !TEX outdir = PDFfile` | 指定编译结果存放位置，仅支持文件夹名称，如果使用 LaTeX-Workshop，则需要在 `settings.json` 中设置 `"latex-workshop.latex.outDir": "./PDFfile",` |
+
+### 主文件及编译类型选定逻辑
+- PyTeXMK 优先使用终端输入命令 `-p` `-x` `-l` 参数指定的编译类型，如果没有指定，则会使用 `% !TEX program = xelatex` 指定的编译类型，如果没有指定，则会使用默认的编译类型 `xelatex`
+- PyTeXMK 主文件选定逻辑顺序：
+    1. 使用终端输入的文件名
+    2. 使用 `% !TEX root = file.tex` 指定的主 LaTeX 文件名
+    3. 使用默认的主文件名 `main`
+    4. 检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
+    5. 根目录下 TeX 文件中只有一个文件，则选择该文件作为主文件
+        
+- PyTeXMK 会优先使用 `% !TEX outdir = PDFfile` 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 `Build`
+
 # 更新日志
 
 - 2024-03-22 完善编译过程出错后的中断处理机制：在编译过程中出现错误时，程序会自动中断，并提示 `请用 -nq 模式运行以显示错误信息！`,使用 `-nq` 参数运行时，则会显示错误信息。
+- 2024-04-26 增加：
+    1. 魔法注释功能，使得用户可以自定义编译命令、编译类型、编译结果存放位置等
+    2. 完善主文件及编译类型选定逻辑
+
 
 # 未来工作方向
 
 - [X] 完善编译过程出错后的中断处理机制
 - [ ] 完善检索主 LaTeX 文件的功能：
-    - [ ] 根据魔法注释 `% !TEX root = relative/or/absolute/path/to/root/file.tex` 找到主 LaTeX 文件
+    - [X] 根据魔法注释 `% !TEX root = file.tex` 找到主 LaTeX 文件
     - [ ] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
 - [ ] 完善自动判断编译类型：
-    - [ ] 根据魔法注释 `% !TEX program = xelatex` 设置需要编译的类型
+    - [X] 根据魔法注释 `% !TEX program = xelatex` 设置需要编译的类型
+- [x] 通过魔法注释设置编译结果存放位置
+- [X] 通过魔法注释实现编译命令的自定义
 - [ ] 增加配置文件功能，用于改变默认设置
     - [ ] 指定生成的结果文件存放位置（目前默认存放在 `Build` 子文件夹下）
     - [ ] 默认的编译命令（目前默认编译命令是 `xelatex`）
+- [ ] texlive 宏包检缺失并自动安装
+- [ ] 多主文件编译功能
