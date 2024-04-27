@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-04-27 09:13:41 +0800
+LastEditTime : 2024-04-27 09:25:35 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -34,7 +34,7 @@ from rich import print
 def remove_aux(file_name):
     auxiliary_files = [
         f"{file_name}{ext}" for ext in [".aux", ".bbl", ".blg", ".log", ".out", ".toc", ".bcf",
-                                        ".xml", ".nlo", ".nls", ".bak", ".ind", ".idx", ".ilg", ".lof", ".spl"
+                                        ".xml", ".nlo", ".nls", ".bak", ".ind", ".idx", ".ilg", ".lof", ".spl",
                                         ".lot", ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
                                         ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml", ".ist", ".glo", ".gls"]
     ]
