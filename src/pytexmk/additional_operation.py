@@ -88,16 +88,13 @@ def move_result(file_name, outdir):
 # --------------------------------------------------------------------------------
 # 定义清理所有 pdf 文件
 # --------------------------------------------------------------------------------
-def clean_all_pdf(root_dir, excluded_folder, file_name):
+def clean_pdf(root_dir, excluded_folder, file_name):
     pdf_files = []
     for root, dirs, files in os.walk(root_dir):
         if excluded_folder in dirs:
             dirs.remove(excluded_folder)  # 不包括名为excluded_folder的文件夹中的pdf文件
-        
-        if root == root_dir:
-            # 如果当前处理的是根目录文件，则跳过
+        if root == root_dir: # 如果当前处理的是根目录文件，则跳过
             continue 
-
         for file in files:
             if file.endswith('.pdf') and file != f'{file_name}.pdf':
                 pdf_files.append(os.path.join(root, file))  # 仅清理子文件夹中的pdf文件

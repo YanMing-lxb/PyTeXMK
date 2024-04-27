@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-04-26 23:19:03 +0800
+LastEditTime : 2024-04-27 10:17:11 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -148,6 +148,7 @@ def main():
             print(f"通过魔法注释找到 {file_name}.tex 文件！")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
             file_name = search_main_file(tex_files)
+
     # --------------------------------------------------------------------------------
     # 编译类型判断
     # --------------------------------------------------------------------------------
@@ -164,7 +165,6 @@ def main():
     # --------------------------------------------------------------------------------
     # 编译程序运行
     # --------------------------------------------------------------------------------
-
     if file_name: # 如果存在 file_name
         if args.clean:
             remove_aux(file_name)
@@ -173,7 +173,7 @@ def main():
             remove_result(outdir)
             remove_result_in_root(file_name)
         elif args.clean_pdf:
-            clean_all_pdf('.', outdir, file_name)
+            clean_pdf('.', outdir, file_name)
         else:
             compile(start_time, tex_name, file_name, not args.no_quiet, outdir)
             
