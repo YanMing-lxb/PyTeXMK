@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-04-26 23:10:42 +0800
+LastEditTime : 2024-04-27 09:05:37 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
+FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -163,7 +163,7 @@ def search_main_file(tex_files):
         elif len(tex_files) > 1:
             # 存在多个.tex文件，但没有名为main.tex的文件
             for file_path in tex_files:  # 遍历tex文件列表
-                with open(file_path, 'r') as file:  # 打开文件
+                with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件
                     for _ in range(200):  # 遍历文件的前200行
                         line = file.readline()  # 读取一行内容
                         if "\documentclass" in line or "\begin{document}" in line:
@@ -190,7 +190,7 @@ def search_magic_comments(tex_files, magic_comments_keys):
     magic_comments = {}  # 创建空字典用于存储结果
     if len(tex_files):
         for file_path in tex_files:  # 遍历tex文件列表
-            with open(file_path, 'r') as file:  # 打开文件
+            with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件
                 for _ in range(50):  # 遍历文件的前50行
                     line = file.readline()  # 读取一行内容
                     for magic_comments_key in magic_comments_keys:  # 遍历关键字列表
