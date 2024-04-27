@@ -36,3 +36,6 @@ pytexmk = "pytexmk:main"
 
 [tool.setuptools.dynamic]
 version = {attr = "pytexmk.version.__version__"}
+
+[tool.setuptools.package-data]
+"pytexmk.data" = ["README.html"]

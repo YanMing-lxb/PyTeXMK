@@ -41,6 +41,10 @@ testwhl: clean all
 	yes | pip uninstall pytexmk
 	@$(MAKE) clean
 
+inswhl:clean all
+	yes | pip uninstall pytexmk
+	@pip install dist/*.whl
+
 upload: clean all
 	@twine upload dist/*
 	@$(MAKE) clean

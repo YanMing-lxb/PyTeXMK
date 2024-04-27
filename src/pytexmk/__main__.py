@@ -16,15 +16,17 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-04-27 10:17:11 +0800
+LastEditTime : 2024-04-27 22:42:48 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
+import sys
 import argparse
 import datetime
+import webbrowser
 from .version import script_name, __version__
 from .compile_model import compile_tex, compile_bib, compile_index, compile_xdv
 from .additional_operation import *
@@ -114,8 +116,9 @@ def main():
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
-    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序.")
+    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
+    parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
     parser.add_argument('-x', '--xelatex', action='store_true', help="xelatex 进行编译")
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
@@ -126,6 +129,13 @@ def main():
     
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
+
+    if args.readme: # 如果存在 readme 参数
+        import pkg_resources
+        readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
+        print(f"正在打开 {readme_path} 文件！")
+        webbrowser.open('file://' + os.path.abspath(readme_path))
+        sys.exit()
 
     tex_files = search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
     magic_comments = search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
@@ -176,8 +186,6 @@ def main():
             clean_pdf('.', outdir, file_name)
         else:
             compile(start_time, tex_name, file_name, not args.no_quiet, outdir)
-            
-    
 
 if __name__ == "__main__":
 
