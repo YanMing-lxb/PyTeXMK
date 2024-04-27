@@ -16,9 +16,9 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-04-26 22:37:00 +0800
+ * LastEditTime : 2024-04-27 09:01:03 +0800
  * Github       : https://github.com/YanMing-lxb/
- * FilePath     : /PyTeXMK/README.md
+ * FilePath     : \PyTeXMK\README.md
  * Description  : 
  *  -----------------------------------------------------------------------
  -->
@@ -49,7 +49,7 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`xelatex` 编译、主文件名 main、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得latex workshop 能够找到pdf )。
+PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )。
 
 请仔细阅读：[主文件及编译类型选定逻辑](#主文件及编译类型选定逻辑)
 
@@ -76,7 +76,7 @@ PyTeXMK 支持：
 | -c, --clean      | 清除所有辅助文件                              |
 | -C, --Clean      | 清除所有辅助文件和 pdf 文件                    |
 | -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程             |
-| -cp, --clean-pdf  | 清理所有 pdf 文件             |
+| -cp, --clean-pdf  | 清理所有 pdf 文件                          |
 
 **说明：**
 `-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
@@ -96,7 +96,7 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 - PyTeXMK 主文件选定逻辑顺序：
     1. 使用终端输入的文件名
     2. 使用 `% !TEX root = file.tex` 指定的主 LaTeX 文件名
-    3. 使用默认的主文件名 `main`
+    3. 使用默认的主文件名 `main.tex`
     4. 检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
     5. 根目录下 TeX 文件中只有一个文件，则选择该文件作为主文件
         
@@ -104,7 +104,7 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 
 # 更新日志
 
-- 2024-03-22 完善编译过程出错后的中断处理机制：在编译过程中出现错误时，程序会自动中断，并提示 `请用 -nq 模式运行以显示错误信息！`,使用 `-nq` 参数运行时，则会显示错误信息。
+- 2024-03-22 完善编译过程出错后的中断处理机制：在编译过程中出现错误时，程序会自动中断，并提示 `请用 -nq 模式运行以显示错误信息！`，使用 `-nq` 参数运行时，则会显示错误信息。
 - 2024-04-26 增加：
     1. 魔法注释功能，使得用户可以自定义编译命令、编译类型、编译结果存放位置等
     2. 完善主文件及编译类型选定逻辑
@@ -115,7 +115,7 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 - [X] 完善编译过程出错后的中断处理机制
 - [ ] 完善检索主 LaTeX 文件的功能：
     - [X] 根据魔法注释 `% !TEX root = file.tex` 找到主 LaTeX 文件
-    - [ ] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
+    - [X] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
 - [ ] 完善自动判断编译类型：
     - [X] 根据魔法注释 `% !TEX program = xelatex` 设置需要编译的类型
 - [x] 通过魔法注释设置编译结果存放位置
