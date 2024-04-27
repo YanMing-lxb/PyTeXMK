@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-04-27 09:25:35 +0800
+LastEditTime : 2024-04-27 09:33:48 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -166,10 +166,10 @@ def search_main_file(tex_files):
                 with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件
                     for _ in range(200):  # 遍历文件的前200行
                         line = file.readline()  # 读取一行内容
-                        if "\documentclass" in line or "\begin{document}" in line:
+                        if "\documentclass" in line or r"\begin{document}" in line:
                             # 找到 \documentclass 或 \begin{document} 指令，提取文件名
                             file_name = check_file_name(file_path)
-                            print(f"找到 {file_name}.tex 文件！")
+                            print(f"通过 \documentclass 或 \\begin{{document}} 指令，找到 {file_name}.tex 文件！")
         else:
             # 不存在名为main.tex的文件，打印所有找到的.tex文件
             file_name = None
