@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-04-27 22:42:48 +0800
+LastEditTime : 2024-06-16 20:46:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -35,7 +35,7 @@ from .info_print import time_count, time_print, print_message
 # ================================================================================
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # ================================================================================
-def compile(start_time,tex_name, file_name, quiet, outdir):
+def compile(start_time,tex_name, file_name, quiet, outdir, no_clean):
     name_target_list = []
     time_run_list = []
 
@@ -98,9 +98,12 @@ def compile(start_time,tex_name, file_name, quiet, outdir):
     time_run_move_res, _ = time_count(move_result, file_name, outdir) # 移动生成结果文件
     name_target_list.append("移动结果文件")
     time_run_list.append(time_run_move_res)
-    time_run_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
-    name_target_list.append("清除辅助文件")
-    time_run_list.append(time_run_remove_aux)
+    if no_clean:
+        print("保留已生成的辅助文件！")
+    else:
+        time_run_remove_aux, _ = time_count(remove_aux, file_name) # 清除生成辅助文件
+        name_target_list.append("清除辅助文件")
+        time_run_list.append(time_run_remove_aux)
 
     time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
 
@@ -124,6 +127,7 @@ def main():
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
+    parser.add_argument('-nc', '--no-clean', action='store_true', help="保留已生成的辅助文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
     parser.add_argument('-cp', '--clean-pdf', action='store_true', help="清理 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数清理所有 pdf 文件")
     
@@ -184,8 +188,10 @@ def main():
             remove_result_in_root(file_name)
         elif args.clean_pdf:
             clean_pdf('.', outdir, file_name)
+        elif args.no_clean:
+            compile(start_time, tex_name, file_name, not args.no_quiet, outdir, True)
         else:
-            compile(start_time, tex_name, file_name, not args.no_quiet, outdir)
+            compile(start_time, tex_name, file_name, not args.no_quiet, outdir, False)
 
 if __name__ == "__main__":
 

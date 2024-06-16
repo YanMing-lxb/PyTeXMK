@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-04-27 10:10:51 +0800
+ * LastEditTime : 2024-06-16 20:53:57 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : \PyTeXMK\README.md
  * Description  : 
@@ -70,14 +70,15 @@ PyTeXMK 支持：
 选项:
 | Option           | Description                                |
 |------------------|--------------------------------------------|
-| -h, --help       | 显示帮助信息                                 |
-| -v, --version    | 显示程序版本号                               |
+| -h, --help       | 显示帮助信息                                |
+| -v, --version    | 显示程序版本号                              |
 | -p, --pdflatex   | pdflatex 进行编译                           |
 | -x, --xelatex    | xelatex 进行编译                            |
 | -l, --lualatex   | lualatex 进行编译                           |
-| -c, --clean      | 清除所有辅助文件                              |
-| -C, --Clean      | 清除所有辅助文件和 pdf 文件                    |
-| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程             |
+| -c, --clean      | 清除所有辅助文件                             |
+| -C, --Clean      | 清除所有辅助文件和 pdf 文件                  |
+| -nc, --no-clean  | 保留已生成的辅助文件                         |
+| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程          |
 | -cp, --clean-pdf  | 清理所有 pdf 文件                          |
 
 **说明：**
@@ -114,15 +115,18 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 - 2024-04-26 
     1. 修复边 \documentclass 和 \begin{document} 检索逻辑。
     2. 解决文档读取编码导致的报错。
+- 2024-06-16
+    1. 解决 `-nq` 参数失效的问题.
+    1. 增加 `-nc` 参数，用于保留已生成的辅助文件。
 
 
 # 未来工作方向
 
 - [X] 完善编译过程出错后的中断处理机制
-- [ ] 完善检索主 LaTeX 文件的功能：
+- [X] 完善检索主 LaTeX 文件的功能：
     - [X] 根据魔法注释 `% !TEX root = file.tex` 找到主 LaTeX 文件
     - [X] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
-- [ ] 完善自动判断编译类型：
+- [X] 完善自动判断编译类型：
     - [X] 根据魔法注释 `% !TEX program = xelatex` 设置需要编译的类型
 - [x] 通过魔法注释设置编译结果存放位置
 - [X] 通过魔法注释实现编译命令的自定义
