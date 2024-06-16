@@ -63,41 +63,41 @@ else
 endif
 
 inswhl:clean all
-	ifeq ($(OS),Windows_NT)
-		echo "Windows System";
-		echo y | pip uninstall pytexmk
-		for /r dist %%i in (*.whl) do echo %%i & @pip install "%%~fi"
-	else
-		ifeq ($(UNAME_S),Linux)
-			echo "Mac System";
-			yes | pip uninstall pytexmk
-			@pip install dist/*.whl
-		else 
-			ifeq ($(UNAME_S),Darwin)
-			echo "Linux System";
-			yes | pip uninstall pytexmk
-			@pip install dist/*.whl
-			endif
+ifeq ($(OS),Windows_NT)
+	echo "Windows System";
+	echo y | pip uninstall pytexmk
+	for /r dist %%i in (*.whl) do echo %%i & @pip install "%%~fi"
+else
+	ifeq ($(UNAME_S),Linux)
+		echo "Mac System";
+		yes | pip uninstall pytexmk
+		@pip install dist/*.whl
+	else 
+		ifeq ($(UNAME_S),Darwin)
+		echo "Linux System";
+		yes | pip uninstall pytexmk
+		@pip install dist/*.whl
 		endif
 	endif
+endif
 	
 	
 
 upload: clean all
-	ifeq ($(OS),Windows_NT)
-		echo "Windows System";
-		echo y | pip uninstall pytexmk
-		for /r dist %%i in (*.whl) do echo %%i & @twine upload "%%~fi"
-	else
-		ifeq ($(UNAME_S),Linux)
-			echo "Mac System";
-			@twine upload dist/*
-		else 
-			ifeq ($(UNAME_S),Darwin)
-			echo "Linux System";
-			@twine upload dist/*
-			endif
+ifeq ($(OS),Windows_NT)
+	echo "Windows System";
+	echo y | pip uninstall pytexmk
+	for /r dist %%i in (*.whl) do echo %%i & @twine upload "%%~fi"
+else
+	ifeq ($(UNAME_S),Linux)
+		echo "Mac System";
+		@twine upload dist/*
+	else 
+		ifeq ($(UNAME_S),Darwin)
+		echo "Linux System";
+		@twine upload dist/*
 		endif
 	endif
+endif
 	
 	@$(MAKE) clean
