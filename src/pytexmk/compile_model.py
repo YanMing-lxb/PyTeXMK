@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-03-22 14:50:13 +0800
+LastEditTime : 2024-06-16 20:02:01 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
+FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -45,7 +45,7 @@ def compile_tex(tex_name, file_name, tex_times, quiet):
     console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
     
     try:
-        subprocess.run(options, check=True, text=True, capture_output=True)
+        subprocess.run(options, check=True, text=True, capture_output=False)
         return True
     except subprocess.CalledProcessError as e:
         print(e.output)
@@ -72,7 +72,7 @@ def compile_bib(file_name, quiet):
                 options = ['bibtex', file_name]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
             try:
-                subprocess.run(options, check=True, text=True, capture_output=True)
+                subprocess.run(options, check=True, text=True, capture_output=False)
                 compile_tex_times = 2 # 参考文献需要额外编译的次数
                 print_bib = f"{name_target}参考文献"
             except subprocess.CalledProcessError as e:
@@ -110,7 +110,7 @@ def compile_index(file_name):
                 options = ["makeindex", "-s", f"{file_name}.ist", "-o", f"{file_name}.gls", f"{file_name}.glo"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 try:
-                    subprocess.run(options, check=True, text=True, capture_output=True)
+                    subprocess.run(options, check=True, text=True, capture_output=False)
                 except subprocess.CalledProcessError as e:
                     print(e.output)
                     return compile_tex_times, print_index, name_target, False
@@ -131,7 +131,7 @@ def compile_index(file_name):
                 options = ["makeindex", "-s", "nomencl.ist", "-o", f"{file_name}.nls", f"{file_name}.nlo"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 try:
-                    subprocess.run(options, check=True, text=True, capture_output=True)
+                    subprocess.run(options, check=True, text=True, capture_output=False)
                 except subprocess.CalledProcessError as e:
                     print(e.output)
                     return compile_tex_times, print_index, name_target, False
@@ -151,7 +151,7 @@ def compile_index(file_name):
                 options = ["makeindex", f"{file_name}.idx"]
                 console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
                 try:
-                    subprocess.run(options, check=True, text=True, capture_output=True)
+                    subprocess.run(options, check=True, text=True, capture_output=False)
                 except subprocess.CalledProcessError as e:
                     print(e.output)
                     return compile_tex_times, print_index, name_target, False
@@ -186,7 +186,7 @@ def compile_xdv(file_name, quiet):
         options.insert(1, "-q") # 静默编译
     console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
     try:
-        subprocess.run(options, check=True, text=True, capture_output=True)
+        subprocess.run(options, check=True, text=True, capture_output=False)
         return True
     except subprocess.CalledProcessError as e:
         print(e.output)
