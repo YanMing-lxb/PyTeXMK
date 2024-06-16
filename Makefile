@@ -80,6 +80,7 @@ else
 		endif
 	endif
 endif
+	echo "Install pytexmk*.whl file Success";
 	
 	
 
@@ -101,3 +102,4 @@ else
 endif
 	
 	@$(MAKE) clean
+	echo "Upload Success";
