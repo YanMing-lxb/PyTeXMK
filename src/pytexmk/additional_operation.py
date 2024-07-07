@@ -33,10 +33,14 @@ from rich import print
 # --------------------------------------------------------------------------------
 def remove_aux(project_name):
     auxiliary_files = [
-        f"{project_name}{ext}" for ext in [".aux", ".bbl", ".blg", ".log", ".out", ".toc", ".bcf",
-                                        ".xml", ".nlo", ".nls", ".bak", ".ind", ".idx", ".ilg", ".lof", ".spl",
-                                        ".lot", ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
-                                        ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml", ".ist", ".glo", ".gls"]
+        f"{project_name}{ext}" for ext in [".log", ".blg", ".ilg", # 日志文件
+                                           ".aux", ".bbl", ".xml", # 参考文献辅助文件
+                                           ".toc", ".lof", ".lot", # 目录辅助文件
+                                           ".out", ".bcf", 
+                                           ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls", # 索引辅助文件
+                                        ".bak", ".spl",
+                                        ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
+                                        ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
     ]
     file_exists = False
     for file in auxiliary_files:

@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-06-29 14:07:29 +0800
+LastEditTime : 2024-07-08 00:41:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -32,9 +32,19 @@ from .compile_model import CompileModel
 from .additional_operation import *
 from .info_print import time_count, time_print, print_message
 
-# ================================================================================
-# XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX 整体进行编译 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-# ================================================================================
+# --------------------------------------------------------------------------------
+# 整体进行编译
+# --------------------------------------------------------------------------------
+def RUN(start_time,compiler_engine, project_name, quiet, outdir, no_clean): # TODO: 完善整体编译函数
+    name_target_list = []
+    time_run_list = []
+
+    # 编译前的准备工作
+    compile_model = CompileModel(compiler_engine, project_name, quiet)
+
+    cite_counter, toc_file, makeindex_aux_content_dict_old = compile_model.read_latex_files() # 读取 latex 文件
+    time_run_tex, try_bool_tex = time_count(compile_model.compile_tex, 1) # 首次编译 tex 文档
+
 def compile(start_time,compiler_engine, project_name, quiet, outdir, no_clean):
     name_target_list = []
     time_run_list = []
@@ -108,6 +118,11 @@ def compile(start_time,compiler_engine, project_name, quiet, outdir, no_clean):
         time_run_list.append(time_run_remove_aux)
 
     time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
+
+
+
+    
+
 
 def main():
     # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
