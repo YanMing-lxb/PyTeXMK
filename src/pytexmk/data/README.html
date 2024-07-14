@@ -100,6 +100,10 @@
 <td>清除所有辅助文件和 pdf 文件</td>
 </tr>
 <tr>
+<td>-nc, --no-clean</td>
+<td>保留已生成的辅助文件</td>
+</tr>
+<tr>
 <td>-nq, --no-quiet</td>
 <td>非安静模式运行，此模式下显示编译过程</td>
 </tr>
@@ -169,17 +173,23 @@
 <li>解决文档读取编码导致的报错。</li>
 </ol>
 </li>
+<li>2024-06-16
+<ol>
+<li>解决 <code>-nq</code> 参数失效的问题.</li>
+<li>增加 <code>-nc</code> 参数，用于保留已生成的辅助文件。</li>
+</ol>
+</li>
 </ul>
 <h1 id="未来工作方向">未来工作方向 </h1>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善编译过程出错后的中断处理机制</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善检索主 LaTeX 文件的功能：
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善检索主 LaTeX 文件的功能：
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 根据魔法注释 <code>% !TEX root = file.tex</code> 找到主 LaTeX 文件</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过检索 TeX 文件中的 <code>\documentclass[]{}</code> 或 <code>\begin{document}</code> 来判断</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善自动判断编译类型：
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善自动判断编译类型：
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 根据魔法注释 <code>% !TEX program = xelatex</code> 设置需要编译的类型</li>
 </ul>
@@ -192,6 +202,10 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 默认的编译命令（目前默认编译命令是 <code>xelatex</code>）</li>
 </ul>
 </li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加报错信息的显示</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加pdf显示功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 解决终端中文显示问题</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 通过辅助文件判断编译次数</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> texlive 宏包检缺失并自动安装</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 多主文件编译功能</li>
 </ul>
