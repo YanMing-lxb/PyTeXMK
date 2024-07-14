@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:44:33 +0800
+LastEditTime : 2024-07-15 00:46:51 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -302,7 +302,7 @@ class CompileModel(object):
         options = [bib_engine, self.project_name]
 
         if self.quiet and bib_engine == 'biber':
-            options.insert(1, "-self.quiet") # 静默编译
+            options.insert(1, "-quiet") # 静默编译
                 
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
