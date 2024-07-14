@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:20:49 +0800
+LastEditTime : 2024-07-15 00:37:26 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -91,6 +91,7 @@ class CompileModel(object):
                 - *.toc文件
                 - 所有可用的符号索引宏包名称和对应的辅助文件
         '''
+
         # 检查是否存在项目名称对应的.aux文件
         if os.path.isfile(f'{self.project_name}.aux'):
             # 生成引用计数器
@@ -100,7 +101,7 @@ class CompileModel(object):
         else:
             # 如果不存在.aux文件，初始化引用计数器为默认值
             cite_counter = {f'{self.project_name}.aux' : defaultdict(int)}
-
+            makeindex_aux_content_dict_old = dict()
         # 检查是否存在.toc文件
         if os.path.isfile(f'{self.project_name}.toc'):
             # 读取.toc文件内容
