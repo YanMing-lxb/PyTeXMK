@@ -16,120 +16,131 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-08 00:41:14 +0800
+LastEditTime : 2024-07-14 23:21:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
+import os
 import sys
 import argparse
 import datetime
 import webbrowser
 from .version import script_name, __version__
 from .compile_model import CompileModel
-from .additional_operation import *
+from .additional_operation import MoveRemoveClean, MainFileJudgment
 from .info_print import time_count, time_print, print_message
 
+MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
+MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(start_time,compiler_engine, project_name, quiet, outdir, no_clean): # TODO: 完善整体编译函数
+def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet, no_clean): # TODO: 完善整体编译函数
     name_target_list = []
-    time_run_list = []
+    runtime_list = []
 
     # 编译前的准备工作
     compile_model = CompileModel(compiler_engine, project_name, quiet)
+    MRC.move_to_root(aux_files, auxdir) # 将辅助文件移动到根目录
 
-    cite_counter, toc_file, makeindex_aux_content_dict_old = compile_model.read_latex_files() # 读取 latex 文件
-    time_run_tex, try_bool_tex = time_count(compile_model.compile_tex, 1) # 首次编译 tex 文档
+    # 检查并处理已存在的 LaTeX 输出文件
+    runtime_read, return_read = time_count(compile_model.prepare_latex_output_files, ) # 读取 latex 文件
+    cite_counter, toc_file, makeindex_aux_content_dict_old = return_read # 获取 read_latex_files 函数得到的参数
+    name_target_list.append('预处理已有输出文件')
+    runtime_list.append(runtime_read)
 
-def compile(start_time,compiler_engine, project_name, quiet, outdir, no_clean):
-    name_target_list = []
-    time_run_list = []
 
-    compile_model = CompileModel(compiler_engine, project_name, quiet)
-
-    time_run_remove_aux, _ = time_count(remove_aux, project_name) # 清除已有辅助文件
-    name_target_list.append("清除旧辅助文件")
-    time_run_list.append(time_run_remove_aux)
-
-    time_run_tex, try_bool_tex = time_count(compile_model.compile_tex, 1) # 首次编译 tex 文档
+    # 首次编译 LaTeX 文档
+    runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, 1) 
     if not try_bool_tex: print(f"{compiler_engine} 1st 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-    time_run_bib, return_com_bib = time_count(compile_model.compile_bib, ) # 编译参考文献
-    times_compile_tex_bib, print_bib, name_target_bib, try_bool_bib = return_com_bib # 获取 compile_bib 函数得到的参数
-    if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-    time_run_index, return_com_index = time_count(compile_model.compile_makeindex, ) # 编译目录索引
-    times_compile_tex_index, print_index, name_target_index, try_bool_index = return_com_index # 获取 compile_makeindex 函数得到的参数
-    if not try_bool_index: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+    name_target_list.append(f'{compiler_engine} 1st') # 将获取到的编译项目名称 添加到对应的列表中
+    runtime_list.append(runtime_Latex)
+
+
+    # 编译参考文献
+    runtime_bib_judgment, return_bib_judgment = time_count(compile_model.bib_judgment, cite_counter) # 判断是否需要编译参考文献
+    name_target_list.append('文献引擎判定')
+    runtime_list.append(runtime_bib_judgment)
+
+    bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
+    if bib_engine:
+        runtime_bib, try_bool_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
+        name_target_list.append(name_target_bib)
+        runtime_list.append(runtime_bib)
+        if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+
+
+    # 编译索引
+    runtime_makindex_judgment, run_makeindex_list_cmd = time_count(compile_model.makeindex_judgment, makeindex_aux_content_dict_old) # 判断是否需要编译目录索引
+    name_target_list.append('索引引擎判定')
+    runtime_list.append(runtime_makindex_judgment)
+
+    if run_makeindex_list_cmd: # 存在目录索引编译命令
+        Latex_compilation_times_makeindex = 1
+        runtime_makeindex, return_makeindex = time_count(compile_model.compile_makeindex, run_makeindex_list_cmd)
+        print_makeindex, name_target_makeindex, try_bool_makeindex = return_makeindex # 获取 compile_makeindex 函数得到的参数
+        name_target_list.append(name_target_makeindex)
+        runtime_list.append(runtime_makeindex)
+        if not try_bool_makeindex: print(f"{name_target_makeindex} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     
-    times_extra_complie = max(times_compile_tex_bib, times_compile_tex_index) # 计算额外编译 tex 文档次数
 
-    # 将获取到的编译项目名称 添加到对应的列表中
-    name_target_list.append(f'{compiler_engine} 1st')
-    time_run_list.append(time_run_tex)
+    # 编译目录
+    if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
+        Latex_compilation_times_toc = 1
+
+    # 计算额外需要的 LaTeX 编译次数
+    Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_makeindex, Latex_compilation_times_toc) 
     
-    if times_compile_tex_bib != 0: # 存在参考文献编译过程
-        if name_target_bib:
-            name_target_list.append(name_target_bib)
-            time_run_list.append(time_run_bib)
-    if times_compile_tex_index != 0: # 存在目录索引编译过程
-        if name_target_index:
-            name_target_list.append(name_target_index)
-            time_run_list.append(time_run_index)
 
-    for i in range(times_extra_complie): # 进行额外编译 tex
-        time_run_tex, try_bool_tex = time_count(compile_model.compile_tex, i + 2)
-        if i+2 == 2: 
-            if not try_bool_tex: print(f"{compiler_engine} {i+2}nd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-            name_target_list.append(f'{compiler_engine} {i+2}nd')
-        if i+2 == 3:
-            if not try_bool_tex: print(f"{compiler_engine} {i+2}rd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-            name_target_list.append(f'{compiler_engine} {i+2}rd')
-            
-        time_run_list.append(time_run_tex)
+    # 进行额外的 LaTeX 编译
+    for times in range(2, Latex_compilation_times+2):
+        runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, times)
+        if not try_bool_tex: print(f"{compiler_engine} {times}nd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+        name_target_list.append(f'{compiler_engine} {times}nd')
+        runtime_list.append(runtime_Latex)
 
+
+
+    # 编译完成，开始判断编译 XDV 文件
     if compiler_engine == "xelatex":  # 判断是否编译 xdv 文件
-        time_run_xdv, try_bool_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
+        runtime_xdv, try_bool_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         if not try_bool_xdv: print("dvipdfmx 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
         name_target_list.append('dvipdfmx 编译')
-        time_run_list.append(time_run_xdv)
+        runtime_list.append(runtime_xdv)
 
+
+    # 显示编译过程中关键信息
     print("\n\n" + "=" * 80 + "\n" +
           "▓" * 33 + " 完成所有编译 " + "▓" * 33 + "\n" +
           "=" * 80 + "\n")
-    print(f"文档整体：{compiler_engine} 编译 {times_extra_complie+1} 次")
+    print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
-    print(f"目录索引：{print_index}")
+    print(f"目录索引：{print_makeindex}")
     print_message("开始执行编译以外的附加命令！")
     
-    time_run_remove_res, _ = time_count(remove_result, outdir) # 清除已有结果文件
-    name_target_list.append("清除旧结果文件")
-    time_run_list.append(time_run_remove_res)
-    time_run_move_res, _ = time_count(move_result, project_name, outdir) # 移动生成结果文件
+    runtime_move_out, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
     name_target_list.append("移动结果文件")
-    time_run_list.append(time_run_move_res)
-    if no_clean:
-        print("保留已生成的辅助文件！")
-    else:
-        time_run_remove_aux, _ = time_count(remove_aux, project_name) # 清除生成辅助文件
-        name_target_list.append("清除辅助文件")
-        time_run_list.append(time_run_remove_aux)
+    runtime_list.append(runtime_move_out)
 
-    time_print(start_time, name_target_list, time_run_list) # 打印编译时长统计
+    runtime_move_aux, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
+    name_target_list.append("移动辅助文件")
+    runtime_list.append(runtime_move_aux)
+
+    time_print(start_time, name_target_list, runtime_list) # 打印编译时长统计
 
 
-
-    
 
 
 def main():
-    # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 设置默认 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
     compiler_engine = "xelatex"
     outdir = "./Build/"
-    magic_comments_keys = ["program", "root", "outdir"]
-    # ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    auxdir = "./Auxiliary/"
+    magic_comments_keys = ["program", "root", "outdir", "auxdir"]
+    # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
     start_time = datetime.datetime.now() # 计算开始时间
     
@@ -151,6 +162,8 @@ def main():
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
+    
+
     if args.readme: # 如果存在 readme 参数
         import pkg_resources
         readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
@@ -158,8 +171,8 @@ def main():
         webbrowser.open('file://' + os.path.abspath(readme_path))
         sys.exit()
 
-    tex_files = search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
-    magic_comments = search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
+    tex_files = MFJ.search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
+    magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
@@ -167,18 +180,21 @@ def main():
     if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
         print(f"通过魔法注释找到输出目录为 {outdir}！")
+    if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
+        auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
+        print(f"通过魔法注释找到辅助文件目录为 {auxdir}！")
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
     if args.document: # pytexmk 指定 latex 文件
-        project_name = check_project_name(args.document) # check_project_name 函数检查 args.document 参数输入的文件名是否正确
+        project_name = MFJ.check_project_name(args.document) # check_project_name 函数检查 args.document 参数输入的文件名是否正确
     else: # pytexmk 未指定 latex 文件
         if magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
-            project_name = check_project_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
+            project_name = MFJ.check_project_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
             print(f"通过魔法注释找到 {project_name}.tex 文件！")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
-            project_name = search_main_file(tex_files)
+            project_name = MFJ.search_main_file(tex_files)
 
     # --------------------------------------------------------------------------------
     # 编译类型判断
@@ -196,19 +212,31 @@ def main():
     # --------------------------------------------------------------------------------
     # 编译程序运行
     # --------------------------------------------------------------------------------
+    out_files = [f"{project_name}{ext}" for ext in [".pdf", ".synctex.gz"]]
+    aux_files = [
+        f"{project_name}{ext}" for ext in [".log", ".blg", ".ilg",  # 日志文件
+                                           ".aux", ".bbl", ".xml",  # 参考文献辅助文件
+                                           ".toc", ".lof", ".lot",  # 目录辅助文件
+                                           ".out", ".bcf",
+                                           ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls",  # 索引辅助文件
+                                           ".bak", ".spl",
+                                           ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
+                                           ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
+    ]
+
     if project_name: # 如果存在 project_name
         if args.clean:
-            remove_aux(project_name)
+            MRC.remove_files(aux_files, auxdir)
         elif args.Clean:
-            remove_aux(project_name)
-            remove_result(outdir)
-            remove_result_in_root(project_name)
+            MRC.remove_files(aux_files, auxdir)
+            MRC.remove_files(out_files, outdir)
+            MRC.remove_files(aux_files, '.')
         elif args.clean_pdf:
-            clean_pdf('.', outdir, project_name)
+            MRC.clean_pdf('.', outdir)
         elif args.no_clean:
-            compile(start_time, compiler_engine, project_name, not args.no_quiet, outdir, True)
+            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet, True)
         else:
-            compile(start_time, compiler_engine, project_name, not args.no_quiet, outdir, False)
+            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet, False)
 
 if __name__ == "__main__":
 
