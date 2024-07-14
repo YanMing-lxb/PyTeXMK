@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-15 00:04:13 +0800
+LastEditTime : 2024-07-15 00:28:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -80,7 +80,12 @@ class MoveRemoveClean(object):
                     print(f"{dest_folder} 中的旧 {file} 未能被删除！")
                 
             # 移动文件
-            shutil.move(file, dest_folder)
+            try:
+                shutil.move(file, dest_folder)
+            except shutil.Error:
+                print(f"{file} 未能移动到 {dest_folder}！")
+            except FileNotFoundError:
+                print(f"{file} 不存在！")
             print(f"{file} 移动到 {dest_folder}")
 
     # --------------------------------------------------------------------------------
