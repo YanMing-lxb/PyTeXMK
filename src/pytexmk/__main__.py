@@ -91,6 +91,8 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     # 编译目录
     if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
         Latex_compilation_times_toc = 1
+    else:
+        Latex_compilation_times_toc = 0
 
     # 计算额外需要的 LaTeX 编译次数
     Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_makeindex, Latex_compilation_times_toc) 
