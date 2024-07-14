@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:52:38 +0800
+LastEditTime : 2024-07-15 00:58:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -94,7 +94,7 @@ class CompileModel(object):
         '''
 
         # 检查是否存在项目名称对应的.aux文件
-        if os.path.isfile(f'{self.project_name}.aux'):
+        if os.path.exists(f'{self.project_name}.aux'):
             # 生成引用计数器
             cite_counter = self._generate_citation_counter()
             # 读取词汇表
@@ -104,7 +104,7 @@ class CompileModel(object):
             cite_counter = {f'{self.project_name}.aux' : defaultdict(int)}
             makeindex_aux_content_dict_old = dict()
         # 检查是否存在.toc文件
-        if os.path.isfile(f'{self.project_name}.toc'):
+        if os.path.exists(f'{self.project_name}.toc'):
             # 读取.toc文件内容
             with open(f'{self.project_name}.toc', 'r', encoding='utf-8') as fobj:
                 toc_file = fobj.read()
@@ -162,7 +162,7 @@ class CompileModel(object):
         makeindex_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
 
         # 读取主aux文件
-        if os.path.isfile(file_name):  # 检查主aux文件是否存在
+        if os.path.exists(file_name):  # 检查主aux文件是否存在
             # 判断并获取 glossaries 宏包的辅助文件内容
             if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
                 with open(file_name, 'r', encoding='utf-8') as fobj:
@@ -176,14 +176,14 @@ class CompileModel(object):
                         makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = [makeindex_ext_i_content]
 
             # 判断并获取 nomencl 宏包的辅助文件内容
-            if os.path.isfile(f"{self.project_name}.nlo"):
+            if os.path.exists(f"{self.project_name}.nlo"):
                 if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.nlo", 'r', encoding='utf-8') as fobj:
                         makeindex_ext_i_content = fobj.read()
                     makeindex_aux_content_dict_old[f'{self.project_name}.nlo'] = [makeindex_ext_i_content]
 
             # 判断并获取 makeidx 宏包的辅助文件内容
-            if os.path.isfile(f"{self.project_name}.idx"):
+            if os.path.exists(f"{self.project_name}.idx"):
                 if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.idx", 'r', encoding='utf-8') as fobj:
                         makeindex_ext_i_content = fobj.read()
@@ -201,7 +201,7 @@ class CompileModel(object):
         判断*.toc文件在第一次latex运行期间是否发生了变化。
         '''
         file_name = f'{self.project_name}.toc'   # 生成toc文件的完整路径
-        if os.path.isfile(file_name):  # 检查toc文件是否存在
+        if os.path.exists(file_name):  # 检查toc文件是否存在
             with open(file_name, 'r', encoding='utf-8') as fobj:  # 打开toc文件
                 if fobj.read() != toc_file:  # 比较toc文件内容与传入的toc_file内容
                     return True  # 如果内容不同，返回True表示toc文件已变化
@@ -273,8 +273,8 @@ class CompileModel(object):
                 print_bib = f"{bib_engine} 编译参考文献"
                 name_target = f"{bib_engine} 编译"
 
-                if not os.path.isfile(f'{self.bib_file}.bib'):  # 检查 bib 文件是否存在
-                    print_bib = f"没有找到名为{self.bib_file}.bib的参考文献数据库文件"
+                if not os.path.exists(f'{self.bib_file}'):  # 检查 bib 文件是否存在
+                    print_bib = f"没有找到名为{self.bib_file} 的参考文献数据库文件"
                     Latex_compilation_times = 0 # LaTeX 额外编译次数 
                 
                 if old_cite_counter != self._generate_citation_counter():  # 比较引用数量是否发生变化
@@ -319,7 +319,7 @@ class CompileModel(object):
         make_index = False  # 初始化是否需要重新生成索引的标志
         if re.search(f'No file {makeindex_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             make_index = True  # 如果包含，则需要重新生成词汇表
-        if not os.path.isfile(makeindex_aux_outfile):  # 检查输出文件是否存在
+        if not os.path.exists(makeindex_aux_outfile):  # 检查输出文件是否存在
             make_index = True  # 如果不存在，则需要重新生成词汇表
         else:
             with open(makeindex_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输出文件
@@ -349,13 +349,13 @@ class CompileModel(object):
                         run_makeindex_list_cmd.append([f'glossaries {name}', f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}"])
         
         # 判断并获取 nomencl 宏包的辅助文件名称
-        if os.path.isfile(f"{self.project_name}.nlo"):
+        if os.path.exists(f"{self.project_name}.nlo"):
             if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls"):
                     run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
-        if os.path.isfile(f"{self.project_name}.idx"):
+        if os.path.exists(f"{self.project_name}.idx"):
             if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.idx", f"{self.project_name}.ind"):
                     run_makeindex_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
