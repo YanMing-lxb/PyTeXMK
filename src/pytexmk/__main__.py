@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-15 00:14:22 +0800
+LastEditTime : 2024-07-15 00:23:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -87,6 +87,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
         if not try_bool_makeindex: print(f"{name_target_makeindex} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     else:
         Latex_compilation_times_makeindex = 0
+        print_makeindex = "没有符号、缩略语或索引需要编译，或者采用 glossaries、nomencl 和 makeidx 以外的宏包。"
 
     # 编译目录
     if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
