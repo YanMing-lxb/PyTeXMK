@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:46:51 +0800
+LastEditTime : 2024-07-15 00:52:38 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -269,7 +269,11 @@ class CompileModel(object):
                         bib_engine = 'bibtex'
                         Latex_compilation_times = 2 # LaTeX 额外编译次数 
 
-                if not os.path.isfile('%s.bib' % self.bib_file):  # 检查 bib 文件是否存在
+                print_message(f'{bib_engine} 文献编译')
+                print_bib = f"{bib_engine} 编译参考文献"
+                name_target = f"{bib_engine} 编译"
+
+                if not os.path.isfile(f'{self.bib_file}.bib'):  # 检查 bib 文件是否存在
                     print_bib = f"没有找到名为{self.bib_file}.bib的参考文献数据库文件"
                     Latex_compilation_times = 0 # LaTeX 额外编译次数 
                 
@@ -281,10 +285,6 @@ class CompileModel(object):
                     re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查latex输出中是否有引用未定义的提示
                     print_bib = "LaTeX 编译日志中存在bbl文件缺失或引用未定义的提示"
                     Latex_compilation_times = 2
-
-                print_message(f'{bib_engine} 文献编译')
-                print_bib = f"{bib_engine} 编译参考文献"
-                name_target = f"{bib_engine} 编译"
 
             elif re.search(r'\\bibcite', aux_content):
                 print_bib = "thebibliography 环境实现排版 "
