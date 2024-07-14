@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:37:26 +0800
+LastEditTime : 2024-07-15 00:41:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -248,7 +248,7 @@ class CompileModel(object):
                 aux_content = fobj.read()
             match_biber = BIBER_PATTERN.search(aux_content) # 检索aux辅助文件中是否存在biber特征命令
             match_bibtex = BIBTEX_PATTERN.search(aux_content)
-            if match_biber and match_bibtex: # 判断是否使用biber或bibtex编译
+            if match_biber or match_bibtex: # 判断是否使用biber或bibtex编译
                 if match_biber: # 判断应使用 biber 引擎编译
                     with open(f"{self.project_name}.bcf", 'r', encoding='utf-8') as fobj:
                         match_biber_bib = BIBER_BIB_PATTERN.search(fobj.read()) # 检索bcf文件中是否存在bib文件名
@@ -348,13 +348,13 @@ class CompileModel(object):
                         run_makeindex_list_cmd.append([f'glossaries {name}', f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}"])
         
         # 判断并获取 nomencl 宏包的辅助文件名称
-        elif os.path.isfile(f"{self.project_name}.nlo"):
+        if os.path.isfile(f"{self.project_name}.nlo"):
             if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls"):
                     run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
-        elif os.path.isfile(f"{self.project_name}.idx"):
+        if os.path.isfile(f"{self.project_name}.idx"):
             if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.idx", f"{self.project_name}.ind"):
                     run_makeindex_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
