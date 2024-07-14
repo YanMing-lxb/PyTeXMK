@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 01:21:45 +0800
+LastEditTime : 2024-07-15 01:39:35 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -322,7 +322,7 @@ class CompileModel(object):
         if not os.path.exists(makeindex_aux_outfile):  # 检查输出文件是否存在
             make_index = True  # 如果不存在，则需要重新生成词汇表
         else:
-            with open(makeindex_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输出文件
+            with open(makeindex_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
                 try:
                     if makeindex_aux_content_dict_old[makeindex_aux_infile] != fobj.read():  # 比较词汇表文件内容与记录的内容
                         make_index = True  # 如果不一致，则需要重新生成词汇表"
