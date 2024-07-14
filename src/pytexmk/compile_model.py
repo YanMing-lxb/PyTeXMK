@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:41:29 +0800
+LastEditTime : 2024-07-15 00:44:33 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -60,6 +60,7 @@ class CompileModel(object):
         self.project_name = project_name
         self.quiet = quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
+        self.out = ''  # 初始化输出文件名为空字符串
 
     # --------------------------------------------------------------------------------
     # 定义日志记录器
