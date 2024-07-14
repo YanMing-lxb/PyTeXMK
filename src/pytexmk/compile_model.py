@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 01:09:42 +0800
+LastEditTime : 2024-07-15 01:21:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -355,8 +355,8 @@ class CompileModel(object):
             if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls"):
                     run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
-        else:
-            run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
+            else:
+                run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
         if os.path.exists(f"{self.project_name}.idx"):
@@ -379,7 +379,7 @@ class CompileModel(object):
             print_index = f"{cmd[0]} 生成索引"
             print(print_index,"\n")
             try:
-                subprocess.run(cmd, check=True, text=True, capture_output=False)
+                subprocess.run(cmd[1], check=True, text=True, capture_output=False)
                 return print_index, name_target, True
             except subprocess.CalledProcessError as e:
                 print(e.output)
