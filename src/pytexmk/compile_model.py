@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 00:08:03 +0800
+LastEditTime : 2024-07-15 00:11:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -407,7 +407,7 @@ def _count_citations(file_name):
         counter = defaultdict(int)
 
         # 打开aux文件并读取其内容
-        with open(f"{file_name}.aux", 'r', encoding='utf-8') as aux_file:
+        with open(file_name, 'r', encoding='utf-8') as aux_file:
             aux_content = aux_file.read()
         match = BIBER_CITE_PATTERN.search(aux_content)
         if match:
