@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-14 22:29:49 +0800
+LastEditTime : 2024-07-15 00:04:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -138,7 +138,7 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义 tex 文件检索函数
     # --------------------------------------------------------------------------------
-    def search_tex_file():
+    def search_tex_file(self):
         current_path = os.getcwd() # 获取当前路径
         # 遍历当前路径下的所有文件
         tex_files = [file for file in os.listdir(current_path) if file.endswith('.tex')]
@@ -147,7 +147,7 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义 tex 主文件检索函数
     # --------------------------------------------------------------------------------
-    def search_main_file(tex_files):
+    def search_main_file(self, tex_files):
         current_path = os.getcwd() # 获取当前路径
         if tex_files:
             # 如果存在多个.tex文件
@@ -188,7 +188,7 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义魔法注释检索函数
     # --------------------------------------------------------------------------------
-    def search_magic_comments(tex_files, magic_comments_keys):
+    def search_magic_comments(self, tex_files, magic_comments_keys):
         magic_comments = {}  # 创建空字典用于存储结果
         if len(tex_files):
             for file_path in tex_files:  # 遍历tex文件列表
