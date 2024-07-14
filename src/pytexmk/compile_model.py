@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-14 23:41:16 +0800
+LastEditTime : 2024-07-15 00:08:03 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -104,7 +104,7 @@ class CompileModel(object):
         # 检查是否存在.toc文件
         if os.path.isfile(f'{self.project_name}.toc'):
             # 读取.toc文件内容
-            with open(f'{self.project_name}.toc') as fobj:
+            with open(f'{self.project_name}.toc', 'r', encoding='utf-8') as fobj:
                 toc_file = fobj.read()
         else:
             # 如果不存在.toc文件，初始化toc_file为空字符串
@@ -125,7 +125,7 @@ class CompileModel(object):
         # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         file_name = f'{self.project_name}.aux'
         # 打开主aux文件并读取其内容
-        with open(file_name) as fobj:
+        with open(file_name, 'r', encoding='utf-8') as fobj:
             main_aux = fobj.read()
         # 计算主aux文件中的引用数量，并将其存储在cite_counter字典中
         cite_counter[file_name] = _count_citations(file_name)
@@ -163,7 +163,7 @@ class CompileModel(object):
         if os.path.isfile(file_name):  # 检查主aux文件是否存在
             # 判断并获取 glossaries 宏包的辅助文件内容
             if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
-                with open(file_name) as fobj:
+                with open(file_name, 'r', encoding='utf-8') as fobj:
                     main_aux = fobj.read()
                 pattern = r'\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}'  # 定义正则表达式模式，用于匹配词汇表条目
                 for match in re.finditer(pattern, main_aux):  # 使用正则表达式查找所有匹配的词汇表条目
@@ -200,7 +200,7 @@ class CompileModel(object):
         '''
         file_name = f'{self.project_name}.toc'   # 生成toc文件的完整路径
         if os.path.isfile(file_name):  # 检查toc文件是否存在
-            with open(file_name) as fobj:  # 打开toc文件
+            with open(file_name, 'r', encoding='utf-8') as fobj:  # 打开toc文件
                 if fobj.read() != toc_file:  # 比较toc文件内容与传入的toc_file内容
                     return True  # 如果内容不同，返回True表示toc文件已变化
 
@@ -337,7 +337,7 @@ class CompileModel(object):
 
         # 判断并获取 glossaries 宏包的辅助文件名称
         if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
-            with open(file_name) as fobj:
+            with open(file_name, 'r', encoding='utf-8') as fobj:
                 main_aux = fobj.read()
             pattern = r'\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}'  # 定义正则表达式模式，用于匹配词汇表条目
             for match in re.finditer(pattern, main_aux):  # 使用正则表达式查找所有匹配的词汇表条目
