@@ -82,11 +82,11 @@ class MoveRemoveClean(object):
             # 移动文件
             try:
                 shutil.move(file, dest_folder)
+                print(f"{file} 移动到 {dest_folder}")
             except shutil.Error:
                 print(f"{file} 未能移动到 {dest_folder}！")
             except FileNotFoundError:
                 print(f"{file} 不存在！")
-            print(f"{file} 移动到 {dest_folder}")
 
     # --------------------------------------------------------------------------------
     # 定义清理所有 pdf 文件
