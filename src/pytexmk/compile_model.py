@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-15 01:39:35 +0800
+LastEditTime : 2024-07-17 22:26:05 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -173,21 +173,21 @@ class CompileModel(object):
                     if os.path.exists(f"{self.project_name}{ext_i}") and os.path.exists(f"{self.project_name}{ext_o}"):  # 判断输出和输入扩展文件是否同时存在
                         with open(f"{self.project_name}{ext_o}", 'r', encoding='utf-8') as fobj:
                             makeindex_ext_i_content = fobj.read()
-                        makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = [makeindex_ext_i_content]
+                        makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = makeindex_ext_i_content
 
             # 判断并获取 nomencl 宏包的辅助文件内容
             if os.path.exists(f"{self.project_name}.nlo"):
                 if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.nlo", 'r', encoding='utf-8') as fobj:
                         makeindex_ext_i_content = fobj.read()
-                    makeindex_aux_content_dict_old[f'{self.project_name}.nlo'] = [makeindex_ext_i_content]
+                    makeindex_aux_content_dict_old[f'{self.project_name}.nlo'] = makeindex_ext_i_content
 
             # 判断并获取 makeidx 宏包的辅助文件内容
             if os.path.exists(f"{self.project_name}.idx"):
                 if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.idx", 'r', encoding='utf-8') as fobj:
                         makeindex_ext_i_content = fobj.read()
-                    makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = [makeindex_ext_i_content]
+                    makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = makeindex_ext_i_content
         else:
             print(f"没有找到名为{self.project_name}.aux 的文件", 'error')
 
@@ -319,15 +319,22 @@ class CompileModel(object):
         make_index = False  # 初始化是否需要重新生成索引的标志
         if re.search(f'No file {makeindex_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             make_index = True  # 如果包含，则需要重新生成词汇表
+            print('发现log里提示缺少输入文件，需要重新生成词汇表')
         if not os.path.exists(makeindex_aux_outfile):  # 检查输出文件是否存在
             make_index = True  # 如果不存在，则需要重新生成词汇表
+            print(f'没有发现{makeindex_aux_outfile} 文件，需要重新生成词汇表')
         else:
             with open(makeindex_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
+                file_content = fobj.read()  # 读取文件内容并存储在变量中
+            if file_content is not None:
                 try:
-                    if makeindex_aux_content_dict_old[makeindex_aux_infile] != fobj.read():  # 比较词汇表文件内容与记录的内容
-                        make_index = True  # 如果不一致，则需要重新生成词汇表"
+                    if str(makeindex_aux_content_dict_old[makeindex_aux_infile]) != file_content:  # 比较词汇表文件内容与记录的内容
+                        make_index = True  # 如果不一致，则需要重新生成词汇表
+                        print(f'{makeindex_aux_infile} 文件内容发生变化，需要重新生成词汇表')
+                        print(f'{repr(str(makeindex_aux_content_dict_old[makeindex_aux_infile]))}\n 文件内容为：\n{repr(file_content)}')
                 except KeyError:  # 如果词汇表文件内容未记录，则需要重新生成词汇表
                     make_index = True
+                    print(f'{makeindex_aux_infile} 内容未记录，则需要重新生成词汇表')
         return make_index
     
     # --------------------------------------------------------------------------------
@@ -352,10 +359,13 @@ class CompileModel(object):
         
         # 判断并获取 nomencl 宏包的辅助文件名称
         if os.path.exists(f"{self.project_name}.nlo"):
+            print(f"发现名为{self.project_name}.nlo 的文件")
             if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
+                print(f"发现名为{self.project_name}.nlo 和 {self.project_name}.nls 的文件")
                 if self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls"):
                     run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
             else:
+                print(f"没有发现名为{self.project_name}.nlo 和 {self.project_name}.nls 的文件")
                 run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
@@ -378,6 +388,7 @@ class CompileModel(object):
             console.print(f"[bold]运行命令：[/bold][cyan]{cmd[1]}[/cyan]\n")
             print_index = f"{cmd[0]} 生成索引"
             print(print_index,"\n")
+            print(f"run_makeindex_list_cmd 内容 {cmd} ")
             try:
                 subprocess.run(cmd[1], check=True, text=True, capture_output=False)
                 return print_index, name_target, True
