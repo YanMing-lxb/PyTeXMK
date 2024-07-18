@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-18 11:13:49 +0800
+LastEditTime : 2024-07-18 11:18:41 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -66,12 +66,15 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     runtime_list.append(runtime_bib_judgment)
 
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
-    if bib_engine and Latex_compilation_times_bib != 0:
-        runtime_bib, try_bool_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
-        name_target_list.append(name_target_bib)
-        runtime_list.append(runtime_bib)
-        if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-
+    if bib_engine:
+        if Latex_compilation_times_bib != 0:
+            runtime_bib, try_bool_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
+            name_target_list.append(name_target_bib)
+            runtime_list.append(runtime_bib)
+            if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+        else:
+            print_bib = f"{print_bib}"
+        
 
     # 编译索引
     runtime_makindex_judgment, return_makeindex_judgment = time_count(compile_model.makeindex_judgment, makeindex_aux_content_dict_old) # 判断是否需要编译目录索引
