@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-18 11:04:03 +0800
+LastEditTime : 2024-07-18 11:08:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -82,7 +82,7 @@ class MoveRemoveClean(object):
             except shutil.Error:
                 print(f"{file} 未能移动到 {dest_folder}")
             except FileNotFoundError:
-                print(f"{file} 不存在！")
+                pass
 
     # --------------------------------------------------------------------------------
     # 定义清理所有 pdf 文件

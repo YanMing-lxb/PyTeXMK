@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-18 11:02:10 +0800
+LastEditTime : 2024-07-18 11:13:49 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -66,7 +66,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     runtime_list.append(runtime_bib_judgment)
 
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
-    if bib_engine:
+    if bib_engine and Latex_compilation_times_bib != 0:
         runtime_bib, try_bool_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
         name_target_list.append(name_target_bib)
         runtime_list.append(runtime_bib)
