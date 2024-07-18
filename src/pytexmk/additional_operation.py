@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-15 00:28:27 +0800
+LastEditTime : 2024-07-18 11:04:03 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -37,11 +37,9 @@ class MoveRemoveClean(object):
             if os.path.exists(os.path.join(folder, file)):
                 try:
                     os.remove(os.path.join(folder, file))
-                    print(f"已将 {file} 从 {folder} 中删除！")
+                    print(f"{folder} 中的 {file} 被删除")
                 except OSError:
-                    print(f"{folder} 中的 {file} 未能被删除！")
-            else:
-                print(f"{folder} 中不存在 {file} ！")
+                    print(f"{folder} 中的 {file} 未能被删除")
 
     # --------------------------------------------------------------------------------
     # 将文件从源文件夹移动到根目录，如果根目录存在同名文件则覆盖
@@ -54,11 +52,9 @@ class MoveRemoveClean(object):
                         try:
                             os.remove(os.path.join(os.getcwd(), file))
                         except OSError:
-                            print(f"{os.path.join(os.getcwd(), file)} 未能删除！")
+                            print(f"{os.path.join(os.getcwd(), file)} 未能删除")
                     shutil.move(os.path.join(src_floder, file), os.path.join(os.getcwd(), file))
-                    print(f"已将 {file} 从 {src_floder} 移动到 {os.getcwd()}")
-                else:
-                    print(f'{src_floder} 中不存在 {file} ！')
+                    print(f"{src_floder} 中 {file} 移动到 {os.getcwd()}")
 
     # --------------------------------------------------------------------------------
     # 将文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
@@ -77,14 +73,14 @@ class MoveRemoveClean(object):
                 try:
                     os.remove(dest_file)
                 except OSError:
-                    print(f"{dest_folder} 中的旧 {file} 未能被删除！")
+                    print(f"{dest_folder} 中旧 {file} 未能被删除！")
                 
             # 移动文件
             try:
                 shutil.move(file, dest_folder)
                 print(f"{file} 移动到 {dest_folder}")
             except shutil.Error:
-                print(f"{file} 未能移动到 {dest_folder}！")
+                print(f"{file} 未能移动到 {dest_folder}")
             except FileNotFoundError:
                 print(f"{file} 不存在！")
 
