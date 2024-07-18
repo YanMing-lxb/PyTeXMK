@@ -277,8 +277,9 @@ class CompileModel(object):
                     print_bib = f"没有找到名为{self.bib_file} 的参考文献数据库文件"
                     Latex_compilation_times = 2
                 
-                if old_cite_counter == self._generate_citation_counter():  # 如果引用数量没有发生变化
-                    print_bib = f"参考文献引用数量没有变化，参考文献引用 {self._generate_citation_counter} 个"
+                new_cite_counter = self._generate_citation_counter()  # 获取新的引用数目
+                if old_cite_counter == new_cite_counter:  # 如果引用数量没有发生变化
+                    print_bib = f"参考文献引用数量没有变化，参考文献引用 {new_cite_counter} 个"
                     Latex_compilation_times = 0
 
                 if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查latex输出中是否有bbl文件缺失的提示
