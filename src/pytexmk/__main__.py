@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-18 11:18:41 +0800
+LastEditTime : 2024-07-18 11:58:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -73,7 +73,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
             runtime_list.append(runtime_bib)
             if not try_bool_bib: print(f"{name_target_bib} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
         else:
-            print_bib = f"{print_bib}"
+            print(f"{print_bib}")
         
 
     # 编译索引
