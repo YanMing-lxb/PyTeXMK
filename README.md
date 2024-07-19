@@ -79,10 +79,11 @@ PyTeXMK 支持：
 | -C, --Clean      | 清除所有辅助文件和 pdf 文件                  |
 | -nc, --no-clean  | 保留已生成的辅助文件                         |
 | -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程          |
-| -cp, --clean-pdf  | 清理所有 pdf 文件                          |
+| -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件               |
 
 **说明：**
 `-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
+`invalid X X R object at offset XXXXX` 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题
 
 ### 魔法注释
 
@@ -122,7 +123,7 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 
 # 未来工作方向
 
-- [X] 增加处理PDF图片由于未正确关闭导致的报错功能
+- [X] 增加修复 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 `invalid X X R object at offset XXXXX` 的警告的问题
 - [X] 完善主文件判断功能：
     - [X] 通过检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断
     - [ ] 多主文件编译功能

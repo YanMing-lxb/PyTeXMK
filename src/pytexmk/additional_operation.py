@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-19 20:58:57 +0800
+LastEditTime : 2024-07-19 21:23:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -104,15 +104,16 @@ class MoveRemoveClean(object):
             for pdf_file in pdf_files:
                 try:
                     doc = fitz.open(pdf_file)
+                    temp_path = pdf_file + ".temp"
+                    doc.save(temp_path, garbage=3, deflate=True, clean=True)
                     doc.close()
-                    print(f"已处理: {pdf_file}")
+                    os.replace(temp_path, pdf_file)  # 覆盖原有文件
+                    print(f"已处理并覆盖: {pdf_file}")
                 except Exception as e:
                     print(f"处理出错 {pdf_file}: {e}")
             print("所有PDF文件已处理完成。")
         else:
             print("当前路径下未发现PDF文件。")
-
-
 
 class MainFileJudgment(object):
 
