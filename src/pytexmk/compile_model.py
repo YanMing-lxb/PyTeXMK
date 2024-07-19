@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-18 10:34:29 +0800
+LastEditTime : 2024-07-19 20:56:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -317,7 +317,6 @@ class CompileModel(object):
     # 定义索引更新判断函数
     # --------------------------------------------------------------------------------
     def _index_changed_judgment(self, makeindex_aux_content_dict_old, makeindex_aux_infile, makeindex_aux_outfile):
-        print_index = ' '  # 初始化索引编译提示信息
         make_index = False  # 初始化是否需要重新生成索引的标志
         if re.search(f'No file {makeindex_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             print_index = '日志文件提示没有输入文件，已重新编译索引'
@@ -333,6 +332,8 @@ class CompileModel(object):
                     print_index = '词汇表文件内容没有变化，无需重新编译索引'
             else:
                 print_index = '没有索引内容，无需重新编译索引'
+        else:
+            print_index = '出现日志信息判断、内容变更以外的情况，重新编译索引'
         return print_index, make_index
     
     # --------------------------------------------------------------------------------
@@ -341,7 +342,6 @@ class CompileModel(object):
     def makeindex_judgment(self, makeindex_aux_content_dict_old): 
         file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         run_makeindex_list_cmd = [] # 初始化需要运行 makeindex 的命令列表
-        print_index = ' '  # 初始化索引编译提示信息
         # 判断并获取 glossaries 宏包的辅助文件名称
         if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
             with open(file_name, 'r', encoding='utf-8') as fobj:
