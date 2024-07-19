@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-19 20:56:31 +0800
+LastEditTime : 2024-07-19 21:08:19 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -333,7 +333,8 @@ class CompileModel(object):
             else:
                 print_index = '没有索引内容，无需重新编译索引'
         else:
-            print_index = '出现日志信息判断、内容变更以外的情况，重新编译索引'
+            make_index = True
+            print_index = f'{makeindex_aux_infile} 文件和 {makeindex_aux_outfile} 文件没有同时存在，重新编译索引'
         return print_index, make_index
     
     # --------------------------------------------------------------------------------
