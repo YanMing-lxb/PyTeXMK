@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-18 11:58:29 +0800
+LastEditTime : 2024-07-19 20:59:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -238,7 +238,7 @@ def main():
             MRC.remove_files(out_files, outdir)
             MRC.remove_files(aux_files, '.')
         elif args.clean_pdf:
-            MRC.clean_pdf('.', outdir)
+            MRC.clean_pdf(project_name, '.', outdir)
         elif args.no_clean:
             RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet, True)
         else:

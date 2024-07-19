@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-19 20:20:43 +0800
+LastEditTime : 2024-07-19 20:58:57 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -87,7 +87,7 @@ class MoveRemoveClean(object):
     # --------------------------------------------------------------------------------
     # 定义清理所有 pdf 文件
     # --------------------------------------------------------------------------------
-    def clean_pdf(self, root_dir, excluded_folder):
+    def clean_pdf(self, project_name, root_dir, excluded_folder):
         pdf_files = []
         for root, dirs, files in os.walk(root_dir):
             if excluded_folder in dirs:
@@ -95,7 +95,7 @@ class MoveRemoveClean(object):
             if root == root_dir: # 如果当前处理的是根目录文件，则跳过
                 continue 
             for file in files:
-                if file.endswith('.pdf') and file != f'{self.project_name}.pdf':
+                if file.endswith('.pdf') and file != f'{project_name}.pdf':
                     pdf_files.append(os.path.join(root, file))  # 仅清理子文件夹中的pdf文件
         
         # 对pdf文件进行打开和关闭操作，解决origin批量导出pdf文件时由于未关闭pdf导致的报错
