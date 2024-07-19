@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-18 11:08:31 +0800
+LastEditTime : 2024-07-19 20:20:43 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -147,7 +147,8 @@ class MainFileJudgment(object):
 
     # --------------------------------------------------------------------------------
     # 定义 tex 主文件检索函数
-    # --------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------- 
+    # TODO: 解决魔法注释关键词大小写敏感问题
     def search_main_file(self, tex_files):
         current_path = os.getcwd() # 获取当前路径
         if tex_files:
