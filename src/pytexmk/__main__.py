@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-20 09:42:46 +0800
+LastEditTime : 2024-07-20 09:48:52 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -38,7 +38,7 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet, no_clean): # TODO: 完善整体编译函数
+def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet): # TODO: 完善整体编译函数
     name_target_list = []
     runtime_list = []
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
@@ -172,7 +172,6 @@ def main():
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
-    parser.add_argument('-nc', '--no-clean', action='store_true', help="保留已生成的辅助文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下显示编译过程")
     parser.add_argument('-cp', '--clean-pdf', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
     
@@ -250,10 +249,8 @@ def main():
             MRC.remove_files(aux_files, '.')
         elif args.clean_pdf:
             MRC.clean_pdf(project_name, '.', outdir)
-        elif args.no_clean:
-            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet, True)
         else:
-            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet, False)
+            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet)
 
 if __name__ == "__main__":
 
