@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-20 09:48:52 +0800
+LastEditTime : 2024-07-20 10:26:07 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -240,7 +240,8 @@ def main():
                                            ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
     ]
 
-    if project_name: # 如果存在 project_name
+    # TODO: 添加新的命令实现清除带有辅助文件后缀的所有文件，完善细化清除功能
+    if project_name: # 如果存在 project_name 
         if args.clean:
             MRC.remove_files(aux_files, auxdir)
         elif args.Clean:
