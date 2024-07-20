@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-20 09:39:21 +0800
+LastEditTime : 2024-07-20 09:42:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -66,7 +66,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
 
     # 编译参考文献
     runtime_bib_judgment, return_bib_judgment = time_count(compile_model.bib_judgment, cite_counter) # 判断是否需要编译参考文献
-    name_target_list.append('文献引擎判定')
+    name_target_list.append('编译文献判定')
     runtime_list.append(runtime_bib_judgment)
 
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
@@ -84,7 +84,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
     print_index, run_index_list_cmd = return_index_judgment
-    name_target_list.append('索引引擎判定')
+    name_target_list.append('编译索引判定')
     runtime_list.append(runtime_makindex_judgment)
 
     if run_index_list_cmd: # 存在目录索引编译命令
