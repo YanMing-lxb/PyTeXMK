@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-19 20:59:22 +0800
+LastEditTime : 2024-07-20 09:39:21 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -41,20 +41,24 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet, no_clean): # TODO: 完善整体编译函数
     name_target_list = []
     runtime_list = []
-
+    abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
     compile_model = CompileModel(compiler_engine, project_name, quiet)
-    MRC.move_to_root(aux_files, auxdir) # 将辅助文件移动到根目录
+
+    runtime_move_aux_root, _  = MRC.move_to_root(aux_files, auxdir) # 将辅助文件移动到根目录
+    name_target_list.append('辅助文件-->根目录')
+    runtime_list.append(runtime_move_aux_root)
 
     # 检查并处理已存在的 LaTeX 输出文件
     runtime_read, return_read = time_count(compile_model.prepare_latex_output_files, ) # 读取 latex 文件
-    cite_counter, toc_file, makeindex_aux_content_dict_old = return_read # 获取 read_latex_files 函数得到的参数
+    cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_latex_files 函数得到的参数
     name_target_list.append('预处理已有输出文件')
     runtime_list.append(runtime_read)
 
 
     # 首次编译 LaTeX 文档
-    runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, 1) 
+    print_message(f"{abbreviations_num[0]} 次 {compiler_engine} 编译")
+    runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, ) 
     if not try_bool_tex: print(f"{compiler_engine} 1st 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     name_target_list.append(f'{compiler_engine} 1st') # 将获取到的编译项目名称 添加到对应的列表中
     runtime_list.append(runtime_Latex)
@@ -67,6 +71,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
 
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
     if bib_engine:
+        print_message(f'{bib_engine} 文献编译')
         if Latex_compilation_times_bib != 0:
             runtime_bib, try_bool_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
             name_target_list.append(name_target_bib)
@@ -77,20 +82,24 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
         
 
     # 编译索引
-    runtime_makindex_judgment, return_makeindex_judgment = time_count(compile_model.makeindex_judgment, makeindex_aux_content_dict_old) # 判断是否需要编译目录索引
-    print_makeindex, run_makeindex_list_cmd = return_makeindex_judgment
+    runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
+    print_index, run_index_list_cmd = return_index_judgment
     name_target_list.append('索引引擎判定')
     runtime_list.append(runtime_makindex_judgment)
 
-    if run_makeindex_list_cmd: # 存在目录索引编译命令
-        Latex_compilation_times_makeindex = 1
-        runtime_makeindex, return_makeindex = time_count(compile_model.compile_makeindex, run_makeindex_list_cmd)
-        name_target_makeindex, try_bool_makeindex = return_makeindex # 获取 compile_makeindex 函数得到的参数
-        name_target_list.append(name_target_makeindex)
-        runtime_list.append(runtime_makeindex)
-        if not try_bool_makeindex: print(f"{name_target_makeindex} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+    if run_index_list_cmd: # 存在目录索引编译命令
+        for cmd in run_index_list_cmd:
+            print_message(f"{cmd[0]} 编译")
+            Latex_compilation_times_index = 1
+            runtime_index, return_index = time_count(compile_model.compile_index, cmd)
+            name_target_index, try_bool_index = return_index # 获取 compile_index 函数得到的参数
+            name_target_list.append(name_target_index)
+            runtime_list.append(runtime_index)
+            if not try_bool_index: print(f"{name_target_index} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
     else:
-        Latex_compilation_times_makeindex = 0
+        Latex_compilation_times_index = 0
+
+
     # 编译目录
     if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
         Latex_compilation_times_toc = 1
@@ -98,20 +107,22 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
         Latex_compilation_times_toc = 0
 
     # 计算额外需要的 LaTeX 编译次数
-    Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_makeindex, Latex_compilation_times_toc) 
+    Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_index, Latex_compilation_times_toc) 
     
 
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
-        runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, times)
-        if not try_bool_tex: print(f"{compiler_engine} {times}nd 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-        name_target_list.append(f'{compiler_engine} {times}nd')
+        print_message(f"{times} 次 {compiler_engine} 编译")
+        runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, )
+        if not try_bool_tex: print(f"{compiler_engine} {abbreviations_num[times-1]} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+        name_target_list.append(f'{compiler_engine} {abbreviations_num[times-1]}')
         runtime_list.append(runtime_Latex)
 
 
 
     # 编译完成，开始判断编译 XDV 文件
     if compiler_engine == "xelatex":  # 判断是否编译 xdv 文件
+        print_message("dvipdfmx 编译")
         runtime_xdv, try_bool_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         if not try_bool_xdv: print("dvipdfmx 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
         name_target_list.append('dvipdfmx 编译')
@@ -124,16 +135,16 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
           "=" * 80 + "\n")
     print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
-    print(f"目录索引：{print_makeindex}")
+    print(f"目录索引：{print_index}")
     print_message("开始执行编译以外的附加命令！")
     
-    runtime_move_out, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
-    name_target_list.append("移动结果文件")
-    runtime_list.append(runtime_move_out)
+    runtime_move_out_outdir, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
+    name_target_list.append("结果文件-->输出目录")
+    runtime_list.append(runtime_move_out_outdir)
 
-    runtime_move_aux, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
-    name_target_list.append("移动辅助文件")
-    runtime_list.append(runtime_move_aux)
+    runtime_move_aux_auxdir, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
+    name_target_list.append("辅助文件-->辅助目录")
+    runtime_list.append(runtime_move_aux_auxdir)
 
     time_print(start_time, name_target_list, runtime_list) # 打印编译时长统计
 

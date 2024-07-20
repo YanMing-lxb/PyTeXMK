@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-03-22 14:50:06 +0800
+LastEditTime : 2024-07-20 09:32:13 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/info_print.py
+FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -64,7 +64,7 @@ def time_print(start_time, name_target_list, time_run_list):
     minutes, seconds = divmod(remainder, 60)
     milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
 
-    number_programmes_run = len(name_target_list)-4
+    number_programmes_run = len(name_target_list)-6 # 计算运行函数数量（辅助函数除外）
     
     time_compile = sum(time_run_list)
     name_target_list.append('LaTeX 编译时长')

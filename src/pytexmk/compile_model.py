@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-19 21:08:19 +0800
+LastEditTime : 2024-07-20 09:39:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -28,7 +28,6 @@ import re
 import logging
 import subprocess
 from collections import defaultdict
-from .info_print import print_message
 from rich import console
 console = console.Console()  # 设置宽度为80
 
@@ -98,11 +97,11 @@ class CompileModel(object):
             # 生成引用计数器
             cite_counter = self._generate_citation_counter()
             # 读取词汇表
-            makeindex_aux_content_dict_old = self._makeindex_aux_content_get()
+            index_aux_content_dict_old = self._index_aux_content_get()
         else:
             # 如果不存在.aux文件，初始化引用计数器为默认值
             cite_counter = {f'{self.project_name}.aux' : defaultdict(int)}
-            makeindex_aux_content_dict_old = dict()
+            index_aux_content_dict_old = dict()
         # 检查是否存在.toc文件
         if os.path.exists(f'{self.project_name}.toc'):
             # 读取.toc文件内容
@@ -113,7 +112,7 @@ class CompileModel(object):
             toc_file = ''
 
         # 返回引用计数器、toc文件内容和词汇表文件内容
-        return cite_counter, toc_file, makeindex_aux_content_dict_old
+        return cite_counter, toc_file, index_aux_content_dict_old
 
     # --------------------------------------------------------------------------------
     # 定义参考文献引用次数获取函数
@@ -152,14 +151,14 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     # 定义旧的符号索引辅助文件内容获取函数
     # --------------------------------------------------------------------------------
-    def _makeindex_aux_content_get(self): 
+    def _index_aux_content_get(self): 
         '''
         判断两个索引辅助文件是否同时存在
         获取索引辅助文件内容
         '''
 
         file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
-        makeindex_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
+        index_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
 
         # 读取主aux文件
         if os.path.exists(file_name):  # 检查主aux文件是否存在
@@ -172,26 +171,26 @@ class CompileModel(object):
                     name, ext_o, ext_i = match.groups()  # 提取匹配的组，分别是词汇表名称、输出扩展和输入扩展
                     if os.path.exists(f"{self.project_name}{ext_i}") and os.path.exists(f"{self.project_name}{ext_o}"):  # 判断输出和输入扩展文件是否同时存在
                         with open(f"{self.project_name}{ext_o}", 'r', encoding='utf-8') as fobj:
-                            makeindex_ext_i_content = fobj.read()
-                        makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = makeindex_ext_i_content
+                            index_ext_i_content = fobj.read()
+                        index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
 
             # 判断并获取 nomencl 宏包的辅助文件内容
             if os.path.exists(f"{self.project_name}.nlo"):
                 if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.nlo", 'r', encoding='utf-8') as fobj:
-                        makeindex_ext_i_content = fobj.read()
-                    makeindex_aux_content_dict_old[f'{self.project_name}.nlo'] = makeindex_ext_i_content
+                        index_ext_i_content = fobj.read()
+                    index_aux_content_dict_old[f'{self.project_name}.nlo'] = index_ext_i_content
 
             # 判断并获取 makeidx 宏包的辅助文件内容
             if os.path.exists(f"{self.project_name}.idx"):
                 if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
                     with open(f"{self.project_name}.idx", 'r', encoding='utf-8') as fobj:
-                        makeindex_ext_i_content = fobj.read()
-                    makeindex_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = makeindex_ext_i_content
+                        index_ext_i_content = fobj.read()
+                    index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
             print(f"没有找到名为{self.project_name}.aux 的文件", 'error')
 
-        return makeindex_aux_content_dict_old
+        return index_aux_content_dict_old
 
     # --------------------------------------------------------------------------------
     # 定义目录更新判断函数
@@ -210,9 +209,8 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     # 定义 TeX 编译函数
     # --------------------------------------------------------------------------------
-    def compile_tex(self, compiler_times):
+    def compile_tex(self):
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
-        print_message(f"{compiler_times} 次 {self.compiler_engine} 编译")
         if self.compiler_engine == 'xelatex':
             options.insert(5, "-no-pdf")
         if self.quiet:
@@ -269,7 +267,6 @@ class CompileModel(object):
                         bib_engine = 'bibtex'
                         Latex_compilation_times = 2 # LaTeX 额外编译次数 
 
-                print_message(f'{bib_engine} 文献编译')
                 print_bib = f"{bib_engine} 编译参考文献"
                 name_target = f"{bib_engine} 编译"
 
@@ -316,16 +313,16 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     # 定义索引更新判断函数
     # --------------------------------------------------------------------------------
-    def _index_changed_judgment(self, makeindex_aux_content_dict_old, makeindex_aux_infile, makeindex_aux_outfile):
+    def _index_changed_judgment(self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile):
         make_index = False  # 初始化是否需要重新生成索引的标志
-        if re.search(f'No file {makeindex_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
+        if re.search(f'No file {index_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             print_index = '日志文件提示没有输入文件，已重新编译索引'
             make_index = True  # 如果包含，则需要重新生成词汇表
-        elif os.path.exists(makeindex_aux_infile) and os.path.exists(makeindex_aux_outfile):  # 判断输出和输入扩展文件是否同时存在
-            with open(makeindex_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
+        elif os.path.exists(index_aux_infile) and os.path.exists(index_aux_outfile):  # 判断输出和输入扩展文件是否同时存在
+            with open(index_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
                 file_content = fobj.read()  # 读取文件内容并存储在变量中
             if file_content is not None:
-                if str(makeindex_aux_content_dict_old[makeindex_aux_infile]) != file_content:  # 比较词汇表文件内容与记录的内容
+                if str(index_aux_content_dict_old[index_aux_infile]) != file_content:  # 比较词汇表文件内容与记录的内容
                     print_index = '词汇表文件内容发生变化，已重新编译索引'
                     make_index = True  # 如果不一致，则需要重新生成词汇表
                 else:
@@ -334,15 +331,15 @@ class CompileModel(object):
                 print_index = '没有索引内容，无需重新编译索引'
         else:
             make_index = True
-            print_index = f'{makeindex_aux_infile} 文件和 {makeindex_aux_outfile} 文件没有同时存在，重新编译索引'
+            print_index = f'{index_aux_infile} 文件和 {index_aux_outfile} 文件没有同时存在，重新编译索引'
         return print_index, make_index
     
     # --------------------------------------------------------------------------------
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
-    def makeindex_judgment(self, makeindex_aux_content_dict_old): 
+    def index_judgment(self, index_aux_content_dict_old): 
         file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
-        run_makeindex_list_cmd = [] # 初始化需要运行 makeindex 的命令列表
+        run_index_list_cmd = [] # 初始化需要运行 index 的命令列表
         # 判断并获取 glossaries 宏包的辅助文件名称
         if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
             with open(file_name, 'r', encoding='utf-8') as fobj:
@@ -350,46 +347,43 @@ class CompileModel(object):
             pattern = r'\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}'  # 定义正则表达式模式，用于匹配词汇表条目
             for match in re.finditer(pattern, main_aux):  # 使用正则表达式查找所有匹配的词汇表条目
                 name, ext_o, ext_i = match.groups()  # 提取匹配的组，分别是词汇表名称、输出扩展和输入扩展
-                print_index, make_index = self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}{ext_i}", f"{self.project_name}{ext_o}")
+                print_index, make_index = self._index_changed_judgment(index_aux_content_dict_old, f"{self.project_name}{ext_i}", f"{self.project_name}{ext_o}")
                 if make_index:
-                    run_makeindex_list_cmd.append([f'glossaries {name}', f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}"])
+                    run_index_list_cmd.append([f'glossaries {name}', f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}"])
         # 判断并获取 nomencl 宏包的辅助文件名称
         elif os.path.exists(f"{self.project_name}.nlo"):
-            print_index, make_index = self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls")
+            print_index, make_index = self._index_changed_judgment(index_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls")
             if make_index:
-                run_makeindex_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
+                run_index_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
         elif os.path.exists(f"{self.project_name}.idx"):
-            print_index, make_index = self._index_changed_judgment(makeindex_aux_content_dict_old, f"{self.project_name}.idx", f"{self.project_name}.ind")
+            print_index, make_index = self._index_changed_judgment(index_aux_content_dict_old, f"{self.project_name}.idx", f"{self.project_name}.ind")
             if make_index:
-                run_makeindex_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
+                run_index_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
         else:
             print_index = "采用 glossaries、nomencl 和 makeidx 以外的宏包制作索引。"
-        return print_index, run_makeindex_list_cmd
+        return print_index, run_index_list_cmd
     
     # --------------------------------------------------------------------------------
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
-    def compile_makeindex(self, run_makeindex_list_cmd): 
+    def compile_index(self, cmd): 
         # 运行 makeindex 命令
-        for cmd in run_makeindex_list_cmd:
-            print_message(f"{cmd[0]} 编译")
-            name_target = f"{cmd[0]} 宏包"
-            console.print(f"[bold]运行命令：[/bold][cyan]{cmd[1]}[/cyan]\n")
-            try:
-                subprocess.run(cmd[1], check=True, text=True, capture_output=False)
-                return name_target, True
-            except subprocess.CalledProcessError as e:
-                print(e.output)
-                return name_target, False
+        name_target = f"{cmd[0]} 宏包"
+        console.print(f"[bold]运行命令：[/bold][cyan]{cmd[1]}[/cyan]\n")
+        try:
+            subprocess.run(cmd[1], check=True, text=True, capture_output=False)
+            return name_target, True
+        except subprocess.CalledProcessError as e:
+            print(e.output)
+            return name_target, False
         
 
     # --------------------------------------------------------------------------------
     # 定义 xdv 编译函数
     # --------------------------------------------------------------------------------
     def compile_xdv(self):
-        print_message("dvipdfmx 编译")
         options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if self.quiet:
             options.insert(1, "-q") # 静默编译
