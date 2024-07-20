@@ -365,7 +365,7 @@ class CompileModel(object):
             if make_index:
                 run_makeindex_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
         else:
-            print_index = "没有符号、缩略语或索引需要编译，或者采用 glossaries、nomencl 和 makeidx 以外的宏包。"
+            print_index = "采用 glossaries、nomencl 和 makeidx 以外的宏包制作索引。"
         return print_index, run_makeindex_list_cmd
     
     # --------------------------------------------------------------------------------
