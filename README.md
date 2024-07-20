@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-19 21:37:17 +0800
+ * LastEditTime : 2024-07-20 10:06:33 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : \PyTeXMK\README.md
  * Description  : 
@@ -49,7 +49,7 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )。
+PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
 
 请仔细阅读：[主文件及编译类型选定逻辑](#主文件及编译类型选定逻辑)
 
@@ -77,7 +77,6 @@ PyTeXMK 支持：
 | -l, --lualatex   | lualatex 进行编译                           |
 | -c, --clean      | 清除所有辅助文件                             |
 | -C, --Clean      | 清除所有辅助文件和 pdf 文件                  |
-| -nc, --no-clean  | 保留已生成的辅助文件                         |
 | -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程          |
 | -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件               |
 
@@ -93,7 +92,8 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 |---------------|----------|
 | `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex` |
 | `% !TEX root = file.tex` | 指定主 LaTeX 文件名，仅支持主文件在项目根目录下的情况 |
-| `% !TEX outdir = PDFfile` | 指定编译结果存放位置，仅支持文件夹名称，如果使用 LaTeX-Workshop，则需要在 `settings.json` 中设置 `"latex-workshop.latex.outDir": "./PDFfile",` |
+| `% !TEX outdir = PDFfile` | 指定编译结果存放位置，仅支持文件夹名称|
+| `% !TEX auxdir = auxfiles` |指定辅助文件存放位置，仅支持文件夹名称|
 
 ### 主文件及编译类型选定逻辑
 
@@ -107,20 +107,6 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
         
 - PyTeXMK 会优先使用 `% !TEX outdir = PDFfile` 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 `Build`
 
-# 更新日志
-
-- 2024-03-22 完善编译过程出错后的中断处理机制：在编译过程中出现错误时，程序会自动中断，并提示 `请用 -nq 模式运行以显示错误信息！`，使用 `-nq` 参数运行时，则会显示错误信息。
-- 2024-04-26 增加：
-    1. 魔法注释功能，使得用户可以自定义编译命令、编译类型、编译结果存放位置等
-    2. 完善主文件及编译类型选定逻辑
-- 2024-04-26 
-    1. 修复边 \documentclass 和 \begin{document} 检索逻辑。
-    2. 解决文档读取编码导致的报错。
-- 2024-06-16
-    1. 解决 `-nq` 参数失效的问题.
-    1. 增加 `-nc` 参数，用于保留已生成的辅助文件。
-
-
 # 未来工作方向
 
 - [X] 增加尝试修复根目录以外所有 PDF 文件的功能（在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 `invalid X X R object at offset XXXXX` 的警告的问题）
@@ -131,15 +117,17 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
     - [X] 通过魔法注释设置主文件名
     - [X] 通过魔法注释设置编译引擎类型
     - [x] 通过魔法注释设置编译结果存放位置
-    - [ ] 根据魔法注释设置辅助文件存放位置
+    - [X] 根据魔法注释设置辅助文件存放位置
     - [ ] 解决魔法注释大小写敏感问题
     - [ ] 魔法注释重复定义时的处理方式
     - [ ] 魔法注释冲突时的处理方式
 - [ ] 编译次数自动判断功能
     - [X] 完善编译过程出错后的中断处理机制
     - [ ] 自动判断是否需要编译参考文献
+        -[ ] 初步实现
     - [ ] 自动判断是否需要编译索引文件
-    - [ ] 自动判断是否要重新编译
+         -[ ] 初步实现
+    - [X] 自动判断是否要重新编译
 - [ ] 增加配置文件功能
     - [ ] 自定义默认的编译引擎 （目前默认编译命令是 `xelatex`）
     - [ ] 自定义默认生成的结果文件存放位置（目前默认存放在 `Build` 子文件夹下）
