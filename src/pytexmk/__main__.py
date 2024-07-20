@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-20 10:52:11 +0800
+LastEditTime : 2024-07-20 11:10:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -57,10 +57,10 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
 
 
     # 首次编译 LaTeX 文档
-    print_message(f"{abbreviations_num[0]} 次 {compiler_engine} 编译")
+    print_message(f"1 次 {compiler_engine} 编译")
     runtime_Latex, try_bool_tex = time_count(compile_model.compile_tex, ) 
-    if not try_bool_tex: print(f"{compiler_engine} 1st 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
-    name_target_list.append(f'{compiler_engine} 1st') # 将获取到的编译项目名称 添加到对应的列表中
+    if not try_bool_tex: print(f"{compiler_engine} {abbreviations_num[0]} 编译失败，{'请用 -nq 模式运行以显示错误信息！' if quiet else '请检查上面的错误信息！'}"); return
+    name_target_list.append(f'{compiler_engine} {abbreviations_num[0]}') # 将获取到的编译项目名称 添加到对应的列表中
     runtime_list.append(runtime_Latex)
 
 
