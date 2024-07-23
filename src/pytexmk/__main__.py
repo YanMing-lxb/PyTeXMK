@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-23 22:18:53 +0800
+LastEditTime : 2024-07-23 22:45:32 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -36,7 +36,7 @@ from .info_print import time_count, time_print, print_message
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
-logger = setup_logger() # 实例化 logger 类
+
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
@@ -171,6 +171,7 @@ def main():
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
+    parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-cp', '--clean-pdf', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
     
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
@@ -187,6 +188,7 @@ def main():
 
     tex_files = MFJ.search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
     magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
+    logger = setup_logger(args.verbose) # 实例化 logger 类
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断

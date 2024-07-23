@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-23 15:58:29 +0800
+ * LastEditTime : 2024-07-23 22:32:12 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : \PyTeXMK\README.md
  * Description  : 
@@ -78,6 +78,7 @@ PyTeXMK 支持：
 | -c, --clean      | 清除所有辅助文件                             |
 | -C, --Clean      | 清除所有辅助文件和 pdf 文件                  |
 | -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程          |
+| -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息            |
 | -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件               |
 
 **说明：**

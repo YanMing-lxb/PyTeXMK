@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-23 20:20:00 +0800
-LastEditTime : 2024-07-23 21:46:31 +0800
+LastEditTime : 2024-07-23 22:43:57 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\logger_config.py
+FilePath     : \PyTeXMKd:\Application\miniconda3\envs\yanming\Lib\site-packages\pytexmk\logger_config.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -31,18 +31,29 @@ from rich.logging import RichHandler  # 导入rich库的日志处理模块
 # --------------------------------------------------------------------------------
 # 定义日志记录器
 # --------------------------------------------------------------------------------
-def setup_logger(): # TODO 全局都采用日志记录器，并丰富日志信息
+def setup_logger(verbose): # TODO 全局都采用日志记录器，并丰富日志信息
     '''设置日志记录器。'''
     FORMAT = "%(message)s"
-    logging.basicConfig(
-        level="WARNING", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)]
-    )
+    
+    # 如果设置了verbose 选项，则将日志级别设置为INFO，以便输出更多信息
+    if verbose:
+        print("启用 PyTeXMK 详细日志输出...")
+        logging.basicConfig(
+            level="INFO",
+            format=FORMAT,
+            datefmt="[%X]",
+            handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)]
+        )
+    else:
+        logging.basicConfig(
+            level="WARNING",
+            format=FORMAT,
+            datefmt="[%X]",
+            handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)]
+        )
 
     # 获取名为'pytexmk.py'的日志记录器实例
     logger = logging.getLogger('pytexmk.py')
 
-    # 如果设置了verbose选项，则将日志级别设置为INFO，以便输出更多信息
-    # if self.opt.verbose:
-    #     log.setLevel(logging.INFO)  # 设置日志级别为INFO
     return logger
 
