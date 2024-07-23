@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 16:09:59 +0800
+LastEditTime : 2024-07-23 20:08:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -74,21 +74,14 @@ class CompileModel(object):
         '''设置日志记录器。'''
         FORMAT = "%(message)s"
         logging.basicConfig(
-            level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(markup=True)]
+            level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(show_time=False, markup=True, show_path=False)]
         )
         # 获取名为'pytexmk.py'的日志记录器实例
         log = logging.getLogger('pytexmk.py')
 
-        # 创建一个流处理器，用于将日志输出到控制台
-        handler = logging.StreamHandler()
-        # 将流处理器添加到日志记录器中
-        log.addHandler(handler)
-        log.setLevel(logging.INFO)
-
         # 如果设置了verbose选项，则将日志级别设置为INFO，以便输出更多信息
         # if self.opt.verbose:
         #     log.setLevel(logging.INFO)  # 设置日志级别为INFO
-        # 返回设置好的日志记录器实例
         return log
     
     # --------------------------------------------------------------------------------
@@ -96,25 +89,21 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     def check_errors(self, log_content):
         '''
-        通过扫描输出来的log文件，检查 LaTeX 运行期间是否发生了错误。
+        通过扫描输出来的 log 文件，检查 LaTeX 运行期间是否发生了错误。
         '''
         self.out = log_content
         errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
         # "errors"是一个元组列表
         if errors:  # 如果有错误
-            self.log.error('! 编译过程中发生了错误:')  # 记录错误信息
+            self.log.error('编译过程中发生了错误:')  # 记录错误信息
 
             self.log.error('\n'.join(
                 [error.replace('\r', '').strip() for error
                     in chain(*errors) if error.strip()]
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
-            self.log.error(f'! 请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
+            self.log.error(f'请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
             sys.exit(1) # 退出程序
-
-            # if self.opt.exit_on_error:  # 如果设置了退出选项
-            #     self.log.error('! 退出中...')  # 记录退出信息
-            #     sys.exit(1)  # 退出程序
     
     # --------------------------------------------------------------------------------
     # 定义信息获取函数
@@ -246,6 +235,7 @@ class CompileModel(object):
     # 定义 TeX 编译函数
     # --------------------------------------------------------------------------------
     def compile_tex(self):
+        
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiler_engine == 'xelatex':
             options.insert(5, "-no-pdf")
@@ -253,12 +243,12 @@ class CompileModel(object):
             options.insert(4, "-interaction=batchmode") # 静默编译
         else:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
-        console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+        self.log.info(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
         
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"! {self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.log.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
 
@@ -342,7 +332,7 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"! {bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.log.error(f"{bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
     # --------------------------------------------------------------------------------
@@ -411,7 +401,7 @@ class CompileModel(object):
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
         except:
-            self.log.error(f"! {cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.log.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
         
 
@@ -426,7 +416,7 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"! dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.log.error(f"dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
 
