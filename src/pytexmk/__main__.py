@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-23 15:08:43 +0800
+LastEditTime : 2024-07-23 16:08:09 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -38,7 +38,7 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet): # TODO: 完善整体编译函数
+def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet):
     name_target_list = []
     runtime_list = []
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')

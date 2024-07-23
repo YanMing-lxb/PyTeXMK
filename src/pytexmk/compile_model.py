@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 15:52:20 +0800
+LastEditTime : 2024-07-23 16:09:59 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -70,7 +70,7 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     # 定义日志记录器
     # --------------------------------------------------------------------------------
-    def _setup_logger(self):
+    def _setup_logger(self): # TODO 全局都采用日志记录器，并丰富日志信息
         '''设置日志记录器。'''
         FORMAT = "%(message)s"
         logging.basicConfig(
