@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-23 21:55:48 +0800
+LastEditTime : 2024-07-23 22:18:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -45,7 +45,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     runtime_list = []
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileModel(compiler_engine, project_name, quiet)
+    compile_model = CompileModel(compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet)
 
     runtime_move_aux_root, _  = time_count(MRC.move_to_root, aux_files, auxdir) # 将辅助文件移动到根目录
     name_target_list.append('辅助文件->根目录')

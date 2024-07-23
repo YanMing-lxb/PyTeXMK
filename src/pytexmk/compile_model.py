@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 21:56:49 +0800
+LastEditTime : 2024-07-23 22:18:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -31,6 +31,7 @@ import subprocess
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
+from .additional_operation import MoveRemoveClean
 console = console.Console()  # 设置宽度为80
 
 
@@ -57,13 +58,20 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
 TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹配TeXlipse主文件
 
 class CompileModel(object):
-    def __init__(self, compiler_engine, project_name, quiet):
+    def __init__(self, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet):
         self.out = ''  # 初始化输出文件名为空字符串
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
+        
         self.compiler_engine = compiler_engine
         self.project_name = project_name
+        self.out_files = out_files
+        self.aux_files = aux_files
+        self.auxdir = auxdir
+        self.outdir = outdir
         self.quiet = quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
+        
+        self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
 
     # --------------------------------------------------------------------------------
     # 定义日志检查函数
@@ -83,7 +91,10 @@ class CompileModel(object):
                     in chain(*errors) if error.strip()]
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
-            self.logger.error(f'请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
+            self.logger.error(f'请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
+            self.MRC.move_to_folder(self.aux_files, self.auxdir)
+            self.MRC.move_to_folder(self.out_files, self.outdir)
+            print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
     
     # --------------------------------------------------------------------------------
@@ -230,7 +241,9 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
+            self.MRC.move_to_folder(self.aux_files, self.auxdir)
+            self.MRC.move_to_folder(self.out_files, self.outdir)
             print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
@@ -315,7 +328,9 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
+            self.MRC.move_to_folder(self.aux_files, self.auxdir)
+            self.MRC.move_to_folder(self.out_files, self.outdir)
             print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
@@ -385,7 +400,9 @@ class CompileModel(object):
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
         except:
-            self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
+            self.MRC.move_to_folder(self.aux_files, self.auxdir)
+            self.MRC.move_to_folder(self.out_files, self.outdir)
             print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
         
@@ -401,7 +418,9 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
+            self.MRC.move_to_folder(self.aux_files, self.auxdir)
+            self.MRC.move_to_folder(self.out_files, self.outdir)
             print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
