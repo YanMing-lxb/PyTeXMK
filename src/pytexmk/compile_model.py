@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-20 09:39:02 +0800
+LastEditTime : 2024-07-23 12:51:21 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -39,7 +39,7 @@ BIBTEX_PATTERN = re.compile(r'\\bibdata')  # 匹配 bibtex 命令
 BIBER_BIB_PATTERN = re.compile(r'<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>')  # 
 BIBTEX_BIB_PATTERN = re.compile(r'\\bibdata\{(.*)\}')  # 匹配\bibdata{}命令
 
-BIBER_CITE_PATTERN = re.compile(r'\\abx@aux@cite\{(.*)\}')  # 匹配\abx@aux@cite{}命令
+BIBER_CITE_PATTERN = re.compile(r'\\abx@aux@cite{.*?}\{(.*)\}')  # 匹配\abx@aux@cite{任意字符}{}命令
 BIBTEX_CITE_PATTERN = re.compile(r'\\citation\{(.*)\}')  # 匹配\citation{}命令
 
 BIBCITE_PATTERN = re.compile(r'\\bibcite\{(.*)\}\{(.*)\}')  # 匹配\bibcite{}命令
@@ -127,12 +127,12 @@ class CompileModel(object):
         file_name = f'{self.project_name}.aux'
         # 打开主aux文件并读取其内容
         with open(file_name, 'r', encoding='utf-8') as fobj:
-            main_aux = fobj.read()
+            main_aux_content = fobj.read()
         # 计算主aux文件中的引用数量，并将其存储在cite_counter字典中
         cite_counter[file_name] = _count_citations(file_name)
 
         # 使用正则表达式查找所有包含的aux文件
-        for match in re.finditer(r'\\@input\{(.*.aux)\}', main_aux):
+        for match in re.finditer(r'\\@input\{(.*.aux)\}', main_aux_content):
             # 获取匹配到的aux文件名
             file_name = match.groups()[0]
             try:
@@ -276,7 +276,7 @@ class CompileModel(object):
                 
                 new_cite_counter = self._generate_citation_counter()  # 获取新的引用数目
                 if old_cite_counter == new_cite_counter:  # 如果引用数量没有发生变化
-                    print_bib = f"参考文献引用数量没有变化，参考文献引用 {new_cite_counter} 个"
+                    print_bib = f"参考文献引用数量没有变化"
                     Latex_compilation_times = 0
 
                 if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查latex输出中是否有bbl文件缺失的提示
@@ -400,11 +400,8 @@ def _count_citations(file_name):
         '''
         统计 aux 文件中所有参考文献引用的次数。
         '''
-        # 导入defaultdict用于创建一个默认值为int的字典
-        from collections import defaultdict
-
         # 创建一个默认值为int的字典，用于存储每个citation出现的次数
-        counter = defaultdict(int)
+        counter = defaultdict(int) # 使用 int 作为工厂函数，默认值为 0
 
         # 打开aux文件并读取其内容
         with open(file_name, 'r', encoding='utf-8') as aux_file:
@@ -415,8 +412,8 @@ def _count_citations(file_name):
             for match in BIBER_CITE_PATTERN.finditer(aux_content):
                 # 获取匹配到的citation名称
                 name = match.groups()[0]
-                # 增加该citation在字典中的计数
-                counter[name] += 1
+                # 增加该citation在字典中的计数, 如果 citation 出现多次，则计数会累加
+                counter[name] += 1 # counter[name] = counter[name] + 1
         match = BIBTEX_CITE_PATTERN.search(aux_content)
         if match:
             # 使用正则表达式模式 BIBTEX_CITE_PATTERN 查找所有的 \citation
