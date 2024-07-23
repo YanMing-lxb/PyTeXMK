@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 20:08:46 +0800
+LastEditTime : 2024-07-23 21:52:08 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -26,10 +26,9 @@ Description  :
 import os
 import re
 import sys
-import logging  # 导入logging模块
+import logging
 import subprocess
 from rich import console  # 导入rich库的console模块
-from rich.logging import RichHandler  # 导入rich库的日志处理模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 console = console.Console()  # 设置宽度为80
@@ -60,30 +59,12 @@ TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹�
 class CompileModel(object):
     def __init__(self, compiler_engine, project_name, quiet):
         self.out = ''  # 初始化输出文件名为空字符串
-        self.log = self._setup_logger()  # 调用_setup_logger方法设置日志记录器
-
+        self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
         self.compiler_engine = compiler_engine
         self.project_name = project_name
         self.quiet = quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
-    # --------------------------------------------------------------------------------
-    # 定义日志记录器
-    # --------------------------------------------------------------------------------
-    def _setup_logger(self): # TODO 全局都采用日志记录器，并丰富日志信息
-        '''设置日志记录器。'''
-        FORMAT = "%(message)s"
-        logging.basicConfig(
-            level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(show_time=False, markup=True, show_path=False)]
-        )
-        # 获取名为'pytexmk.py'的日志记录器实例
-        log = logging.getLogger('pytexmk.py')
-
-        # 如果设置了verbose选项，则将日志级别设置为INFO，以便输出更多信息
-        # if self.opt.verbose:
-        #     log.setLevel(logging.INFO)  # 设置日志级别为INFO
-        return log
-    
     # --------------------------------------------------------------------------------
     # 定义日志检查函数
     # --------------------------------------------------------------------------------
@@ -95,14 +76,14 @@ class CompileModel(object):
         errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
         # "errors"是一个元组列表
         if errors:  # 如果有错误
-            self.log.error('编译过程中发生了错误:')  # 记录错误信息
+            self.logger.error('编译过程中发生了错误:')  # 记录错误信息
 
-            self.log.error('\n'.join(
+            self.logger.error('\n'.join(
                 [error.replace('\r', '').strip() for error
                     in chain(*errors) if error.strip()]
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
-            self.log.error(f'请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
+            self.logger.error(f'请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
             sys.exit(1) # 退出程序
     
     # --------------------------------------------------------------------------------
@@ -165,6 +146,7 @@ class CompileModel(object):
                 counter = _count_citations(file_name)
             except IOError:
                 # 如果文件不存在或无法读取，则跳过该文件
+                self.logger.info(f'{file_name} 文件不存在或无法读取，跳过该文件。')
                 pass
             else:
                 # 如果成功计算引用数量，则将其存储在cite_counter字典中
@@ -213,7 +195,7 @@ class CompileModel(object):
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
-            self.log.warning(f"没有找到名为{self.project_name}.aux 的文件")
+            self.logger.warning(f"没有找到名为{self.project_name}.aux 的文件")
 
         return index_aux_content_dict_old
 
@@ -243,12 +225,12 @@ class CompileModel(object):
             options.insert(4, "-interaction=batchmode") # 静默编译
         else:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
-        self.log.info(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+        console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
         
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
 
@@ -315,14 +297,14 @@ class CompileModel(object):
             else:
                 print_bib = "没有引用参考文献或编译工具不属于 bibtex 或 biber "
         else:
-            self.log.warning(f"没有找到名为{self.project_name}.aux 的文件")
+            self.logger.warning(f"没有找到名为{self.project_name}.aux 的文件")
         return bib_engine, Latex_compilation_times, print_bib, name_target
 
     # --------------------------------------------------------------------------------
     # 定义参考文献编译函数
     # --------------------------------------------------------------------------------
     def compile_bib(self, bib_engine):
-        # self.log.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
+        # self.logger.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
         options = [bib_engine, self.project_name]
 
         if self.quiet and bib_engine == 'biber':
@@ -332,7 +314,7 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"{bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
     # --------------------------------------------------------------------------------
@@ -401,7 +383,7 @@ class CompileModel(object):
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
         except:
-            self.log.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
         
 
@@ -416,7 +398,7 @@ class CompileModel(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.log.error(f"dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
             sys.exit(1) # 退出程序
 
 

@@ -16,19 +16,22 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-07-20 09:32:13 +0800
+LastEditTime : 2024-07-23 20:35:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
+import logging
 import datetime
 from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print
 console = Console() # 创建控制台对象
+logger = logging.getLogger(__name__) # 创建日志对象
+
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
 # --------------------------------------------------------------------------------

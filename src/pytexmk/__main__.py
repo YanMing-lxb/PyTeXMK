@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-23 16:08:09 +0800
+LastEditTime : 2024-07-23 21:45:52 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -30,11 +30,13 @@ import datetime
 import webbrowser
 from .version import script_name, __version__
 from .compile_model import CompileModel
+from .logger_config import setup_logger
 from .additional_operation import MoveRemoveClean, MainFileJudgment
 from .info_print import time_count, time_print, print_message
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
+logger = setup_logger() # 实例化 logger 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
@@ -46,7 +48,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     compile_model = CompileModel(compiler_engine, project_name, quiet)
 
     runtime_move_aux_root, _  = time_count(MRC.move_to_root, aux_files, auxdir) # 将辅助文件移动到根目录
-    name_target_list.append('辅助文件-->根目录')
+    name_target_list.append('辅助文件->根目录')
     runtime_list.append(runtime_move_aux_root)
 
     # 检查并处理已存在的 LaTeX 输出文件
@@ -136,11 +138,11 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     print_message("开始执行编译以外的附加命令！")
     
     runtime_move_out_outdir, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
-    name_target_list.append("结果文件-->输出目录")
+    name_target_list.append("结果文件->输出目录")
     runtime_list.append(runtime_move_out_outdir)
 
     runtime_move_aux_auxdir, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
-    name_target_list.append("辅助文件-->辅助目录")
+    name_target_list.append("辅助文件->辅助目录")
     runtime_list.append(runtime_move_aux_auxdir)
     time_print(start_time, name_target_list, runtime_list) # 打印编译时长统计
 
@@ -179,7 +181,7 @@ def main():
     if args.readme: # 如果存在 readme 参数
         import pkg_resources
         readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
-        print(f"正在打开 {readme_path} 文件！")
+        print(f"正在打开 {readme_path} 文件......")
         webbrowser.open('file://' + os.path.abspath(readme_path))
         sys.exit()
 
@@ -191,23 +193,23 @@ def main():
     # --------------------------------------------------------------------------------
     if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
-        print(f"通过魔法注释找到输出目录为 {outdir}！")
+        print(f"通过魔法注释找到输出目录为 {outdir}")
     if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
         auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
-        print(f"通过魔法注释找到辅助文件目录为 {auxdir}！")
+        print(f"通过魔法注释找到辅助文件目录为 {auxdir}")
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
     if args.document: # pytexmk 指定 LaTeX 文件
         project_name = MFJ.check_project_name(args.document) # check_project_name 函数检查 args.document 参数输入的文件名是否正确
+        print(f"通过命令行命令指定主文件为 {project_name}.tex")
     else: # pytexmk 未指定 LaTeX 文件
         if magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
             project_name = MFJ.check_project_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
-            print(f"通过魔法注释找到 {project_name}.tex 文件！")
+            print(f"通过魔法注释指定主文件为 {project_name}.tex")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
             project_name = MFJ.search_main_file(tex_files)
-
     # --------------------------------------------------------------------------------
     # 编译类型判断
     # --------------------------------------------------------------------------------
@@ -219,7 +221,7 @@ def main():
         compiler_engine = "lualatex"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
-        print(f"通过魔法注释设置编译器为 {compiler_engine}！")
+        print(f"通过魔法注释设置编译器为 {compiler_engine}")
 
     # --------------------------------------------------------------------------------
     # 编译程序运行

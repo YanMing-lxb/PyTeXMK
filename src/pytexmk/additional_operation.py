@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-20 08:51:51 +0800
+LastEditTime : 2024-07-23 21:46:43 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -26,8 +26,12 @@ Description  :
 import os
 import fitz
 import shutil
+import logging
 from rich import print
 class MoveRemoveClean(object):
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
 
     # --------------------------------------------------------------------------------
     # 将文件从文件夹中清除
@@ -37,9 +41,9 @@ class MoveRemoveClean(object):
             if os.path.exists(os.path.join(folder, file)):
                 try:
                     os.remove(os.path.join(folder, file))
-                    print(f"{folder} 中的 {file} 被删除")
+                    self.logger.info(f"{folder} 中 {file} 删除成功")
                 except OSError:
-                    print(f"{folder} 中的 {file} 未能被删除")
+                    self.logger.error(f"{folder} 中 {file} 删除失败")
 
     # --------------------------------------------------------------------------------
     # 将文件从源文件夹移动到根目录，如果根目录存在同名文件则覆盖
@@ -52,9 +56,12 @@ class MoveRemoveClean(object):
                         try:
                             os.remove(os.path.join(os.getcwd(), file))
                         except OSError:
-                            print(f"{os.path.join(os.getcwd(), file)} 未能删除")
-                    shutil.move(os.path.join(src_floder, file), os.path.join(os.getcwd(), file))
-                    print(f"{src_floder} 中 {file} 移动到 {os.getcwd()}")
+                            self.logger.error(f"{os.path.join(os.getcwd(), file)} 未能删除")
+                    try:
+                        shutil.move(os.path.join(src_floder, file), os.path.join(os.getcwd(), file))
+                        self.logger.info(f"{src_floder} 中 {file} 移动到 {os.getcwd()}")
+                    except OSError:
+                        self.logger.error(f"{src_floder} 中 {file} 移动到 {os.getcwd()} 失败")
 
     # --------------------------------------------------------------------------------
     # 将文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
@@ -73,21 +80,21 @@ class MoveRemoveClean(object):
                 try:
                     os.remove(dest_file)
                 except OSError:
-                    print(f"{dest_folder} 中旧 {file} 未能被删除！")
+                    self.logger.error(f"{dest_folder} 中旧 {file} 删除失败")
                 
             # 移动文件
             try:
                 shutil.move(file, dest_folder)
-                print(f"{file} 移动到 {dest_folder}")
+                self.logger.info(f"{file} 移动到 {dest_folder}")
             except shutil.Error:
-                print(f"{file} 未能移动到 {dest_folder}")
+                self.logger.error(f"{file} 移动到 {dest_folder} 失败")
             except FileNotFoundError:
                 pass
 
     # --------------------------------------------------------------------------------
     # 定义清理所有 pdf 文件
     # --------------------------------------------------------------------------------
-    def clean_pdf(self, project_name, root_dir, excluded_folder):
+    def clean_pdf(self, project_name, root_dir, excluded_folder): # TODO 更换功能名称为Repair PDF
         pdf_files = []
         for root, dirs, files in os.walk(root_dir):
             if excluded_folder in dirs:
@@ -99,7 +106,7 @@ class MoveRemoveClean(object):
                     pdf_files.append(os.path.join(root, file))  # 仅清理子文件夹中的pdf文件
         
         # 对pdf文件进行打开和关闭操作，解决origin批量导出pdf文件时由于未关闭pdf导致的报错
-        if pdf_files:
+        if pdf_files: # TODO 显示处理失败的文件名称
             print(f"共发现 {len(pdf_files)} 个PDF文件。")
             for pdf_file in pdf_files:
                 try:
@@ -108,15 +115,18 @@ class MoveRemoveClean(object):
                     doc.save(temp_path, garbage=3, deflate=True, clean=True)
                     doc.close()
                     os.replace(temp_path, pdf_file)  # 覆盖原有文件
-                    print(f"已处理并覆盖: {pdf_file}")
+                    self.logger.info(f"已处理并覆盖: {pdf_file}")
                 except Exception as e:
-                    print(f"处理出错 {pdf_file}: {e}")
+                    self.logger.error(f"处理出错 {pdf_file}: {e}")
             print("所有PDF文件已处理完成。")
         else:
             print("当前路径下未发现PDF文件。")
 
 class MainFileJudgment(object):
 
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+        
     # --------------------------------------------------------------------------------
     # 定义输入检查函数
     # --------------------------------------------------------------------------------
@@ -128,12 +138,12 @@ class MainFileJudgment(object):
         elif '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
             if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
                 project_name_return = None
-                print("错误：文件路径无效！")
+                self.logger.warning("输入文件路径无效")
             else:
                 project_name_return = check_project_name
         else:
             project_name_return = None
-            print("提示：文件后缀不是.tex")
+            self.logger.warning("输入文件后缀不是.tex")
 
         return project_name_return
 
@@ -154,13 +164,13 @@ class MainFileJudgment(object):
         if tex_files:
             # 如果存在多个.tex文件
             if 'main.tex' in tex_files:
-                # 存在名为main.tex的文件
+                # 存在名为 main.tex的文件
                 project_name = 'main'
-                print(f"找到 {project_name}.tex 文件！")
+                print(f"通过默认文件名确认主文件为 {project_name}.tex")
             # 如果只有一个.tex文件，则直接提取文件名并打印
             elif len(tex_files) == 1:
                 project_name = os.path.splitext(tex_files[0])[0]
-                print(f"找到 {project_name}.tex 文件！")
+                print(f"通过唯一 TeX 文件名确认主文件为 {project_name}.tex")
             elif len(tex_files) > 1:
                 # 存在多个.tex文件，但没有名为main.tex的文件
                 for file_path in tex_files:  # 遍历tex文件列表
@@ -172,25 +182,25 @@ class MainFileJudgment(object):
                             if ("\documentclass" in line or r"\begin{document}" in line):
                                 # 找到 \documentclass 或 \begin{document} 指令，提取文件名
                                 project_name = self.check_project_name(file_path)
-                                print(f"通过 \documentclass 或 \\begin{{document}} 指令，找到 {project_name}.tex 文件！")
+                                print(f"通过 \documentclass 或 \\begin{{document}} 命令确认主文件为 {project_name}.tex")
                                 break
             else:
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
                 project_name = None
-                print("存在多个 .tex 文件，请：修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入：pytexmk <主文件名> 名进行编译")
-                print("[bold][red]注意：主文件名一定要放在项目根目录下[/red][/bold]")
+                self.logger.warning("存在多个 .tex 文件，请：修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入：pytexmk <主文件名> 名进行编译")
+                self.logger.warning("[bold][red]注意：主文件名一定要放在项目根目录下[/red][/bold]")
         else:
             # 不存在.tex文件，打印当前路径并提示
             project_name = None
-            print("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
-            print(f"当前终端路径是：{current_path}")
+            self.logger.warning("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
+            self.logger.warning(f"当前终端路径是：{current_path}")
 
         return project_name
 
     # --------------------------------------------------------------------------------
-    # 定义魔法注释检索函数 TODO: 解决魔法注释关键词大小写敏感问题
+    # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
-    def search_magic_comments(self, tex_files, magic_comments_keys):
+    def search_magic_comments(self, tex_files, magic_comments_keys): # TODO: 解决魔法注释关键词大小写敏感问题
         magic_comments = {}  # 创建空字典用于存储结果
         if len(tex_files):
             for file_path in tex_files:  # 遍历tex文件列表
