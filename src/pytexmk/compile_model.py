@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 12:51:21 +0800
+LastEditTime : 2024-07-23 15:52:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -25,10 +25,13 @@ Description  :
 # -*- coding: utf-8 -*-
 import os
 import re
-import logging
+import sys
+import logging  # 导入logging模块
 import subprocess
-from collections import defaultdict
-from rich import console
+from rich import console  # 导入rich库的console模块
+from rich.logging import RichHandler  # 导入rich库的日志处理模块
+from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
+from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 console = console.Console()  # 设置宽度为80
 
 
@@ -44,6 +47,7 @@ BIBTEX_CITE_PATTERN = re.compile(r'\\citation\{(.*)\}')  # 匹配\citation{}命�
 
 BIBCITE_PATTERN = re.compile(r'\\bibcite\{(.*)\}\{(.*)\}')  # 匹配\bibcite{}命令
 BIBENTRY_PATTERN = re.compile(r'@.*\{(.*),\s')  # 匹配@entry{}命令
+
 ERROR_PATTTERN = re.compile(r'(?:^! (.*\nl\..*)$)|(?:^! (.*)$)|'
                             '(No pages of output.)', re.M)  # 匹配错误信息
 LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
@@ -55,35 +59,67 @@ TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹�
 
 class CompileModel(object):
     def __init__(self, compiler_engine, project_name, quiet):
+        self.out = ''  # 初始化输出文件名为空字符串
+        self.log = self._setup_logger()  # 调用_setup_logger方法设置日志记录器
+
         self.compiler_engine = compiler_engine
         self.project_name = project_name
         self.quiet = quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
-        self.out = ''  # 初始化输出文件名为空字符串
 
     # --------------------------------------------------------------------------------
     # 定义日志记录器
     # --------------------------------------------------------------------------------
     def _setup_logger(self):
         '''设置日志记录器。'''
-        # 获取名为'latexmk.py'的日志记录器实例
-        log = logging.getLogger('_main_.py')
+        FORMAT = "%(message)s"
+        logging.basicConfig(
+            level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(markup=True)]
+        )
+        # 获取名为'pytexmk.py'的日志记录器实例
+        log = logging.getLogger('pytexmk.py')
 
         # 创建一个流处理器，用于将日志输出到控制台
         handler = logging.StreamHandler()
         # 将流处理器添加到日志记录器中
         log.addHandler(handler)
+        log.setLevel(logging.INFO)
 
         # 如果设置了verbose选项，则将日志级别设置为INFO，以便输出更多信息
-        if self.opt.verbose:
-            log.setLevel(logging.INFO)  # 设置日志级别为INFO
+        # if self.opt.verbose:
+        #     log.setLevel(logging.INFO)  # 设置日志级别为INFO
         # 返回设置好的日志记录器实例
         return log
     
     # --------------------------------------------------------------------------------
+    # 定义日志检查函数
+    # --------------------------------------------------------------------------------
+    def check_errors(self, log_content):
+        '''
+        通过扫描输出来的log文件，检查 LaTeX 运行期间是否发生了错误。
+        '''
+        self.out = log_content
+        errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
+        # "errors"是一个元组列表
+        if errors:  # 如果有错误
+            self.log.error('! 编译过程中发生了错误:')  # 记录错误信息
+
+            self.log.error('\n'.join(
+                [error.replace('\r', '').strip() for error
+                    in chain(*errors) if error.strip()]
+            ))  # 将错误信息逐行记录，去除多余的空格和换行符
+
+            self.log.error(f'! 请查看日志文件 {self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
+            sys.exit(1) # 退出程序
+
+            # if self.opt.exit_on_error:  # 如果设置了退出选项
+            #     self.log.error('! 退出中...')  # 记录退出信息
+            #     sys.exit(1)  # 退出程序
+    
+    # --------------------------------------------------------------------------------
     # 定义信息获取函数
     # --------------------------------------------------------------------------------
-    def prepare_latex_output_files(self):
+    def prepare_LaTeX_output_files(self):
         '''
         这个函数用于在LaTeX编译过程开始前，检查并处理已存在的 LaTeX 输出文件，并进行处理。
             - 解析*.aux文件以获取引用计数。
@@ -188,7 +224,7 @@ class CompileModel(object):
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
-            print(f"没有找到名为{self.project_name}.aux 的文件", 'error')
+            self.log.warning(f"没有找到名为{self.project_name}.aux 的文件")
 
         return index_aux_content_dict_old
 
@@ -197,7 +233,7 @@ class CompileModel(object):
     # --------------------------------------------------------------------------------
     def toc_changed_judgment(self, toc_file):
         '''
-        判断*.toc文件在第一次latex运行期间是否发生了变化。
+        判断*.toc文件在第一次LaTeX运行期间是否发生了变化。
         '''
         file_name = f'{self.project_name}.toc'   # 生成toc文件的完整路径
         if os.path.exists(file_name):  # 检查toc文件是否存在
@@ -221,10 +257,9 @@ class CompileModel(object):
         
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
-            return True
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-            return False
+        except:
+            self.log.error(f"! {self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            sys.exit(1) # 退出程序
 
 
     # --------------------------------------------------------------------------------
@@ -279,8 +314,8 @@ class CompileModel(object):
                     print_bib = f"参考文献引用数量没有变化"
                     Latex_compilation_times = 0
 
-                if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查latex输出中是否有bbl文件缺失的提示
-                    re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查latex输出中是否有引用未定义的提示
+                if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查LaTeX输出中是否有bbl文件缺失的提示
+                    re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查LaTeX输出中是否有引用未定义的提示
                     print_bib = "LaTeX 编译日志中存在bbl文件缺失或引用未定义的提示"
                     Latex_compilation_times = 2
 
@@ -290,13 +325,14 @@ class CompileModel(object):
             else:
                 print_bib = "没有引用参考文献或编译工具不属于 bibtex 或 biber "
         else:
-            print_bib = "文档没有参考文献"
+            self.log.warning(f"没有找到名为{self.project_name}.aux 的文件")
         return bib_engine, Latex_compilation_times, print_bib, name_target
 
     # --------------------------------------------------------------------------------
     # 定义参考文献编译函数
     # --------------------------------------------------------------------------------
     def compile_bib(self, bib_engine):
+        # self.log.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
         options = [bib_engine, self.project_name]
 
         if self.quiet and bib_engine == 'biber':
@@ -305,10 +341,9 @@ class CompileModel(object):
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
-            return True
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-            return False
+        except:
+            self.log.error(f"! {bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            sys.exit(1) # 退出程序
 
     # --------------------------------------------------------------------------------
     # 定义索引更新判断函数
@@ -374,10 +409,10 @@ class CompileModel(object):
         console.print(f"[bold]运行命令：[/bold][cyan]{cmd[1]}[/cyan]\n")
         try:
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
-            return name_target, True
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-            return name_target, False
+            return name_target
+        except:
+            self.log.error(f"! {cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            sys.exit(1) # 退出程序
         
 
     # --------------------------------------------------------------------------------
@@ -390,10 +425,9 @@ class CompileModel(object):
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
-            return True
-        except subprocess.CalledProcessError as e:
-            print(e.output)
-            return False
+        except:
+            self.log.error(f"! dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            sys.exit(1) # 退出程序
 
 
 def _count_citations(file_name):
