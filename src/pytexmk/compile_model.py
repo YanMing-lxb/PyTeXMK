@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 21:52:08 +0800
+LastEditTime : 2024-07-23 21:56:49 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
 Description  : 
@@ -231,6 +231,7 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
 
@@ -315,6 +316,7 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
     # --------------------------------------------------------------------------------
@@ -384,6 +386,7 @@ class CompileModel(object):
             return name_target
         except:
             self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
         
 
@@ -399,6 +402,7 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.project_name}.log 以获取详细信息。")
+            print('正在退出 PyTeXMK ...')
             sys.exit(1) # 退出程序
 
 
