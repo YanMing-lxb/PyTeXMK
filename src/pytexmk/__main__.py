@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-23 22:45:32 +0800
+LastEditTime : 2024-07-24 14:06:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -182,7 +182,7 @@ def main():
     if args.readme: # 如果存在 readme 参数
         import pkg_resources
         readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
-        print(f"正在打开 {readme_path} 文件...")
+        print(f"正在打开 {readme_path} 文件 ...")
         webbrowser.open('file://' + os.path.abspath(readme_path))
         sys.exit()
 

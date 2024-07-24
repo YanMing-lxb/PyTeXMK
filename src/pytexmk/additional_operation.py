@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-23 21:46:43 +0800
+LastEditTime : 2024-07-24 20:40:43 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -24,6 +24,7 @@ Description  :
 '''
 # -*- coding: utf-8 -*-
 import os
+import re
 import fitz
 import shutil
 import logging
@@ -200,15 +201,39 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
-    def search_magic_comments(self, tex_files, magic_comments_keys): # TODO: 解决魔法注释关键词大小写敏感问题
-        magic_comments = {}  # 创建空字典用于存储结果
-        if len(tex_files):
-            for file_path in tex_files:  # 遍历tex文件列表
+    def search_magic_comments(self, tex_file_list, magic_comment_keys):  # 搜索TeX文件中的魔法注释 # TODO 需要测试这段代码
+        extracted_magic_comments = {}  # 创建空字典用于存储结果
+        file_magic_comments = {}  # 用于存储每个文件的魔法注释
+        if len(tex_file_list):  # 检查TeX文件列表是否为空
+            for file_path in tex_file_list:  # 遍历TeX文件列表
                 with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件
-                    for _ in range(50):  # 遍历文件的前50行
-                        line = file.readline()  # 读取一行内容
-                        for magic_comments_key in magic_comments_keys:  # 遍历关键字列表
-                            if f"% !TEX {magic_comments_key} =" in line:  # 如果关键字出现在这一行
-                                magic_comment = line.split(f"% !TEX {magic_comments_key} = ")[1].strip()  # 提取对应的值
-                                magic_comments[magic_comments_key] = magic_comment  # 将键值对存入字典
-        return magic_comments  # 返回提取的键值对字典
+                    for line_number in range(50):  # 遍历文件的前50行
+                        line_content = file.readline()  # 读取一行内容
+                        if not line_content:  # 如果行内容为空
+                            self.logger.warring(f"文件 {file_path} 前 50 行内容为空")
+                            break  # 跳出循环
+                        for magic_comment_key in magic_comment_keys:  # 遍历关键字列表
+                            # 使用正则表达式匹配魔法注释
+                            match_result = re.search(rf'%(?:\s*)!TEX {re.escape(magic_comment_key)}(?:\s*)=(?:\s*)(.*?)(?=\s|%|$)', line_content, re.IGNORECASE)
+                            if match_result:  # 如果匹配到魔法注释
+                                matched_comment_value = match_result.group(1).strip()  # 提取对应的值
+                                if file_path not in file_magic_comments:  # 如果文件路径不在字典中
+                                    file_magic_comments[file_path] = {}
+                                file_magic_comments[file_path][magic_comment_key] = matched_comment_value  # 存储魔法注释
+                                self.logger.info(f"文件 {file_path} 第 {line_number+1} 行找到魔法注释: % !TEX {magic_comment_key} = {matched_comment_value}")
+                                break  # 跳出当前循环，避免重复匹配同一关键字
+        # 检查重复魔法注释
+        all_extracted_comments = {}
+        for file_path, comments in file_magic_comments.items():  # 遍历文件魔法注释字典
+            for key, value in comments.items():  # 遍历每个文件的魔法注释
+                if key not in all_extracted_comments:  # 如果关键字不在字典中
+                    all_extracted_comments[key] = []
+                all_extracted_comments[key].append((file_path, value))  # 存储文件路径和魔法注释值
+        for key, values in all_extracted_comments.items():  # 遍历所有提取的魔法注释
+            if len(values) > 1:  # 如果魔法注释在多个文件中重复
+                first_file_info = values[0]
+                self.logger.warning(f"魔法注释 {key} 在多个文件中重复，以检索到的第一个文件 {first_file_info[0]} 为准: {first_file_info[1]}")
+                extracted_magic_comments[key] = first_file_info[1]  # 存储第一个文件的魔法注释
+            else:  # 如果魔法注释没有重复
+                extracted_magic_comments[key] = values[0][1]  # 存储魔法注释
+        return extracted_magic_comments  # 返回提取的键值对字典
