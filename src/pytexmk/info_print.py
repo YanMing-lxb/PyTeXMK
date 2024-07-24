@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-07-23 20:35:10 +0800
+LastEditTime : 2024-07-24 22:33:32 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\info_print.py
 Description  : 
@@ -36,86 +36,113 @@ logger = logging.getLogger(__name__) # 创建日志对象
 # 定义时间统计函数
 # --------------------------------------------------------------------------------
 def time_count(fun, *args):
-    time_start = datetime.datetime.now()
-    fun_return = fun(*args)
-    time_end = datetime.datetime.now()
-    time_run = time_end - time_start
+    try:
+        time_start = datetime.datetime.now()
+        fun_return = fun(*args)
+        time_end = datetime.datetime.now()
+        time_run = (time_end - time_start).total_seconds()
+        return round(time_run, 4), fun_return
+    except Exception as e:
+        logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
+        return None, None
 
-    time_run = round(time_run.total_seconds(), 4)
-    return time_run, fun_return
 
 # --------------------------------------------------------------------------------
 # 定义信息打印函数
 # --------------------------------------------------------------------------------
 def print_message(message):
-    padding_size = 80 - (len(message) + sum(1 for c in message if not c.isascii()))-4  # 计算左右两侧 X 的数量
-    left_padding = int(padding_size / 2)
-    right_padding = padding_size - left_padding
-    banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding
-    console.print("\n\n" + "=" * 80, style="yellow bold")
-    console.print(banner, style="red on white bold")
-    console.print("=" * 80 + "\n\n", style="yellow bold")
+    """
+    打印带有装饰的消息。
+     
+    此函数接收一个消息字符串，计算其长度并根据需要添加装饰字符（X），
+    然后将消息打印在一个带有边框的横幅中。
+     
+    参数:
+    message (str): 要打印的消息字符串。
+     
+    异常:
+    Exception: 如果在打印过程中发生任何异常，将记录错误日志。
+    """
+    try:
+        # 计算左右两侧 X 的数量
+        ascii_len = sum(1 for i in message if not i.isascii())
+        padding_size = 80 - (len(message) + ascii_len) - 4
+        left_padding = padding_size // 2
+        right_padding = padding_size - left_padding
+        banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding
+        console.print("\n\n" + "=" * 80, style="yellow bold")
+        console.print(banner, style="red on white bold")
+        console.print("=" * 80 + "\n\n", style="yellow bold")
+    except Exception as e:
+        logger.error(f"执行函数 print_message 时出错: {e}")
     
 
 # --------------------------------------------------------------------------------
 # 定义统计时间打印函数
 # --------------------------------------------------------------------------------
 def time_print(start_time, name_target_list, time_run_list):
-    end_time = datetime.datetime.now() # 计算结束时间
-    run_time = end_time - start_time
-    hours, remainder = divmod(run_time.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
-
-    number_programmes_run = len(name_target_list)-6 # 计算运行函数数量（辅助函数除外）
-    
-    time_compile = sum(time_run_list)
-    name_target_list.append('LaTeX 编译时长')
-    time_run_list.append(time_compile)
-
-    time_other_operating = float(run_time.total_seconds()) - time_compile
-    name_target_list.append('Python 运行时长')
-    time_run_list.append(time_other_operating)
-
-    time_pytexmk = float(run_time.total_seconds())
-    name_target_list.append('PyTeXMK 运行时长')
-    time_run_list.append(time_pytexmk)
-
-    # 创建表格对象
-    table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, 
-                title="PyTeXMK 运行时长统计表")
-
-    # 定义列名
-    table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
-    table.add_column("运行时长", style="green", justify="center", no_wrap=True)
-    table.add_column("序号", justify="center", no_wrap=True)
-    table.add_column("运行项目", style="cyan", justify="center")
-    table.add_column("运行时长", style="green", justify="center", no_wrap=True)
-
-    # 判断统计项目列数是否是偶数
-    length = len(name_target_list)/2 # 计算打印表格列数
-    row_num = None
-
-    # 判断统计项目列数是否是偶数
-    if length - int(length) < 0.5:
-        row_num = int(length)
-    else: # 是偶数则加一
-        row_num = int(length) + 1 
-
-    # 添加数据到表格
-    for i in range(row_num):
-        table.add_row(
-            str(i+1),
-            name_target_list[i],
-            "{:.4f} s".format(time_run_list[i]),
-            str(i+1+row_num) if i+row_num <= len(name_target_list) else "",
-            name_target_list[i+row_num] if i+row_num < len(name_target_list) else "",
-            "{:.4f} s".format(time_run_list[i+row_num]) if i+row_num < len(name_target_list) else ""  
-        )
-
-    print("\n" + "=" * 80 + "\n")
-    console.print(table) # 打印表格
-
-    print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({run_time.total_seconds():.3f} s total)")
-    print(f"运行函数：{number_programmes_run} 个")
+    # 计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量
+    try:
+        end_time = datetime.datetime.now()  # 计算结束时间
+        run_time = end_time - start_time
+        total_seconds = run_time.total_seconds()
+        hours, remainder = divmod(int(total_seconds), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
+ 
+        number_programmes_run = len(name_target_list) - 6  # 计算运行函数数量（辅助函数除外）
+ 
+        time_compile = sum(time_run_list)
+        time_other_operating = total_seconds - time_compile
+        time_pytexmk = total_seconds
+ 
+        # 添加统计信息到列表
+        name_target_list.extend(['LaTeX 编译时长', 'Python 运行时长', 'PyTeXMK 运行时长'])
+        time_run_list.extend([time_compile, time_other_operating, time_pytexmk])
+ 
+        # 创建表格对象
+        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD,
+                      title="PyTeXMK 运行时长统计表")
+ 
+        # 定义列名
+        table.add_column("序号", justify="center", no_wrap=True)
+        table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
+        table.add_column("运行时长", style="green", justify="center", no_wrap=True)
+        table.add_column("序号", justify="center", no_wrap=True)
+        table.add_column("运行项目", style="cyan", justify="center")
+        table.add_column("运行时长", style="green", justify="center", no_wrap=True)
+ 
+        # 判断统计项目列数是否是偶数
+        length = len(name_target_list)/2 # 计算打印表格列数
+        row_num = None
+ 
+        # 判断统计项目列数是否是偶数
+        if length - int(length) < 0.5:
+            row_num = int(length)
+        else: # 是偶数则加一
+            row_num = int(length) + 1 
+ 
+        # 添加数据到表格
+        for i in range(row_num):
+            row_data = [
+                str(i + 1),
+                name_target_list[i],
+                "{:.4f} s".format(time_run_list[i])
+            ]
+            if i + row_num < len(name_target_list):
+                row_data.extend([
+                    str(i + 1 + row_num),
+                    name_target_list[i + row_num],
+                    "{:.4f} s".format(time_run_list[i + row_num])
+                ])
+            else:
+                row_data.extend(["", "", ""])
+            table.add_row(*row_data)
+             
+        print("\n" + "=" * 80 + "\n")
+        console.print(table) # 打印表格
+ 
+        print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")
+        print(f"运行函数：{number_programmes_run} 个")
+    except Exception as e:
+        logger.error(f"执行函数 time_print 时出错: {e}")
