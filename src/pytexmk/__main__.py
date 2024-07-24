@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-24 14:06:46 +0800
+LastEditTime : 2024-07-24 20:52:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -182,7 +182,7 @@ def main():
     if args.readme: # 如果存在 readme 参数
         import pkg_resources
         readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
-        print(f"正在打开 {readme_path} 文件 ...")
+        print(f"正在打开 {readme_path} 文件...")
         webbrowser.open('file://' + os.path.abspath(readme_path))
         sys.exit()
 
@@ -190,15 +190,8 @@ def main():
     magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
     logger = setup_logger(args.verbose) # 实例化 logger 类
 
-    # --------------------------------------------------------------------------------
-    # 输出文件路径判断
-    # --------------------------------------------------------------------------------
-    if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
-        outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
-        print(f"通过魔法注释找到输出目录为 {outdir}")
-    if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
-        auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
-        print(f"通过魔法注释找到辅助文件目录为 {auxdir}")
+    print(f"PyTeXMK 版本：{__version__}")
+    print('\nPyTeXMK 开始运行...')
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
@@ -212,6 +205,7 @@ def main():
             print(f"通过魔法注释指定主文件为 {project_name}.tex")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
             project_name = MFJ.search_main_file(tex_files)
+
     # --------------------------------------------------------------------------------
     # 编译类型判断
     # --------------------------------------------------------------------------------
@@ -224,6 +218,16 @@ def main():
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
         print(f"通过魔法注释设置编译器为 {compiler_engine}")
+
+    # --------------------------------------------------------------------------------
+    # 输出文件路径判断
+    # --------------------------------------------------------------------------------
+    if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
+        outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
+        print(f"通过魔法注释找到输出目录为 {outdir}")
+    if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
+        auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
+        print(f"通过魔法注释找到辅助文件目录为 {auxdir}")
 
     # --------------------------------------------------------------------------------
     # 编译程序运行

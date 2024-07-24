@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-24 20:40:43 +0800
+LastEditTime : 2024-07-24 20:54:40 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -188,8 +188,8 @@ class MainFileJudgment(object):
             else:
                 # 不存在名为main.tex的文件，打印所有找到的.tex文件
                 project_name = None
-                self.logger.warning("存在多个 .tex 文件，请：修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入：pytexmk <主文件名> 名进行编译")
-                self.logger.warning("[bold][red]注意：主文件名一定要放在项目根目录下[/red][/bold]")
+                self.logger.warning("存在多个 .tex 文件，请修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译")
+                self.logger.warning("主文件名一定要放在项目根目录下")
         else:
             # 不存在.tex文件，打印当前路径并提示
             project_name = None
