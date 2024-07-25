@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-24 22:02:42 +0800
+LastEditTime : 2024-07-25 09:48:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -79,12 +79,12 @@ class MoveRemoveClean(object):
                 except OSError as e:
                     self.logger.error(f"{dest_file_path} 未能删除: {e}")
                     continue
-
-            try:
-                shutil.move(src_file_path, dest_file_path)
-                self.logger.info(f"{src_folder} 中 {file} 移动到 {os.getcwd()}")
-            except OSError as e:
-                self.logger.error(f"{src_folder} 中 {file} 移动到 {os.getcwd()} 失败: {e}")
+            if os.path.exists(src_file_path):
+                try:
+                    shutil.move(src_file_path, dest_file_path)
+                    self.logger.info(f"{src_folder} 中 {file} 移动到 {os.getcwd()}")
+                except OSError as e:
+                    self.logger.error(f"{src_folder} 中 {file} 移动到 {os.getcwd()} 失败: {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ class MoveRemoveClean(object):
             os.makedirs(dest_folder)
     
         for file in files:
-            dest_file = os.path.join(dest_folder, os.path.basename(file))
+            dest_file = os.path.join(dest_folder, file)
     
             if os.path.exists(dest_file):
                 try:
@@ -113,12 +113,12 @@ class MoveRemoveClean(object):
                 except OSError as e:
                     self.logger.error(f"{dest_folder} 中旧 {file} 删除失败: {e}")
                     continue # 跳过当前文件的移动操作
-                
-            try:
-                shutil.move(file, dest_folder)
-                self.logger.info(f"{file} 移动到 {dest_folder}")
-            except (shutil.Error, FileNotFoundError) as e:
-                self.logger.error(f"{file} 移动到 {dest_folder} 失败: {e}")
+            if os.path.exists(file):  # 确保源文件存在
+                try:
+                    shutil.move(file, dest_folder)
+                    self.logger.info(f"{file} 移动到 {dest_folder}")
+                except OSError as e:
+                    self.logger.error(f"{file} 移动到 {dest_folder} 失败: {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -159,9 +159,9 @@ class MoveRemoveClean(object):
                     temp_path = pdf_file + ".temp"
                     doc.save(temp_path, garbage=3, deflate=True, clean=True)
                 os.replace(temp_path, pdf_file)  # 覆盖原有文件
-                self.logger.info(f"已处理并覆盖: {pdf_file}")
+                self.logger.info(f"已处理并覆盖文件 {pdf_file}")
             except Exception as e:
-                self.logger.error(f"处理出错 {pdf_file}: {e}")
+                self.logger.error(f"处理出错文件 {pdf_file}: {e}")
         print("所有PDF文件已处理完成。")
 
 
@@ -239,14 +239,14 @@ class MainFileJudgment(object):
                                 continue
                             if "\documentclass" in line or r"\begin{document}" in line:
                                 project_name = self.check_project_name(file_path)
-                                print(f"通过 \documentclass 或 \\begin{{document}} 命令确认主文件为 {project_name}.tex")
+                                print(f"通过 \\documentclass 或 \\begin{{document}} 命令确认主文件为 {project_name}.tex")
                                 break
                 except Exception as e:
                     self.logger.error(f"读取文件 {file_path} 时出错: {e}")
                     continue
      
             if not project_name:
-                self.logger.warning("存在多个 .tex 文件，请修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译")
+                self.logger.warning("存在多个 .tex 文件，请修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译")
                 self.logger.warning("主文件一定要放在项目根目录下")
      
         return project_name

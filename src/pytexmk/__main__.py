@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-24 20:52:47 +0800
+LastEditTime : 2024-07-25 09:46:36 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -47,14 +47,16 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     # 编译前的准备工作
     compile_model = CompileModel(compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet)
 
+    print('检测并移动辅助文件到根目录...')
     runtime_move_aux_root, _  = time_count(MRC.move_to_root, aux_files, auxdir) # 将辅助文件移动到根目录
     name_target_list.append('辅助文件->根目录')
     runtime_list.append(runtime_move_aux_root)
 
     # 检查并处理已存在的 LaTeX 输出文件
+    print('预处理旧的辅助文件...')
     runtime_read, return_read = time_count(compile_model.prepare_LaTeX_output_files, ) # 读取 LaTeX 文件
     cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_LaTeX_files 函数得到的参数
-    name_target_list.append('预处理已有输出文件')
+    name_target_list.append('预处理旧辅助文件')
     runtime_list.append(runtime_read)
 
 
@@ -137,10 +139,12 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     print(f"目录索引：{print_index}")
     print_message("开始执行编译以外的附加命令！")
     
+    print('移动结果文件到输出目录...')
     runtime_move_out_outdir, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
     name_target_list.append("结果文件->输出目录")
     runtime_list.append(runtime_move_out_outdir)
 
+    print('移动辅助文件到辅助目录...')
     runtime_move_aux_auxdir, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
     name_target_list.append("辅助文件->辅助目录")
     runtime_list.append(runtime_move_aux_auxdir)
@@ -190,8 +194,8 @@ def main():
     magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
     logger = setup_logger(args.verbose) # 实例化 logger 类
 
-    print(f"PyTeXMK 版本：{__version__}")
-    print('\nPyTeXMK 开始运行...')
+    print(f"PyTeXMK 版本：{__version__}\n")
+    print('PyTeXMK 开始运行...\n')
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
