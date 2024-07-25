@@ -26,4 +26,4 @@ Description  :
 #!/usr/bin/env python
 
 script_name = 'PyTeXMK'
-__version__ = '0.6.8.240723'
+__version__ = '0.6.9.240725'

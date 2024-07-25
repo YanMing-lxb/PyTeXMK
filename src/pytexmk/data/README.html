@@ -144,6 +144,9 @@
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>魔法注释重复时的判断逻辑：多个文件间存在重复魔法注释时，PyTeXMK 会判断检索到的第一个文件优先。</p>
+</blockquote>
 <h3 id="主文件及编译类型选定逻辑">主文件及编译类型选定逻辑 </h3>
 <ul>
 <li>
@@ -172,15 +175,14 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 多主文件编译功能</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 魔法注释功能
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 魔法注释功能
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置主文件名</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置编译引擎类型</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置编译结果存放位置</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 根据魔法注释设置辅助文件存放位置</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 解决魔法注释大小写敏感问题</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 魔法注释重复定义时的处理方式</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 魔法注释冲突时的处理方式</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 解决魔法注释大小写空格敏感问题</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 魔法注释重复定义的处理逻辑</li>
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 编译次数自动判断功能
@@ -195,7 +197,7 @@
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的编译引擎 （目前默认编译命令是 <code>xelatex</code>）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认生成的结果文件存放位置（目前默认存放在 <code>Build</code> 子文件夹下）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的辅助文件存放位置（目前默认存放在 <code>待定</code> 子文件夹下）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的辅助文件存放位置（目前默认存放在 <code>Auxiliary</code> 子文件夹下）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义其他索引宏包的配置</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义 PDF 文件打开方式</li>
 </ul>
@@ -216,6 +218,7 @@
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加 PyTeXMK 更新检查功能</li>
 </ul>
 </div>
       </div>
