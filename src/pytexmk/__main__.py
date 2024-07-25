@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-25 09:46:36 +0800
+LastEditTime : 2024-07-25 09:52:24 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -252,10 +252,12 @@ def main():
     if project_name: # 如果存在 project_name 
         if args.clean:
             MRC.remove_files(aux_files, auxdir)
+            print('已完成该指令')
         elif args.Clean:
             MRC.remove_files(aux_files, auxdir)
             MRC.remove_files(out_files, outdir)
             MRC.remove_files(aux_files, '.')
+            print('已完成该指令')
         elif args.clean_pdf:
             MRC.clean_pdf(project_name, '.', outdir)
         else:
