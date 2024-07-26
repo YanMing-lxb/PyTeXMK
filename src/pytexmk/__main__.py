@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-26 20:29:24 +0800
+LastEditTime : 2024-07-26 20:44:21 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -167,7 +167,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
-    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。")
+    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。\n 如发现 BUG 请在 Github 仓库中提交 issue：https://github.com/YanMing-lxb/PyTeXMK/issues。")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
