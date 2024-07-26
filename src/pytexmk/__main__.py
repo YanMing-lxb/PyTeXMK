@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-26 19:26:09 +0800
+LastEditTime : 2024-07-26 20:14:24 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -31,7 +31,7 @@ import webbrowser
 from .version import script_name, __version__
 from .compile_model import CompileModel
 from .logger_config import setup_logger
-from .additional_operation import MoveRemoveClean, MainFileJudgment
+from .additional_operation import MoveRemoveClean, MainFileJudgment, check_for_updates
 from .info_print import time_count, time_print, print_message
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
@@ -272,7 +272,7 @@ def main():
             MRC.clean_pdf(project_name, '.', outdir)
         else:
             RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet)
-
+    check_for_updates()
 if __name__ == "__main__":
 
     main()

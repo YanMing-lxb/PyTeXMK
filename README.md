@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-26 19:34:45 +0800
+ * LastEditTime : 2024-07-26 20:18:21 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : \PyTeXMK\README.md
  * Description  : 
@@ -146,4 +146,4 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
     - [X] 完善清理所有文件功能
     - [X] 完善清理所有辅助文件功能
 - [ ] 宏包检缺失并自动安装（texlive）
-- [ ] 添加 PyTeXMK 更新检查功能
+- [X] 添加 PyTeXMK 更新检查功能
