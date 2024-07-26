@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-23 20:20:00 +0800
-LastEditTime : 2024-07-23 22:43:57 +0800
+LastEditTime : 2024-07-26 18:23:59 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMKd:\Application\miniconda3\envs\yanming\Lib\site-packages\pytexmk\logger_config.py
+FilePath     : \PyTeXMK\src\pytexmk\logger_config.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -31,7 +31,7 @@ from rich.logging import RichHandler  # 导入rich库的日志处理模块
 # --------------------------------------------------------------------------------
 # 定义日志记录器
 # --------------------------------------------------------------------------------
-def setup_logger(verbose): # TODO 全局都采用日志记录器，并丰富日志信息
+def setup_logger(verbose):
     '''设置日志记录器。'''
     FORMAT = "%(message)s"
     
