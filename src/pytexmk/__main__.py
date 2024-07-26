@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-26 20:14:24 +0800
+LastEditTime : 2024-07-26 20:29:24 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -31,8 +31,9 @@ import webbrowser
 from .version import script_name, __version__
 from .compile_model import CompileModel
 from .logger_config import setup_logger
-from .additional_operation import MoveRemoveClean, MainFileJudgment, check_for_updates
+from .additional_operation import MoveRemoveClean, MainFileJudgment
 from .info_print import time_count, time_print, print_message
+from .update_check import check_for_updates
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
