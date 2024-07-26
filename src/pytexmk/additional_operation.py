@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-26 19:17:18 +0800
+LastEditTime : 2024-07-26 19:42:21 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
 Description  : 
@@ -38,28 +38,28 @@ class MoveRemoveClean(object):
     # --------------------------------------------------------------------------------
     # 将文件从文件夹中清除
     # --------------------------------------------------------------------------------
-def remove_files(self, files, folder):
-    for file in files:
-        # 如果是正则表达式模式，则编译正则表达式
-        if file.startswith(".*"):
-            pattern = re.compile(file)
-            for root, _, filenames in os.walk(folder):
-                for filename in filenames:
-                    if pattern.match(filename):
-                        file_path = os.path.join(root, filename)
-                        try:
-                            os.remove(file_path)
-                            self.logger.info(f"{folder} 中 {filename} 删除成功")
-                        except OSError as e:
-                            self.logger.error(f"{folder} 中 {filename} 删除失败: {e}")
-        else:
-            file_path = os.path.join(folder, file)
-            if os.path.exists(file_path):
-                try:
-                    os.remove(file_path)
-                    self.logger.info(f"{folder} 中 {file} 删除成功")
-                except OSError as e:
-                    self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
+    def remove_files(self, files, folder):
+        for file in files:
+            # 如果是正则表达式模式，则编译正则表达式
+            if file.startswith(".*"):
+                pattern = re.compile(file)
+                for root, _, filenames in os.walk(folder):
+                    for filename in filenames:
+                        if pattern.match(filename):
+                            file_path = os.path.join(root, filename)
+                            try:
+                                os.remove(file_path)
+                                self.logger.info(f"{folder} 中 {filename} 删除成功")
+                            except OSError as e:
+                                self.logger.error(f"{folder} 中 {filename} 删除失败: {e}")
+            else:
+                file_path = os.path.join(folder, file)
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                        self.logger.info(f"{folder} 中 {file} 删除成功")
+                    except OSError as e:
+                        self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
 
 
     # --------------------------------------------------------------------------------
