@@ -93,11 +93,19 @@
 </tr>
 <tr>
 <td>-c, --clean</td>
-<td>清除所有辅助文件</td>
+<td>清除所有主文件的辅助文件</td>
 </tr>
 <tr>
 <td>-C, --Clean</td>
-<td>清除所有辅助文件和 pdf 文件</td>
+<td>清除所有主文件的辅助文件（包含根目录）和输出文件</td>
+</tr>
+<tr>
+<td>-ca, --clean-any</td>
+<td>清除所有带辅助文件后缀的文件</td>
+</tr>
+<tr>
+<td>-Ca, --Clean-any</td>
+<td>清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件</td>
 </tr>
 <tr>
 <td>-nq, --no-quiet</td>
@@ -210,11 +218,11 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 实现日志记录功能</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善清理功能
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理功能
 <ul>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善清理辅助文件功能</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善清理所有文件功能</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 完善清理所有辅助文件功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理辅助文件功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理所有文件功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理所有辅助文件功能</li>
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</li>

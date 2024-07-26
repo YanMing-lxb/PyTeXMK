@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-25 18:44:49 +0800
+LastEditTime : 2024-07-26 19:26:09 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : \PyTeXMK\src\pytexmk\__main__.py
 Description  : 
@@ -172,8 +172,10 @@ def main():
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
     parser.add_argument('-x', '--xelatex', action='store_true', help="xelatex 进行编译")
     parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
-    parser.add_argument('-c', '--clean', action='store_true', help="清除所有辅助文件")
-    parser.add_argument('-C', '--Clean', action='store_true', help="清除所有辅助文件和 pdf 文件")
+    parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
+    parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
+    parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
+    parser.add_argument('-Ca', '--Clean-any', action='store_true', help="清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件")
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-cp', '--clean-pdf', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
@@ -236,28 +238,36 @@ def main():
     # --------------------------------------------------------------------------------
     # 编译程序运行
     # --------------------------------------------------------------------------------
-    out_files = [f"{project_name}{ext}" for ext in [".pdf", ".synctex.gz"]]
-    aux_files = [
-        f"{project_name}{ext}" for ext in [".log", ".blg", ".ilg",  # 日志文件
-                                           ".aux", ".bbl", ".xml",  # 参考文献辅助文件
-                                           ".toc", ".lof", ".lot",  # 目录辅助文件
-                                           ".out", ".bcf",
-                                           ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls",  # 索引辅助文件
-                                           ".bak", ".spl",
-                                           ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
-                                           ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
-    ]
+    suffixes_out = [".pdf", ".synctex.gz"]
+    suffixes_aux = [".log", ".blg", ".ilg",  # 日志文件
+                    ".aux", ".bbl", ".xml",  # 参考文献辅助文件
+                    ".toc", ".lof", ".lot",  # 目录辅助文件
+                    ".out", ".bcf",
+                    ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls",  # 索引辅助文件
+                    ".bak", ".spl",
+                    ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
+                    ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
+    out_files = [f"{project_name}{suffix}" for suffix in suffixes_out]
+    aux_files = [f"{project_name}{suffix}" for suffix in suffixes_aux]
+    aux_regex_files = [f".*{suffix}" for suffix in suffixes_aux]
 
-    # TODO: 添加新的命令实现清除带有辅助文件后缀的所有文件，完善细化清除功能
     if project_name: # 如果存在 project_name 
         if args.clean:
             MRC.remove_files(aux_files, auxdir)
-            print('已完成该指令')
+            print('已完成清除所有主文件的辅助文的件指令')
         elif args.Clean:
             MRC.remove_files(aux_files, auxdir)
-            MRC.remove_files(out_files, outdir)
             MRC.remove_files(aux_files, '.')
-            print('已完成该指令')
+            MRC.remove_files(out_files, outdir)
+            print('已完成清除所有主文件的辅助文件和输出文件的指令')
+        elif args.clean_any:
+            MRC.remove_files(aux_regex_files, auxdir)
+            print('已完成清除所有带辅助文件后缀的文件的指令')
+        elif args.Clean_any:
+            MRC.remove_files(aux_regex_files, auxdir)
+            MRC.remove_files(aux_regex_files, '.')
+            MRC.remove_files(out_files, outdir)
+            print('已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
         elif args.clean_pdf:
             MRC.clean_pdf(project_name, '.', outdir)
         else:

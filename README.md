@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-24 20:56:36 +0800
+ * LastEditTime : 2024-07-26 19:34:45 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : \PyTeXMK\README.md
  * Description  : 
@@ -68,18 +68,20 @@ PyTeXMK 支持：
 | document          | 要被编译的文件名                   |
 
 选项:
-| Option           | Description                                |
-|------------------|--------------------------------------------|
-| -h, --help       | 显示帮助信息                                |
-| -v, --version    | 显示程序版本号                              |
-| -p, --pdflatex   | pdflatex 进行编译                           |
-| -x, --xelatex    | xelatex 进行编译                            |
-| -l, --lualatex   | lualatex 进行编译                           |
-| -c, --clean      | 清除所有辅助文件                             |
-| -C, --Clean      | 清除所有辅助文件和 pdf 文件                  |
-| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程          |
-| -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息            |
-| -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件               |
+| Option           | Description                                          |
+|------------------|------------------------------------------------------|
+| -h, --help       | 显示帮助信息                                          |
+| -v, --version    | 显示程序版本号                                        |
+| -p, --pdflatex   | pdflatex 进行编译                                     |
+| -x, --xelatex    | xelatex 进行编译                                      |
+| -l, --lualatex   | lualatex 进行编译                                     |
+| -c, --clean      | 清除所有主文件的辅助文件                               |
+| -C, --Clean      | 清除所有主文件的辅助文件（包含根目录）和输出文件         |
+| -ca, --clean-any | 清除所有带辅助文件后缀的文件                           |
+| -Ca, --Clean-any | 清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件|
+| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程                    |
+| -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息                      |
+| -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件                         |
 
 **说明：**
 `-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
@@ -139,9 +141,9 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
     - [ ] PDF 预览功能
     - [X] 报错信息显示功能
     - [X] 实现日志记录功能
-- [ ] 完善清理功能
-    - [ ] 完善清理辅助文件功能
-    - [ ] 完善清理所有文件功能
-    - [ ] 完善清理所有辅助文件功能
+- [X] 完善清理功能
+    - [X] 完善清理辅助文件功能
+    - [X] 完善清理所有文件功能
+    - [X] 完善清理所有辅助文件功能
 - [ ] 宏包检缺失并自动安装（texlive）
 - [ ] 添加 PyTeXMK 更新检查功能
