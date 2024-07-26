@@ -268,7 +268,7 @@ class MainFileJudgment(object):
     # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
     def search_magic_comments(self, tex_file_list, magic_comment_keys):  # 搜索TeX文件中的魔法注释 # TODO 代码待测试
-        extracted_magic_comments = {}  # 创建空字典用于存储结果
+        extracted_magic_comments = {}  # 创建空字典用于存储结果 # TODO tex_file_list 是当前根目录下的所有.tex 文件列表，而不包括子文件夹中的tex文件，需要调整代码逻辑
         file_magic_comments = {}  # 用于存储每个文件的魔法注释
 
         for file_path in tex_file_list:  # 遍历TeX文件列表
