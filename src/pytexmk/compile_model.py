@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-27 16:36:53 +0800
+LastEditTime : 2024-07-27 19:58:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -40,7 +40,7 @@ console = console.Console()  # 设置宽度为80
 BIBER_PATTERN = re.compile(r'\\abx@aux@refcontext')  # 匹配 biber 命令
 BIBTEX_PATTERN = re.compile(r'\\bibdata')  # 匹配 bibtex 命令
 
-BIBER_BIB_PATTERN = re.compile(r'<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>')  # 
+BIBER_BIB_PATTERN = re.compile(r'<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>')  # 匹配<bcf:datasource>标签中的内容
 BIBTEX_BIB_PATTERN = re.compile(r'\\bibdata\{(.*)\}')  # 匹配\bibdata{}命令
 
 BIBER_CITE_PATTERN = re.compile(r'\\abx@aux@cite{.*?}\{(.*)\}')  # 匹配\abx@aux@cite{任意字符}{}命令
@@ -59,10 +59,28 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
 TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹配TeXlipse主文件
 
 class CompileModel(object):
+
     def __init__(self, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet):
+        """
+        初始化 CompileModel 类实例。
+         
+        参数:
+        - compiler_engine (str): 编译引擎的名称。
+        - project_name (str): 项目的名称。
+        - out_files (list): 输出文件列表。
+        - aux_files (list): 辅助文件列表。
+        - outdir (str): 输出文件的目录路径。
+        - auxdir (str): 辅助文件的目录路径。
+        - quiet (bool): 是否静默模式运行。
+         
+        行为:
+        - 初始化输出文件名为空字符串，调用_setup_logger方法设置日志记录器，
+        - 初始化编译引擎、项目名称、输出文件、辅助文件、辅助目录、输出目录、静默模式等属性，
+        - 初始化参考文献文件路径为空字符串，初始化 MoveRemoveClean 类对象。
+        """
         self.out = ''  # 初始化输出文件名为空字符串
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
-        
+         
         self.compiler_engine = compiler_engine
         self.project_name = project_name
         self.out_files = out_files
@@ -71,16 +89,28 @@ class CompileModel(object):
         self.outdir = outdir
         self.quiet = quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
-        
+         
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
 
     # --------------------------------------------------------------------------------
     # 定义日志检查函数
     # --------------------------------------------------------------------------------
     def check_errors(self, log_content):
-        '''
-        通过扫描输出来的 log 文件，检查 LaTeX 运行期间是否发生了错误。
-        '''
+        """
+        检查编译日志中的错误。
+
+        参数:
+        - log_content (str): 包含编译日志内容的字符串。
+
+        行为:
+        1. 使用正则表达式模式查找所有错误。
+        2. 如果有错误，记录错误信息并提示查看日志文件以获取详细信息。
+        3. 移动辅助文件和输出文件到指定目录。
+        4. 打印退出信息并退出程序。
+
+        错误处理:
+        - 如果发现错误，程序将记录错误信息并退出。
+        """
         self.out = log_content
         errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
         # "errors"是一个元组列表
@@ -102,14 +132,21 @@ class CompileModel(object):
     # 定义信息获取函数
     # --------------------------------------------------------------------------------
     def prepare_LaTeX_output_files(self):
-        '''
-        这个函数用于在LaTeX编译过程开始前，检查并处理已存在的 LaTeX 输出文件，并进行处理。
-            - 解析*.aux文件以获取引用计数。
-            - 获取文件内容以检测更改。
-                - *.toc文件
-                - 所有可用的符号索引宏包名称和对应的辅助文件
-        '''
+        """
+        准备LaTeX输出文件的相关信息。
+        
+        返回值:
+        - cite_counter: 引用计数器，包含引用信息的字典。
+        - toc_file: toc文件内容，字符串类型。
+        - index_aux_content_dict_old: 词汇表文件内容，字典类型。
 
+        行为说明:
+        - 检查是否存在项目名称对应的.aux文件。如果存在，生成引用计数器并读取词汇表内容。
+        - 如果不存在.aux文件，初始化引用计数器为默认值，词汇表内容为空字典。
+        - 检查是否存在.toc文件。如果存在，读取.toc文件内容。
+        - 如果不存在.toc文件，初始化toc_file为空字符串。
+        - 返回引用计数器、toc文件内容和词汇表文件内容。
+        """
         # 检查是否存在项目名称对应的.aux文件
         if os.path.exists(f'{self.project_name}.aux'):
             # 生成引用计数器
@@ -136,46 +173,58 @@ class CompileModel(object):
     # 定义参考文献引用次数获取函数
     # --------------------------------------------------------------------------------
     def _generate_citation_counter(self):
-        '''
-        获取主aux文件及所有辅助aux文件中的引用次数。
-        '''
-        # 初始化一个空的字典，用于存储每个aux文件的引用数量
+        """
+        生成并返回一个字典，该字典包含每个aux文件的引用数量。
+
+        返回值:
+        - cite_counter: 一个字典，键为aux文件名，值为该文件中的引用文献key和引用数量组成的字典。
+
+        行为说明:
+        - 初始化一个空的字典，用于存储每个aux文件的引用数量。
+        - 构造主aux文件的文件名，格式为项目名加上.aux后缀。
+        - 打开主aux文件并读取其内容。
+        - 计算主aux文件中的引用数量，并将其存储在cite_counter字典中。
+        - 使用正则表达式查找所有包含的aux文件，并尝试计算每个aux文件中的引用数量。
+        - 如果某个aux文件不存在或无法读取，则跳过该文件。
+        - 返回包含所有aux文件引用数量的字典。
+        """
         cite_counter = dict()
-        # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         file_name = f'{self.project_name}.aux'
-        # 打开主aux文件并读取其内容
         with open(file_name, 'r', encoding='utf-8') as fobj:
             main_aux_content = fobj.read()
-        # 计算主aux文件中的引用数量，并将其存储在cite_counter字典中
         cite_counter[file_name] = _count_citations(file_name)
-
-        # 使用正则表达式查找所有包含的aux文件
+    
         for match in re.finditer(r'\\@input\{(.*.aux)\}', main_aux_content):
-            # 获取匹配到的aux文件名
             file_name = match.groups()[0]
             try:
-                # 尝试计算该aux文件中的引用数量
                 counter = _count_citations(file_name)
             except IOError:
-                # 如果文件不存在或无法读取，则跳过该文件
                 self.logger.info(f'{file_name} 文件不存在或无法读取，跳过该文件。')
                 pass
             else:
-                # 如果成功计算引用数量，则将其存储在cite_counter字典中
                 cite_counter[file_name] = counter
-
-        # 返回包含所有aux文件引用数量的字典
+    
         return cite_counter
 
     # --------------------------------------------------------------------------------
     # 定义旧的符号索引辅助文件内容获取函数
     # --------------------------------------------------------------------------------
     def _index_aux_content_get(self): 
-        '''
-        判断两个索引辅助文件是否同时存在
-        获取索引辅助文件内容
-        '''
+        """
+        获取项目中所有索引辅助文件的内容，并将其存储在一个字典中。
+        
+        返回:
+        - index_aux_content_dict_old (dict): 包含所有辅助文件内容的字典。
 
+        行为逻辑说明:
+        1. 构造主aux文件的文件名，格式为项目名加上.aux后缀。
+        2. 定义一个字典，用于存储旧的索引辅助文件内容。
+        3. 检查主aux文件是否存在。
+        4. 如果主aux文件存在，则进一步检查并获取glossaries、nomencl和makeidx宏包的辅助文件内容。
+        5. 对于每个宏包，检查其对应的输入和输出扩展文件是否同时存在，如果存在则读取其内容并存储在字典中。
+        6. 如果没有找到主aux文件，则记录警告信息。
+        7. 返回存储了所有辅助文件内容的字典。
+        """
         file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         index_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
 
@@ -215,9 +264,19 @@ class CompileModel(object):
     # 定义目录更新判断函数
     # --------------------------------------------------------------------------------
     def toc_changed_judgment(self, toc_file):
-        '''
-        判断*.toc文件在第一次LaTeX运行期间是否发生了变化。
-        '''
+        """
+        判断toc文件内容是否发生变化。
+
+        参数:
+        - toc_file: 传入的toc文件内容，用于与当前项目中的toc文件内容进行比较。
+
+        行为逻辑:
+        1. 生成toc文件的完整路径。
+        2. 检查toc文件是否存在。
+        3. 如果存在，打开toc文件并读取其内容。
+        4. 比较toc文件内容与传入的toc_file内容。
+        5. 如果内容不同，返回True表示toc文件已变化。
+        """
         file_name = f'{self.project_name}.toc'   # 生成toc文件的完整路径
         if os.path.exists(file_name):  # 检查toc文件是否存在
             with open(file_name, 'r', encoding='utf-8') as fobj:  # 打开toc文件
@@ -229,7 +288,21 @@ class CompileModel(object):
     # 定义 TeX 编译函数
     # --------------------------------------------------------------------------------
     def compile_tex(self):
-        
+        """
+        编译 LaTeX 文档的方法。
+         
+        参数:
+        - self: 当前对象实例，包含编译所需的配置和状态信息。
+         
+        行为逻辑:
+        1. 根据编译引擎和其他配置选项构建编译命令。
+        2. 如果编译引擎是 'xelatex'，则添加 '-no-pdf' 选项。
+        3. 根据是否静默编译，添加 '-interaction=batchmode' 或 '-interaction=nonstopmode' 选项。
+        4. 打印将要运行的命令。
+        5. 使用 subprocess.run 执行编译命令。
+        6. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
+        """
+         
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiler_engine == 'xelatex':
             options.insert(5, "-no-pdf")
@@ -238,7 +311,7 @@ class CompileModel(object):
         else:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
         console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
-        
+         
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
@@ -248,19 +321,35 @@ class CompileModel(object):
             print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
 
-
     # --------------------------------------------------------------------------------
     # 定义参考文献判断函数
     # --------------------------------------------------------------------------------
     def bib_judgment(self, old_cite_counter):
-        '''
-        1. 检查是否存在 *.bib 文件。
-        2. 判断是否需要运行 "biber" 或 "bibtex"。
-        3. 判断是否设置 bib 参考文献数据库文件。
-        4. 判断 bib 参考文献数据库文件是否存在。
-        5. 判断第一次 LaTeX 运行期间引用数量是否发生变化。
-        6. 检查 LaTeX 输出日志中的提示。
-        '''
+        """
+        判断是否需要使用biber或bibtex进行参考文献编译，并返回相应的编译引擎、额外编译次数、编译信息和目标名称。
+        
+        参数:
+        - old_cite_counter (int): 之前的引用计数。
+        
+        返回:
+        tuple: 包含以下四个元素的元组：
+            - bib_engine (str): 参考文献编译引擎，可能为'biber'或'bibtex'，如果不需要编译则为None。
+            - Latex_compilation_times (int): 需要额外进行的LaTeX编译次数。
+            - print_bib (str): 编译信息，描述编译过程中遇到的情况。
+            - name_target (str): 编译目标名称，描述编译的具体目标。
+        
+        行为逻辑:
+        1. 检查项目目录下是否存在aux文件，如果不存在则记录警告并返回。
+        2. 读取aux文件内容，检查是否存在biber或bibtex的特征命令。
+        3. 如果存在biber特征命令，则进一步检查bcf文件中是否存在bib文件名，并设置相应的编译引擎和额外编译次数。
+        4. 如果存在bibtex特征命令，则直接从aux文件中提取bib文件名，并设置相应的编译引擎和额外编译次数。
+        5. 检查bib文件是否存在，如果不存在则更新编译信息。
+        6. 获取新的引用计数，如果引用计数没有变化，则更新编译信息并设置额外编译次数为0。
+        7. 检查LaTeX输出中是否有bbl文件缺失或引用未定义的提示，如果有则更新编译信息并设置额外编译次数。
+        8. 如果没有找到biber或bibtex特征命令，但存在bibcite命令，则更新编译信息为使用thebibliography环境排版。
+        9. 如果没有引用参考文献或编译工具不属于bibtex或biber，则更新编译信息。
+        10. 返回编译引擎、额外编译次数、编译信息和目标名称。
+        """
         bib_engine = None
         name_target = None
         Latex_compilation_times = 0
@@ -319,6 +408,19 @@ class CompileModel(object):
     # 定义参考文献编译函数
     # --------------------------------------------------------------------------------
     def compile_bib(self, bib_engine):
+        """
+        使用指定的参考文献管理引擎编译项目中的参考文献。
+
+        参数:
+        - bib_engine (str): 参考文献管理引擎的名称，例如 'bibtex' 或 'biber'。
+
+        行为逻辑:
+        1. 构建运行参考文献管理引擎的命令行选项。
+        2. 如果设置了静默编译且引擎为 'biber'，则在选项中添加 '-quiet' 参数。
+        3. 在控制台中打印将要运行的命令。
+        4. 尝试运行构建的命令。
+        5. 如果命令运行失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
+        """
         # self.logger.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
         options = [bib_engine, self.project_name]
 
@@ -339,6 +441,24 @@ class CompileModel(object):
     # 定义索引更新判断函数
     # --------------------------------------------------------------------------------
     def _index_changed_judgment(self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile):
+        """
+        判断是否需要重新生成索引文件。
+        
+        参数:
+        - index_aux_content_dict_old: 旧的索引文件内容字典
+        - index_aux_infile: 输入的索引文件路径
+        - index_aux_outfile: 输出的索引文件路径
+
+        返回:
+        - print_index: 打印的索引信息
+        - make_index: 是否需要重新生成索引的标志
+        
+        行为逻辑:
+        1. 初始化是否需要重新生成索引的标志。
+        2. 检查输出中是否包含“没有该输入文件”的信息，如果包含，则需要重新生成索引。
+        3. 判断输出和输入扩展文件是否同时存在，如果同时存在，则比较词汇表文件内容与记录的内容，如果不一致，则需要重新生成词汇表。
+        4. 如果输入和输出文件没有同时存在，则需要重新生成索引。
+        """
         make_index = False  # 初始化是否需要重新生成索引的标志
         if re.search(f'No file {index_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             print_index = '日志文件提示没有输入文件，已重新编译索引'
@@ -363,6 +483,25 @@ class CompileModel(object):
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
     def index_judgment(self, index_aux_content_dict_old): 
+        """
+        判断并生成需要运行索引的命令列表。
+        
+        参数:
+        - index_aux_content_dict_old: 旧的索引辅助内容字典，用于判断索引文件是否需要重新生成。
+        
+        返回:
+        - print_index: 打印的索引信息，用于提示用户当前使用的索引宏包或状态。
+        - run_index_list_cmd: 需要运行的索引命令列表，每个元素是一个包含命令描述和具体命令的列表。
+        
+        行为逻辑:
+        1. 构造主aux文件的文件名。
+        2. 初始化需要运行索引的命令列表。
+        3. 判断并获取 glossaries 宏包的辅助文件名称，如果存在则读取主aux文件，使用正则表达式匹配词汇表条目，并根据匹配结果生成相应的索引命令。
+        4. 判断并获取 nomencl 宏包的辅助文件名称，如果存在则生成相应的索引命令。
+        5. 判断并获取 makeidx 宏包的辅助文件名称，如果存在则生成相应的索引命令。
+        6. 如果以上宏包都不存在，则提示用户采用其他宏包制作索引。
+        7. 返回打印的索引信息和需要运行的索引命令列表。
+        """
         file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         run_index_list_cmd = [] # 初始化需要运行 index 的命令列表
         # 判断并获取 glossaries 宏包的辅助文件名称
@@ -394,6 +533,22 @@ class CompileModel(object):
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
     def compile_index(self, cmd): 
+        """
+        运行 makeindex 命令以生成索引文件。
+
+        参数:
+        - cmd (list): 包含两个元素的列表，第一个元素是命令名称，第二个元素是命令字符串。
+
+        返回:
+        - str: 命令名称，格式为 "命令名称 宏包"。
+
+        行为逻辑:
+        1. 打印将要运行的命令。
+        2. 尝试运行命令，如果成功则返回命令名称。
+        3. 如果命令运行失败，捕获异常并记录错误信息。
+        4. 将辅助文件和输出文件移动到指定目录。
+        5. 打印退出信息并退出程序。
+        """
         # 运行 makeindex 命令
         name_target = f"{cmd[0]} 宏包"
         console.print(f"[bold]运行命令：[/bold][cyan]{cmd[1]}[/cyan]\n")
@@ -412,6 +567,16 @@ class CompileModel(object):
     # 定义 xdv 编译函数
     # --------------------------------------------------------------------------------
     def compile_xdv(self):
+        """
+        编译xdv文件为pdf文件。
+
+        行为逻辑:
+        1. 构建编译命令选项列表。
+        2. 如果设置了静默编译，则在命令选项中添加"-q"参数。
+        3. 打印将要运行的命令。
+        4. 尝试运行编译命令。
+        5. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
+        """
         options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if self.quiet:
             options.insert(1, "-q") # 静默编译
@@ -427,30 +592,42 @@ class CompileModel(object):
 
 
 def _count_citations(file_name):
-        '''
-        统计 aux 文件中所有参考文献引用的次数。
-        '''
-        # 创建一个默认值为int的字典，用于存储每个citation出现的次数
-        counter = defaultdict(int) # 使用 int 作为工厂函数，默认值为 0
+    """
+    统计给定aux文件中所有citation的出现次数。
 
-        # 打开aux文件并读取其内容
-        with open(file_name, 'r', encoding='utf-8') as aux_file:
-            aux_content = aux_file.read()
-        match = BIBER_CITE_PATTERN.search(aux_content)
-        if match:
-            # 使用正则表达式模式 BIBER_CITE_PATTERN 查找所有的\abx@aux@cite
-            for match in BIBER_CITE_PATTERN.finditer(aux_content):
-                # 获取匹配到的citation名称
-                name = match.groups()[0]
-                # 增加该citation在字典中的计数, 如果 citation 出现多次，则计数会累加
-                counter[name] += 1 # counter[name] = counter[name] + 1
-        match = BIBTEX_CITE_PATTERN.search(aux_content)
-        if match:
-            # 使用正则表达式模式 BIBTEX_CITE_PATTERN 查找所有的 \citation
-            for match in BIBTEX_CITE_PATTERN.finditer(aux_content):
-                # 获取匹配到的citation名称
-                name = match.groups()[0]
-                # 增加该citation在字典中的计数
-                counter[name] += 1
-        # 返回包含所有citation计数的字典
-        return counter
+    参数:
+    - file_name (str): 包含citation信息的aux文件路径。
+
+    返回:
+    - dict: 一个字典，键为citation名称，值为该citation在文件中出现的次数。
+
+    行为逻辑:
+    1. 打开并读取aux文件的内容。
+    2. 使用正则表达式模式BIBER_CITE_PATTERN查找所有的\abx@aux@cite，并统计每个citation的出现次数。
+    3. 使用正则表达式模式BIBTEX_CITE_PATTERN查找所有的\citation，并统计每个citation的出现次数。
+    4. 返回包含所有citation计数的字典。
+    """
+    # 创建一个默认值为int的字典，用于存储每个citation出现的次数
+    counter = defaultdict(int) # 使用 int 作为工厂函数，默认值为 0
+
+    # 打开aux文件并读取其内容
+    with open(file_name, 'r', encoding='utf-8') as aux_file:
+        aux_content = aux_file.read()
+    match = BIBER_CITE_PATTERN.search(aux_content)
+    if match:
+        # 使用正则表达式模式 BIBER_CITE_PATTERN 查找所有的\abx@aux@cite
+        for match in BIBER_CITE_PATTERN.finditer(aux_content):
+            # 获取匹配到的citation名称
+            name = match.groups()[0]
+            # 增加该citation在字典中的计数, 如果 citation 出现多次，则计数会累加
+            counter[name] += 1 # counter[name] = counter[name] + 1
+    match = BIBTEX_CITE_PATTERN.search(aux_content)
+    if match:
+        # 使用正则表达式模式 BIBTEX_CITE_PATTERN 查找所有的 \citation
+        for match in BIBTEX_CITE_PATTERN.finditer(aux_content):
+            # 获取匹配到的citation名称
+            name = match.groups()[0]
+            # 增加该citation在字典中的计数
+            counter[name] += 1
+    # 返回包含所有citation计数的字典
+    return counter

@@ -128,8 +128,8 @@ class MoveRemoveClean(object):
         移动文件时，如果发生错误，则记录错误信息。
     
         参数:
-        files (list): 要移动的文件列表。
-        dest_folder (str): 目标文件夹路径。
+        - files (list): 要移动的文件列表。
+        - dest_folder (str): 目标文件夹路径。
         """
         if not os.path.exists(dest_folder):
             os.makedirs(dest_folder)
@@ -211,7 +211,7 @@ class MainFileJudgment(object):
         """
         检查并处理项目名称，返回处理后的项目名称或None
         参数:
-        check_project_name (str): 待检查的项目名称
+        - check_project_name (str): 待检查的项目名称
         行为:
         1. 去掉路径，提取文件名和后缀
         2. 检查并获取根目录下所有 .tex 文件
@@ -220,7 +220,7 @@ class MainFileJudgment(object):
         5. 判断输入文件名中没有后缀，如果文件名加上 .tex 后存在于当前目录下，则返回文件名，不存在则退出程序
         6. 如果输入文件后缀不是 .tex，则退出程序
         返回:
-        str: 处理后的项目名称或None
+        - str: 处理后的项目名称或None
         """
         base_name, file_extension = os.path.splitext(os.path.basename(check_project_name))  # 去掉路径，提取文件名和后缀
 
@@ -290,7 +290,7 @@ class MainFileJudgment(object):
            如果找到唯一匹配的文件，则确认该文件为主文件；否则，记录错误日志并退出程序。
         
         返回:
-        str: 主文件的名称（不包含扩展名）。
+        - str: 主文件的名称（不包含扩展名）。
         """
         current_path = os.getcwd()  # 获取当前路径
         
@@ -341,8 +341,8 @@ class MainFileJudgment(object):
         搜索给定的TeX文件列表中的魔法注释。
 
         参数:
-        tex_file_list (list): 包含TeX文件路径的列表。
-        magic_comment_keys (list): 包含魔法注释关键字的列表。
+        - tex_file_list (list): 包含TeX文件路径的列表。
+        - magic_comment_keys (list): 包含魔法注释关键字的列表。
 
         行为:
         1. 遍历每个TeX文件，读取前50行内容。
@@ -352,7 +352,7 @@ class MainFileJudgment(object):
         5. 返回包含所有提取的魔法注释的字典。
 
         返回:
-        dict: 包含提取的魔法注释键值对。
+        - dict: 包含提取的魔法注释键值对。
         """
         extracted_magic_comments = {}  # 创建空字典用于存储结果 # TODO tex_file_list 是当前根目录下的所有.tex 文件列表，而不包括子文件夹中的tex文件，需要调整代码逻辑
         file_magic_comments = {}  # 用于存储每个文件的魔法注释

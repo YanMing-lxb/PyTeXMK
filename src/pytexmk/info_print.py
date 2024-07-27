@@ -40,11 +40,11 @@ def time_count(fun, *args):
     计算并返回函数执行时间及函数返回值。
     
     参数:
-    fun: 需要计算执行时间的函数。
-    *args: 传递给函数的参数。
+    - fun: 需要计算执行时间的函数。
+    - *args: 传递给函数的参数。
     
     返回:
-    返回一个元组，包含函数的执行时间和函数的返回值。如果函数执行过程中出现异常，则返回 (None, None)。
+    - 返回一个元组，包含函数的执行时间和函数的返回值。如果函数执行过程中出现异常，则返回 (None, None)。
     
     行为:
     1. 记录函数开始执行的时间。
@@ -76,10 +76,10 @@ def print_message(message):
     然后将消息打印在一个带有边框的横幅中。
      
     参数:
-    message (str): 要打印的消息字符串。
+    - message (str): 要打印的消息字符串。
      
     异常:
-    Exception: 如果在打印过程中发生任何异常，将记录错误日志。
+    - Exception: 如果在打印过程中发生任何异常，将记录错误日志。
     """
     try:
         # 计算左右两侧 X 的数量
@@ -103,9 +103,9 @@ def time_print(start_time, name_target_list, time_run_list):
     计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量。
     
     参数:
-    start_time (datetime.datetime): PyTeXMK开始运行的时间。
-    name_target_list (list): 包含运行项目名称的列表。
-    time_run_list (list): 包含各运行项目时长的列表。
+    - start_time (datetime.datetime): PyTeXMK开始运行的时间。
+    - name_target_list (list): 包含运行项目名称的列表。
+    - time_run_list (list): 包含各运行项目时长的列表。
     
     行为:
     1. 计算结束时间并计算总运行时间。
@@ -117,7 +117,7 @@ def time_print(start_time, name_target_list, time_run_list):
     7. 打印表格和总运行时间、运行函数数量。
     
     异常处理:
-    如果在执行过程中发生异常，将错误信息记录到日志中。
+    - 如果在执行过程中发生异常，将错误信息记录到日志中。
     """
     try:
         end_time = datetime.datetime.now()  # 计算结束时间
