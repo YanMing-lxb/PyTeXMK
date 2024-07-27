@@ -16,9 +16,9 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-26 20:18:21 +0800
+ * LastEditTime : 2024-07-27 20:03:48 +0800
  * Github       : https://github.com/YanMing-lxb/
- * FilePath     : \PyTeXMK\README.md
+ * FilePath     : /PyTeXMK/README.md
  * Description  : 
  *  -----------------------------------------------------------------------
  -->
@@ -49,7 +49,7 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-nq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
+PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
 
 请仔细阅读：[主文件及编译类型选定逻辑](#主文件及编译类型选定逻辑)
 
@@ -79,24 +79,24 @@ PyTeXMK 支持：
 | -C, --Clean      | 清除所有主文件的辅助文件（包含根目录）和输出文件         |
 | -ca, --clean-any | 清除所有带辅助文件后缀的文件                           |
 | -Ca, --Clean-any | 清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件|
-| -nq, --no-quiet  | 非安静模式运行，此模式下显示编译过程                    |
+| -uq, --unquiet   | 非安静模式运行，此模式下显示编译过程                    |
 | -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息                      |
-| -cp, --clean-pdf  | 修复所有根目录以外的 pdf 文件                         |
+| -pr, --pdf-repair| 修复所有根目录以外的 pdf 文件                         |
 
 **说明：**
-`-cp` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数清理所有 pdf 文件"
+`-pr` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数尝试修复所有 pdf 文件"
 `invalid X X R object at offset XXXXX` 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题
 
 ### 魔法注释
 
 PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。    
 
-| Magic Comment | Description                                |
-|---------------|----------|
+| Magic Comment              | Description                                       |
+|----------------------------|---------------------------------------------------|
 | `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex` |
-| `% !TEX root = file.tex` | 指定主 LaTeX 文件名，仅支持主文件在项目根目录下的情况 |
-| `% !TEX outdir = PDFfile` | 指定编译结果存放位置，仅支持文件夹名称|
-| `% !TEX auxdir = auxfiles` |指定辅助文件存放位置，仅支持文件夹名称|
+| `% !TEX root = file.tex`   | 指定主 LaTeX 文件名，仅支持主文件在项目根目录下的情况 |
+| `% !TEX outdir = PDFfile`  | 指定编译结果存放位置，仅支持文件夹名称               |
+| `% !TEX auxdir = auxfiles` | 指定辅助文件存放位置，仅支持文件夹名称               |
 
 > 魔法注释重复时的判断逻辑：多个文件间存在重复魔法注释时，PyTeXMK 会判断检索到的第一个文件优先。
 

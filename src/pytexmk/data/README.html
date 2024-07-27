@@ -35,7 +35,7 @@
 </code></pre><h2 id="升级">升级 </h2>
 <pre data-role="codeBlock" data-info="" class="language-text"><code>pip3 install --upgrade pytexmk
 </code></pre><h2 id="使用入门">使用入门 </h2>
-<p>PyTeXMK 默认参数：<code>xelatex</code> 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 <code>-nq</code> 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 <code>settings.json</code> 中注意设置 <code>"latex-workshop.latex.outDir": "./Build",</code> 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。</p>
+<p>PyTeXMK 默认参数：<code>xelatex</code> 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 <code>-uq</code> 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 <code>settings.json</code> 中注意设置 <code>"latex-workshop.latex.outDir": "./Build",</code> 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。</p>
 <p>请仔细阅读：<a href="#%E4%B8%BB%E6%96%87%E4%BB%B6%E5%8F%8A%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B%E9%80%89%E5%AE%9A%E9%80%BB%E8%BE%91">主文件及编译类型选定逻辑</a></p>
 <blockquote>
 <p>PyTeXMK，仅支持 utf-8 编码的 TeX 文件。</p>
@@ -108,7 +108,7 @@
 <td>清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件</td>
 </tr>
 <tr>
-<td>-nq, --no-quiet</td>
+<td>-uq, --unquiet</td>
 <td>非安静模式运行，此模式下显示编译过程</td>
 </tr>
 <tr>
@@ -116,13 +116,13 @@
 <td>显示 PyTeXMK 运行过程中的详细信息</td>
 </tr>
 <tr>
-<td>-cp, --clean-pdf</td>
+<td>-pr, --pdf-repair</td>
 <td>修复所有根目录以外的 pdf 文件</td>
 </tr>
 </tbody>
 </table>
 <p><strong>说明：</strong><br>
-<code>-cp</code> 参数的功能是 "当 LaTeX 编译过程中报类似 <code>invalid X X R object at offset XXXXX</code> 的警告时，可使用此参数清理所有 pdf 文件"<br>
+<code>-pr</code> 参数的功能是 "当 LaTeX 编译过程中报类似 <code>invalid X X R object at offset XXXXX</code> 的警告时，可使用此参数尝试修复所有 pdf 文件"<br>
 <code>invalid X X R object at offset XXXXX</code> 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题</p>
 <h3 id="魔法注释">魔法注释 </h3>
 <p>PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。</p>
@@ -226,7 +226,7 @@
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加 PyTeXMK 更新检查功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加 PyTeXMK 更新检查功能</li>
 </ul>
 </div>
       </div>
