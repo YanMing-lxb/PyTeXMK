@@ -164,7 +164,8 @@ def main():
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
-    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues",epilog="欢迎使用 PyTeXMK！")
+    # TODO 完善对魔法注释的说明
+    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues",epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
