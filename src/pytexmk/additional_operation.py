@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-26 19:42:21 +0800
+LastEditTime : 2024-07-27 16:21:20 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\additional_operation.py
+FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -44,6 +44,9 @@ class MoveRemoveClean(object):
             if file.startswith(".*"):
                 pattern = re.compile(file)
                 for root, _, filenames in os.walk(folder):
+                    # 检查当前路径是否包含 .git 或 .github 文件夹
+                    if '.git' in root or '.github' in root:
+                        continue  # 跳过这些文件夹
                     for filename in filenames:
                         if pattern.match(filename):
                             file_path = os.path.join(root, filename)
@@ -52,6 +55,7 @@ class MoveRemoveClean(object):
                                 self.logger.info(f"{folder} 中 {filename} 删除成功")
                             except OSError as e:
                                 self.logger.error(f"{folder} 中 {filename} 删除失败: {e}")
+
             else:
                 file_path = os.path.join(folder, file)
                 if os.path.exists(file_path):
@@ -154,6 +158,8 @@ class MoveRemoveClean(object):
         """
         pdf_files = []
         for root, dirs, files in os.walk(root_dir):
+            if '.git' in root or '.github' in root:
+                        continue  # 跳过这些文件夹
             if excluded_folder in dirs:
                 dirs.remove(excluded_folder)  # 不包括名为excluded_folder的文件夹中的pdf文件
             if root == root_dir:  # 如果当前处理的是根目录文件，则跳过
