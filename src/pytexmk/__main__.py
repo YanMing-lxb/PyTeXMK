@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-27 15:44:07 +0800
+LastEditTime : 2024-07-27 18:52:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -56,10 +56,10 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     runtime_list.append(runtime_move_aux_root)
 
     # 检查并处理已存在的 LaTeX 输出文件
-    print('预处理旧的辅助文件...')
+    print('检测识别已有辅助文件...')
     runtime_read, return_read = time_count(compile_model.prepare_LaTeX_output_files, ) # 读取 LaTeX 文件
     cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_LaTeX_files 函数得到的参数
-    name_target_list.append('预处理旧辅助文件')
+    name_target_list.append('检测已有辅助文件')
     runtime_list.append(runtime_read)
 
 
@@ -258,11 +258,12 @@ def main():
                     ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
     out_files = [f"{project_name}{suffix}" for suffix in suffixes_out]
     aux_files = [f"{project_name}{suffix}" for suffix in suffixes_aux]
-    aux_regex_files = [f".*{suffix}" for suffix in suffixes_aux]
+    aux_regex_files = [f".*\\{suffix}" for suffix in suffixes_aux]
 
     if project_name: # 如果存在 project_name 
         if args.clean:
             MRC.remove_files(aux_files, auxdir)
+            MRC.remove_files(aux_files, '.')
             print('[bold green]已完成清除所有主文件的辅助文的件指令')
         elif args.Clean:
             MRC.remove_files(aux_files, auxdir)
@@ -270,10 +271,9 @@ def main():
             MRC.remove_files(out_files, outdir)
             print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
         elif args.clean_any:
-            MRC.remove_files(aux_regex_files, auxdir)
+            MRC.remove_files(aux_regex_files, '.')
             print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
         elif args.Clean_any:
-            MRC.remove_files(aux_regex_files, auxdir)
             MRC.remove_files(aux_regex_files, '.')
             MRC.remove_files(out_files, outdir)
             print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')

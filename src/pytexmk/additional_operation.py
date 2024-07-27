@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-27 16:21:20 +0800
+LastEditTime : 2024-07-27 18:51:59 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -52,9 +52,9 @@ class MoveRemoveClean(object):
                             file_path = os.path.join(root, filename)
                             try:
                                 os.remove(file_path)
-                                self.logger.info(f"{folder} 中 {filename} 删除成功")
+                                self.logger.info(f"{file_path} 删除成功")
                             except OSError as e:
-                                self.logger.error(f"{folder} 中 {filename} 删除失败: {e}")
+                                self.logger.error(f"{file_path} 删除失败: {e}")
 
             else:
                 file_path = os.path.join(folder, file)
@@ -159,7 +159,7 @@ class MoveRemoveClean(object):
         pdf_files = []
         for root, dirs, files in os.walk(root_dir):
             if '.git' in root or '.github' in root:
-                        continue  # 跳过这些文件夹
+                continue  # 跳过这些文件夹
             if excluded_folder in dirs:
                 dirs.remove(excluded_folder)  # 不包括名为excluded_folder的文件夹中的pdf文件
             if root == root_dir:  # 如果当前处理的是根目录文件，则跳过
