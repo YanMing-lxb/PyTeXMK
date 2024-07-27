@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-27 19:06:53 +0800
+LastEditTime : 2024-07-27 19:15:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -40,12 +40,18 @@ class MoveRemoveClean(object):
     # --------------------------------------------------------------------------------
     def remove_files(self, files, folder):
         """
-        删除指定文件或匹配正则表达式的文件
+        删除指定文件或匹配正则表达式的文件。
+
         参数:
-        - files: 文件名列表或正则表达式模式列表
-        - folder: 目标文件夹路径
+        - files: 要删除的文件列表，可以是具体文件名或以".*"开头的正则表达式模式。
+        - folder: 要删除文件的目录路径。
+
+        行为:
+        - 遍历files列表，如果文件名以".*"开头，则将其视为正则表达式模式，匹配并删除folder目录及其子目录中所有匹配的文件。
+        - 如果文件名不是正则表达式模式，则直接删除folder目录中的该文件。
+        - 在删除文件时，会跳过包含".git"或".github"的目录。
+        - 删除成功或失败时，会通过logger记录相应的信息。
         """
-        # 删除指定文件或匹配正则表达式的文件
         for file in files:
             # 如果是正则表达式模式，则编译正则表达式
             if file.startswith(".*"):
@@ -270,6 +276,22 @@ class MainFileJudgment(object):
     # 定义 tex 主文件检索函数
     # -------------------------------------------------------------------------------- 
     def search_main_file(self, tex_files):
+        """
+        搜索并确定主 TeX 文件。
+        
+        参数:
+        tex_files (list): 当前目录下的所有 .tex 文件列表。
+        
+        行为:
+        1. 如果 tex_files 为空，记录错误日志并退出程序。
+        2. 如果 'main.tex' 存在于 tex_files 中，确认主文件为 'main.tex'。
+        3. 如果 tex_files 中只有一个文件，确认该文件为主文件。
+        4. 如果以上条件都不满足，则尝试通过读取文件内容查找包含 "\documentclass" 或 "\begin{document}" 命令的文件，
+           如果找到唯一匹配的文件，则确认该文件为主文件；否则，记录错误日志并退出程序。
+        
+        返回:
+        str: 主文件的名称（不包含扩展名）。
+        """
         current_path = os.getcwd()  # 获取当前路径
         
         if not tex_files:
@@ -315,6 +337,23 @@ class MainFileJudgment(object):
     # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
     def search_magic_comments(self, tex_file_list, magic_comment_keys):  # 搜索TeX文件中的魔法注释 # TODO 代码待测试
+        """
+        搜索给定的TeX文件列表中的魔法注释。
+
+        参数:
+        tex_file_list (list): 包含TeX文件路径的列表。
+        magic_comment_keys (list): 包含魔法注释关键字的列表。
+
+        行为:
+        1. 遍历每个TeX文件，读取前50行内容。
+        2. 使用正则表达式匹配魔法注释关键字。
+        3. 将匹配到的魔法注释存储在字典中。
+        4. 检查是否有重复的魔法注释，并记录警告信息。
+        5. 返回包含所有提取的魔法注释的字典。
+
+        返回:
+        dict: 包含提取的魔法注释键值对。
+        """
         extracted_magic_comments = {}  # 创建空字典用于存储结果 # TODO tex_file_list 是当前根目录下的所有.tex 文件列表，而不包括子文件夹中的tex文件，需要调整代码逻辑
         file_magic_comments = {}  # 用于存储每个文件的魔法注释
 
