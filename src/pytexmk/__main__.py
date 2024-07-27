@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-27 21:26:05 +0800
+LastEditTime : 2024-07-27 23:05:43 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -202,17 +202,37 @@ def main():
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
-    tex_files = MFJ.search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
-    magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
-    if args.document: # pytexmk 指定 LaTeX 文件
-        project_name = MFJ.check_project_name(args.document) # check_project_name 函数检查 args.document 参数输入的文件名是否正确
+    # TODO 添加块注释，或者整合到additional_operation.py中
+    tex_files_in_root = MFJ.get_tex_files_in_root() # 运行 get_tex_file_in_root 函数搜索当前根目录下所有 tex 文件
+    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 get_main_file_in_root 函数搜索当前根目录下是否存在主文件
+    magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
+    if not main_file_in_root: # 如果当前根目录下不存在 tex 文件
+        current_path = os.getcwd()  # 获取当前路径
+        logger.error("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
+        logger.warning(f"当前终端路径是：{current_path}")
+        print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+        sys.exit(1)
+    elif args.document: # pytexmk 指定 LaTeX 文件
+        project_name = args.document # 使用命令行参数指定主文件
         print(f"通过命令行命令指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
-    else: # pytexmk 未指定 LaTeX 文件
-        if magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
-            project_name = MFJ.check_project_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
-            print(f"通过魔法注释指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
-        else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
-            project_name = MFJ.search_main_file(tex_files)
+    elif len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个具有\documentclass 和 \begin{document}命令的tex文件
+        project_name = main_file_in_root[0] # 使用该文件作为主文件
+        print(f"通过根目录下唯一 tex 文件指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
+    elif magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
+        project_name = magic_comments['root'] # 使用 magic comments 中的 root 作为主文件
+        print(f"通过魔法注释指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
+    elif len(main_file_in_root) > 1: # 如果当前根目录下存在多个具有\documentclass 和 \begin{document}命令的tex文件
+        for file in main_file_in_root:
+            if MFJ.check_project_name(file) == "main": # 如果存在 main.tex 文件
+                project_name = file # 使用 main.tex 文件作为主文件
+                print(f"通过默认文件名 \"main.tex\" 找到 [blod cyan]{project_name}.tex[/blod cyan]")
+    else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
+        logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
+        logger.warning("请修改主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译，或删除当前根目录下多余的 tex 文件")
+        logger.warning(f"当前当前根目录是：{current_path}")
+        print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+        sys.exit(1)
+    project_name = MFJ.check_project_name(project_name) # 检查 project_name 是否正确
 
     # --------------------------------------------------------------------------------
     # 编译类型判断
