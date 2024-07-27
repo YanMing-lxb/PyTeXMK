@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-27 15:45:38 +0800
+LastEditTime : 2024-07-27 16:36:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -28,6 +28,7 @@ import re
 import sys
 import logging
 import subprocess
+from rich import print  # 导入rich库的print函数
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
