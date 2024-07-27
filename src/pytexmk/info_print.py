@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-07-24 22:33:32 +0800
+LastEditTime : 2024-07-27 19:26:33 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -36,6 +36,24 @@ logger = logging.getLogger(__name__) # 创建日志对象
 # 定义时间统计函数
 # --------------------------------------------------------------------------------
 def time_count(fun, *args):
+    """
+    计算并返回函数执行时间及函数返回值。
+    
+    参数:
+    fun: 需要计算执行时间的函数。
+    *args: 传递给函数的参数。
+    
+    返回:
+    返回一个元组，包含函数的执行时间和函数的返回值。如果函数执行过程中出现异常，则返回 (None, None)。
+    
+    行为:
+    1. 记录函数开始执行的时间。
+    2. 执行函数并记录其返回值。
+    3. 记录函数结束执行的时间。
+    4. 计算函数执行的总时间，并将其四舍五入到小数点后四位。
+    5. 返回函数执行时间和函数的返回值。
+    6. 如果在执行函数过程中出现异常，记录错误信息并返回 (None, None)。
+    """
     try:
         time_start = datetime.datetime.now()
         fun_return = fun(*args)
@@ -81,7 +99,26 @@ def print_message(message):
 # 定义统计时间打印函数
 # --------------------------------------------------------------------------------
 def time_print(start_time, name_target_list, time_run_list):
-    # 计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量
+    """
+    计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量。
+    
+    参数:
+    start_time (datetime.datetime): PyTeXMK开始运行的时间。
+    name_target_list (list): 包含运行项目名称的列表。
+    time_run_list (list): 包含各运行项目时长的列表。
+    
+    行为:
+    1. 计算结束时间并计算总运行时间。
+    2. 将总运行时间分解为小时、分钟、秒和毫秒。
+    3. 计算运行函数数量（辅助函数除外）。
+    4. 计算LaTeX编译时长、Python运行时长和PyTeXMK总运行时长。
+    5. 将统计信息添加到name_target_list和time_run_list中。
+    6. 创建并填充表格，显示运行项目的名称和时长。
+    7. 打印表格和总运行时间、运行函数数量。
+    
+    异常处理:
+    如果在执行过程中发生异常，将错误信息记录到日志中。
+    """
     try:
         end_time = datetime.datetime.now()  # 计算结束时间
         run_time = end_time - start_time
