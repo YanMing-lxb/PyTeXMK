@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-27 18:58:17 +0800
+LastEditTime : 2024-07-27 20:01:48 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -62,7 +62,6 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     name_target_list.append('检测已有辅助文件')
     runtime_list.append(runtime_read)
 
-
     # 首次编译 LaTeX 文档
     print_message(f"1 次 {compiler_engine} 编译")
     runtime_Latex, _ = time_count(compile_model.compile_tex, ) 
@@ -87,7 +86,6 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
             name_target_list.append(name_target_bib)
             runtime_list.append(runtime_bib)
 
-
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
     print_index, run_index_list_cmd = return_index_judgment
@@ -105,7 +103,6 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     else:
         Latex_compilation_times_index = 0
 
-
     # 编译目录
     if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
         Latex_compilation_times_toc = 1
@@ -115,7 +112,6 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     # 计算额外需要的 LaTeX 编译次数
     Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_index, Latex_compilation_times_toc) 
     
-
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
         print_message(f"{times} 次 {compiler_engine} 编译")
@@ -123,15 +119,12 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
         name_target_list.append(f'{compiler_engine} {abbreviations_num[times-1]}')
         runtime_list.append(runtime_Latex)
 
-
-
     # 编译完成，开始判断编译 XDV 文件
     if compiler_engine == "xelatex":  # 判断是否编译 xdv 文件
         print_message("dvipdfmx 编译")
         runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         name_target_list.append('dvipdfmx 编译')
         runtime_list.append(runtime_xdv)
-
 
     # 显示编译过程中关键信息
     border = "[red bold]=[/red bold]" * 80
