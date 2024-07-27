@@ -196,21 +196,25 @@ class MainFileJudgment(object):
         tex_files = self.search_tex_file()  # 检查并获取根目录下所有 .tex 文件
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
             self.logger.error("输入文件名中不能包含路径")
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1)
         elif file_extension == '.tex':  # 判断后缀是否是 .tex
             if check_project_name in tex_files:  # 判断文件名是否在 tex_files 中
                 return base_name
             else:
                 self.logger.error("输入文件名不存在于当前目录下")
+                print('[blod red]正在退出 PyTeXMK ...[/blod red]')
                 sys.exit(1)
         elif '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
             if f'{check_project_name}.tex' in tex_files:  # 判断文件名是否在 tex_files 中
                 return check_project_name
             else:
                 self.logger.error("输入文件名不存在于当前目录下")
+                print('[blod red]正在退出 PyTeXMK ...[/blod red]')
                 sys.exit(1)
         else:
             self.logger.error("输入文件后缀不是.tex")
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1)
 
 
@@ -243,14 +247,15 @@ class MainFileJudgment(object):
         if not tex_files:
             self.logger.error("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
             self.logger.warning(f"当前终端路径是：{current_path}")
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1)
      
         if 'main.tex' in tex_files:
             project_name = 'main'
-            print(f"通过默认文件名确认主文件为 {project_name}.tex")
+            print(f"通过默认文件名确认主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
         elif len(tex_files) == 1:
             project_name = os.path.splitext(tex_files[0])[0]
-            print(f"通过唯一 TeX 文件名确认主文件为 {project_name}.tex")
+            print(f"通过唯一 TeX 文件名确认主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
         else:
             main_tex_files = []
             for file_name in tex_files:
@@ -267,11 +272,12 @@ class MainFileJudgment(object):
                     continue
             if len(main_tex_files) == 1:
                 project_name = self.check_project_name(file_name)
-                print(f"通过 \\documentclass 或 \\begin{{document}} 命令确认主文件为 {project_name}.tex")
+                print(f"通过 \\documentclass 或 \\begin{{document}} 命令确认主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
             else:  # 存在多个主文件
                 self.logger.error("多个文件中存在 \\documentclass 或 \\begin{{document}} 命令")
                 self.logger.warning("请修改主文件名为 main.tex 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译")
                 self.logger.warning("主文件一定要放在项目根目录下")
+                print('[blod red]正在退出 PyTeXMK ...[/blod red]')
                 sys.exit(1)
 
         return project_name

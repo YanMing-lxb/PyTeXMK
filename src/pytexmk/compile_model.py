@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-23 22:18:42 +0800
+LastEditTime : 2024-07-27 15:45:38 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\compile_model.py
+FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -94,7 +94,7 @@ class CompileModel(object):
             self.logger.error(f'请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('正在退出 PyTeXMK ...')
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
     
     # --------------------------------------------------------------------------------
@@ -244,7 +244,7 @@ class CompileModel(object):
             self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('正在退出 PyTeXMK ...')
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
 
 
@@ -331,7 +331,7 @@ class CompileModel(object):
             self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('正在退出 PyTeXMK ...')
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
 
     # --------------------------------------------------------------------------------
@@ -403,7 +403,7 @@ class CompileModel(object):
             self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('正在退出 PyTeXMK ...')
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
         
 
@@ -421,7 +421,7 @@ class CompileModel(object):
             self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('正在退出 PyTeXMK ...')
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
             sys.exit(1) # 退出程序
 
 

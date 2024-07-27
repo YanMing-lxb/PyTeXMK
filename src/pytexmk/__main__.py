@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-26 20:44:21 +0800
+LastEditTime : 2024-07-27 15:44:07 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -28,6 +28,8 @@ import sys
 import argparse
 import datetime
 import webbrowser
+import importlib.resources
+from rich import print
 from .version import script_name, __version__
 from .compile_model import CompileModel
 from .logger_config import setup_logger
@@ -132,9 +134,11 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
 
 
     # 显示编译过程中关键信息
-    print("\n\n" + "=" * 80 + "\n" +
-          "▓" * 33 + " 完成所有编译 " + "▓" * 33 + "\n" +
-          "=" * 80 + "\n")
+    border = "[red bold]=[/red bold]" * 80
+    center = "[green on white bold]▓[/green on white bold]" * 33 + " [bold green]完成所有编译[/bold green] " + "[green on white bold]▓[/green on white bold]" * 33
+    print(f"\n\n{border}")
+    print(f"{center}")
+    print(f"{border}\n")
     print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
@@ -167,7 +171,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
-    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。\n 如发现 BUG 请在 Github 仓库中提交 issue：https://github.com/YanMing-lxb/PyTeXMK/issues。")
+    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues",epilog="欢迎使用 PyTeXMK！")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
@@ -180,36 +184,40 @@ def main():
     parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-cp', '--clean-pdf', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
-    
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
-    
+    print(f"PyTeXMK 版本：[bold green]{__version__}[/bold green]\n")
+    print('[bold green]PyTeXMK 开始运行...\n')
 
-    if args.readme: # 如果存在 readme 参数
-        import pkg_resources
-        readme_path = pkg_resources.resource_filename(__name__, "/data/README.html")
-        print(f"正在打开 {readme_path} 文件...")
-        webbrowser.open('file://' + os.path.abspath(readme_path))
-        sys.exit()
-
-    tex_files = MFJ.search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
-    magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
     logger = setup_logger(args.verbose) # 实例化 logger 类
 
-    print(f"PyTeXMK 版本：{__version__}\n")
-    print('PyTeXMK 开始运行...\n')
+    # --------------------------------------------------------------------------------
+    # README 文件打开函数
+    # --------------------------------------------------------------------------------
+    if args.readme: # 如果存在 readme 参数
+        try:
+            with importlib.resources.path(__name__, "data/README.html") as readme_path:
+                print(f"[bold green]正在打开 {readme_path} 文件...")
+                webbrowser.open('file://' + os.path.abspath(readme_path))
+        except Exception as e:
+            logger.error(f"打开 README 文件时出错: {e}")
+        finally:
+            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+            sys.exit()
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
+    tex_files = MFJ.search_tex_file() # 运行 search_tex_file 函数搜索当前目录下所有 tex 文件
+    magic_comments = MFJ.search_magic_comments(tex_files, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
     if args.document: # pytexmk 指定 LaTeX 文件
         project_name = MFJ.check_project_name(args.document) # check_project_name 函数检查 args.document 参数输入的文件名是否正确
-        print(f"通过命令行命令指定主文件为 {project_name}.tex")
+        print(f"通过命令行命令指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
     else: # pytexmk 未指定 LaTeX 文件
         if magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
             project_name = MFJ.check_project_name(magic_comments['root']) # 使用 magic comments 中的 root 作为文件名
-            print(f"通过魔法注释指定主文件为 {project_name}.tex")
+            print(f"通过魔法注释指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
         else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
             project_name = MFJ.search_main_file(tex_files)
 
@@ -224,17 +232,17 @@ def main():
         compiler_engine = "lualatex"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
-        print(f"通过魔法注释设置编译器为 {compiler_engine}")
+        print(f"通过魔法注释设置编译器为 [blod cyan]{compiler_engine}[/blod cyan]")
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
     # --------------------------------------------------------------------------------
     if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
-        print(f"通过魔法注释找到输出目录为 {outdir}")
+        print(f"通过魔法注释找到输出目录为 [blod cyan]{outdir}[/blod cyan]")
     if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
         auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
-        print(f"通过魔法注释找到辅助文件目录为 {auxdir}")
+        print(f"通过魔法注释找到辅助文件目录为 [blod cyan]{auxdir}[/blod cyan]")
 
     # --------------------------------------------------------------------------------
     # 编译程序运行
@@ -255,25 +263,25 @@ def main():
     if project_name: # 如果存在 project_name 
         if args.clean:
             MRC.remove_files(aux_files, auxdir)
-            print('已完成清除所有主文件的辅助文的件指令')
+            print('[bold green]已完成清除所有主文件的辅助文的件指令')
         elif args.Clean:
             MRC.remove_files(aux_files, auxdir)
             MRC.remove_files(aux_files, '.')
             MRC.remove_files(out_files, outdir)
-            print('已完成清除所有主文件的辅助文件和输出文件的指令')
+            print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
         elif args.clean_any:
             MRC.remove_files(aux_regex_files, auxdir)
-            print('已完成清除所有带辅助文件后缀的文件的指令')
+            print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
         elif args.Clean_any:
             MRC.remove_files(aux_regex_files, auxdir)
             MRC.remove_files(aux_regex_files, '.')
             MRC.remove_files(out_files, outdir)
-            print('已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
+            print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
         elif args.clean_pdf:
             MRC.clean_pdf(project_name, '.', outdir)
         else:
             RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet)
-    check_for_updates()
-if __name__ == "__main__":
+    check_for_updates() # 检查更新
 
+if __name__ == "__main__":
     main()

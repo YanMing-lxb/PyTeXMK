@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-07-26 20:28:38 +0800
+LastEditTime : 2024-07-27 15:35:29 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : \PyTeXMK\src\pytexmk\update_check.py
+FilePath     : /PyTeXMK/src/pytexmk/update_check.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -28,9 +28,9 @@ import urllib.request
 import importlib.metadata
 from rich import print
 import logging
- 
+
 logger = logging.getLogger(__name__)  # 创建日志对象
- 
+
 # --------------------------------------------------------------------------------
 # 定义版本更新检查函数
 # --------------------------------------------------------------------------------
@@ -43,16 +43,16 @@ def check_for_updates():
         current_version = importlib.metadata.version("pytexmk")
          
         # 从 PyPI 获取最新的 pytexmk 版本信息
-        url = "https://pypi.org/pypi/pytexmk/json"
+        url = r"https://pypi.org/pypi/pytexmk/json"
         with urllib.request.urlopen(url) as response:
             data = json.loads(response.read())
             latest_version = data['info']['version']
          
         # 比较版本
         if current_version < latest_version:
-            print(f"有新版本可用: {latest_version}。当前版本: {current_version}。")
-            print("请运行 'pip install --upgrade pytexmk' 进行更新。")
+            print(f"有新版本可用: [bold green]{latest_version}[/bold green]。当前版本: [bold red]{current_version}[/bold red]")
+            print("请运行 'pip install --upgrade pytexmk' 进行更新")
         else:
-            logger.info("当前已是最新版本。")
+            print(f"当前已是最新版本: [bold green]{current_version}[/bold green]")
     except Exception as e:
         logger.error(f"检查更新时发生错误: {e}")
