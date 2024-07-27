@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-27 18:51:59 +0800
+LastEditTime : 2024-07-27 19:06:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -39,6 +39,13 @@ class MoveRemoveClean(object):
     # 将文件从文件夹中清除
     # --------------------------------------------------------------------------------
     def remove_files(self, files, folder):
+        """
+        删除指定文件或匹配正则表达式的文件
+        参数:
+        - files: 文件名列表或正则表达式模式列表
+        - folder: 目标文件夹路径
+        """
+        # 删除指定文件或匹配正则表达式的文件
         for file in files:
             # 如果是正则表达式模式，则编译正则表达式
             if file.startswith(".*"):
@@ -55,7 +62,7 @@ class MoveRemoveClean(object):
                                 self.logger.info(f"{file_path} 删除成功")
                             except OSError as e:
                                 self.logger.error(f"{file_path} 删除失败: {e}")
-
+     
             else:
                 file_path = os.path.join(folder, file)
                 if os.path.exists(file_path):
@@ -64,7 +71,6 @@ class MoveRemoveClean(object):
                         self.logger.info(f"{folder} 中 {file} 删除成功")
                     except OSError as e:
                         self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
-
 
     # --------------------------------------------------------------------------------
     # 将文件从源文件夹移动到根目录，如果根目录存在同名文件则覆盖
@@ -142,7 +148,7 @@ class MoveRemoveClean(object):
     # --------------------------------------------------------------------------------
     # 定义清理所有 pdf 文件
     # --------------------------------------------------------------------------------
-    def clean_pdf(self, project_name, root_dir, excluded_folder):
+    def pdf_repair(self, project_name, root_dir, excluded_folder):
         """
         清理指定目录下的PDF文件，排除特定文件夹中的文件，并对每个PDF文件进行修复操作。
          
@@ -196,7 +202,20 @@ class MainFileJudgment(object):
     # 定义输入检查函数
     # --------------------------------------------------------------------------------
     def check_project_name(self, check_project_name):
-        # 检查并处理项目名称，返回处理后的项目名称或None
+        """
+        检查并处理项目名称，返回处理后的项目名称或None
+        参数:
+        check_project_name (str): 待检查的项目名称
+        行为:
+        1. 去掉路径，提取文件名和后缀
+        2. 检查并获取根目录下所有 .tex 文件
+        3. 判断输入文件名中是否包含路径，如果包含则退出程序
+        4. 判断后缀是否是 .tex，如果是则进一步判断文件名是否存在于当前目录下，存在则返回文件名，不存在则退出程序
+        5. 判断输入文件名中没有后缀，如果文件名加上 .tex 后存在于当前目录下，则返回文件名，不存在则退出程序
+        6. 如果输入文件后缀不是 .tex，则退出程序
+        返回:
+        str: 处理后的项目名称或None
+        """
         base_name, file_extension = os.path.splitext(os.path.basename(check_project_name))  # 去掉路径，提取文件名和后缀
 
         tex_files = self.search_tex_file()  # 检查并获取根目录下所有 .tex 文件
@@ -228,6 +247,17 @@ class MainFileJudgment(object):
     # 定义 tex 文件检索函数
     # --------------------------------------------------------------------------------
     def search_tex_file(self):
+        """
+        搜索当前目录下所有以.tex结尾的文件。
+
+        行为说明:
+        - 获取当前路径并列出所有以.tex结尾的文件。
+        - 如果搜索过程中发生异常，则记录错误信息并返回空列表。
+
+        返回值:
+        - 返回一个包含所有以.tex结尾的文件名的列表。
+        - 如果发生异常，返回空列表。
+        """
         try:
             # 获取当前路径并列出所有以.tex结尾的文件
             return [file for file in os.listdir(os.getcwd()) if file.endswith('.tex')]
@@ -240,14 +270,6 @@ class MainFileJudgment(object):
     # 定义 tex 主文件检索函数
     # -------------------------------------------------------------------------------- 
     def search_main_file(self, tex_files):
-        """
-        搜索并确定主 .tex 文件的函数
-        参数:
-        - tex_files: 当前目录下的所有 .tex 文件列表
-        返回值:
-        - project_name: 确定的主文件名（不包含 .tex 扩展名），如果未找到则返回 None
-        """
-     
         current_path = os.getcwd()  # 获取当前路径
         
         if not tex_files:

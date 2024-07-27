@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-27 18:52:10 +0800
+LastEditTime : 2024-07-27 18:58:17 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -181,9 +181,9 @@ def main():
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
     parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
     parser.add_argument('-Ca', '--Clean-any', action='store_true', help="清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件")
-    parser.add_argument('-nq', '--no-quiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
+    parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
-    parser.add_argument('-cp', '--clean-pdf', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
     parser.add_argument('document', nargs='?', help="要被编译的文件名")
     args = parser.parse_args()
 
@@ -277,10 +277,10 @@ def main():
             MRC.remove_files(aux_regex_files, '.')
             MRC.remove_files(out_files, outdir)
             print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
-        elif args.clean_pdf:
-            MRC.clean_pdf(project_name, '.', outdir)
+        elif args.pdf_repair:
+            MRC.pdf_repair(project_name, '.', outdir)
         else:
-            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.no_quiet)
+            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.unquiet)
     check_for_updates() # 检查更新
 
 if __name__ == "__main__":
