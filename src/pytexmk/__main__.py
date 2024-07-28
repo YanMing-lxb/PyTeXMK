@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-28 19:46:00 +0800
+LastEditTime : 2024-07-28 19:53:11 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -242,8 +242,8 @@ def main():
 
     if not project_name: # 其他情况
         logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
-        logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译，或删除当前根目录下多余的 tex 文件")
-        logger.warning(f"当前当前根目录是：{current_path}")
+        logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译，或删除当前根目录下多余的 tex 文件")
+        logger.warning(f"当前根目录是：{current_path}")
         print('[bold red]正在退出 PyTeXMK ...[/bold red]')
         sys.exit(1)
     
