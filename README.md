@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-27 23:07:53 +0800
+ * LastEditTime : 2024-07-28 20:22:29 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -49,9 +49,9 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`xelatex` 编译、主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
+PyTeXMK 默认参数：`xelatex` 编译、待编译主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
 
-请仔细阅读：[主文件及编译类型选定逻辑](#主文件及编译类型选定逻辑)
+请仔细阅读：[待编译主文件及编译类型选定逻辑](#待编译主文件及编译类型选定逻辑)
 
 > PyTeXMK，仅支持 utf-8 编码的 TeX 文件。
 
@@ -89,27 +89,27 @@ PyTeXMK 支持：
 
 ### 魔法注释
 
-PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。    
+PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。
 
-| Magic Comment              | Description                                       |
-|----------------------------|---------------------------------------------------|
-| `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex` |
-| `% !TEX root = file.tex`   | 指定主 LaTeX 文件名，仅支持主文件在项目根目录下的情况 |
-| `% !TEX outdir = PDFfile`  | 指定编译结果存放位置，仅支持文件夹名称               |
-| `% !TEX auxdir = auxfiles` | 指定辅助文件存放位置，仅支持文件夹名称               |
+| Magic Comment              | Description                                            |
+|----------------------------|--------------------------------------------------------|
+| `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex`       |
+| `% !TEX root = file.tex`   | 指定待编译 LaTeX 文件名，仅支持主文件在项目根目录下的情况   |
+| `% !TEX outdir = PDFfile`  | 指定编译结果存放位置，仅支持文件夹名称                     |
+| `% !TEX auxdir = auxfiles` | 指定辅助文件存放位置，仅支持文件夹名称                     |
 
 > 魔法注释仅支持在主文件中定义，不支持在子文件中定义。
 
-### 主文件及编译类型选定逻辑
-<!-- [ ]: 完善主文件及编译类型选定逻辑说明 -->
+### 待编译主文件及编译类型选定逻辑
 
 - PyTeXMK 优先使用终端输入命令 `-p` `-x` `-l` 参数指定的编译类型，如果没有指定，则会使用 `% !TEX program = xelatex` 指定的编译类型，如果没有指定，则会使用默认的编译类型 `xelatex`
-- PyTeXMK 主文件选定逻辑顺序：
-    1. 使用终端输入的文件名
-    2. 使用 `% !TEX root = file.tex` 指定的主 LaTeX 文件名
-    3. 使用默认的主文件名 `main.tex`
+- PyTeXMK 待编译主文件选定逻辑顺序：
+    1. 如果命令行参数中指定了主文件，则使用该主文件名。
+    2. 如果当前根目录下存在且只有一个主文件，则使用该文件作为待编译主文件。
+    3. 如果存在魔法注释 `% !TEX root`，则根据魔法注释指定的文件作为主文件。
     4. 检索 TeX 文件中的 `\documentclass[]{}` 或 `\begin{document}` 来判断（仅支持检索文档前 200 行）
-    5. 根目录下 TeX 文件中只有一个文件，则选择该文件作为主文件
+    5. 如果无法根据魔法注释确定主文件，则尝试根据默认主文件名 `main.tex` 指定待编译主文件。
+    6. 如果仍然无法确定主文件，则输出错误信息并退出程序。
         
 - PyTeXMK 会优先使用 `% !TEX outdir = PDFfile` 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 `Build`
 
