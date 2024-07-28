@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-27 23:04:45 +0800
+LastEditTime : 2024-07-28 10:01:17 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -97,7 +97,6 @@ class MoveRemoveClean(object):
         - 记录移动成功或失败的信息。
         """
         if not os.path.exists(src_folder):
-            self.logger.error(f"源文件夹 {src_folder} 不存在")
             return
 
         for file in files:
