@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-27 23:05:43 +0800
+LastEditTime : 2024-07-28 10:06:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -165,6 +165,7 @@ def main():
     # 定义命令行参数
     # --------------------------------------------------------------------------------
     # TODO 完善对魔法注释的说明
+    # TODO 添加latexdiff的功能
     parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues",epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
