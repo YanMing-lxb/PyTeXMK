@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-28 19:53:11 +0800
+LastEditTime : 2024-07-28 20:45:08 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -166,7 +166,12 @@ def main():
     # --------------------------------------------------------------------------------
     # TODO 完善对魔法注释的说明
     # TODO 添加latexdiff的功能
-    parser = argparse.ArgumentParser(description="LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues",epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
+    parser = argparse.ArgumentParser(
+        description=r"""
+LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。
+如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues""",
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
     parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
@@ -179,7 +184,7 @@ def main():
     parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
-    parser.add_argument('document', nargs='?', help="要被编译的文件名")
+    parser.add_argument('document', nargs='?', help="待编译主文件名")
     args = parser.parse_args()
 
     print(f"PyTeXMK 版本：[bold green]{__version__}[/bold green]\n")
