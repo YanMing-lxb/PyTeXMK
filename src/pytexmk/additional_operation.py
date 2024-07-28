@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-28 10:01:17 +0800
+LastEditTime : 2024-07-28 19:49:28 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -206,101 +206,112 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义输入检查函数
     # --------------------------------------------------------------------------------
-    def check_project_name(self, check_project_name):
-        """
-        检查并处理项目名称，返回处理后的项目名称或None
-        参数:
-        - check_project_name (str): 待检查的项目名称
-        行为:
-        1. 去掉路径，提取文件名和后缀
-        2. 检查并获取根目录下所有 .tex 文件
-        3. 判断输入文件名中是否包含路径，如果包含则退出程序
-        4. 判断后缀是否是 .tex，如果是则进一步判断文件名是否存在于当前目录下，存在则返回文件名，不存在则退出程序
-        5. 判断输入文件名中没有后缀，如果文件名加上 .tex 后存在于当前目录下，则返回文件名，不存在则退出程序
-        6. 如果输入文件后缀不是 .tex，则退出程序
-        返回:
-        - str: 处理后的项目名称或None
-        """
+    def check_project_name(self, main_tex_files, check_project_name):
         base_name, file_extension = os.path.splitext(os.path.basename(check_project_name))  # 去掉路径，提取文件名和后缀
 
-        tex_files = self.search_tex_file()  # 检查并获取根目录下所有 .tex 文件
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
-            self.logger.error("输入文件名中不能包含路径")
-            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+            self.logger.error("待编译主文件名中不能包含路径")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
-        elif file_extension == '.tex':  # 判断后缀是否是 .tex
-            if check_project_name in tex_files:  # 判断文件名是否在 tex_files 中
+        if file_extension == '.tex':  # 判断后缀是否是 .tex
+            if base_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return base_name
             else:
-                self.logger.error("输入文件名不存在于当前目录下")
-                print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+                self.logger.error(f"待编译主文件名 [bold cyan]{check_project_name}.tex[/bold cyan] 不存在于当前根目录下")
+                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1)
-        elif '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
-            if f'{check_project_name}.tex' in tex_files:  # 判断文件名是否在 tex_files 中
+        if '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
+            if check_project_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return check_project_name
             else:
-                self.logger.error("输入文件名不存在于当前目录下")
-                print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+                self.logger.error(f"待编译主文件 [bold cyan]{check_project_name}.tex[/bold cyan] 不存在于当前根目录下")
+                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1)
         else:
-            self.logger.error("输入文件后缀不是.tex")
-            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+            self.logger.error(f"待编译主文件 [bold cyan]{check_project_name}[/bold cyan] 后缀不是.tex")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
-
 
     # --------------------------------------------------------------------------------
     # 定义 tex 文件检索函数
     # --------------------------------------------------------------------------------
     def get_tex_files_in_root(self):
-        """
-        搜索当前目录下所有以.tex结尾的文件。
-
-        行为说明:
-        - 获取当前路径并列出所有以.tex结尾的文件。
-        - 如果搜索过程中发生异常，则记录错误信息并返回空列表。
-
-        返回值:
-        - 返回一个包含所有以.tex结尾的文件名的列表。
-        - 如果发生异常，返回空列表。
-        """
+        tex_files_in_root = []
         try:
             # 获取当前路径并列出所有以.tex结尾的文件
-            return [file for file in os.listdir(os.getcwd()) if file.endswith('.tex')]
+            for file in os.listdir(os.getcwd()):
+                if file.endswith('.tex'):
+                    base_name, _ = os.path.splitext(os.path.basename(file))  # 去掉路径，提取文件名和后缀
+                    tex_files_in_root.append(base_name)
+                    self.logger.info(f"搜索到 {base_name}.tex 文件")
+            
+            if tex_files_in_root:
+                self.logger.info(f"共发现 {len(tex_files_in_root)} 个 TeX 文件")
+            else:
+                self.logger.error("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
+                self.logger.warning(f"当前终端路径是：{os.getcwd()}")
+                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+                sys.exit(1)
         except Exception as e:
             self.logger.error(f"搜索TeX文件时出错: {e}")
-            return []
+        return tex_files_in_root
     
     # --------------------------------------------------------------------------------
     # 定义 tex 文件 \documentclass 和 \begin{document} 检索函数
     # --------------------------------------------------------------------------------
-    def find_tex_commands(self, tex_files_in_root): # TODO 添加注释
+    def find_tex_commands(self, tex_files_in_root):
         main_tex_files = []
         for file_name in tex_files_in_root:
             try:
-                with open(file_name, 'r', encoding='utf-8') as file:
+                with open(f'{file_name}.tex', 'r', encoding='utf-8') as file:
+                    is_main_file = False
                     for _ in range(200):
                         line = file.readline()
                         if line.strip().startswith('%'):
                             continue
                         if "\documentclass" in line or r"\begin{document}" in line:
-                            main_tex_files.append(file_name)
+                            is_main_file = True
+                    if is_main_file:
+                        main_tex_files.append(file_name)
+                    self.logger.info(f"已通过特征命令检索到主文件 {file_name}")
             except Exception as e:
-                self.logger.error(f"读取文件 {file_name} 时出错: {e}")
+                self.logger.error(f"读取文件 {file_name}.tex 时出错: {e}")
                 continue
+        if main_tex_files:
+            self.logger.info(f"共发现 {len(main_tex_files)} 个主文件")
+        else:
+            self.logger.error("终端路径下不存在主文件！请检查终端显示路径是否是项目路径")
+            self.logger.warning(f"当前终端路径：{os.getcwd()}")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+            sys.exit(1)
         return main_tex_files
-
 
     # --------------------------------------------------------------------------------
     # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
-    # TODO 添加注释
     def search_magic_comments(self, main_file_in_root, magic_comment_keys):  # 搜索TeX文件中的魔法注释
-        extracted_magic_comments = {}  # 创建空字典用于存储结果
+        """
+        搜索指定TeX文件中的魔法注释。
+
+        参数:
+        - main_file_in_root (list): 包含TeX文件路径的列表。
+        - magic_comment_keys (list): 包含魔法注释关键字的列表。
+
+        返回:
+        - dict: 包含所有魔法注释的字典，格式为{magic_comment_key: [(file_path, magic_comment_value),...],...}。
+
+        行为逻辑:
+        1. 遍历TeX文件列表，打开每个文件并读取前50行。
+        2. 使用正则表达式匹配魔法注释关键字。
+        3. 如果匹配到魔法注释，将其存储在字典中。
+        4. 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}。
+        5. 返回包含所有魔法注释的字典。
+        """
         file_magic_comments = {}  # 用于存储每个文件的魔法注释
 
         for file_path in main_file_in_root:  # 遍历TeX文件列表
             try:
-                with open(file_path, 'r', encoding='utf-8') as file:  # 打开文件
+                with open(f'{file_path}.tex', 'r', encoding='utf-8') as file:  # 打开文件
                     for line_number, line_content in enumerate(file, start=1):  # 遍历文件的前50行
                         if line_number > 50:  # 只处理前50行
                             break
@@ -317,22 +328,11 @@ class MainFileJudgment(object):
                 self.logger.error(f"读取文件 {file_path} 时出错: {e}")
                 continue  # 跳过当前文件，继续处理下一个文件
 
-        # 检查重复魔法注释
-        all_extracted_comments = {}
+        # 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}
+        all_magic_comments = {}
         for file_path, comments in file_magic_comments.items():  # 遍历文件魔法注释字典
             for key, value in comments.items():  # 遍历每个文件的魔法注释
-                if key not in all_extracted_comments:  # 如果关键字不在字典中
-                    all_extracted_comments[key] = []
-                all_extracted_comments[key].append((file_path, value))  # 存储文件路径和魔法注释值
-        if len(all_extracted_comments['root']) > 1:  # 如果根目录魔法注释在多个文件中重复
-            self.logger.error("魔法注释 % !TEX root 在当前根目录下的多个tex文件中同时定义")
-            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
-            sys.exit(1)
-        elif len(all_extracted_comments['root']) == 1:  # 如果根目录魔法注释只在一个文件中定义
-            for key, values in all_extracted_comments.items():  # 遍历所有提取的魔法注释
-                extracted_magic_comments[key] = values[0][1]  # 存储魔法注释
-                self.logger.info(f"已从 {values[0][0]} 中提取魔法注释 % !TEX {key} = {values[0][1]}")
-        else:  # 如果根目录魔法注释未定义
-            self.logger.info("当前根目录下的主文件中不存在根目录魔法注释")
-
-        return extracted_magic_comments  # 返回提取的键值对字典
+                if key not in all_magic_comments:  # 如果关键字不在字典中
+                    all_magic_comments[key] = []
+                all_magic_comments[key].append((file_path, value))  # 存储文件路径和魔法注释值
+        return all_magic_comments  # 返回提取的键值对字典

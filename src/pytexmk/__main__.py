@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-28 10:41:13 +0800
+LastEditTime : 2024-07-28 19:46:00 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -198,43 +198,64 @@ def main():
         except Exception as e:
             logger.error(f"打开 README 文件时出错: {e}")
         finally:
-            print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit()
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
     # TODO 添加块注释，或者整合到additional_operation.py中
-    tex_files_in_root = MFJ.get_tex_files_in_root() # 运行 get_tex_file_in_root 函数搜索当前根目录下所有 tex 文件
-    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 get_main_file_in_root 函数搜索当前根目录下是否存在主文件
-    magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 tex_files 列表中是否存在 magic comments
-    if not main_file_in_root: # 如果当前根目录下不存在 tex 文件
-        current_path = os.getcwd()  # 获取当前路径
-        logger.error("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
-        logger.warning(f"当前终端路径是：{current_path}")
-        print('[blod red]正在退出 PyTeXMK ...[/blod red]')
-        sys.exit(1)
-    elif args.document: # pytexmk 指定 LaTeX 文件
+    project_name = '' # 待编译主文件名
+    tex_files_in_root = MFJ.get_tex_files_in_root() # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件，并去掉文件后缀
+    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
+    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
+    magic_comments = {} # 存储魔法注释
+    current_path = os.getcwd()  # 获取当前路径
+    if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
         project_name = args.document # 使用命令行参数指定主文件
-        print(f"通过命令行命令指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
-    elif len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个具有\documentclass 和 \begin{document}命令的tex文件
-        project_name = main_file_in_root[0] # 使用该文件作为主文件
-        print(f"通过根目录下唯一 tex 文件指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
-    elif magic_comments.get('root'): # 如果存在 magic comments 且 root 存在
-        project_name = magic_comments['root'] # 使用 magic comments 中的 root 作为主文件
-        print(f"通过魔法注释指定主文件为 [blod cyan]{project_name}.tex[/blod cyan]")
-    elif len(main_file_in_root) > 1: # 如果当前根目录下存在多个具有\documentclass 和 \begin{document}命令的tex文件
+        print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
+    if len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个主文件
+        project_name = main_file_in_root[0] # 使用该文件作为待编译主文件
+        print(f"通过根目录下唯一主文件指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
+
+    if 'root' in all_magic_comments: # 当前目录下存在多个主文件，且存在 % TEX root 魔法注释
+        logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
+        if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件，且只有一个存在 % TEX root 魔法注释
+            logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
+            check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1]) # 检查 magic comments 中指定的 root 文件名是否正确
+            if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
+                project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
+                print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
+            else: # 如果 magic comments 中指定的 root 文件名与当前文件名不同
+                logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同，无法确定主文件")
+        if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件，且多个 tex 文件中同时存在 % TEX root 魔法注释
+            logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义，无法根据魔法注释确定待编译主文件") 
+
+    if not project_name: # 如果当前根目录下存在多个主文件，且不存在 % TEX root 魔法注释，并且待编译主文件还没有找到
+        logger.info("无法根据魔法注释判断出待编译主文件，尝试根据默认主文件名指定待编译主文件")
         for file in main_file_in_root:
-            if MFJ.check_project_name(file) == "main": # 如果存在 main.tex 文件
-                project_name = file # 使用 main.tex 文件作为主文件
-                print(f"通过默认文件名 \"main.tex\" 找到 [blod cyan]{project_name}.tex[/blod cyan]")
-    else: # pytexmk 和魔法注释都不存在，使用search_main_file方法搜索主文件
+            if file == "main": # 如果存在 main.tex 文件
+                project_name = file # 使用 main.tex 文件作为待编译主文件名
+                print(f"通过默认文件名 \"main.tex\" 指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
+        if not project_name: # 如果不存在 main.tex 文件
+            logger.info("当前根目录下不存在名为 \"main.tex\" 的文件")
+
+    if not project_name: # 其他情况
         logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
-        logger.warning("请修改主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译，或删除当前根目录下多余的 tex 文件")
+        logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 “% !TEX root = <主文件名>” 或在终端输入 pytexmk <主文件名> 名进行编译，或删除当前根目录下多余的 tex 文件")
         logger.warning(f"当前当前根目录是：{current_path}")
-        print('[blod red]正在退出 PyTeXMK ...[/blod red]')
+        print('[bold red]正在退出 PyTeXMK ...[/bold red]')
         sys.exit(1)
-    project_name = MFJ.check_project_name(project_name) # 检查 project_name 是否正确
+    
+    project_name = MFJ.check_project_name(main_file_in_root, project_name) # 检查 project_name 是否正确
+
+    if all_magic_comments: # 如果存在魔法注释
+        for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
+            for value in values:  # 遍历魔法注释中所有值
+                if value[0] == project_name:  # 如果是project_name对应的文件
+                    magic_comments[key] = value[1]  # 存储魔法注释
+                    logger.info(f"已从 {value[0]}.tex 中提取魔法注释 % !TEX {key} = {value[1]}")
+    
 
     # --------------------------------------------------------------------------------
     # 编译类型判断
@@ -247,17 +268,17 @@ def main():
         compiler_engine = "lualatex"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
-        print(f"通过魔法注释设置编译器为 [blod cyan]{compiler_engine}[/blod cyan]")
+        print(f"通过魔法注释设置编译器为 [bold cyan]{compiler_engine}[/bold cyan]")
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
     # --------------------------------------------------------------------------------
     if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
-        print(f"通过魔法注释找到输出目录为 [blod cyan]{outdir}[/blod cyan]")
+        print(f"通过魔法注释找到输出目录为 [bold cyan]{outdir}[/bold cyan]")
     if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
         auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
-        print(f"通过魔法注释找到辅助文件目录为 [blod cyan]{auxdir}[/blod cyan]")
+        print(f"通过魔法注释找到辅助文件目录为 [bold cyan]{auxdir}[/bold cyan]")
 
     # --------------------------------------------------------------------------------
     # 编译程序运行
