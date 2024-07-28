@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-07-27 19:26:33 +0800
+LastEditTime : 2024-07-28 10:19:16 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -88,9 +88,9 @@ def print_message(message):
         left_padding = padding_size // 2
         right_padding = padding_size - left_padding
         banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding
-        console.print("\n\n" + "=" * 80, style="yellow bold")
+        console.print("\n" + "=" * 80, style="yellow bold")
         console.print(banner, style="red on white bold")
-        console.print("=" * 80 + "\n\n", style="yellow bold")
+        console.print("=" * 80 + "\n", style="yellow bold")
     except Exception as e:
         logger.error(f"执行函数 print_message 时出错: {e}")
     
