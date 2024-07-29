@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-07-27 21:24:18 +0800
+LastEditTime : 2024-07-29 21:50:18 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -42,7 +42,7 @@ class UpdateChecker:
     - cache_file: 缓存文件路径，存储最新版本信息。
     - cache_lifetime: 缓存有效期（秒），超出有效期将重新获取最新版本信息。
     """
-
+    # TODO 缩短缓存有效期，比如1小时，联网检查更新放到新的线程中
     def __init__(self):
         """
         初始化 UpdateChecker 对象，设置日志，获取 pytexmk 安装路径，
@@ -54,7 +54,7 @@ class UpdateChecker:
         os.makedirs(data_path, exist_ok=True)
         self.cache_file = os.path.join(data_path, "pytexmk_version_cache.json")
 
-        self.cache_lifetime = 86400  # 缓存有效期，比如1天
+        self.cache_lifetime = 43200  # 缓存有效期，12小时
  
     def load_cached_version(self):
         """
