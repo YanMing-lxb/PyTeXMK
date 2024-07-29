@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-28 20:45:08 +0800
+LastEditTime : 2024-07-29 08:56:57 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -197,9 +197,11 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     if args.readme: # 如果存在 readme 参数
         try:
-            with importlib.resources.path(__name__, "data/README.html") as readme_path:
-                print(f"[bold green]正在打开 {readme_path} 文件...")
-                webbrowser.open('file://' + os.path.abspath(readme_path))
+            data_path = importlib.resources.files('pytexmk') / 'data'
+            readme_path = os.path.join(data_path, "README.html")
+            print(f"[bold green]正在打开 README 文件...")
+            logger.info('README 的本地路径是：file://' + os.path.abspath(readme_path))
+            webbrowser.open('file://' + os.path.abspath(readme_path))
         except Exception as e:
             logger.error(f"打开 README 文件时出错: {e}")
         finally:
