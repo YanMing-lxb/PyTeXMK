@@ -16,20 +16,20 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-07-29 08:56:57 +0800
+LastEditTime : 2024-08-01 20:58:49 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import os
 import sys
 import argparse
 import datetime
 import webbrowser
-import importlib.resources
 from rich import print
+from pathlib import Path
+import importlib.resources
 from .version import script_name, __version__
 from .compile_model import CompileModel
 from .logger_config import setup_logger
@@ -197,14 +197,20 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     if args.readme: # 如果存在 readme 参数
         try:
-            data_path = importlib.resources.files('pytexmk') / 'data'
-            readme_path = os.path.join(data_path, "README.html")
+            # 使用 pathlib 获取包数据路径
+            data_path = Path(importlib.resources.files('pytexmk')) / 'data'
+            # 使用 pathlib 拼接 README.html 文件路径
+            readme_path = data_path / "README.html"
             print(f"[bold green]正在打开 README 文件...")
-            logger.info('README 的本地路径是：file://' + os.path.abspath(readme_path))
-            webbrowser.open('file://' + os.path.abspath(readme_path))
+            # 使用 pathlib 获取 README.html 文件的绝对路径
+            logger.info('README 的本地路径是：file://' + readme_path.resolve().as_posix())
+            # 使用 webbrowser 打开 README.html 文件
+            webbrowser.open('file://' + readme_path.resolve().as_posix())
         except Exception as e:
+            # 记录打开 README 文件时的错误信息
             logger.error(f"打开 README 文件时出错: {e}")
         finally:
+            # 打印退出信息并退出程序
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit()
 
@@ -217,7 +223,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
-    current_path = os.getcwd()  # 获取当前路径
+    current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
     if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
         project_name = args.document # 使用命令行参数指定主文件
         print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")

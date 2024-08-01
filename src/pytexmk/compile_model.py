@@ -16,19 +16,19 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-07-27 19:58:14 +0800
+LastEditTime : 2024-08-01 20:42:46 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import os
 import re
 import sys
 import logging
 import subprocess
 from rich import print  # 导入rich库的print函数
+from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
@@ -134,12 +134,12 @@ class CompileModel(object):
     def prepare_LaTeX_output_files(self):
         """
         准备LaTeX输出文件的相关信息。
-        
+         
         返回值:
         - cite_counter: 引用计数器，包含引用信息的字典。
         - toc_file: toc文件内容，字符串类型。
         - index_aux_content_dict_old: 词汇表文件内容，字典类型。
-
+ 
         行为说明:
         - 检查是否存在项目名称对应的.aux文件。如果存在，生成引用计数器并读取词汇表内容。
         - 如果不存在.aux文件，初始化引用计数器为默认值，词汇表内容为空字典。
@@ -147,8 +147,10 @@ class CompileModel(object):
         - 如果不存在.toc文件，初始化toc_file为空字符串。
         - 返回引用计数器、toc文件内容和词汇表文件内容。
         """
+        # 使用Path对象创建项目名称对应的.aux文件路径
+        aux_file_path = Path(f'{self.project_name}.aux')
         # 检查是否存在项目名称对应的.aux文件
-        if os.path.exists(f'{self.project_name}.aux'):
+        if aux_file_path.exists():
             # 生成引用计数器
             cite_counter = self._generate_citation_counter()
             # 读取词汇表
@@ -157,18 +159,20 @@ class CompileModel(object):
             # 如果不存在.aux文件，初始化引用计数器为默认值
             cite_counter = {f'{self.project_name}.aux' : defaultdict(int)}
             index_aux_content_dict_old = dict()
+        # 使用Path对象创建项目名称对应的.toc文件路径
+        toc_file_path = Path(f'{self.project_name}.toc')
         # 检查是否存在.toc文件
-        if os.path.exists(f'{self.project_name}.toc'):
+        if toc_file_path.exists():
             # 读取.toc文件内容
-            with open(f'{self.project_name}.toc', 'r', encoding='utf-8') as fobj:
+            with open(toc_file_path, 'r', encoding='utf-8') as fobj:
                 toc_file = fobj.read()
         else:
             # 如果不存在.toc文件，初始化toc_file为空字符串
             toc_file = ''
-
+ 
         # 返回引用计数器、toc文件内容和词汇表文件内容
         return cite_counter, toc_file, index_aux_content_dict_old
-
+    
     # --------------------------------------------------------------------------------
     # 定义参考文献引用次数获取函数
     # --------------------------------------------------------------------------------
@@ -212,10 +216,10 @@ class CompileModel(object):
     def _index_aux_content_get(self): 
         """
         获取项目中所有索引辅助文件的内容，并将其存储在一个字典中。
-        
+         
         返回:
         - index_aux_content_dict_old (dict): 包含所有辅助文件内容的字典。
-
+ 
         行为逻辑说明:
         1. 构造主aux文件的文件名，格式为项目名加上.aux后缀。
         2. 定义一个字典，用于存储旧的索引辅助文件内容。
@@ -225,51 +229,51 @@ class CompileModel(object):
         6. 如果没有找到主aux文件，则记录警告信息。
         7. 返回存储了所有辅助文件内容的字典。
         """
-        file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
+        file_name = Path(f'{self.project_name}.aux')  # 使用pathlib构造主aux文件的文件名，格式为项目名加上.aux后缀
         index_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
-
+ 
         # 读取主aux文件
-        if os.path.exists(file_name):  # 检查主aux文件是否存在
+        if file_name.exists():  # 使用pathlib检查主aux文件是否存在
             # 判断并获取 glossaries 宏包的辅助文件内容
-            if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
+            if any(Path(f"{self.project_name}{ext}").exists() for ext in [".glo", ".acn", ".slo"]):
                 with open(file_name, 'r', encoding='utf-8') as fobj:
                     main_aux = fobj.read()
                 pattern = r'\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}'  # 定义正则表达式模式，用于匹配词汇表条目
                 for match in re.finditer(pattern, main_aux):  # 使用正则表达式查找所有匹配的词汇表条目
                     name, ext_o, ext_i = match.groups()  # 提取匹配的组，分别是词汇表名称、输出扩展和输入扩展
-                    if os.path.exists(f"{self.project_name}{ext_i}") and os.path.exists(f"{self.project_name}{ext_o}"):  # 判断输出和输入扩展文件是否同时存在
-                        with open(f"{self.project_name}{ext_o}", 'r', encoding='utf-8') as fobj:
+                    if Path(f"{self.project_name}{ext_i}").exists() and Path(f"{self.project_name}{ext_o}").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
+                        with open(Path(f"{self.project_name}{ext_o}"), 'r', encoding='utf-8') as fobj:
                             index_ext_i_content = fobj.read()
                         index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
-
+ 
             # 判断并获取 nomencl 宏包的辅助文件内容
-            if os.path.exists(f"{self.project_name}.nlo"):
-                if os.path.exists(f"{self.project_name}.nlo") and os.path.exists(f"{self.project_name}.nls"):  # 判断输出和输入扩展文件是否同时存在
-                    with open(f"{self.project_name}.nlo", 'r', encoding='utf-8') as fobj:
+            if Path(f"{self.project_name}.nlo").exists():
+                if Path(f"{self.project_name}.nlo").exists() and Path(f"{self.project_name}.nls").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
+                    with open(Path(f"{self.project_name}.nlo"), 'r', encoding='utf-8') as fobj:
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.nlo'] = index_ext_i_content
-
+ 
             # 判断并获取 makeidx 宏包的辅助文件内容
-            if os.path.exists(f"{self.project_name}.idx"):
-                if os.path.exists(f"{self.project_name}.idx") and os.path.exists(f"{self.project_name}.ind"):  # 判断输出和输入扩展文件是否同时存在
-                    with open(f"{self.project_name}.idx", 'r', encoding='utf-8') as fobj:
+            if Path(f"{self.project_name}.idx").exists():
+                if Path(f"{self.project_name}.idx").exists() and Path(f"{self.project_name}.ind").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
+                    with open(Path(f"{self.project_name}.idx"), 'r', encoding='utf-8') as fobj:
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
             self.logger.warning(f"没有找到名为{self.project_name}.aux 的文件")
-
+ 
         return index_aux_content_dict_old
-
+    
     # --------------------------------------------------------------------------------
     # 定义目录更新判断函数
     # --------------------------------------------------------------------------------
     def toc_changed_judgment(self, toc_file):
         """
         判断toc文件内容是否发生变化。
-
+ 
         参数:
         - toc_file: 传入的toc文件内容，用于与当前项目中的toc文件内容进行比较。
-
+ 
         行为逻辑:
         1. 生成toc文件的完整路径。
         2. 检查toc文件是否存在。
@@ -277,12 +281,11 @@ class CompileModel(object):
         4. 比较toc文件内容与传入的toc_file内容。
         5. 如果内容不同，返回True表示toc文件已变化。
         """
-        file_name = f'{self.project_name}.toc'   # 生成toc文件的完整路径
-        if os.path.exists(file_name):  # 检查toc文件是否存在
+        file_name = Path(self.project_name).with_suffix('.toc')  # 使用pathlib生成toc文件的完整路径
+        if file_name.exists():  # 使用pathlib检查toc文件是否存在
             with open(file_name, 'r', encoding='utf-8') as fobj:  # 打开toc文件
                 if fobj.read() != toc_file:  # 比较toc文件内容与传入的toc_file内容
                     return True  # 如果内容不同，返回True表示toc文件已变化
-
 
     # --------------------------------------------------------------------------------
     # 定义 TeX 编译函数
@@ -350,38 +353,41 @@ class CompileModel(object):
         9. 如果没有引用参考文献或编译工具不属于bibtex或biber，则更新编译信息。
         10. 返回编译引擎、额外编译次数、编译信息和目标名称。
         """
-        bib_engine = None
-        name_target = None
-        Latex_compilation_times = 0
-        if os.path.exists(f"{self.project_name}.aux"):
-            with open(f"{self.project_name}.aux", 'r', encoding='utf-8') as fobj:
-                aux_content = fobj.read()
-            match_biber = BIBER_PATTERN.search(aux_content) # 检索aux辅助文件中是否存在biber特征命令
-            match_bibtex = BIBTEX_PATTERN.search(aux_content)
-            if match_biber or match_bibtex: # 判断是否使用biber或bibtex编译
-                if match_biber: # 判断应使用 biber 引擎编译
-                    with open(f"{self.project_name}.bcf", 'r', encoding='utf-8') as fobj:
-                        match_biber_bib = BIBER_BIB_PATTERN.search(fobj.read()) # 检索bcf文件中是否存在bib文件名
+        bib_engine = None  # 初始化参考文献编译引擎为None
+        name_target = None  # 初始化目标名称为None
+        Latex_compilation_times = 0  # 初始化LaTeX编译次数为0
+        aux_file_path = Path(f"{self.project_name}.aux")  # 使用pathlib创建aux文件路径
+        if aux_file_path.exists():  # 检查aux文件是否存在
+            with aux_file_path.open('r', encoding='utf-8') as fobj:  # 打开aux文件
+                aux_content = fobj.read()  # 读取aux文件内容
+            match_biber = BIBER_PATTERN.search(aux_content)  # 检索aux辅助文件中是否存在biber特征命令
+            match_bibtex = BIBTEX_PATTERN.search(aux_content)  # 检索aux辅助文件中是否存在bibtex特征命令
+            if match_biber or match_bibtex:  # 判断是否使用biber或bibtex编译
+                if match_biber:  # 判断应使用 biber 引擎编译
+                    bcf_file_path = Path(f"{self.project_name}.bcf")  # 使用pathlib创建bcf文件路径
+                    with bcf_file_path.open('r', encoding='utf-8') as fobj:  # 打开bcf文件
+                        match_biber_bib = BIBER_BIB_PATTERN.search(fobj.read())  # 检索bcf文件中是否存在bib文件名
                     if not match_biber_bib:
                         print_bib = f"没有设置名为{self.bib_file} 的参考文献数据库文件"
                     else:
-                        self.bib_file = match_biber_bib.group(1)
-                        bib_engine = 'biber'
-                        Latex_compilation_times = 2 # LaTeX 额外编译次数 
+                        self.bib_file = match_biber_bib.group(1)  # 获取bib文件名
+                        bib_engine = 'biber'  # 设置参考文献编译引擎为biber
+                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
                 
-                elif match_bibtex: # 判断应使用 bibtex 引擎编译
-                    match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)
+                elif match_bibtex:  # 判断应使用 bibtex 引擎编译
+                    match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)  # 检索aux文件中是否存在bib文件名
                     if not match_bibtex_bib:
                         print_bib =  f"没有设置名为{self.bib_file} 的参考文献数据库文件"
                     else:
-                        self.bib_file = match_bibtex_bib.group(1)
-                        bib_engine = 'bibtex'
-                        Latex_compilation_times = 2 # LaTeX 额外编译次数 
+                        self.bib_file = match_bibtex_bib.group(1)  # 获取bib文件名
+                        bib_engine = 'bibtex'  # 设置参考文献编译引擎为bibtex
+                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
 
                 print_bib = f"{bib_engine} 编译参考文献"
                 name_target = f"{bib_engine} 编译"
 
-                if not os.path.exists(f'{self.bib_file}'):  # 没有检查到 bib 文件
+                bib_file_path = Path(self.bib_file)  # 使用pathlib创建bib文件路径
+                if not bib_file_path.exists():  # 检查bib文件是否存在
                     print_bib = f"没有找到名为{self.bib_file} 的参考文献数据库文件"
                     Latex_compilation_times = 2
                 
@@ -402,8 +408,8 @@ class CompileModel(object):
                 print_bib = "没有引用参考文献或编译工具不属于 bibtex 或 biber "
         else:
             self.logger.warning(f"没有找到名为{self.project_name}.aux 的文件")
-        return bib_engine, Latex_compilation_times, print_bib, name_target
-
+        return bib_engine, Latex_compilation_times, print_bib, name_target  # 返回参考文献编译引擎、LaTeX编译次数、打印信息和目标名称
+    
     # --------------------------------------------------------------------------------
     # 定义参考文献编译函数
     # --------------------------------------------------------------------------------
@@ -463,7 +469,7 @@ class CompileModel(object):
         if re.search(f'No file {index_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
             print_index = '日志文件提示没有输入文件，已重新编译索引'
             make_index = True  # 如果包含，则需要重新生成词汇表
-        elif os.path.exists(index_aux_infile) and os.path.exists(index_aux_outfile):  # 判断输出和输入扩展文件是否同时存在
+        elif Path(index_aux_infile).exists() and Path(index_aux_outfile).exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
             with open(index_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
                 file_content = fobj.read()  # 读取文件内容并存储在变量中
             if file_content is not None:
@@ -502,10 +508,10 @@ class CompileModel(object):
         6. 如果以上宏包都不存在，则提示用户采用其他宏包制作索引。
         7. 返回打印的索引信息和需要运行的索引命令列表。
         """
-        file_name = f'{self.project_name}.aux' # 构造主aux文件的文件名，格式为项目名加上.aux后缀
+        file_name = Path(f'{self.project_name}.aux') # 构造主aux文件的文件名，格式为项目名加上.aux后缀
         run_index_list_cmd = [] # 初始化需要运行 index 的命令列表
         # 判断并获取 glossaries 宏包的辅助文件名称
-        if any(os.path.exists(f"{self.project_name}{ext}") for ext in [".glo", ".acn", ".slo"]):
+        if any(Path(f"{self.project_name}{ext}").exists() for ext in [".glo", ".acn", ".slo"]):
             with open(file_name, 'r', encoding='utf-8') as fobj:
                 main_aux = fobj.read()
             pattern = r'\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}'  # 定义正则表达式模式，用于匹配词汇表条目
@@ -515,20 +521,20 @@ class CompileModel(object):
                 if make_index:
                     run_index_list_cmd.append([f'glossaries {name}', f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}"])
         # 判断并获取 nomencl 宏包的辅助文件名称
-        elif os.path.exists(f"{self.project_name}.nlo"):
+        elif Path(f"{self.project_name}.nlo").exists():
             print_index, make_index = self._index_changed_judgment(index_aux_content_dict_old, f"{self.project_name}.nlo", f"{self.project_name}.nls")
             if make_index:
                 run_index_list_cmd.append(['nomencl', f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo"])
 
         # 判断并获取 makeidx 宏包的辅助文件名称
-        elif os.path.exists(f"{self.project_name}.idx"):
+        elif Path(f"{self.project_name}.idx").exists():
             print_index, make_index = self._index_changed_judgment(index_aux_content_dict_old, f"{self.project_name}.idx", f"{self.project_name}.ind")
             if make_index:
                 run_index_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
         else:
             print_index = "采用 glossaries、nomencl 和 makeidx 以外的宏包制作索引。"
         return print_index, run_index_list_cmd
-    
+
     # --------------------------------------------------------------------------------
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
@@ -603,8 +609,8 @@ def _count_citations(file_name):
 
     行为逻辑:
     1. 打开并读取aux文件的内容。
-    2. 使用正则表达式模式BIBER_CITE_PATTERN查找所有的\abx@aux@cite，并统计每个citation的出现次数。
-    3. 使用正则表达式模式BIBTEX_CITE_PATTERN查找所有的\citation，并统计每个citation的出现次数。
+    2. 使用正则表达式模式BIBER_CITE_PATTERN查找所有的\\abx@aux@cite，并统计每个citation的出现次数。
+    3. 使用正则表达式模式BIBTEX_CITE_PATTERN查找所有的\\citation，并统计每个citation的出现次数。
     4. 返回包含所有citation计数的字典。
     """
     # 创建一个默认值为int的字典，用于存储每个citation出现的次数
