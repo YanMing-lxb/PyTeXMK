@@ -16,14 +16,14 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-07-28 19:49:28 +0800
+LastEditTime : 2024-08-01 20:06:56 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import os
+import os # TODO 部分函数用pathlib代替os
 import re
 import sys
 import fitz
@@ -269,7 +269,7 @@ class MainFileJudgment(object):
                         line = file.readline()
                         if line.strip().startswith('%'):
                             continue
-                        if "\documentclass" in line or r"\begin{document}" in line:
+                        if r"\documentclass" in line or r"\begin{document}" in line:
                             is_main_file = True
                     if is_main_file:
                         main_tex_files.append(file_name)
