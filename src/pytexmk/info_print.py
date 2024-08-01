@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-07-28 10:19:16 +0800
+LastEditTime : 2024-08-01 22:03:35 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -98,21 +98,20 @@ def print_message(message):
 # --------------------------------------------------------------------------------
 # 定义统计时间打印函数
 # --------------------------------------------------------------------------------
-def time_print(start_time, name_target_list, time_run_list):
+def time_print(start_time, runtime_dict):
     """
     计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量。
     
     参数:
     - start_time (datetime.datetime): PyTeXMK开始运行的时间。
-    - name_target_list (list): 包含运行项目名称的列表。
-    - time_run_list (list): 包含各运行项目时长的列表。
+    - runtime_dict (dict): 包含运行项目名称和时长的字典。
     
     行为:
     1. 计算结束时间并计算总运行时间。
     2. 将总运行时间分解为小时、分钟、秒和毫秒。
     3. 计算运行函数数量（辅助函数除外）。
     4. 计算LaTeX编译时长、Python运行时长和PyTeXMK总运行时长。
-    5. 将统计信息添加到name_target_list和time_run_list中。
+    5. 将统计信息添加到runtime_dict中。
     6. 创建并填充表格，显示运行项目的名称和时长。
     7. 打印表格和总运行时间、运行函数数量。
     
@@ -127,15 +126,14 @@ def time_print(start_time, name_target_list, time_run_list):
         minutes, seconds = divmod(remainder, 60)
         milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
  
-        number_programmes_run = len(name_target_list) - 6  # 计算运行函数数量（辅助函数除外）
+        number_programmes_run = len(runtime_dict) - 6  # 计算运行函数数量（辅助函数除外）
  
-        time_compile = sum(time_run_list)
-        time_other_operating = total_seconds - time_compile
+        time_LaTeX = sum(value for key, value in runtime_dict.items() if not any(exclude_str in key for exclude_str in ["目录", "辅助", "判定"])) # 排除删除、移动、检测等操作的时长
+        time_python = total_seconds - time_LaTeX
         time_pytexmk = total_seconds
  
-        # 添加统计信息到列表
-        name_target_list.extend(['LaTeX 编译时长', 'Python 运行时长', 'PyTeXMK 运行时长'])
-        time_run_list.extend([time_compile, time_other_operating, time_pytexmk])
+        # 添加统计信息到字典
+        runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
  
         # 创建表格对象
         table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD,
@@ -150,7 +148,7 @@ def time_print(start_time, name_target_list, time_run_list):
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
  
         # 判断统计项目列数是否是偶数
-        length = len(name_target_list)/2 # 计算打印表格列数
+        length = len(runtime_dict)/2 # 计算打印表格列数
         row_num = None
  
         # 判断统计项目列数是否是偶数
@@ -160,21 +158,24 @@ def time_print(start_time, name_target_list, time_run_list):
             row_num = int(length) + 1 
  
         # 添加数据到表格
-        for i in range(row_num):
+        i = 0
+        for name, time in runtime_dict.items():
             row_data = [
                 str(i + 1),
-                name_target_list[i],
-                "{:.4f} s".format(time_run_list[i])
+                name,
+                "{:.4f} s".format(time)
             ]
-            if i + row_num < len(name_target_list):
+            if i + row_num < len(runtime_dict):
+                next_name, next_time = list(runtime_dict.items())[i + row_num]
                 row_data.extend([
                     str(i + 1 + row_num),
-                    name_target_list[i + row_num],
-                    "{:.4f} s".format(time_run_list[i + row_num])
+                    next_name,
+                    "{:.4f} s".format(next_time)
                 ])
             else:
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
+            i += 1
              
         print("\n" + "=" * 80 + "\n")
         console.print(table) # 打印表格
