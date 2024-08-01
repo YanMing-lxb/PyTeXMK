@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-01 22:48:20 +0800
+LastEditTime : 2024-08-01 22:54:28 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -55,12 +55,18 @@ def time_count(fun, *args):
     6. 如果在执行函数过程中出现异常，记录错误信息并返回 (None, None)。
     """
     try:
+        # 获取当前时间作为函数执行的开始时间
         time_start = datetime.datetime.now()
+        # 调用传入的函数并传入参数，获取函数返回值
         fun_return = fun(*args)
+        # 获取当前时间作为函数执行的结束时间
         time_end = datetime.datetime.now()
+        # 计算函数执行的总时间（以秒为单位）
         time_run = (time_end - time_start).total_seconds()
+        # 返回函数执行时间和函数返回值，时间保留四位小数
         return round(time_run, 4), fun_return
     except Exception as e:
+        # 如果执行函数时出错，记录错误信息并返回None
         logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
         return None, None
 
@@ -83,16 +89,16 @@ def print_message(message):
     """
     try:
         # 计算左右两侧 X 的数量
-        ascii_len = sum(1 for i in message if not i.isascii())
-        padding_size = 80 - (len(message) + ascii_len) - 4
-        left_padding = padding_size // 2
-        right_padding = padding_size - left_padding
-        banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding
-        console.print("\n" + "=" * 80, style="yellow bold")
-        console.print(banner, style="red on white bold")
-        console.print("=" * 80 + "\n", style="yellow bold")
+        ascii_len = sum(1 for i in message if not i.isascii())  # 计算消息中非ASCII字符的数量
+        padding_size = 80 - (len(message) + ascii_len) - 4  # 计算需要填充的空格数量
+        left_padding = padding_size // 2  # 计算左侧填充的X数量
+        right_padding = padding_size - left_padding  # 计算右侧填充的X数量
+        banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding  # 生成带有填充的横幅
+        console.print("\n" + "=" * 80, style="yellow bold")  # 打印黄色粗体的80个等号
+        console.print(banner, style="red on white bold")  # 打印红色粗体白色背景的横幅
+        console.print("=" * 80 + "\n", style="yellow bold")  # 打印黄色粗体的80个等号
     except Exception as e:
-        logger.error(f"执行函数 print_message 时出错: {e}")
+        logger.error(f"执行函数 print_message 时出错: {e}")  # 记录错误日志
     
 
 # --------------------------------------------------------------------------------
@@ -120,25 +126,25 @@ def time_print(start_time, runtime_dict):
     """
     try:
         end_time = datetime.datetime.now()  # 计算结束时间
-        run_time = end_time - start_time
-        total_seconds = run_time.total_seconds()
-        hours, remainder = divmod(int(total_seconds), 3600)
-        minutes, seconds = divmod(remainder, 60)
+        run_time = end_time - start_time  # 计算运行时间
+        total_seconds = run_time.total_seconds()  # 获取总秒数
+        hours, remainder = divmod(int(total_seconds), 3600)  # 计算小时数
+        minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
         milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
- 
+  
         number_programmes_run = len(runtime_dict) - 6  # 计算运行函数数量（辅助函数除外）
- 
-        time_LaTeX = sum(value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])) # 对key中含有 pdflatex、lualatex、xelatex、编译、宏包等字符串的值求和
-        time_python = total_seconds - time_LaTeX
-        time_pytexmk = total_seconds
- 
+  
+        time_LaTeX = sum(value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"]))  # 对key中含有 pdflatex、lualatex、xelatex、编译、宏包等字符串的值求和
+        time_python = total_seconds - time_LaTeX  # 计算Python运行时长
+        time_pytexmk = total_seconds  # 计算PyTeXMK运行时长
+  
         # 添加统计信息到字典
         runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
- 
+  
         # 创建表格对象
         table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD,
                       title="PyTeXMK 运行时长统计表")
- 
+  
         # 定义列名
         table.add_column("序号", justify="center", no_wrap=True)
         table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
@@ -146,48 +152,41 @@ def time_print(start_time, runtime_dict):
         table.add_column("序号", justify="center", no_wrap=True)
         table.add_column("运行项目", style="cyan", justify="center")
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
- 
-# 假设 runtime_dict 已经被定义
-# runtime_dict = {
-#     "name1": time1,
-#     "name2": time2,
-#     ...
-# }
-
+  
         # 计算打印表格列数
         length = len(runtime_dict) / 2
         row_num = None
-
+ 
         # 判断统计项目列数是否是偶数
         if length - int(length) < 0.5:
             row_num = int(length)
         else:  # 是偶数则加一
             row_num = int(length) + 1
-
+ 
         # 获取字典的键列表
         name_target_list = list(runtime_dict.keys())
-
+ 
         # 添加数据到表格
         for i in range(row_num):
             row_data = [
-                str(i + 1),
-                name_target_list[i],
-                "{:.4f} s".format(runtime_dict[name_target_list[i]])
+                str(i + 1),  # 序号
+                name_target_list[i],  # 运行项目名称
+                "{:.4f} s".format(runtime_dict[name_target_list[i]])  # 运行时长
             ]
             if i + row_num < len(name_target_list):
                 row_data.extend([
-                    str(i + 1 + row_num),
-                    name_target_list[i + row_num],
-                    "{:.4f} s".format(runtime_dict[name_target_list[i + row_num]])
+                    str(i + 1 + row_num),  # 序号
+                    name_target_list[i + row_num],  # 运行项目名称
+                    "{:.4f} s".format(runtime_dict[name_target_list[i + row_num]])  # 运行时长
                 ])
             else:
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
-             
-        print("\n" + "=" * 80 + "\n")
-        console.print(table) # 打印表格
- 
-        print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")
-        print(f"运行函数：{number_programmes_run} 个")
+              
+        print("\n" + "=" * 80 + "\n")  # 打印分隔线
+        console.print(table)  # 打印表格
+  
+        print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
+        print(f"运行函数：{number_programmes_run} 个")  # 打印运行函数数量
     except Exception as e:
-        logger.error(f"执行函数 time_print 时出错: {e}")
+        logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息
