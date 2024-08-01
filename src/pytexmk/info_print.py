@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-01 22:03:35 +0800
+LastEditTime : 2024-08-01 22:48:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -128,7 +128,7 @@ def time_print(start_time, runtime_dict):
  
         number_programmes_run = len(runtime_dict) - 6  # 计算运行函数数量（辅助函数除外）
  
-        time_LaTeX = sum(value for key, value in runtime_dict.items() if not any(exclude_str in key for exclude_str in ["目录", "辅助", "判定"])) # 排除删除、移动、检测等操作的时长
+        time_LaTeX = sum(value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])) # 对key中含有 pdflatex、lualatex、xelatex、编译、宏包等字符串的值求和
         time_python = total_seconds - time_LaTeX
         time_pytexmk = total_seconds
  
@@ -147,35 +147,42 @@ def time_print(start_time, runtime_dict):
         table.add_column("运行项目", style="cyan", justify="center")
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
  
-        # 判断统计项目列数是否是偶数
-        length = len(runtime_dict)/2 # 计算打印表格列数
+# 假设 runtime_dict 已经被定义
+# runtime_dict = {
+#     "name1": time1,
+#     "name2": time2,
+#     ...
+# }
+
+        # 计算打印表格列数
+        length = len(runtime_dict) / 2
         row_num = None
- 
+
         # 判断统计项目列数是否是偶数
         if length - int(length) < 0.5:
             row_num = int(length)
-        else: # 是偶数则加一
-            row_num = int(length) + 1 
- 
+        else:  # 是偶数则加一
+            row_num = int(length) + 1
+
+        # 获取字典的键列表
+        name_target_list = list(runtime_dict.keys())
+
         # 添加数据到表格
-        i = 0
-        for name, time in runtime_dict.items():
+        for i in range(row_num):
             row_data = [
                 str(i + 1),
-                name,
-                "{:.4f} s".format(time)
+                name_target_list[i],
+                "{:.4f} s".format(runtime_dict[name_target_list[i]])
             ]
-            if i + row_num < len(runtime_dict):
-                next_name, next_time = list(runtime_dict.items())[i + row_num]
+            if i + row_num < len(name_target_list):
                 row_data.extend([
                     str(i + 1 + row_num),
-                    next_name,
-                    "{:.4f} s".format(next_time)
+                    name_target_list[i + row_num],
+                    "{:.4f} s".format(runtime_dict[name_target_list[i + row_num]])
                 ])
             else:
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
-            i += 1
              
         print("\n" + "=" * 80 + "\n")
         console.print(table) # 打印表格
