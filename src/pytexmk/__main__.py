@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-02 12:41:02 +0800
+LastEditTime : 2024-08-02 12:53:37 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -153,7 +153,6 @@ def main():
     # 定义命令行参数
     # --------------------------------------------------------------------------------
     # TODO 完善对魔法注释的说明
-    # TODO 添加latexdiff的功能
     parser = argparse.ArgumentParser(
         description=r"""
 LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。
@@ -165,7 +164,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-p', '--PdfLaTeX', action='store_true', help="PdfLaTeX 进行编译")
     parser.add_argument('-x', '--XeLaTeX', action='store_true', help="XeLaTeX 进行编译")
     parser.add_argument('-l', '--LuaLaTeX', action='store_true', help="LuaLaTeX 进行编译")
-    parser.add_argument('-d', '--LaTeXDiff', action='store_true', help="LaTeXDiff 进行编译，生成改动对比文件")
+    parser.add_argument('-d', '--LaTeXDiff', action='store_true', help="LaTeXDiff 进行编译，生成改动对比文件：目前该参数只能在编译结束后将所有辅助文件移动到根目录下") # 吐了，又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
     parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
@@ -364,8 +363,8 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_dict = {}
             RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
             if args.LaTeXDiff:
-                runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, aux_files, '.') # 将所有辅助文件移动到根目录
-                runtime_dict["辅助文件->根目录"] = runtime_move_matched_files
+                runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
+                runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
                 print('[bold green]已完成移动所有辅助文件到根目录下的指令')
 
             time_print(start_time, runtime_dict) # 打印编译时长统计

@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-01 22:54:28 +0800
+LastEditTime : 2024-08-02 13:15:24 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -187,6 +187,6 @@ def time_print(start_time, runtime_dict):
         console.print(table)  # 打印表格
   
         print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
-        print(f"运行函数：{number_programmes_run} 个")  # 打印运行函数数量
+        print(f"运行 LaTeX 相关程序：{number_programmes_run} 个")  # 打印运行函数数量
     except Exception as e:
         logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息

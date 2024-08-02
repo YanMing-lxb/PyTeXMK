@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-07-28 20:22:29 +0800
+ * LastEditTime : 2024-08-02 12:54:37 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -75,6 +75,7 @@ PyTeXMK 支持：
 | -p, --pdflatex   | pdflatex 进行编译                                     |
 | -x, --xelatex    | xelatex 进行编译                                      |
 | -l, --lualatex   | lualatex 进行编译                                     |
+| -d, --LaTeXDiff  | LaTeXDiff 进行编译，生成改动对比文件：目前该参数只能在编译结束后将所有辅助文件移动到根目录下|
 | -c, --clean      | 清除所有主文件的辅助文件                               |
 | -C, --Clean      | 清除所有主文件的辅助文件（包含根目录）和输出文件         |
 | -ca, --clean-any | 清除所有带辅助文件后缀的文件                           |
@@ -150,3 +151,8 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
     - [X] 完善清理所有辅助文件功能
 - [ ] 宏包检缺失并自动安装（texlive）
 - [X] 添加 PyTeXMK 更新检查功能
+- [ ] LaTeXDiff 相关功能
+    - [X] 添加编译结束后将辅助文件移动到根目录下功能
+    - [ ] 添加单个项目的配置文件功能
+    - [ ] 实现配置文件的解析功能
+    - [ ] LaTeXDiff 编译判断逻辑
