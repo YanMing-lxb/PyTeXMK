@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-02 09:37:27 +0800
+LastEditTime : 2024-08-02 12:41:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -43,48 +43,48 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet):
-    runtime_dict = {}
+def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet):
+    
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileModel(compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet)
- 
+    compile_model = CompileModel(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet)
+
     print('检测并移动辅助文件到根目录...')
-    runtime_move_aux_root, _  = time_count(MRC.move_to_root, aux_files, auxdir) # 将辅助文件移动到根目录
+    runtime_move_aux_root, _  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
     runtime_dict['辅助文件->根目录'] = runtime_move_aux_root
- 
+
     # 检查并处理已存在的 LaTeX 输出文件
     print('检测识别已有辅助文件...')
     runtime_read, return_read = time_count(compile_model.prepare_LaTeX_output_files, ) # 读取 LaTeX 文件
     cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_LaTeX_files 函数得到的参数
     runtime_dict['检测辅助文件'] = runtime_read
- 
+
     # 首次编译 LaTeX 文档
     print_message(f"1 次 {compiler_engine} 编译")
     runtime_Latex, _ = time_count(compile_model.compile_tex, ) 
     runtime_dict[f'{compiler_engine} {abbreviations_num[0]}'] = runtime_Latex
- 
+
     # 读取日志文件
     with open(f'{project_name}.log', 'r', encoding='utf-8') as fobj:
         log_content = fobj.read()
     compile_model.check_errors(log_content)
- 
+
     # 编译参考文献
     runtime_bib_judgment, return_bib_judgment = time_count(compile_model.bib_judgment, cite_counter) # 判断是否需要编译参考文献
     runtime_dict['编译文献判定'] = runtime_bib_judgment
- 
+
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
     if bib_engine:
         if Latex_compilation_times_bib != 0:
             print_message(f'{bib_engine} 文献编译')
             runtime_bib, _ = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
             runtime_dict[name_target_bib] = runtime_bib
- 
+
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
     print_index, run_index_list_cmd = return_index_judgment
     runtime_dict['编译索引判定'] = runtime_makindex_judgment
- 
+
     if run_index_list_cmd: # 存在目录索引编译命令
         for cmd in run_index_list_cmd:
             print_message(f"{cmd[0]} 编译")
@@ -94,28 +94,28 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
             runtime_dict[name_target_index] = runtime_index
     else:
         Latex_compilation_times_index = 0
- 
+
     # 编译目录
     if compile_model.toc_changed_judgment(toc_file): # 判断是否需要编译目录
         Latex_compilation_times_toc = 1
     else:
         Latex_compilation_times_toc = 0
- 
+
     # 计算额外需要的 LaTeX 编译次数
     Latex_compilation_times = max(Latex_compilation_times_bib, Latex_compilation_times_index, Latex_compilation_times_toc) 
-     
+
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
         print_message(f"{times} 次 {compiler_engine} 编译")
         runtime_Latex, _ = time_count(compile_model.compile_tex, )
         runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
- 
+
     # 编译完成，开始判断编译 XDV 文件
     if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
         print_message("DVIPDFMX 编译")
         runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict['DVIPDFMX 编译'] = runtime_xdv
- 
+
     # 显示编译过程中关键信息
     border = "[red bold]=[/red bold]" * 80
     center = "[green on white bold]▓[/green on white bold]" * 33 + " [bold green]完成所有编译[/bold green] " + "[green on white bold]▓[/green on white bold]" * 33
@@ -126,15 +126,16 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
     print_message("开始执行编译以外的附加命令")
-     
+
     print('移动结果文件到输出目录...')
-    runtime_move_out_outdir, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
+    runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
     runtime_dict["结果文件->输出目录"] = runtime_move_out_outdir
- 
+
     print('移动辅助文件到辅助目录...')
-    runtime_move_aux_auxdir, _ = time_count(MRC.move_to_folder, aux_files, auxdir) # 将辅助文件移动到指定目录
+    runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
     runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
-    time_print(start_time, runtime_dict) # 打印编译时长统计
+
+    return runtime_dict
 
 
 
@@ -164,6 +165,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-p', '--PdfLaTeX', action='store_true', help="PdfLaTeX 进行编译")
     parser.add_argument('-x', '--XeLaTeX', action='store_true', help="XeLaTeX 进行编译")
     parser.add_argument('-l', '--LuaLaTeX', action='store_true', help="LuaLaTeX 进行编译")
+    parser.add_argument('-d', '--LaTeXDiff', action='store_true', help="LaTeXDiff 进行编译，生成改动对比文件")
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
     parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
@@ -341,25 +343,33 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
 
     if project_name: # 如果存在 project_name 
         if args.clean:
-            MRC.remove_files(aux_files, auxdir)
-            MRC.remove_files(aux_files, '.')
+            MRC.remove_specific_files(aux_files, auxdir)
+            MRC.remove_specific_files(aux_files, '.')
             print('[bold green]已完成清除所有主文件的辅助文的件指令')
         elif args.Clean:
-            MRC.remove_files(aux_files, auxdir)
-            MRC.remove_files(aux_files, '.')
-            MRC.remove_files(out_files, outdir)
+            MRC.remove_specific_files(aux_files, auxdir)
+            MRC.remove_specific_files(aux_files, '.')
+            MRC.remove_specific_files(out_files, outdir)
             print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
         elif args.clean_any:
-            MRC.remove_files(aux_regex_files, '.')
+            MRC.remove_matched_files(aux_regex_files, '.')
             print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
         elif args.Clean_any:
-            MRC.remove_files(aux_regex_files, '.')
-            MRC.remove_files(out_files, outdir)
+            MRC.remove_matched_files(aux_regex_files, '.')
+            MRC.remove_specific_files(out_files, outdir)
             print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
         elif args.pdf_repair:
             MRC.pdf_repair(project_name, '.', outdir)
         else:
-            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, args.unquiet)
+            runtime_dict = {}
+            RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
+            if args.LaTeXDiff:
+                runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, aux_files, '.') # 将所有辅助文件移动到根目录
+                runtime_dict["辅助文件->根目录"] = runtime_move_matched_files
+                print('[bold green]已完成移动所有辅助文件到根目录下的指令')
+
+            time_print(start_time, runtime_dict) # 打印编译时长统计
+
     checker = UpdateChecker()
     checker.check_for_updates()
 

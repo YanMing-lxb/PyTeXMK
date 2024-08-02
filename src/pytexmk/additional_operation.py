@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-01 20:50:53 +0800
+LastEditTime : 2024-08-02 12:20:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -37,119 +37,146 @@ class MoveRemoveClean(object):
         self.logger = logging.getLogger(__name__)
 
     # --------------------------------------------------------------------------------
-    # 将文件从文件夹中清除
+    # 将指定文件从文件夹中清除
     # --------------------------------------------------------------------------------
-    def remove_files(self, files, folder):
+    def remove_specific_files(self, files, folder):
         """
-        删除指定文件或匹配正则表达式的文件。
+        删除指定文件。
 
         参数:
-        - files: 要删除的文件列表，可以是具体文件名或以".*"开头的正则表达式模式。
+        - files: 要删除的具体文件名列表。
         - folder: 要删除文件的目录路径。
 
         行为:
-        - 遍历files列表，如果文件名以".*"开头，则将其视为正则表达式模式，匹配并删除folder目录及其子目录中所有匹配的文件。
-        - 如果文件名不是正则表达式模式，则直接删除folder目录中的该文件。
-        - 在删除文件时，会跳过包含".git"或".github"的目录。
+        - 遍历files列表，直接删除folder目录中的该文件。
         - 删除成功或失败时，会通过logger记录相应的信息。
         """
         folder_path = Path(folder)  # 将folder转换为Path对象
         for file in files:
-            # 如果是正则表达式模式，则编译正则表达式
-            if file.startswith(".*"):
-                pattern = re.compile(file)
-                for filepath in folder_path.rglob("*"):  # 使用rglob递归遍历所有文件
-                    if '.git' in filepath.parts or '.github' in filepath.parts:
-                        continue  # 跳过这些文件夹
-                    if filepath.is_file() and pattern.match(filepath.name):
-                        try:
-                            filepath.unlink()  # 使用unlink删除文件
-                            self.logger.info(f"{filepath} 删除成功")
-                        except OSError as e:
-                            self.logger.error(f"{filepath} 删除失败: {e}")
-            else:
-                filepath = folder_path / file  # 使用Path对象的/操作符构建路径
-                if filepath.exists():
-                    try:
-                        filepath.unlink()  # 使用unlink删除文件
-                        self.logger.info(f"{folder} 中 {file} 删除成功")
-                    except OSError as e:
-                        self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
+            filepath = folder_path / file  # 使用Path对象的/操作符构建路径
+            if filepath.exists():
+                try:
+                    filepath.unlink()  # 使用unlink删除文件
+                    self.logger.info(f"{folder} 中 {file} 删除成功")
+                except OSError as e:
+                    self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
 
     # --------------------------------------------------------------------------------
-    # 将文件从源文件夹移动到根目录，如果根目录存在同名文件则覆盖
+    # 将正则表达式匹配的文件从文件夹中清除
     # --------------------------------------------------------------------------------
-    def move_to_root(self, files, src_folder):
+    def remove_matched_files(self, patterns, folder):
         """
-        将指定文件从源文件夹移动到当前工作目录的根目录。
+        删除匹配正则表达式的文件。
+
+        参数:
+        - patterns: 要删除的正则表达式模式列表。
+        - folder: 要删除文件的目录路径。
+
+        行为:
+        - 遍历patterns列表，编译正则表达式，匹配并删除folder目录及其子目录中所有匹配的文件。
+        - 在删除文件时，会跳过包含".git"或".github"的目录。
+        - 删除成功或失败时，会通过logger记录相应的信息。
+        """
+        folder_path = Path(folder)  # 将folder转换为Path对象
+        for pattern in patterns:
+            compiled_pattern = re.compile(pattern)
+            for filepath in folder_path.rglob("*"):  # 使用rglob递归遍历所有文件
+                if '.git' in filepath.parts or '.github' in filepath.parts:
+                    continue  # 跳过这些文件夹
+                if filepath.is_file() and compiled_pattern.match(filepath.name):
+                    try:
+                        filepath.unlink()  # 使用unlink删除文件
+                        self.logger.info(f"{filepath} 删除成功")
+                    except OSError as e:
+                        self.logger.error(f"{filepath} 删除失败: {e}")
+
+    # --------------------------------------------------------------------------------
+    # 将指定文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
+    # --------------------------------------------------------------------------------
+    def move_specific_files(self, files, src_folder, dest_folder):
+        """
+        将指定文件从源文件夹移动到目标文件夹。
      
         参数:
         - files: 需要移动的文件列表。
         - src_folder: 源文件夹路径。
+        - dest_folder: 目标文件夹路径。
      
         行为:
-        - 检查源文件夹是否存在。
+        - 检查源文件夹和目标文件夹是否存在。
         - 遍历文件列表，检查每个文件是否存在于源文件夹中。
-        - 如果文件已存在于当前工作目录中，则尝试删除该文件。
-        - 尝试将文件从源文件夹移动到当前工作目录。
+        - 如果文件已存在于目标文件夹中，则尝试删除该文件。
+        - 尝试将文件从源文件夹移动到目标文件夹。
         - 记录移动成功或失败的信息。
         """
         src_folder_path = Path(src_folder)
+        dest_folder_path = Path(dest_folder)
+
         if not src_folder_path.exists():
             return
- 
+
+        if not dest_folder_path.exists():
+            dest_folder_path.mkdir(parents=True)  # 如果目标文件夹不存在，则创建它
+
         for file in files:
             src_file_path = src_folder_path / file
-            dest_file_path = Path.cwd() / file
+            dest_file_path = dest_folder_path / file
+
             if dest_file_path.exists():
                 try:
                     dest_file_path.unlink()
                 except OSError as e:
                     self.logger.error(f"{dest_file_path} 未能删除: {e}")
                     continue
+
             if src_file_path.exists():
                 try:
                     shutil.move(str(src_file_path), str(dest_file_path))
-                    self.logger.info(f"{src_folder} 中 {file} 移动到 {Path.cwd()}")
+                    self.logger.info(f"{src_folder} 中 {file} 移动到 {dest_folder}")
                 except OSError as e:
-                    self.logger.error(f"{src_folder} 中 {file} 移动到 {Path.cwd()} 失败: {e}")
+                    self.logger.error(f"{src_folder} 中 {file} 移动到 {dest_folder} 失败: {e}")
 
 
     # --------------------------------------------------------------------------------
-    # 将文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
+    # 将正则表达式匹配的文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
     # --------------------------------------------------------------------------------
-    def move_to_folder(self, files, dest_folder):
+    def move_matched_files(self, patterns, src_folder, dest_folder):
         """
-        将文件列表中的文件移动到指定文件夹。
+        将匹配正则表达式模式的文件从源文件夹移动到目标文件夹。
         如果目标文件夹不存在，则创建它。
         如果目标文件夹中已存在同名文件，则先删除旧文件。
         移动文件时，如果发生错误，则记录错误信息。
-     
+
         参数:
-        - files (list): 要移动的文件列表。
+        - patterns (list): 正则表达式模式列表。
+        - src_folder (str): 源文件夹路径。
         - dest_folder (str): 目标文件夹路径。
         """
+        src_folder_path = Path(src_folder)  # 将源文件夹路径转换为Path对象
         dest_folder_path = Path(dest_folder)  # 将目标文件夹路径转换为Path对象
- 
+
         if not dest_folder_path.exists():  # 检查目标文件夹是否存在
             dest_folder_path.mkdir(parents=True)  # 如果目标文件夹不存在，则创建它
-     
-        for file in files:
-            file_path = Path(file)  # 将文件路径转换为Path对象
-            dest_file_path = dest_folder_path / file_path.name  # 构建目标文件路径
-     
-            if dest_file_path.exists():  # 检查目标文件是否存在
-                try:
-                    dest_file_path.unlink()  # 删除目标文件
-                except OSError as e:
-                    self.logger.error(f"{dest_folder} 中旧 {file} 删除失败: {e}")  # 记录删除失败错误信息
-                    continue  # 跳过当前文件的移动操作
-            if file_path.exists():  # 确保源文件存在
-                try:
-                    shutil.move(str(file_path), str(dest_folder_path))  # 移动文件
-                    self.logger.info(f"{file} 移动到 {dest_folder}")  # 记录文件移动成功信息
-                except OSError as e:
-                    self.logger.error(f"{file} 移动到 {dest_folder} 失败: {e}")  # 记录文件移动失败错误信息
+
+        for file_path in src_folder_path.iterdir():  # 遍历源文件夹中的所有文件
+            if file_path.is_file():  # 确保是文件而不是文件夹
+                for pattern in patterns:  # 遍历所有正则表达式模式
+                    if re.match(pattern, file_path.name):  # 检查文件名是否匹配正则表达式模式
+                        dest_file_path = dest_folder_path / file_path.name  # 构建目标文件路径
+
+                        if dest_file_path.exists():  # 检查目标文件是否存在
+                            try:
+                                dest_file_path.unlink()  # 删除目标文件
+                            except OSError as e:
+                                self.logger.error(f"{dest_folder} 中旧 {file_path.name} 删除失败: {e}")  # 记录删除失败错误信息
+                                continue  # 跳过当前文件的移动操作
+
+                        try:
+                            shutil.move(str(file_path), str(dest_folder_path))  # 移动文件
+                            self.logger.info(f"{file_path.name} 移动到 {dest_folder}")  # 记录文件移动成功信息
+                        except OSError as e:
+                            self.logger.error(f"{file_path.name} 移动到 {dest_folder} 失败: {e}")  # 记录文件移动失败错误信息
+                        break  # 匹配到一个模式后，不再检查其他模式
 
 
     # --------------------------------------------------------------------------------

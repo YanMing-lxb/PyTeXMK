@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-02 09:59:05 +0800
+LastEditTime : 2024-08-02 10:41:51 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -33,7 +33,7 @@ from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 from .additional_operation import MoveRemoveClean
-console = console.Console()  # 设置宽度为80
+console = console.Console()
 
 
 # 定义正则表达式模式
@@ -60,19 +60,20 @@ TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹�
 
 class CompileModel(object):
 
-    def __init__(self, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet):
+    def __init__(self, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet):
         """
         初始化 CompileModel 类实例。
-         
+
         参数:
-        - compiler_engine (str): 编译引擎的名称。
         - project_name (str): 项目的名称。
+        - compiler_engine (str): 编译引擎的名称。
+        - LaTeXDiff (bool): 是否使用LaTeXDiff。
         - out_files (list): 输出文件列表。
         - aux_files (list): 辅助文件列表。
         - outdir (str): 输出文件的目录路径。
         - auxdir (str): 辅助文件的目录路径。
         - unquiet (bool): 是否非静默模式运行。
-         
+
         行为:
         - 初始化输出文件名为空字符串，调用_setup_logger方法设置日志记录器，
         - 初始化编译引擎、项目名称、输出文件、辅助文件、辅助目录、输出目录、静默模式等属性，
@@ -80,16 +81,16 @@ class CompileModel(object):
         """
         self.out = ''  # 初始化输出文件名为空字符串
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
-         
-        self.compiler_engine = compiler_engine
+
         self.project_name = project_name
+        self.compiler_engine = compiler_engine
         self.out_files = out_files
         self.aux_files = aux_files
         self.auxdir = auxdir
         self.outdir = outdir
         self.unquiet = unquiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
-         
+
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
 
     # --------------------------------------------------------------------------------
@@ -123,8 +124,8 @@ class CompileModel(object):
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
             self.logger.error(f'请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。')  # 提示查看日志文件以获取详细信息
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
+            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
     
@@ -318,8 +319,8 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
+            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
 
@@ -437,8 +438,8 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"{bib_engine} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
+            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
 
@@ -562,8 +563,8 @@ class CompileModel(object):
             return name_target
         except:
             self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
+            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
 
@@ -589,12 +590,15 @@ class CompileModel(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(f"DVIPDFMX 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
+            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
 
 
+# --------------------------------------------------------------------------------
+# 定义 统计参考文献次数的函数
+# --------------------------------------------------------------------------------
 def _count_citations(file_name):
     """
     统计给定aux文件中所有citation的出现次数。
