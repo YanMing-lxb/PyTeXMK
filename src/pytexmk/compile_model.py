@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-01 20:42:46 +0800
+LastEditTime : 2024-08-01 23:28:38 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/compile_model.py
+FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -299,7 +299,7 @@ class CompileModel(object):
          
         行为逻辑:
         1. 根据编译引擎和其他配置选项构建编译命令。
-        2. 如果编译引擎是 'xelatex'，则添加 '-no-pdf' 选项。
+        2. 如果编译引擎是 'XeLaTeX'，则添加 '-no-pdf' 选项。
         3. 根据是否静默编译，添加 '-interaction=batchmode' 或 '-interaction=nonstopmode' 选项。
         4. 打印将要运行的命令。
         5. 使用 subprocess.run 执行编译命令。
@@ -307,7 +307,7 @@ class CompileModel(object):
         """
          
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
-        if self.compiler_engine == 'xelatex':
+        if self.compiler_engine == 'XeLaTeX':
             options.insert(5, "-no-pdf")
         if self.quiet:
             options.insert(4, "-interaction=batchmode") # 静默编译
@@ -583,14 +583,14 @@ class CompileModel(object):
         4. 尝试运行编译命令。
         5. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
-        options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
+        options = ["DVIPDFMX", "-V", "2.0", f"{self.project_name}"]
         if self.quiet:
             options.insert(1, "-q") # 静默编译
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"dvipdfmx 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
+            self.logger.error(f"DVIPDFMX 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
             self.MRC.move_to_folder(self.aux_files, self.auxdir)
             self.MRC.move_to_folder(self.out_files, self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')

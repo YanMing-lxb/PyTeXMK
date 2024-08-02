@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-01 22:05:16 +0800
+LastEditTime : 2024-08-02 09:37:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -57,7 +57,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     print('检测识别已有辅助文件...')
     runtime_read, return_read = time_count(compile_model.prepare_LaTeX_output_files, ) # 读取 LaTeX 文件
     cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_LaTeX_files 函数得到的参数
-    runtime_dict['检测已有辅助文件'] = runtime_read
+    runtime_dict['检测辅助文件'] = runtime_read
  
     # 首次编译 LaTeX 文档
     print_message(f"1 次 {compiler_engine} 编译")
@@ -111,10 +111,10 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
         runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
  
     # 编译完成，开始判断编译 XDV 文件
-    if compiler_engine == "xelatex":  # 判断是否编译 xdv 文件
-        print_message("dvipdfmx 编译")
+    if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
+        print_message("DVIPDFMX 编译")
         runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
-        runtime_dict['dvipdfmx 编译'] = runtime_xdv
+        runtime_dict['DVIPDFMX 编译'] = runtime_xdv
  
     # 显示编译过程中关键信息
     border = "[red bold]=[/red bold]" * 80
@@ -125,7 +125,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
     print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
-    print_message("开始执行编译以外的附加命令！")
+    print_message("开始执行编译以外的附加命令")
      
     print('移动结果文件到输出目录...')
     runtime_move_out_outdir, _ = time_count(MRC.move_to_folder, out_files, outdir) # 将输出文件移动到指定目录
@@ -140,7 +140,7 @@ def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir,
 
 def main():
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    compiler_engine = "xelatex"
+    compiler_engine = "XeLaTeX"
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
@@ -161,9 +161,9 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
         epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
     parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
-    parser.add_argument('-p', '--pdflatex', action='store_true', help="pdflatex 进行编译")
-    parser.add_argument('-x', '--xelatex', action='store_true', help="xelatex 进行编译")
-    parser.add_argument('-l', '--lualatex', action='store_true', help="lualatex 进行编译")
+    parser.add_argument('-p', '--PdfLaTeX', action='store_true', help="PdfLaTeX 进行编译")
+    parser.add_argument('-x', '--XeLaTeX', action='store_true', help="XeLaTeX 进行编译")
+    parser.add_argument('-l', '--LuaLaTeX', action='store_true', help="LuaLaTeX 进行编译")
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
     parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
@@ -260,12 +260,12 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     # 编译类型判断
     # -------------------------------------------------------------------------------- 
-    if args.xelatex:
-        compiler_engine = "xelatex"
-    elif args.pdflatex:
-        compiler_engine = "pdflatex"
-    elif args.lualatex:
-        compiler_engine = "lualatex"
+    if args.XeLaTeX:
+        compiler_engine = "XeLaTeX"
+    elif args.PdfLaTeX:
+        compiler_engine = "PdfLaTeX"
+    elif args.LuaLaTeX:
+        compiler_engine = "LuaLaTeX"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
         print(f"通过魔法注释设置编译器为 [bold cyan]{compiler_engine}[/bold cyan]")
