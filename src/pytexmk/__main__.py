@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-02 18:00:20 +0800
+LastEditTime : 2024-08-02 18:27:40 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -156,7 +156,7 @@ def main():
     parser = argparse.ArgumentParser(
         description=r"""
 LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。
-如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues""",
+如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues""",
         formatter_class=argparse.RawTextHelpFormatter,
         epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
@@ -171,7 +171,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-Ca', '--Clean-any', action='store_true', help="清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件")
     parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
-    parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 pdf 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 PDF 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
     parser.add_argument('document', nargs='?', help="待编译主文件名")
     args = parser.parse_args()
 
@@ -340,32 +340,42 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     aux_files = [f"{project_name}{suffix}" for suffix in suffixes_aux]
     aux_regex_files = [f".*\\{suffix}" for suffix in suffixes_aux]
 
+    runtime_dict = {}
     if project_name: # 如果存在 project_name 
         if args.clean:
-            MRC.remove_specific_files(aux_files, auxdir)
-            MRC.remove_specific_files(aux_files, '.')
+            runtime_remove_aux_auxdir, _ = time_count(MRC.remove_specific_files, aux_files, auxdir)
+            runtime_dict["清除文件夹内辅助文件"] = runtime_remove_aux_auxdir
+            runtime_remove_aux_root, _ = time_count(MRC.remove_specific_files, aux_files, '.')
+            runtime_dict["清除根目录内辅助文件"] = runtime_remove_aux_root
             print('[bold green]已完成清除所有主文件的辅助文的件指令')
         elif args.Clean:
-            MRC.remove_specific_files(aux_files, auxdir)
-            MRC.remove_specific_files(aux_files, '.')
-            MRC.remove_specific_files(out_files, outdir)
+            runtime_remove_aux_auxdir, _ = time_count(MRC.remove_specific_files, aux_files, auxdir)
+            runtime_dict["清除文件夹内辅助文件"] = runtime_remove_aux_auxdir
+            runtime_remove_aux_root, _ = time_count(MRC.remove_specific_files, aux_files, '.')
+            runtime_dict["清除根目录内辅助文件"] = runtime_remove_aux_root
+            runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
+            runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
             print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
         elif args.clean_any:
-            MRC.remove_matched_files(aux_regex_files, '.')
+            runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+            runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
             print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
         elif args.Clean_any:
-            MRC.remove_matched_files(aux_regex_files, '.')
-            MRC.remove_specific_files(out_files, outdir)
+            runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+            runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
+            runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
+            runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
             print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
         elif args.pdf_repair:
-            MRC.pdf_repair(project_name, '.', outdir)
+            runtime_pdf_repair, _ = time_count(MRC.pdf_repair, project_name, '.', outdir)
+            runtime_dict["修复 PDF 文件"] = runtime_pdf_repair
         else:
-            runtime_dict = {}
             RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
             if args.LaTeXDiff:
                 runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
                 runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
 
+        if runtime_dict: # 如果存在运行时统计信息
             time_print(start_time, runtime_dict) # 打印编译时长统计
 
     checker = UpdateChecker()

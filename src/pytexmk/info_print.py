@@ -132,15 +132,19 @@ def time_print(start_time, runtime_dict):
         minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
         milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
 
-        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])]  # 筛选过程独立成一个变量
-        time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和
-        time_python = total_seconds - time_LaTeX  # 计算Python运行时长
         time_pytexmk = total_seconds  # 计算PyTeXMK运行时长
 
-        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
+        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])]  # 筛选过程独立成一个变量
 
-        # 添加统计信息到字典
-        runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
+        if time_LaTeX_list:  # 如果存在LaTeX编译时长列表
+            time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和
+            time_python = total_seconds - time_LaTeX  # 计算Python运行时长
+            runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
+        else:  # 如果不存在LaTeX编译时长列表
+            time_python = total_seconds  # 计算Python运行时长
+            runtime_dict.update({'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk}) # 添加统计信息到字典
+
+        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
 
         # 创建表格对象
         table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, title="PyTeXMK 运行时长统计表")
