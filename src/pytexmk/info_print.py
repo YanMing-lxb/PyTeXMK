@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-02 17:37:27 +0800
+LastEditTime : 2024-08-02 19:28:39 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -134,7 +134,7 @@ def time_print(start_time, runtime_dict):
 
         time_pytexmk = total_seconds  # 计算PyTeXMK运行时长
 
-        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])]  # 筛选过程独立成一个变量
+        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["PdfLaTeX", "LuaLaTeX", "XeLaTeX", " 编译", "宏包"])]  # 筛选过程独立成一个变量
 
         if time_LaTeX_list:  # 如果存在LaTeX编译时长列表
             time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和

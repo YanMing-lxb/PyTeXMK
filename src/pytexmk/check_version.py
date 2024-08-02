@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-02 18:34:28 +0800
+LastEditTime : 2024-08-02 20:06:57 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -99,28 +99,32 @@ class UpdateChecker:
         - 比较当前版本和最新版本，提示用户是否有新版本可更新。
         """
         latest_version = self.load_cached_version()
-            
+
+        start_time = time.time() 
+
         if not latest_version:
             url = "https://pypi.org/pypi/pytexmk/json"
             try:
-                start_time = time.time()
-                with urllib.request.urlopen(url, timeout=30) as response:
+                response = urllib.request.urlopen(url, timeout=30) # TODO 以后如果做定时编译功能的话，check_for_updates() 可能会被频繁调用，需要优化
+                with response:
                     data = json.loads(response.read())
                     latest_version = data['info']['version']
                     self.update_pytexmk_version_cache(latest_version)
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                self.logger.info(f"获取版本号花费时长: {elapsed_time} 秒")
             except urllib.error.URLError as e:
                 self.logger.error(f"无法连接到更新服务器，请检查您的网络连接: {e}")
                 return
             except socket.timeout:
                 self.logger.error("连接更新服务器超时，请稍后再试")
                 return
+
+        end_time = time.time()
+        elapsed_time = round(end_time - start_time, 4)
+        self.logger.info(f"获取版本号花费时长: {elapsed_time} 秒")
+
         current_version = importlib.metadata.version("pytexmk")
 
         if version.parse(current_version) < version.parse(latest_version):
-            print(f"有新版本可用: [bold green]{latest_version}[/bold green]。当前版本: [bold red]{current_version}[/bold red]")
+            print(f"有新版本可用: [bold green]{latest_version}[/bold green] 当前版本: [bold red]{current_version}[/bold red]")
             print("请运行 [bold green]'pip install --upgrade pytexmk'[/bold green] 进行更新")
         else:
             print(f"当前已是最新版本: [bold green]{current_version}[/bold green]")
