@@ -8,9 +8,6 @@ jobs:
   build:
     name: Build and publish to PyPI
     runs-on: ubuntu-latest
-    outputs:
-      artifacts: # This will be used in the publish job
-        path: dist/
 
     steps:
     - name: Checkout source
@@ -30,17 +27,16 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: python-package-distributions
-        path: ${{ outputs.artifacts }}
+        path: dist/
 
   publish-to-pypi:
-    name: >-
-      Publish pytexmk 🐍 distribution 📦 to PyPI
+    name: Publish pytexmk 🐍 distribution 📦 to PyPI
     if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/pytexmk  # Replace <package-name> with your PyPI project name
+      url: https://pypi.org/project/pytexmk  # Replace with your actual PyPI project URL
     permissions:
       contents: read  # Required for downloading artifacts
       id-token: write  # Required for trusted publishing
