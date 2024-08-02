@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-07-29 21:50:18 +0800
+LastEditTime : 2024-08-02 18:34:28 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -54,7 +54,7 @@ class UpdateChecker:
         data_path.mkdir(exist_ok=True)  # 创建 data 目录，如果已存在则不报错
         self.cache_file = data_path / "pytexmk_version_cache.json"  # 创建缓存文件路径
  
-        self.cache_lifetime = 43200  # 缓存有效期，12小时
+        self.cache_lifetime = 21600 # 缓存有效期，6小时
  
     def load_cached_version(self):
         """
@@ -103,10 +103,14 @@ class UpdateChecker:
         if not latest_version:
             url = "https://pypi.org/pypi/pytexmk/json"
             try:
+                start_time = time.time()
                 with urllib.request.urlopen(url, timeout=30) as response:
                     data = json.loads(response.read())
                     latest_version = data['info']['version']
                     self.update_pytexmk_version_cache(latest_version)
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                self.logger.info(f"获取版本号花费时长: {elapsed_time} 秒")
             except urllib.error.URLError as e:
                 self.logger.error(f"无法连接到更新服务器，请检查您的网络连接: {e}")
                 return
