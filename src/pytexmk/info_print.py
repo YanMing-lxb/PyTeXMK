@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-02 13:15:24 +0800
+LastEditTime : 2024-08-02 17:37:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -77,13 +77,13 @@ def time_count(fun, *args):
 def print_message(message):
     """
     打印带有装饰的消息。
-     
+
     此函数接收一个消息字符串，计算其长度并根据需要添加装饰字符（X），
     然后将消息打印在一个带有边框的横幅中。
-     
+
     参数:
     - message (str): 要打印的消息字符串。
-     
+
     异常:
     - Exception: 如果在打印过程中发生任何异常，将记录错误日志。
     """
@@ -131,20 +131,20 @@ def time_print(start_time, runtime_dict):
         hours, remainder = divmod(int(total_seconds), 3600)  # 计算小时数
         minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
         milliseconds = run_time.microseconds // 1000  # 获取毫秒部分
-  
-        number_programmes_run = len(runtime_dict) - 6  # 计算运行函数数量（辅助函数除外）
-  
-        time_LaTeX = sum(value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"]))  # 对key中含有 pdflatex、lualatex、xelatex、编译、宏包等字符串的值求和
+
+        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["pdflatex", "lualatex", "xelatex", " 编译", "宏包"])]  # 筛选过程独立成一个变量
+        time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和
         time_python = total_seconds - time_LaTeX  # 计算Python运行时长
         time_pytexmk = total_seconds  # 计算PyTeXMK运行时长
-  
+
+        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
+
         # 添加统计信息到字典
         runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
-  
+
         # 创建表格对象
-        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD,
-                      title="PyTeXMK 运行时长统计表")
-  
+        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, title="PyTeXMK 运行时长统计表")
+
         # 定义列名
         table.add_column("序号", justify="center", no_wrap=True)
         table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
@@ -152,20 +152,20 @@ def time_print(start_time, runtime_dict):
         table.add_column("序号", justify="center", no_wrap=True)
         table.add_column("运行项目", style="cyan", justify="center")
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
-  
+
         # 计算打印表格列数
         length = len(runtime_dict) / 2
         row_num = None
- 
+
         # 判断统计项目列数是否是偶数
         if length - int(length) < 0.5:
             row_num = int(length)
         else:  # 是偶数则加一
             row_num = int(length) + 1
- 
+
         # 获取字典的键列表
         name_target_list = list(runtime_dict.keys())
- 
+
         # 添加数据到表格
         for i in range(row_num):
             row_data = [
@@ -182,10 +182,10 @@ def time_print(start_time, runtime_dict):
             else:
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
-              
+
         print("\n" + "=" * 80 + "\n")  # 打印分隔线
         console.print(table)  # 打印表格
-  
+
         print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
         print(f"运行 LaTeX 相关程序：{number_programmes_run} 个")  # 打印运行函数数量
     except Exception as e:
