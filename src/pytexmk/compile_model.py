@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-01 23:28:38 +0800
+LastEditTime : 2024-08-02 09:59:05 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -60,7 +60,7 @@ TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹�
 
 class CompileModel(object):
 
-    def __init__(self, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet):
+    def __init__(self, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet):
         """
         初始化 CompileModel 类实例。
          
@@ -71,7 +71,7 @@ class CompileModel(object):
         - aux_files (list): 辅助文件列表。
         - outdir (str): 输出文件的目录路径。
         - auxdir (str): 辅助文件的目录路径。
-        - quiet (bool): 是否静默模式运行。
+        - unquiet (bool): 是否非静默模式运行。
          
         行为:
         - 初始化输出文件名为空字符串，调用_setup_logger方法设置日志记录器，
@@ -87,7 +87,7 @@ class CompileModel(object):
         self.aux_files = aux_files
         self.auxdir = auxdir
         self.outdir = outdir
-        self.quiet = quiet 
+        self.unquiet = unquiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
          
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
@@ -134,12 +134,12 @@ class CompileModel(object):
     def prepare_LaTeX_output_files(self):
         """
         准备LaTeX输出文件的相关信息。
-         
+
         返回值:
         - cite_counter: 引用计数器，包含引用信息的字典。
         - toc_file: toc文件内容，字符串类型。
         - index_aux_content_dict_old: 词汇表文件内容，字典类型。
- 
+
         行为说明:
         - 检查是否存在项目名称对应的.aux文件。如果存在，生成引用计数器并读取词汇表内容。
         - 如果不存在.aux文件，初始化引用计数器为默认值，词汇表内容为空字典。
@@ -169,7 +169,7 @@ class CompileModel(object):
         else:
             # 如果不存在.toc文件，初始化toc_file为空字符串
             toc_file = ''
- 
+
         # 返回引用计数器、toc文件内容和词汇表文件内容
         return cite_counter, toc_file, index_aux_content_dict_old
     
@@ -216,10 +216,10 @@ class CompileModel(object):
     def _index_aux_content_get(self): 
         """
         获取项目中所有索引辅助文件的内容，并将其存储在一个字典中。
-         
+
         返回:
         - index_aux_content_dict_old (dict): 包含所有辅助文件内容的字典。
- 
+
         行为逻辑说明:
         1. 构造主aux文件的文件名，格式为项目名加上.aux后缀。
         2. 定义一个字典，用于存储旧的索引辅助文件内容。
@@ -231,7 +231,7 @@ class CompileModel(object):
         """
         file_name = Path(f'{self.project_name}.aux')  # 使用pathlib构造主aux文件的文件名，格式为项目名加上.aux后缀
         index_aux_content_dict_old = dict()  # 定义一个字典，用于存储旧的索引辅助文件内容
- 
+
         # 读取主aux文件
         if file_name.exists():  # 使用pathlib检查主aux文件是否存在
             # 判断并获取 glossaries 宏包的辅助文件内容
@@ -244,15 +244,14 @@ class CompileModel(object):
                     if Path(f"{self.project_name}{ext_i}").exists() and Path(f"{self.project_name}{ext_o}").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
                         with open(Path(f"{self.project_name}{ext_o}"), 'r', encoding='utf-8') as fobj:
                             index_ext_i_content = fobj.read()
-                        index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
- 
+                        index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content 
             # 判断并获取 nomencl 宏包的辅助文件内容
             if Path(f"{self.project_name}.nlo").exists():
                 if Path(f"{self.project_name}.nlo").exists() and Path(f"{self.project_name}.nls").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
                     with open(Path(f"{self.project_name}.nlo"), 'r', encoding='utf-8') as fobj:
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.nlo'] = index_ext_i_content
- 
+
             # 判断并获取 makeidx 宏包的辅助文件内容
             if Path(f"{self.project_name}.idx").exists():
                 if Path(f"{self.project_name}.idx").exists() and Path(f"{self.project_name}.ind").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
@@ -261,7 +260,7 @@ class CompileModel(object):
                     index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
             self.logger.warning(f"没有找到名为{self.project_name}.aux 的文件")
- 
+
         return index_aux_content_dict_old
     
     # --------------------------------------------------------------------------------
@@ -270,10 +269,10 @@ class CompileModel(object):
     def toc_changed_judgment(self, toc_file):
         """
         判断toc文件内容是否发生变化。
- 
+
         参数:
         - toc_file: 传入的toc文件内容，用于与当前项目中的toc文件内容进行比较。
- 
+
         行为逻辑:
         1. 生成toc文件的完整路径。
         2. 检查toc文件是否存在。
@@ -293,10 +292,10 @@ class CompileModel(object):
     def compile_tex(self):
         """
         编译 LaTeX 文档的方法。
-         
+
         参数:
         - self: 当前对象实例，包含编译所需的配置和状态信息。
-         
+
         行为逻辑:
         1. 根据编译引擎和其他配置选项构建编译命令。
         2. 如果编译引擎是 'XeLaTeX'，则添加 '-no-pdf' 选项。
@@ -305,16 +304,16 @@ class CompileModel(object):
         5. 使用 subprocess.run 执行编译命令。
         6. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
-         
+
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiler_engine == 'XeLaTeX':
             options.insert(5, "-no-pdf")
-        if self.quiet:
-            options.insert(4, "-interaction=batchmode") # 静默编译
-        else:
+        if self.unquiet:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
+        else:
+            options.insert(4, "-interaction=batchmode") # 静默编译
         console.print(f"[bold]运行命令：[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
-         
+
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
@@ -430,7 +429,7 @@ class CompileModel(object):
         # self.logger.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
         options = [bib_engine, self.project_name]
 
-        if self.quiet and bib_engine == 'biber':
+        if not self.unquiet and bib_engine == 'biber':
             options.insert(1, "-quiet") # 静默编译
                 
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
@@ -567,7 +566,6 @@ class CompileModel(object):
             self.MRC.move_to_folder(self.out_files, self.outdir)
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
-        
 
     # --------------------------------------------------------------------------------
     # 定义 xdv 编译函数
@@ -584,7 +582,7 @@ class CompileModel(object):
         5. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
         options = ["DVIPDFMX", "-V", "2.0", f"{self.project_name}"]
-        if self.quiet:
+        if not self.unquiet:
             options.insert(1, "-q") # 静默编译
         console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:

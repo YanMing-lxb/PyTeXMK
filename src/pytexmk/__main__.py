@@ -43,11 +43,11 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet):
+def RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet):
     runtime_dict = {}
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileModel(compiler_engine, project_name, out_files, aux_files, outdir, auxdir, quiet)
+    compile_model = CompileModel(compiler_engine, project_name, out_files, aux_files, outdir, auxdir, unquiet)
  
     print('检测并移动辅助文件到根目录...')
     runtime_move_aux_root, _  = time_count(MRC.move_to_root, aux_files, auxdir) # 将辅助文件移动到根目录
@@ -359,7 +359,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
         elif args.pdf_repair:
             MRC.pdf_repair(project_name, '.', outdir)
         else:
-            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, not args.unquiet)
+            RUN(start_time, compiler_engine, project_name, out_files, aux_files, outdir, auxdir, args.unquiet)
     checker = UpdateChecker()
     checker.check_for_updates()
 
