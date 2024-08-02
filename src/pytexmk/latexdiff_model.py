@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-02 10:52:51 +0800
+LastEditTime : 2024-08-02 13:42:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
@@ -43,10 +43,11 @@ class LaTeXDiff_Aux:
 
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
     
+
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX文件存在检查函数
     # --------------------------------------------------------------------------------
-    def _old_tex_files_exist(self): # TODO 完善该函数
+    def _old_tex_files_exist(self): # TODO 检查旧的tex文件的辅助文件是否存在，如果存在返回True，否则返回False
         """
         检查旧的tex文件是否存在。
 
@@ -57,24 +58,6 @@ class LaTeXDiff_Aux:
         1. 遍历旧tex文件列表，如果存在则返回True，否则返回False。
         """
         for file_name in self.old_tex_files:
-            if Path(file_name).exists():
-                return True
-        return False
-
-    # --------------------------------------------------------------------------------
-    # 定义 旧TeX的辅助文件存在检查函数
-    # --------------------------------------------------------------------------------
-    def _old_aux_files_exist(self): # TODO 完善该函数
-        """
-        检查旧的辅助文件是否存在。
-
-        返回:
-        - bool: 旧辅助文件是否存在。
-
-        行为逻辑:
-        1. 遍历旧辅助文件列表，如果存在则返回True，否则返回False。
-        """
-        for file_name in self.old_aux_files:
             if Path(file_name).exists():
                 return True
         return False
