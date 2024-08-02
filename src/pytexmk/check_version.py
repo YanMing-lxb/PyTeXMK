@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-02 20:06:57 +0800
+LastEditTime : 2024-08-02 20:08:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -105,7 +105,7 @@ class UpdateChecker:
         if not latest_version:
             url = "https://pypi.org/pypi/pytexmk/json"
             try:
-                response = urllib.request.urlopen(url, timeout=30) # TODO 以后如果做定时编译功能的话，check_for_updates() 可能会被频繁调用，需要优化
+                response = urllib.request.urlopen(url, timeout=15) # TODO 以后如果做定时编译功能的话，check_for_updates() 可能会被频繁调用，需要优化
                 with response:
                     data = json.loads(response.read())
                     latest_version = data['info']['version']
