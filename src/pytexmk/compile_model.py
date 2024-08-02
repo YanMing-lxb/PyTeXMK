@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-02 10:41:51 +0800
+LastEditTime : 2024-08-02 18:06:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
 Description  : 
@@ -56,7 +56,6 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
                          r'LaTeX Warning: There were undefined references\.',
                          r'LaTeX Warning: Label\(s\) may have changed\.',
                          r'No file .*(\.toc|\.lof)\.']]  # 匹配需要重新运行的LaTeX警告
-TEXLIPSE_MAIN_PATTERN = re.compile(r'^mainTexFile=(.*)(?:\.tex)$', re.M)  # 匹配TeXlipse主文件
 
 class CompileModel(object):
 

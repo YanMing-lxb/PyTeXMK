@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-02 12:20:30 +0800
+LastEditTime : 2024-08-02 18:01:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -215,7 +215,7 @@ class MoveRemoveClean(object):
             print("当前路径下未发现PDF文件。")
             return
  
-        print(f"共发现 {len(pdf_files)} 个PDF文件。")
+        print(f"共发现 [bold cyan]{len(pdf_files)}[/bold cyan] 个PDF文件。")
         for pdf_file in pdf_files:
             try:
                 # 使用fitz库打开PDF文件
@@ -229,7 +229,7 @@ class MoveRemoveClean(object):
                 self.logger.info(f"已处理并覆盖文件 {pdf_file}")
             except Exception as e:
                 self.logger.error(f"处理出错文件 {pdf_file}: {e}")
-        print("所有PDF文件已处理完成。")
+        print("[bold green]所有PDF文件已处理完成。")
 
 
 

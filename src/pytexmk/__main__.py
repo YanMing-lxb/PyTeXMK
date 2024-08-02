@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-02 12:53:37 +0800
+LastEditTime : 2024-08-02 18:00:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -365,7 +365,6 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             if args.LaTeXDiff:
                 runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
                 runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
-                print('[bold green]已完成移动所有辅助文件到根目录下的指令')
 
             time_print(start_time, runtime_dict) # 打印编译时长统计
 
