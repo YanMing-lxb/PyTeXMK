@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-03 14:31:36 +0800
+LastEditTime : 2024-08-03 15:22:11 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -61,7 +61,6 @@ class UpdateChecker():
         self.time_out = time_out  # 存储超时时间
 
         data_path = Path(importlib.resources.files('pytexmk')) / 'data'  # 获取 pytexmk 安装路径并拼接 data 子路径
-        data_path.mkdir(exist_ok=True)  # 创建 data 目录，如果已存在则不报错
         self.cache_file = data_path / "pytexmk_version_cache.toml"  # 创建缓存文件路径
 
     # --------------------------------------------------------------------------------
@@ -82,6 +81,8 @@ class UpdateChecker():
         """
         try:
             cache_path = Path(self.cache_file)  # 获取缓存文件路径
+            if not cache_path.exists():
+                return None  # 如果缓存文件不存在，返回 None
             # 使用timedelta来转换秒数
             cache_time_remaining = round(self.cache_time - (time.time() - cache_path.stat().st_mtime), 4)  # 计算缓存剩余时间
             delta = timedelta(seconds=cache_time_remaining)
