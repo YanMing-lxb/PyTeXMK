@@ -8,7 +8,7 @@ tag-template: '${GITHUB_REF#refs/tags/}'
 # 版本模板：使用主要、次要和补丁版本号（当前被注释掉）
 # Emoji reference: https://gitmoji.carloscuesta.me/
 # 表情符号参考：https://gitmoji.carloscuesta.me/
-categories:
+categories: # TODO 需要测试并学习使用
 # 分类配置
   - title: '🚀 Features'
     labels:
