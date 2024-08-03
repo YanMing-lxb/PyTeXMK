@@ -51,4 +51,4 @@ jobs:
     - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
       uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
       with:
-         repository_url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
+         repository-url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
