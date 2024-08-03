@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-03 12:25:00 +0800
+LastEditTime : 2024-08-03 14:25:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -32,6 +32,7 @@ from pathlib import Path
 import importlib.metadata
 import importlib.resources
 from packaging import version
+from datetime import timedelta
 
 
 class UpdateChecker():
@@ -81,10 +82,17 @@ class UpdateChecker():
         """
         try:
             cache_path = Path(self.cache_file)  # 获取缓存文件路径
-            if cache_path.exists() and (time.time() - cache_path.stat().st_mtime < self.cache_time):  # 检查缓存文件是否存在且未过期
+            # 使用timedelta来转换秒数
+            cache_time_remaining = round(self.cache_time - (time.time() - cache_path.stat().st_mtime), 4)  # 计算缓存剩余时间
+            delta = timedelta(seconds=cache_time_remaining)
+            # 计算天数、小时、分钟和秒
+            hours, remainder = divmod(int(delta), 3600)  # 计算小时数
+            minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
+
+            if cache_path.exists() and (cache_time_remaining > 0):  # 检查缓存文件是否存在且未过期
                 with cache_path.open('r') as f:  # 打开缓存文件
                     data = toml.load(f)  # 加载缓存文件内容
-                    self.logger.info(f'读取 PyTeXMK 版本缓存文件中的版本号')  # 记录日志信息
+                    self.logger.info(f'读取 PyTeXMK 版本缓存文件中的版本号，缓存有效期：{int(hours):02}小时{int(minutes):02}分{int(seconds):02}秒。')  # 记录日志信息
                     self.logger.info(f'PyTeXMK 版本缓存文件路径: {self.cache_file}')  # 记录日志信息
                     return data.get("latest_version")  # 返回最新版本号
         except Exception as e:
