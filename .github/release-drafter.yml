@@ -1,14 +1,21 @@
 # Configuration for Release Drafter: https://github.com/toolmantim/release-drafter
+# 配置Release Drafter：https://github.com/toolmantim/release-drafter
 name-template: 'PyTeXMK ${GITHUB_REF#refs/tags/} 🌈'
+# 发布名称模板：使用GitHub引用标签并添加彩虹表情
 tag-template: '${GITHUB_REF#refs/tags/}'
+# 标签模板：使用GitHub引用标签
 # version-template: $MAJOR.$MINOR.$PATCH
+# 版本模板：使用主要、次要和补丁版本号（当前被注释掉）
 # Emoji reference: https://gitmoji.carloscuesta.me/
+# 表情符号参考：https://gitmoji.carloscuesta.me/
 categories:
+# 分类配置
   - title: '🚀 Features'
     labels:
       - 'feature'
       - 'enhancement'
       - 'kind/feature'
+  # 功能分类：包括功能、增强和kind/feature标签
   - title: '🐛 Bug Fixes'
     labels:
       - 'fix'
@@ -16,29 +23,38 @@ categories:
       - 'bug'
       - 'regression'
       - 'kind/bug'
+  # 缺陷修复分类：包括修复、缺陷修复、缺陷和回归标签
   - title: 📝 Documentation updates
     labels:
       - documentation
       - 'kind/doc'
+  # 文档更新分类：包括文档和kind/doc标签
   - title: 👻 Maintenance
     labels:
       - chore
       - dependencies
       - 'kind/chore'
       - 'kind/dep'
+  # 维护分类：包括杂务、依赖和kind/chore标签
   - title: 🚦 Tests
     labels:
       - test
       - tests
+  # 测试分类：包括测试标签
 exclude-labels:
+# 排除标签配置
   - reverted
   - no-changelog
   - skip-changelog
   - invalid
+# 排除的标签：包括还原、无变更日志、跳过变更日志和无效标签
 change-template: '* $TITLE (#$NUMBER) @$AUTHOR'
+# 变更模板：包括标题、编号和作者
 template: |
   ## What’s Changed
   $CHANGES
+# 模板：变更内容的格式
 Terms
 Privacy
 Security
+# 条款、隐私和安全

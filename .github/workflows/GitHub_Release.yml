@@ -1,23 +1,23 @@
-name: GitHub Release
+name: GitHub Release  # 定义工作流的名称
 
-on:
-  push:
-    tags:
-      - v*
+on:  # 定义触发工作流的事件
+  push:  # 当有推送操作时触发
+    tags:  # 仅当推送的标签符合以下模式时触发
+      - v*  # 标签以v开头
 
-permissions:
-  contents: read
+permissions:  # 定义工作流的权限
+  contents: read  # 允许读取仓库内容
 
-jobs:
-  update_release_draft:
-    permissions:
-      contents: write  # for release-drafter/release-drafter to create a github release
-      pull-requests: write  # for release-drafter/release-drafter to add label to PR
-    runs-on: ubuntu-latest
-    steps:
-      - uses: release-drafter/release-drafter@v5
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+jobs:  # 定义工作流中的任务
+  update_release_draft:  # 定义一个名为update_release_draft的任务
+    permissions:  # 定义该任务的权限
+      contents: write  # 允许写入仓库内容，用于release-drafter/release-drafter创建GitHub发布
+      pull-requests: write  # 允许写入拉取请求，用于release-drafter/release-drafter为PR添加标签
+    runs-on: ubuntu-latest  # 指定任务运行的操作系统
+    steps:  # 定义任务的步骤
+      - uses: release-drafter/release-drafter@v5  # 使用release-drafter/release-drafter@v5动作
+        env:  # 定义环境变量
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}  # 设置GITHUB_TOKEN环境变量为secrets.ACCESS_TOKEN
 
   
   
