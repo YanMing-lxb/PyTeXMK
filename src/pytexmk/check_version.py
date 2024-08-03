@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-03 14:25:01 +0800
+LastEditTime : 2024-08-03 14:31:36 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -86,8 +86,10 @@ class UpdateChecker():
             cache_time_remaining = round(self.cache_time - (time.time() - cache_path.stat().st_mtime), 4)  # 计算缓存剩余时间
             delta = timedelta(seconds=cache_time_remaining)
             # 计算天数、小时、分钟和秒
-            hours, remainder = divmod(int(delta), 3600)  # 计算小时数
+            total_seconds = delta.total_seconds()  # 将timedelta转换为总秒数
+            hours, remainder = divmod(int(total_seconds), 3600)  # 计算小时数
             minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
+
 
             if cache_path.exists() and (cache_time_remaining > 0):  # 检查缓存文件是否存在且未过期
                 with cache_path.open('r') as f:  # 打开缓存文件
