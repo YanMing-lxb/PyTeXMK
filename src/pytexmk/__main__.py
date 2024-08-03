@@ -378,7 +378,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
         if runtime_dict: # 如果存在运行时统计信息
             time_print(start_time, runtime_dict) # 打印编译时长统计
 
-    checker = UpdateChecker()
+    checker = UpdateChecker(1, 6) # 访问超时，单位：秒；缓存时长，单位：小时
     checker.check_for_updates()
 
 if __name__ == "__main__":
