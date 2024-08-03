@@ -1,55 +1,54 @@
-name: Publish pytexmk 🐍 distribution 📦 to PyPI
+name: Publish pytexmk 🐍 distribution 📦 to PyPI  # 定义工作流的名称，当推送匹配的标签时发布到PyPI
 on:
   push:
     tags:
-      - v*
+      - v*  # 当推送以v开头的标签时触发此工作流
 
 jobs:
   build:
-    name: Build and publish to PyPI
-    runs-on: ubuntu-latest
+    name: Build PyTeXMK  # 定义构建作业的名称
+    runs-on: ubuntu-latest  # 指定运行此作业的操作系统
 
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
+    - name: Checkout source  # 检出源代码的步骤
+      uses: actions/checkout@v4  # 使用actions/checkout动作来检出代码
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up 🐍 Python  # 设置Python环境的步骤
+      uses: actions/setup-python@v4  # 使用actions/setup-python动作来设置Python环境
       with:
-        python-version: "3.x"
+        python-version: "3.x"  # 指定Python版本为3.x
 
-    - name: Build source and wheel
+    - name: Build 📦 source and wheel  # 构建源代码和wheel包的步骤
       run: |
-        python3 -m pip install --upgrade build twine rich
-        python3 -m build
+        python3 -m pip install --upgrade build twine rich  # 安装构建和上传所需的工具
+        python3 -m build  # 构建源代码和wheel包
 
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v3
+    - name: Store the distribution packages  # 存储构建好的分发包的步骤
+      uses: actions/upload-artifact@v3  # 使用actions/upload-artifact动作来上传构建好的包
       with:
-        name: python-package-distributions
-        path: dist/
+        name: python-package-distributions  # 指定上传的artifact名称
+        path: dist/  # 指定要上传的文件路径
 
   publish-to-pypi:
-    name: Publish pytexmk 🐍 distribution 📦 to PyPI
-    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
-    needs: build
-    runs-on: ubuntu-latest
+    name: Publish 🐍 PyTeXMK 📦 to PyPI  # 定义发布到PyPI作业的名称
+    if: startsWith(github.ref, 'refs/tags/')  # 只有在推送标签时才执行此作业
+    needs: build  # 指定此作业依赖于build作业
+    runs-on: ubuntu-latest  # 指定运行此作业的操作系统
     environment:
-      name: pypi
-      url: https://pypi.org/project/pytexmk  # Replace with your actual PyPI project URL
+      name: pypi  # 定义环境名称
+      url: https://pypi.org/project/pytexmk  # 替换为实际的PyPI项目URL
     permissions:
-      contents: read  # Required for downloading artifacts
-      id-token: write  # Required for trusted publishing
+      contents: read  # 需要读取内容的权限
+      id-token: write  # 需要写入ID令牌的权限
 
     steps:
-    - name: Download all the dists
-      uses: actions/download-artifact@v3
+    - name: Download all the 📦 dists  # 下载所有分发包的步骤
+      uses: actions/download-artifact@v3  # 使用actions/download-artifact动作来下载构建好的包
       with:
-        name: python-package-distributions
-        path: dist/
+        name: python-package-distributions  # 指定要下载的artifact名称
+        path: dist/  # 指定下载到的路径
 
-    - name: Publish distribution 📦 to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
+      uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
       with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
+         repository_url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
