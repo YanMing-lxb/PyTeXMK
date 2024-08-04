@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-04 17:02:49 +0800
+LastEditTime : 2024-08-04 18:52:00 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/info_print.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -29,6 +29,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import box
 from rich import print
+from rich.text import Text
 console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象
 
@@ -69,7 +70,13 @@ def time_count(fun, *args):
         # 如果执行函数时出错，记录错误信息并返回None
         logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
         return None, None
-
+# --------------------------------------------------------------------------------
+# 计算 text 中非ASCII字符的数量
+# --------------------------------------------------------------------------------
+def get_text_len(text):
+    non_ascii_len = sum(1 for i in text if not i.isascii())
+    text_len = len(text) + non_ascii_len
+    return text_len
 
 # --------------------------------------------------------------------------------
 # 定义信息打印函数
@@ -89,8 +96,7 @@ def print_message(message):
     """
     try:
         # 计算左右两侧 X 的数量
-        ascii_len = sum(1 for i in message if not i.isascii())  # 计算消息中非ASCII字符的数量
-        padding_size = 80 - (len(message) + ascii_len) - 4  # 计算需要填充的空格数量
+        padding_size = 80 - get_text_len(message) - 4  # 计算需要填充的空格数量
         left_padding = padding_size // 2  # 计算左侧填充的X数量
         right_padding = padding_size - left_padding  # 计算右侧填充的X数量
         banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding  # 生成带有填充的横幅
@@ -149,7 +155,6 @@ def time_print(start_time, runtime_dict):
         formatted_times = {key: f"{value:0{max_whole_digits+5}.4f} s" for key, value in runtime_dict.items()}  # 格式化所有时间位数相同
         runtime_dict.update(formatted_times)  # 更新字典中的时间格式
 
-
         number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
 
         # 创建表格对象
@@ -157,10 +162,10 @@ def time_print(start_time, runtime_dict):
 
         # 定义列名
         table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column("运行项目", style="cyan", justify="center", no_wrap=True)
+        table.add_column(Text("运行项目", justify="center"), style="cyan", justify="left", no_wrap=True)
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
         table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column("运行项目", style="cyan", justify="center")
+        table.add_column(Text("运行项目", justify="center"), style="cyan", justify="left", no_wrap=True)
         table.add_column("运行时长", style="green", justify="center", no_wrap=True)
 
         # 计算打印表格列数
