@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-02 18:27:40 +0800
+LastEditTime : 2024-08-04 20:06:11 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -60,7 +60,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     runtime_dict['检测辅助文件'] = runtime_read
 
     # 首次编译 LaTeX 文档
-    print_message(f"1 次 {compiler_engine} 编译")
+    print_message(f"1 次 {compiler_engine} 编译", "running")
     runtime_Latex, _ = time_count(compile_model.compile_tex, ) 
     runtime_dict[f'{compiler_engine} {abbreviations_num[0]}'] = runtime_Latex
 
@@ -76,7 +76,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
     if bib_engine:
         if Latex_compilation_times_bib != 0:
-            print_message(f'{bib_engine} 文献编译')
+            print_message(f'{bib_engine} 文献编译', "running")
             runtime_bib, _ = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
             runtime_dict[name_target_bib] = runtime_bib
 
@@ -87,7 +87,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
 
     if run_index_list_cmd: # 存在目录索引编译命令
         for cmd in run_index_list_cmd:
-            print_message(f"{cmd[0]} 编译")
+            print_message(f"{cmd[0]} 编译", "running")
             Latex_compilation_times_index = 1
             runtime_index, return_index = time_count(compile_model.compile_index, cmd)
             name_target_index = return_index # 获取 compile_index 函数得到的参数
@@ -106,26 +106,23 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
 
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
-        print_message(f"{times} 次 {compiler_engine} 编译")
+        print_message(f"{times} 次 {compiler_engine} 编译", "running")
         runtime_Latex, _ = time_count(compile_model.compile_tex, )
         runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
 
     # 编译完成，开始判断编译 XDV 文件
     if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
-        print_message("DVIPDFMX 编译")
+        print_message("DVIPDFMX 编译", "running")
         runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict['DVIPDFMX 编译'] = runtime_xdv
 
     # 显示编译过程中关键信息
-    border = "[red bold]=[/red bold]" * 80
-    center = "[green on white bold]▓[/green on white bold]" * 33 + " [bold green]完成所有编译[/bold green] " + "[green on white bold]▓[/green on white bold]" * 33
-    print(f"\n{border}")
-    print(f"{center}")
-    print(f"{border}\n")
+    print_message("完成所有编译", "success")
+    
     print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
-    print_message("开始执行编译以外的附加命令")
+    print_message("开始执行编译以外的附加命令", "running")
 
     print('移动结果文件到输出目录...')
     runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录

@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-04 18:52:00 +0800
+LastEditTime : 2024-08-04 20:09:41 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -70,6 +70,7 @@ def time_count(fun, *args):
         # 如果执行函数时出错，记录错误信息并返回None
         logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
         return None, None
+
 # --------------------------------------------------------------------------------
 # 计算 text 中非ASCII字符的数量
 # --------------------------------------------------------------------------------
@@ -81,7 +82,7 @@ def get_text_len(text):
 # --------------------------------------------------------------------------------
 # 定义信息打印函数
 # --------------------------------------------------------------------------------
-def print_message(message):
+def print_message(message, state):
     """
     打印带有装饰的消息。
 
@@ -94,15 +95,29 @@ def print_message(message):
     异常:
     - Exception: 如果在打印过程中发生任何异常，将记录错误日志。
     """
+    if state == "running":
+        in_dec_chars = "X"  # 设置内部装饰字符
+        out_dec_chars = "="  # 设置外部装饰字符
+        in_dec_chars_style = "red on white"  # 设置内部装饰字符风格
+        out_dec_chars_style = "yellow bold"  # 设置外部装饰字符风格
+        message_style = "red on white bold"  # 设置消息风格
+    elif state == "success":
+        in_dec_chars = "▓"  # 设置内部装饰字符
+        out_dec_chars = "="  # 设置外部装饰字符
+        in_dec_chars_style = "green on white"  # 设置内部装饰字符风格
+        out_dec_chars_style = "red bold"  # 设置外部装饰字符风格
+        message_style = "bold green on white"  # 设置消息风格
+
     try:
         # 计算左右两侧 X 的数量
         padding_size = 80 - get_text_len(message) - 4  # 计算需要填充的空格数量
         left_padding = padding_size // 2  # 计算左侧填充的X数量
         right_padding = padding_size - left_padding  # 计算右侧填充的X数量
-        banner = "[not bold]X[/not bold]" * left_padding + f"| {message} |" + "[not bold]X[/not bold]" * right_padding  # 生成带有填充的横幅
-        console.print("\n" + "=" * 80, style="yellow bold")  # 打印黄色粗体的80个等号
-        console.print(banner, style="red on white bold")  # 打印红色粗体白色背景的横幅
-        console.print("=" * 80 + "\n", style="yellow bold")  # 打印黄色粗体的80个等号
+        banner = f"[{in_dec_chars_style}]{in_dec_chars}[/{in_dec_chars_style}]" * left_padding + f"[{message_style}]| {message} |[/{message_style}]" + f"[{in_dec_chars_style}]{in_dec_chars}[/{in_dec_chars_style}]" * right_padding
+        
+        console.print("\n" + out_dec_chars * 80, style=f"{out_dec_chars_style}")
+        console.print(banner)
+        console.print(out_dec_chars * 80 + "\n", style=f"{out_dec_chars_style}")
     except Exception as e:
         logger.error(f"执行函数 print_message 时出错: {e}")  # 记录错误日志
     
@@ -198,7 +213,7 @@ def time_print(start_time, runtime_dict):
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
 
-        print("\n" + "=" * 80 + "\n")  # 打印分隔线
+        print("\n" + "[green]=" * 80 + "\n")  # 打印分隔线
         console.print(table)  # 打印表格
 
         print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
