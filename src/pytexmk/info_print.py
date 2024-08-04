@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-02 19:28:39 +0800
+LastEditTime : 2024-08-04 16:32:39 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -175,13 +175,13 @@ def time_print(start_time, runtime_dict):
             row_data = [
                 str(i + 1),  # 序号
                 name_target_list[i],  # 运行项目名称
-                "{:.4f} s".format(runtime_dict[name_target_list[i]])  # 运行时长
+                f"{runtime_dict[name_target_list[i]]:07.4f} s"  # 运行时长
             ]
             if i + row_num < len(name_target_list):
                 row_data.extend([
                     str(i + 1 + row_num),  # 序号
                     name_target_list[i + row_num],  # 运行项目名称
-                    "{:.4f} s".format(runtime_dict[name_target_list[i + row_num]])  # 运行时长
+                    f"{runtime_dict[name_target_list[i + row_num]]:07.4f} s"  # 运行时长
                 ])
             else:
                 row_data.extend(["", "", ""])
