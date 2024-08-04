@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-04 20:06:11 +0800
+LastEditTime : 2024-08-04 20:16:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -48,10 +48,6 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
     compile_model = CompileModel(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet)
-
-    print('检测并移动辅助文件到根目录...')
-    runtime_move_aux_root, _  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
-    runtime_dict['辅助文件->根目录'] = runtime_move_aux_root
 
     # 检查并处理已存在的 LaTeX 输出文件
     print('检测识别已有辅助文件...')
@@ -122,15 +118,6 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
     print(f"参考文献：{print_bib}")
     print(f"目录索引：{print_index}")
-    print_message("开始执行编译以外的附加命令", "running")
-
-    print('移动结果文件到输出目录...')
-    runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
-    runtime_dict["结果文件->输出目录"] = runtime_move_out_outdir
-
-    print('移动辅助文件到辅助目录...')
-    runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
-    runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
 
     return runtime_dict
 
@@ -367,7 +354,22 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_pdf_repair, _ = time_count(MRC.pdf_repair, project_name, '.', outdir)
             runtime_dict["修复 PDF 文件"] = runtime_pdf_repair
         else:
+            print('检测并移动辅助文件到根目录...')
+            runtime_move_aux_root, _  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
+            runtime_dict['辅助文件->根目录'] = runtime_move_aux_root
+            
             RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
+
+            print_message("开始执行编译以外的附加命令", "running")
+
+            print('移动结果文件到输出目录...')
+            runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
+            runtime_dict["结果文件->输出目录"] = runtime_move_out_outdir
+
+            print('移动辅助文件到辅助目录...')
+            runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
+            runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
+
             if args.LaTeXDiff:
                 runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
                 runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
