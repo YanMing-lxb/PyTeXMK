@@ -14,7 +14,7 @@ jobs:
       uses: actions/checkout@v4  # 使用actions/checkout动作来检出代码
 
     - name: Set up 🐍 Python  # 设置Python环境的步骤
-      uses: actions/setup-python@v4  # 使用actions/setup-python动作来设置Python环境
+      uses: actions/setup-python@v5  # 使用actions/setup-python动作来设置Python环境
       with:
         python-version: "3.x"  # 指定Python版本为3.x
 
@@ -24,7 +24,7 @@ jobs:
         python3 -m build  # 构建源代码和wheel包
 
     - name: Store the distribution packages  # 存储构建好的分发包的步骤
-      uses: actions/upload-artifact@v3  # 使用actions/upload-artifact动作来上传构建好的包
+      uses: actions/upload-artifact@v4  # 使用actions/upload-artifact动作来上传构建好的包
       with:
         name: python-package-distributions  # 指定上传的artifact名称
         path: dist/  # 指定要上传的文件路径
@@ -43,7 +43,7 @@ jobs:
 
     steps:
     - name: Download all the 📦 dists  # 下载所有分发包的步骤
-      uses: actions/download-artifact@v3  # 使用actions/download-artifact动作来下载构建好的包
+      uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
         path: dist/  # 指定下载到的路径
