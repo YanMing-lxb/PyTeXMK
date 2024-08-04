@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-04 20:16:31 +0800
+LastEditTime : 2024-08-04 20:23:21 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -354,13 +354,14 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_pdf_repair, _ = time_count(MRC.pdf_repair, project_name, '.', outdir)
             runtime_dict["修复 PDF 文件"] = runtime_pdf_repair
         else:
+            print_message("开始预处理命令", "additional")
             print('检测并移动辅助文件到根目录...')
             runtime_move_aux_root, _  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
             runtime_dict['辅助文件->根目录'] = runtime_move_aux_root
             
             RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
 
-            print_message("开始执行编译以外的附加命令", "running")
+            print_message("开始后处理命令", "additional")
 
             print('移动结果文件到输出目录...')
             runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录

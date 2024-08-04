@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-04 20:09:41 +0800
+LastEditTime : 2024-08-04 20:35:28 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/info_print.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -95,7 +95,13 @@ def print_message(message, state):
     异常:
     - Exception: 如果在打印过程中发生任何异常，将记录错误日志。
     """
-    if state == "running":
+    if state == "additional":
+        in_dec_chars = "X"  # 设置内部装饰字符
+        out_dec_chars = "="  # 设置外部装饰字符
+        in_dec_chars_style = "red on white"  # 设置内部装饰字符风格
+        out_dec_chars_style = "yellow bold"  # 设置外部装饰字符风格
+        message_style = "cyan on white bold"  # 设置消息风格
+    elif state == "running":
         in_dec_chars = "X"  # 设置内部装饰字符
         out_dec_chars = "="  # 设置外部装饰字符
         in_dec_chars_style = "red on white"  # 设置内部装饰字符风格
@@ -113,7 +119,11 @@ def print_message(message, state):
         padding_size = 80 - get_text_len(message) - 4  # 计算需要填充的空格数量
         left_padding = padding_size // 2  # 计算左侧填充的X数量
         right_padding = padding_size - left_padding  # 计算右侧填充的X数量
-        banner = f"[{in_dec_chars_style}]{in_dec_chars}[/{in_dec_chars_style}]" * left_padding + f"[{message_style}]| {message} |[/{message_style}]" + f"[{in_dec_chars_style}]{in_dec_chars}[/{in_dec_chars_style}]" * right_padding
+        
+        left_banner = in_dec_chars * left_padding
+        right_banner = in_dec_chars * right_padding
+
+        banner = f"[{in_dec_chars_style}]{left_banner}[/{in_dec_chars_style}]" + f"[{message_style}]| {message} |[/{message_style}]" + f"[{in_dec_chars_style}]{right_banner}[/{in_dec_chars_style}]"
         
         console.print("\n" + out_dec_chars * 80, style=f"{out_dec_chars_style}")
         console.print(banner)
