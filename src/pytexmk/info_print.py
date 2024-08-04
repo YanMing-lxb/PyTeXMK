@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-04 16:36:47 +0800
+LastEditTime : 2024-08-04 17:02:49 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -144,6 +144,12 @@ def time_print(start_time, runtime_dict):
             time_python = total_seconds  # 计算Python运行时长
             runtime_dict.update({'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk}) # 添加统计信息到字典
 
+        # 格式化所有时间
+        max_whole_digits = max(len(str(int(value))) for value in runtime_dict.values())  # 获取所有时间中小数点前的最大位数
+        formatted_times = {key: f"{value:0{max_whole_digits+5}.4f} s" for key, value in runtime_dict.items()}  # 格式化所有时间位数相同
+        runtime_dict.update(formatted_times)  # 更新字典中的时间格式
+
+
         number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
 
         # 创建表格对象
@@ -175,13 +181,13 @@ def time_print(start_time, runtime_dict):
             row_data = [
                 f"{i + 1:02d}",  # 序号
                 name_target_list[i],  # 运行项目名称
-                f"{runtime_dict[name_target_list[i]]:07.4f} s"  # 运行时长
+                runtime_dict[name_target_list[i]]  # 运行时长
             ]
             if i + row_num < len(name_target_list):
                 row_data.extend([
                     f"{i + 1 + row_num:02d}",  # 序号
                     name_target_list[i + row_num],  # 运行项目名称
-                    f"{runtime_dict[name_target_list[i + row_num]]:07.4f} s"  # 运行时长
+                    runtime_dict[name_target_list[i + row_num]] # 运行时长
                 ])
             else:
                 row_data.extend(["", "", ""])
