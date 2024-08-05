@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-05 20:51:45 +0800
+LastEditTime : 2024-08-05 21:19:40 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -223,7 +223,7 @@ def time_print(start_time, runtime_dict):
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
 
-        print("\n" + "[green]=" * 80 + "\n")  # 打印分隔线
+        print("\n" + "=" * 80 + "\n")  # 打印分隔线
         console.print(table)  # 打印表格
 
         print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
