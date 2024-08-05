@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-03 15:22:11 +0800
+LastEditTime : 2024-08-05 09:37:40 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -83,14 +83,14 @@ class UpdateChecker():
             cache_path = Path(self.cache_file)  # 获取缓存文件路径
             if not cache_path.exists():
                 return None  # 如果缓存文件不存在，返回 None
+
             # 使用timedelta来转换秒数
             cache_time_remaining = round(self.cache_time - (time.time() - cache_path.stat().st_mtime), 4)  # 计算缓存剩余时间
             delta = timedelta(seconds=cache_time_remaining)
-            # 计算天数、小时、分钟和秒
+            # 计算小时、分钟和秒
             total_seconds = delta.total_seconds()  # 将timedelta转换为总秒数
             hours, remainder = divmod(int(total_seconds), 3600)  # 计算小时数
             minutes, seconds = divmod(remainder, 60)  # 计算分钟数和秒数
-
 
             if cache_path.exists() and (cache_time_remaining > 0):  # 检查缓存文件是否存在且未过期
                 with cache_path.open('r') as f:  # 打开缓存文件
@@ -157,11 +157,16 @@ class UpdateChecker():
             pattern = re.compile(r'<a\s+href="[^"]+/pytexmk-([\d\.]+)-py3-none-any\.whl[^"]*"\s+data-requires-python="[^"]+">.*?</a>', re.DOTALL)  # 定义正则表达式模式
             matches = pattern.findall(html_content)  # 使用正则表达式匹配版本号
 
-            for version in matches:  # 遍历匹配到的版本号
-                self.versions.append(version)  # 将版本号添加到版本列表中
-
+            for ver in matches:  # 遍历匹配到的版本号
+                self.versions.append(ver)  # 将版本号添加到版本列表中
+            
             if self.versions:  # 如果版本列表不为空
-                latest_version = max(self.versions)  # 获取最大版本号
+                # 使用列表推导式和parse函数将字符串转换为版本对象
+                version_objects = [version.parse(ver) for ver in self.versions]
+
+                # 使用max函数和key参数找到最新版本
+                latest_version = max(version_objects)
+
                 self.logger.info(f"获取 {package_name} 最新版本号成功: [bold green]{latest_version}[/bold green]")  # 记录成功信息
                 return latest_version  # 返回最新版本号
             else:
@@ -190,17 +195,17 @@ class UpdateChecker():
         4. 比较当前版本和最新版本，如果当前版本较旧，则提示用户更新。
         5. 如果当前版本是最新的，则提示当前版本信息。
         """
-        latest_version = self._load_cached_version()
+        latest_version = version.parse(self._load_cached_version())  # 从缓存中加载最新版本信息
         if not latest_version:
             latest_version = self._get_latest_version("pytexmk")
             if latest_version:
-                self._update_pytexmk_version_cache(latest_version)
+                self._update_pytexmk_version_cache(str(latest_version))
             else:
                 return
 
-        current_version = importlib.metadata.version("pytexmk")
+        current_version = version.parse(importlib.metadata.version("pytexmk"))
 
-        if version.parse(current_version) < version.parse(latest_version):
+        if current_version < latest_version:
             print(f"有新版本可用: [bold green]{latest_version}[/bold green] 当前版本: [bold red]{current_version}[/bold red]")
             print("请运行 [bold green]'pip install --upgrade pytexmk'[/bold green] 进行更新")
         else:
