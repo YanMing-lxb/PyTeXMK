@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-05 09:37:40 +0800
+LastEditTime : 2024-08-05 17:23:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -195,14 +195,18 @@ class UpdateChecker():
         4. 比较当前版本和最新版本，如果当前版本较旧，则提示用户更新。
         5. 如果当前版本是最新的，则提示当前版本信息。
         """
-        latest_version = version.parse(self._load_cached_version())  # 从缓存中加载最新版本信息
-        if not latest_version:
+        latest_version = self._load_cached_version()  # 从缓存中加载最新版本信息
+        
+        if latest_version:
+            latest_version = version.parse(latest_version)  # 将字符串转换为版本对象
+        else:
             latest_version = self._get_latest_version("pytexmk")
             if latest_version:
                 self._update_pytexmk_version_cache(str(latest_version))
             else:
                 return
 
+        # 获取当前安装的版本信息
         current_version = version.parse(importlib.metadata.version("pytexmk"))
 
         if current_version < latest_version:
