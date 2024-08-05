@@ -92,6 +92,14 @@
 <td>lualatex 进行编译</td>
 </tr>
 <tr>
+<td>-d, --LaTeXDiff</td>
+<td>使用 LaTeXDiff 进行编译，生成改动对比文件</td>
+</tr>
+<tr>
+<td>-dc, --LaTexDiff-compile</td>
+<td>使用 LaTeXDiff 进行编译，生成改动对比文件并编译新文件</td>
+</tr>
+<tr>
 <td>-c, --clean</td>
 <td>清除所有主文件的辅助文件</td>
 </tr>
@@ -123,7 +131,8 @@
 </table>
 <p><strong>说明：</strong><br>
 <code>-pr</code> 参数的功能是 "当 LaTeX 编译过程中报类似 <code>invalid X X R object at offset XXXXX</code> 的警告时，可使用此参数尝试修复所有 pdf 文件"<br>
-<code>invalid X X R object at offset XXXXX</code> 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题</p>
+<code>invalid X X R object at offset XXXXX</code> 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题<br>
+<code>-d</code> 和 <code>-dc</code> 命令输入示例： <code>pytexmk -d old_tex_file new_tex_file</code> 和 <code>pytexmk -dc old_tex_file new_tex_file</code> 生成的改动对比文件名为 <code>LaTeXDiff.tex</code></p>
 <h3 id="魔法注释">魔法注释 </h3>
 <p>PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。</p>
 <table>
@@ -233,6 +242,14 @@
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加 PyTeXMK 更新检查功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 相关功能
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加编译结束后将辅助文件移动到根目录下功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加单个项目的配置文件功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 实现配置文件的解析功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 编译判断逻辑</li>
+</ul>
+</li>
 </ul>
 </div>
       </div>
