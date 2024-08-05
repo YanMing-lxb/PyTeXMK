@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-04 20:23:21 +0800
+LastEditTime : 2024-08-05 19:42:50 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -30,11 +30,14 @@ import webbrowser
 from rich import print
 from pathlib import Path
 import importlib.resources
+
 from .version import script_name, __version__
+
 from .compile_model import CompileModel
 from .logger_config import setup_logger
 from .additional_operation import MoveRemoveClean, MainFileJudgment
 from .info_print import time_count, time_print, print_message
+from .latexdiff_model import LaTeXDiff_Aux
 from .check_version import UpdateChecker
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
@@ -129,6 +132,17 @@ def main():
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
+    runtime_dict = {}
+    suffixes_out = [".pdf", ".synctex.gz"]
+    suffixes_aux = [".log", ".blg", ".ilg",  # 日志文件
+                    ".aux", ".bbl", ".xml",  # 参考文献辅助文件
+                    ".toc", ".lof", ".lot",  # 目录辅助文件
+                    ".out", ".bcf",
+                    ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls",  # 索引辅助文件
+                    ".bak", ".spl",
+                    ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
+                    ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
+
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
     start_time = datetime.datetime.now() # 计算开始时间
@@ -148,7 +162,8 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-p', '--PdfLaTeX', action='store_true', help="PdfLaTeX 进行编译")
     parser.add_argument('-x', '--XeLaTeX', action='store_true', help="XeLaTeX 进行编译")
     parser.add_argument('-l', '--LuaLaTeX', action='store_true', help="LuaLaTeX 进行编译")
-    parser.add_argument('-d', '--LaTeXDiff', action='store_true', help="LaTeXDiff 进行编译，生成改动对比文件：目前该参数只能在编译结束后将所有辅助文件移动到根目录下") # 吐了，又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help="使用 LaTeXDiff 进行编译，生成改动对比文件") # 吐了，又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help="使用 LaTeXDiff 进行编译，生成改动对比文件并编译新文件")
     parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
     parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
     parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
@@ -195,44 +210,54 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
-    current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
-    if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
-        project_name = args.document # 使用命令行参数指定主文件
-        print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
-    if len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个主文件
-        project_name = main_file_in_root[0] # 使用该文件作为待编译主文件
-        print(f"通过根目录下唯一主文件指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
 
-    if 'root' in all_magic_comments: # 当前目录下存在多个主文件，且存在 % TEX root 魔法注释
-        logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
-        if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件，且只有一个存在 % TEX root 魔法注释
-            logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
-            check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1]) # 检查 magic comments 中指定的 root 文件名是否正确
-            if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
-                project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
-                print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
-            else: # 如果 magic comments 中指定的 root 文件名与当前文件名不同
-                logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同，无法确定主文件")
-        if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件，且多个 tex 文件中同时存在 % TEX root 魔法注释
-            logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义，无法根据魔法注释确定待编译主文件") 
+    if args.LaTeXDiff or args.LaTexDiff_compile:
+        if args.LaTeXDiff:
+            old_tex_file, new_tex_file = args.LaTeXDiff # 获取 -d 参数指定的两个文件
+        elif args.LaTexDiff_compile:
+            old_tex_file, new_tex_file = args.LaTexDiff_compile # 获取 -dc 参数指定的两个文件
+        old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file) # 检查 old_tex_file 是否正确
+        new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file) # 检查 new_tex_file 是否正确
+    else:
+        current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
+        if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
+            project_name = args.document # 使用命令行参数指定主文件
+            print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
+        elif len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个主文件
+            project_name = main_file_in_root[0] # 使用该文件作为待编译主文件
+            print(f"通过根目录下唯一主文件指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
 
-    if not project_name: # 如果当前根目录下存在多个主文件，且不存在 % TEX root 魔法注释，并且待编译主文件还没有找到
-        logger.info("无法根据魔法注释判断出待编译主文件，尝试根据默认主文件名指定待编译主文件")
-        for file in main_file_in_root:
-            if file == "main": # 如果存在 main.tex 文件
-                project_name = file # 使用 main.tex 文件作为待编译主文件名
-                print(f"通过默认文件名 \"main.tex\" 指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
-        if not project_name: # 如果不存在 main.tex 文件
-            logger.info("当前根目录下不存在名为 \"main.tex\" 的文件")
+        elif 'root' in all_magic_comments: # 当前目录下存在多个主文件，且存在 % TEX root 魔法注释
+            logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
+            if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件，且只有一个存在 % TEX root 魔法注释
+                logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
+                check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1]) # 检查 magic comments 中指定的 root 文件名是否正确
+                if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
+                    project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
+                    print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
+                else: # 如果 magic comments 中指定的 root 文件名与当前文件名不同
+                    logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同，无法确定主文件")
+            if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件，且多个 tex 文件中同时存在 % TEX root 魔法注释
+                logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义，无法根据魔法注释确定待编译主文件") 
 
-    if not project_name: # 其他情况
-        logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
-        logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译，或删除当前根目录下多余的 tex 文件")
-        logger.warning(f"当前根目录是：{current_path}")
-        print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-        sys.exit(1)
-    
-    project_name = MFJ.check_project_name(main_file_in_root, project_name) # 检查 project_name 是否正确
+        elif not project_name: # 如果当前根目录下存在多个主文件，且不存在 % TEX root 魔法注释，并且待编译主文件还没有找到
+            logger.info("无法根据魔法注释判断出待编译主文件，尝试根据默认主文件名指定待编译主文件")
+            for file in main_file_in_root:
+                if file == "main": # 如果存在 main.tex 文件
+                    project_name = file # 使用 main.tex 文件作为待编译主文件名
+                    print(f"通过默认文件名 \"main.tex\" 指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
+            if not project_name: # 如果不存在 main.tex 文件
+                logger.info("当前根目录下不存在名为 \"main.tex\" 的文件")
+
+        if not project_name: # 如果当前根目录下不存在主文件且 -d 参数未指定
+            logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
+            logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译，或删除当前根目录下多余的 tex 文件")
+            logger.warning(f"当前根目录是：{current_path}")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+            sys.exit(1)
+        
+        project_name = MFJ.check_project_name(main_file_in_root, project_name) # 检查 project_name 是否正确 
+        
 
     if all_magic_comments: # 如果存在魔法注释
         for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
@@ -240,7 +265,6 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
                 if value[0] == project_name:  # 如果是project_name对应的文件
                     magic_comments[key] = value[1]  # 存储魔法注释
                     logger.info(f"已从 {value[0]}.tex 中提取魔法注释 % !TEX {key} = {value[1]}")
-    
 
     # --------------------------------------------------------------------------------
     # 编译类型判断
@@ -268,64 +292,68 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     # 编译程序运行
     # --------------------------------------------------------------------------------
-    suffixes_out = [".pdf", ".synctex.gz"]
-    suffixes_aux = [".log", ".blg", ".ilg",  # 日志文件
-                    ".aux", ".bbl", ".xml",  # 参考文献辅助文件
-                    ".toc", ".lof", ".lot",  # 目录辅助文件
-                    ".out", ".bcf",
-                    ".idx", ".ind", ".nlo", ".nls", ".ist", ".glo", ".gls",  # 索引辅助文件
-                    ".bak", ".spl",
-                    ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
-                    ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
-
-    """markdown
-    | 后缀        | 功能和作用                                                     | 由来                                                         |
-    |-------------|----------------------------------------------------------------|--------------------------------------------------------------|
-    | .pdf        | 生成的PDF文档                                                  | Portable Document Format，便携式文档格式                     |
-    | .synctex.gz | 用于同步TeX源文件和生成的PDF文件，便于编辑和查看                | SyncTeX，一种用于TeX和PDF之间同步的技术，.gz表示压缩格式      |
-    | .log        | 编译日志文件，记录编译过程中的详细信息                           | Log file，记录程序运行时的日志信息                            |
-    | .blg        | BibTeX日志文件，记录BibTeX处理参考文献时的信息                   | BibTeX Log file                                               |
-    | .ilg        | MakeIndex日志文件，记录MakeIndex处理索引时的信息                 | MakeIndex Log file                                            |
-    | .aux        | 辅助文件，用于存储交叉引用、标签等信息                           | Auxiliary file                                                |
-    | .bbl        | BibTeX生成的参考文献文件，包含格式化的参考文献列表               | BibTeX Bibliography file                                     |
-    | .xml        | 用于存储XML格式的数据，常用于BibTeX的输入输出                    | eXtensible Markup Language，可扩展标记语言                    |
-    | .toc        | 目录文件，存储文档的章节结构信息                                 | Table of Contents file                                        |
-    | .lof        | 图目录文件，存储文档中的图的列表信息                             | List of Figures file                                          |
-    | .lot        | 表目录文件，存储文档中的表的列表信息                             | List of Tables file                                           |
-    | .out        | 输出文件，通常由LaTeX生成，用于存储一些临时输出信息              | Output file                                                   |
-    | .bcf        | Biber配置文件，用于存储Biber处理参考文献时的配置信息             | Biber Configuration File                                      |
-    | .idx        | 索引文件，存储文档中的索引项信息                                 | Index file                                                    |
-    | .ind        | MakeIndex生成的索引文件，包含格式化的索引列表                    | Index file generated by MakeIndex                             |
-    | .nlo        | nomencl生成的术语列表文件                                        | nomencl List of Terms file                                    |
-    | .nls        | nomencl生成的术语排序文件                                        | nomencl List of Terms Sorted file                             |
-    | .ist        | MakeIndex样式文件，定义索引的格式                                | Index Style file                                              |
-    | .glo        | glossary文件，存储文档中的术语信息                                | Glossary file                                                 |
-    | .gls        | MakeIndex生成的glossary文件，包含格式化的术语列表                 | Glossary file generated by MakeIndex                          |
-    | .bak        | 备份文件，通常是源文件的备份                                     | Backup file                                                   |
-    | .spl        | 拼写检查文件，存储拼写检查的信息                                  | Spell Check file                                              |
-    | .ent-x      | 实体扩展文件，用于存储XML实体扩展信息                             | Entity eXtension file                                         |
-    | .tmp        | 临时文件，存储临时数据                                           | Temporary file                                                |
-    | .ltx        | LaTeX源文件，存储LaTeX代码                                        | LaTeX source file                                             |
-    | .los        | 图标目录文件，存储文档中的图标列表信息                            | List of Symbols file                                          |
-    | .lol        | 行目录文件，存储文档中的行列表信息                                | List of Lines file                                            |
-    | .loc        | 位置文件，存储位置信息                                            | Location file                                                 |
-    | .listing    | 代码列表文件，存储文档中的代码列表信息                            | Listing file                                                  |
-    | .gz         | 压缩文件，通常是.synctex文件的压缩格式                            | Gzip compressed file                                          |
-    | .userbak    | 用户备份文件，通常是用户手动创建的备份文件                        | User Backup file                                              |
-    | .nav        | Beamer导航文件，用于存储Beamer幻灯片的导航信息                    | Beamer Navigation file                                        |
-    | .snm        | Beamer会话文件，用于存储Beamer幻灯片的会话信息                    | Beamer Session file                                           |
-    | .vrb        | Beamer注释文件，用于存储Beamer幻灯片的注释信息                    | Beamer Verbatim file                                          |
-    | .fls        | LaTeX外部引用文件，记录LaTeX编译过程中引用的外部文件              | LaTeX File List file                                          |
-    | .xdv        | XeLaTeX生成的 DVI 文件，用于存储XeLaTeX编译结果                   | XeLaTeX DVI file                                              |
-    | .fdb_latexmk| LaTeXmk数据库文件，用于存储LaTeXmk编译过程中的数据库信息          | LaTeXmk File Database file                                     |
-    | .run.xml    | Biber运行时配置文件，用于存储Biber运行时的配置信息                | Biber Run XML file                                             |
-    """
     out_files = [f"{project_name}{suffix}" for suffix in suffixes_out]
     aux_files = [f"{project_name}{suffix}" for suffix in suffixes_aux]
     aux_regex_files = [f".*\\{suffix}" for suffix in suffixes_aux]
 
-    runtime_dict = {}
-    if project_name: # 如果存在 project_name 
+    if args.clean_any:
+        runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+        runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
+        print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
+    elif args.Clean_any:
+        runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+        runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
+        runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
+        runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
+        print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
+
+
+    if args.LaTeXDiff or args.LaTexDiff_compile:
+        LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
+        if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
+            logger.error(f"不能对同一个文件进行比较，请检查文件名是否正确")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+            sys.exit(1) # 退出程序
+        else:
+            if LDA.check_aux_files(old_tex_file): # 检查辅助文件是否存在
+                if LDA.check_aux_files(new_tex_file):
+                    old_tex_file = LDA.flatten_Latex(f"{old_tex_file}")
+                    new_tex_file = LDA.flatten_Latex(f"{new_tex_file}")
+                    runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
+                    runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
+                    try:
+                        runtime_compile_LaTeXDiff, _ = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file)
+                        runtime_dict["LaTeXDiff 运行"] = runtime_compile_LaTeXDiff
+
+                        if args.LaTexDiff_compile:
+                            print_message("开始预处理命令", "additional")
+                            
+                            RUN(runtime_dict, "LaTeXDiff", compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
+
+                            print_message("开始后处理命令", "additional")
+
+                            print('移动结果文件到输出目录...')
+                            runtime_move_out_outdir, _ = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
+                            runtime_dict["结果文件->输出目录"] = runtime_move_out_outdir
+                    except Exception as e:
+                        logger.error(f"LaTeXDiff 编译出错: {e}")
+                        print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+                        sys.exit(1) # 退出程序
+                    finally:
+                        runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
+                        runtime_dict["辅助文件->辅助目录"] = runtime_move_matched_files
+                else:
+                    logger.error(f"{new_tex_file} 的辅助文件不存在，请检查编译")
+                    print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+                    sys.exit(1) # 退出程序
+
+            else: # 如果辅助文件不存在
+                logger.error(f"{old_tex_file} 的辅助文件不存在，请检查编译")
+                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+                sys.exit(1) # 退出程序
+            
+            
+    elif project_name: # 如果存在 project_name 
         if args.clean:
             runtime_remove_aux_auxdir, _ = time_count(MRC.remove_specific_files, aux_files, auxdir)
             runtime_dict["清除文件夹内辅助文件"] = runtime_remove_aux_auxdir
@@ -340,16 +368,6 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
             runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
             print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
-        elif args.clean_any:
-            runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
-            runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
-            print('[bold green]已完成清除所有带辅助文件后缀的文件的指令')
-        elif args.Clean_any:
-            runtime_remove_aux_matched_auxdir, _ = time_count(MRC.remove_matched_files, aux_regex_files, '.')
-            runtime_dict["清除所有的辅助文件"] = runtime_remove_aux_matched_auxdir
-            runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
-            runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
-            print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
         elif args.pdf_repair:
             runtime_pdf_repair, _ = time_count(MRC.pdf_repair, project_name, '.', outdir)
             runtime_dict["修复 PDF 文件"] = runtime_pdf_repair
@@ -370,13 +388,9 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             print('移动辅助文件到辅助目录...')
             runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
-
-            if args.LaTeXDiff:
-                runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
-                runtime_dict["全辅助文件->根目录"] = runtime_move_matched_files
-
-        if runtime_dict: # 如果存在运行时统计信息
-            time_print(start_time, runtime_dict) # 打印编译时长统计
+                
+    if runtime_dict: # 如果存在运行时统计信息
+        time_print(start_time, runtime_dict) # 打印编译时长统计
 
     checker = UpdateChecker(1, 6) # 访问超时，单位：秒；缓存时长，单位：小时
     checker.check_for_updates()

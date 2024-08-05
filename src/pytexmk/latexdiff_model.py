@@ -16,13 +16,15 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-02 13:42:31 +0800
+LastEditTime : 2024-08-05 19:37:13 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/latexdiff_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
+import os
+import re
 import sys
 import logging
 import subprocess
@@ -32,49 +34,88 @@ from rich import console  # 导入rich库的console模块
 from .additional_operation import MoveRemoveClean
 console = console.Console()
 
+
+
 class LaTeXDiff_Aux:
-    def __init__(self, new_tex_file, old_tex_file, diff_file):
+    def __init__(self, suffixes_aux, auxdir):
         
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
-
-        self.new_tex_file = new_tex_file
-        self.old_tex_file = old_tex_file
-        self.diff_file = diff_file
+        self.suffixes_aux = suffixes_aux
+        self.auxdir = auxdir
 
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
-    
-
+        
     # --------------------------------------------------------------------------------
-    # 定义 指定的旧TeX文件存在检查函数
+    # 定义 指定的旧TeX辅助文件存在检查函数
     # --------------------------------------------------------------------------------
-    def _old_tex_files_exist(self): # TODO 检查旧的tex文件的辅助文件是否存在，如果存在返回True，否则返回False
+    def check_aux_files(self, file_name):
         """
-        检查旧的tex文件是否存在。
+        指定的旧TeX辅助文件存在检查。
 
         返回:
-        - bool: 旧tex文件是否存在。
+        - bool: 指定的旧TeX辅助文件是否存在。
 
-        行为逻辑:
-        1. 遍历旧tex文件列表，如果存在则返回True，否则返回False。
+        行为逻辑:        
+        1. 遍历指定目录下的所有文件，判断是否存在指定的文件。
         """
-        for file_name in self.old_tex_files:
-            if Path(file_name).exists():
+        aux_files = [f"{file_name}{suffix}" for suffix in self.suffixes_aux]
+        for file in aux_files:
+            if os.path.exists(os.path.join(self.auxdir, file)):
                 return True
         return False
+
+
+    # --------------------------------------------------------------------------------
+    # 定义 压平多文件的函数
+    # --------------------------------------------------------------------------------
+    # latexdiff 自带的 --flatten 参数可以用于压平多文件，但如果项目用 BibTeX 管理引用，则会在压平后报错。
+    def flatten_Latex(self, file_name):
+        def flattenLatex(tex_file_name):
+            rootPath = Path(tex_file_name)
+            if not rootPath.is_file():
+                raise FileNotFoundError(f"File {tex_file_name} not found.")
+            dirpath = rootPath.parent
+            filename = rootPath.name
+            with open(tex_file_name, 'r', encoding='utf-8') as fh:
+                for line in fh:
+                    match_input = inputPattern.search(line)
+                    match_include = includePattern.search(line)
+                    if match_input:
+                        newFile = match_input.group(1)
+                        if not newFile.endswith('tex'):
+                            newFile += '.tex'
+                        flattenLatex(dirpath / newFile)
+                    elif match_include:
+                        newFile = match_include.group(1)
+                        if not newFile.endswith('tex'):
+                            newFile += '.tex'
+                        flattenLatex(dirpath / newFile)
+                    else:
+                        sys.stdout.write(line)
+
+        # 定义正则表达式 匹配命令前面没有%的 \input 和 \include 命令
+        inputPattern = re.compile(r'^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})', re.MULTILINE)
+        includePattern = re.compile(r'^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})', re.MULTILINE)
+
+        # 打开输出文件并将 sys.stdout 重定向到该文件
+        output_file_name = f'{file_name}-flatten.tex'
+        with open(output_file_name, 'w', encoding='utf-8') as output_file:
+            sys.stdout = output_file
+            flattenLatex(f"{file_name}.tex")
+
+        # 恢复 sys.stdout
+        sys.stdout = sys.__stdout__
+        
+        return output_file_name
+
 
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
-    def compile_LaTeXDiff(self, flatten_blooen):
-        options = ["LaTeXDiff", f"{self.old_file}.tex", f"{self.new_file}.tex", ">", f"{self.project_name}-diff.tex"]
-        if not flatten_blooen:
-            options.append("--flatten") # 包含 \include 和 \input 命令指定的文件，将文件展开
-        console.print(f"[bold]运行命令：[/bold][cyan]{' '.join(options)}[/cyan]\n")
-        try:
-            subprocess.run(options, check=True, text=True, capture_output=False)
-        except:
-            self.logger.error(f"LaTeXDiff 编译失败，请查看日志文件 {self.auxdir}{self.project_name}.log 以获取详细信息。")
-            self.MRC.move_to_folder(self.aux_files, self.auxdir)
-            self.MRC.move_to_folder(self.out_files, self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+    def compile_LaTeXDiff(self, old_tex_file, new_tex_file):
+        options = ["latexdiff", old_tex_file, new_tex_file]
+        command = f"{' '.join(options)} > LaTeXDiff.tex --encoding=utf8"
+        console.print(f"[bold]运行命令：[/bold][cyan]{command}[/cyan]\n")
+        result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
+        if result.stderr:
+            console.print(f"[bold red]错误信息：[/bold red]{result.stderr}")

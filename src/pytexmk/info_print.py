@@ -16,20 +16,20 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-04 20:35:28 +0800
+LastEditTime : 2024-08-05 20:51:45 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/info_print.py
+FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
 import logging
 import datetime
-from rich.console import Console
-from rich.table import Table
 from rich import box
 from rich import print
 from rich.text import Text
+from rich.table import Table
+from rich.console import Console
 console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象
 
@@ -99,8 +99,8 @@ def print_message(message, state):
         in_dec_chars = "X"  # 设置内部装饰字符
         out_dec_chars = "="  # 设置外部装饰字符
         in_dec_chars_style = "red on white"  # 设置内部装饰字符风格
-        out_dec_chars_style = "yellow bold"  # 设置外部装饰字符风格
-        message_style = "cyan on white bold"  # 设置消息风格
+        out_dec_chars_style = "blue bold"  # 设置外部装饰字符风格
+        message_style = "red on white bold"  # 设置消息风格
     elif state == "running":
         in_dec_chars = "X"  # 设置内部装饰字符
         out_dec_chars = "="  # 设置外部装饰字符
@@ -110,9 +110,9 @@ def print_message(message, state):
     elif state == "success":
         in_dec_chars = "▓"  # 设置内部装饰字符
         out_dec_chars = "="  # 设置外部装饰字符
-        in_dec_chars_style = "green on white"  # 设置内部装饰字符风格
-        out_dec_chars_style = "red bold"  # 设置外部装饰字符风格
-        message_style = "bold green on white"  # 设置消息风格
+        in_dec_chars_style = "red on white"  # 设置内部装饰字符风格
+        out_dec_chars_style = "green bold"  # 设置外部装饰字符风格
+        message_style = "bold red on white"  # 设置消息风格
 
     try:
         # 计算左右两侧 X 的数量
@@ -165,7 +165,7 @@ def time_print(start_time, runtime_dict):
 
         time_pytexmk = total_seconds  # 计算PyTeXMK运行时长
 
-        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["PdfLaTeX", "LuaLaTeX", "XeLaTeX", " 编译", "宏包"])]  # 筛选过程独立成一个变量
+        time_LaTeX_list = [value for key, value in runtime_dict.items() if any(include_str in key for include_str in ["PdfLaTeX", "LuaLaTeX", "XeLaTeX", " 编译", "宏包", "运行"])]  # 筛选过程独立成一个变量
 
         if time_LaTeX_list:  # 如果存在LaTeX编译时长列表
             time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和
