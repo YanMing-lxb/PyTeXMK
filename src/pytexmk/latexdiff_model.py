@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-05 19:37:13 +0800
+LastEditTime : 2024-08-05 21:05:47 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/latexdiff_model.py
+FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -117,5 +117,19 @@ class LaTeXDiff_Aux:
         command = f"{' '.join(options)} > LaTeXDiff.tex --encoding=utf8"
         console.print(f"[bold]运行命令：[/bold][cyan]{command}[/cyan]\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
+
         if result.stderr:
             console.print(f"[bold red]错误信息：[/bold red]{result.stderr}")
+        
+        # 使用 pathlib 删除 old_tex_file 和 new_tex_file
+        try:
+            Path(old_tex_file).unlink()
+            self.logger.info(f"已删除文件：{old_tex_file}")
+        except Exception as e:
+            self.logger.error(f"删除文件 {old_tex_file} 时出错：{e}")
+
+        try:
+            Path(new_tex_file).unlink()
+            self.logger.info(f"已删除文件：{new_tex_file}")
+        except Exception as e:
+            self.logger.error(f"删除文件 {new_tex_file} 时出错：{e}")
