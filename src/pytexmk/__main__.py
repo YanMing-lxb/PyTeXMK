@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 18:18:30 +0800
+LastEditTime : 2024-08-06 18:49:36 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -173,7 +173,7 @@ def main():
     parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desrption(help_list, 'unquiet'))
     parser.add_argument('-vb', '--verbose', action='store_true', help=info_desrption(help_list,'verbose'))
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desrption(help_list, 'pdf_repair'))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help=info_desrption(help_list, 'pdf_preview'))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desrption(help_list, 'pdf_preview'))
     parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
     args = parser.parse_args()
 
@@ -214,7 +214,8 @@ def main():
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
-    if pdf_preview_status:
+
+    if pdf_preview_status != 'Do not start' and pdf_preview_status != None: # 当 -pv 参数存在时, 有值且不等于默认值 'Do not start' 时, 进行 PDF 预览操作
         pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
         pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
         PFO.pdf_preview(pdf_preview_status, outdir)
@@ -396,7 +397,7 @@ def main():
             runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
     
-    if not pdf_preview_status:
+    if pdf_preview_status == None: # 当终端有 -pv 参数时，但没设置值时，默认开启预览功能
         PFO.pdf_preview(project_name, outdir)
 
     if runtime_dict: # 如果存在运行时统计信息
