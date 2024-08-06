@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 16:53:57 +0800
+LastEditTime : 2024-08-06 17:55:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
 Description  : 
@@ -157,8 +157,9 @@ def main():
 
     help_list = check_language(help_strings_zh, help_strings_en) # 检查并获取对应语言的帮助信息
 
-    parser = argparse.ArgumentParser(description=info_desrption(help_list, 'description'), formatter_class=RichHelpFormatter, epilog=info_desrption(help_list, 'epilog'))
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}')
+    parser = argparse.ArgumentParser(description=info_desrption(help_list, 'description'), formatter_class=RichHelpFormatter, epilog=info_desrption(help_list, 'epilog'), add_help=False)
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desrption(help_list,'version'))
+    parser.add_argument('-h', '--help', action='help', help=info_desrption(help_list, 'help'))
     parser.add_argument('-r', '--readme', action='store_true', help=info_desrption(help_list, 'readme'))
     parser.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desrption(help_list, 'PdfLaTeX'))
     parser.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desrption(help_list, 'XeLaTeX'))

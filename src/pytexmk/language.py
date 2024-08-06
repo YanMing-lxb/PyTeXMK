@@ -29,38 +29,44 @@ description_en = r"""
     LaTeX auxiliary compilation program, for detailed instructions, please run the [-r] parameter. If you find any bugs, please update to the latest version and submit an issue in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues
     """
 description_zh = r"""
-    LaTeX 辅助编译程序, 如欲获取详细说明信息请运行 [-r] 参数。如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues
+    <LaTeX 辅助编译程序>
+    如欲了解魔法注释以及其他详细说明信息请运行 [-r] 参数，阅读 README 文件。
+    发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues
     """
 epilog_en = f"""
-    Welcome to PyTeXMK! (For instructions on magic comments, please read the README file) --YanMing
+    Welcome to PyTeXMK! --YanMing
     """
 epilog_zh = f"""
-    欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件) --焱铭
+    欢迎使用 PyTeXMK！ --焱铭
     """
 
 help_strings_en = {
     'description': description_en,
     'epilog': epilog_en,
-    'readme': "Display the README file",
-    'PdfLaTeX': "Compile using PdfLaTeX",
-    'XeLaTeX': "Compile using XeLaTeX",
-    'LuaLaTeX': "Compile using LuaLaTeX",
-    'LaTeXDiff': "Compile using LaTeXDiff to generate a difference file",
-    'LaTeXDiff_compile': "Compile using LaTeXDiff and compile the new file",
-    'clean': "Clear auxiliary files of the main file",
-    'Clean': "Clear auxiliary files (including root directory) and output files",
-    'clean_any': "Clear all files with auxiliary file suffixes",
-    'Clean_any': "Clear all files with auxiliary file suffixes (including root directory) and main file output files",
-    'unquiet': "Run in non-quiet mode, displaying log information in the terminal",
-    'verbose': "Display detailed information during PyTeXMK operation",
-    'pdf_repair': "Attempt to repair all PDF files outside the root directory. Use this option if you encounter 'invalid X X R object' warnings during LaTeX compilation",
-    'pdf_preview': "Preview the generated PDF file using a web browser or local PDF reader after compilation. If you need to specify the main file to be compiled in the command line, place the -pv command after the document without specifying parameters (e.g., pytexmk main -pv); if you do not need to specify the main file in the command line, just enter -pv (e.g., pytexmk -pv). If [FILE_NAME] is specified, it opens the specified file without compiling (only supports PDF files in the output directory, e.g., pytexmk -pv main)",
-    'document': "Main file name to be compiled"
+    'help': "show PyTeXMK help information and exit",
+    'version': "show PyTeXMK version number and exit",
+    'readme': "show the README file",
+    'PdfLaTeX': "compile using PdfLaTeX",
+    'XeLaTeX': "compile using XeLaTeX",
+    'LuaLaTeX': "compile using LuaLaTeX",
+    'LaTeXDiff': "compile using LaTeXDiff to generate a difference file",
+    'LaTeXDiff_compile': "compile using LaTeXDiff and compile the new file",
+    'clean': "clear auxiliary files of the main file",
+    'Clean': "clear auxiliary files (including root directory) and output files",
+    'clean_any': "clear all files with auxiliary file suffixes",
+    'Clean_any': "clear all files with auxiliary file suffixes (including root directory) and main file output files",
+    'unquiet': "run in non-quiet mode, displaying log information in the terminal",
+    'verbose': "show detailed information during PyTeXMK operation",
+    'pdf_repair': "attempt to repair all PDF files outside the root directory. Use this option if you encounter 'invalid X X R object' warnings during LaTeX compilation",
+    'pdf_preview': "preview the generated PDF file using a web browser or local PDF reader after compilation. If you need to specify the main file to be compiled in the command line, place the -pv command after the document without specifying parameters (e.g., pytexmk main -pv); if you do not need to specify the main file in the command line, just enter -pv (e.g., pytexmk -pv). If [FILE_NAME] is specified, it opens the specified file without compiling (only supports PDF files in the output directory, e.g., pytexmk -pv main)",
+    'document': "main file name to be compiled"
 }
 
 help_strings_zh = {
     'description': description_zh,
     'epilog': epilog_zh,
+    'help': "显示 PyTeXMK 的帮助信息并退出",
+    'version': "显示 PyTeXMK 的版本号并退出",
     'readme': "显示README文件",
     'PdfLaTeX': "PdfLaTeX 进行编译",
     'XeLaTeX': "XeLaTeX 进行编译",
