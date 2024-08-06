@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 18:49:36 +0800
+LastEditTime : 2024-08-06 20:53:55 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -334,6 +334,7 @@ def main():
                         runtime_dict["LaTeXDiff 运行"] = runtime_compile_LaTeXDiff
 
                         if args.LaTexDiff_compile:
+                            out_files = [f"LaTeXDiff{suffix}" for suffix in suffixes_out]
                             print_message("开始预处理命令", "additional")
                             
                             RUN(runtime_dict, "LaTeXDiff", compiler_engine, out_files, aux_files, outdir, auxdir, args.unquiet)
