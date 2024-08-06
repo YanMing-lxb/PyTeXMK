@@ -127,12 +127,19 @@
 <td>-pr, --pdf-repair</td>
 <td>修复所有根目录以外的 pdf 文件</td>
 </tr>
+<tr>
+<td>-pv, --pdf-preview</td>
+<td>尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，如有填写 'FILE_NAME' 则不进行编译打开指定文件</td>
+</tr>
 </tbody>
 </table>
-<p><strong>说明：</strong><br>
-<code>-pr</code> 参数的功能是 "当 LaTeX 编译过程中报类似 <code>invalid X X R object at offset XXXXX</code> 的警告时，可使用此参数尝试修复所有 pdf 文件"<br>
-<code>invalid X X R object at offset XXXXX</code> 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题<br>
-<code>-d</code> 和 <code>-dc</code> 命令输入示例： <code>pytexmk -d old_tex_file new_tex_file</code> 和 <code>pytexmk -dc old_tex_file new_tex_file</code> 生成的改动对比文件名为 <code>LaTeXDiff.tex</code></p>
+<p><strong>说明：</strong></p>
+<ul>
+<li><code>-pr</code> 参数的功能是 "当 LaTeX 编译过程中报类似 <code>invalid X X R object at offset XXXXX</code> 的警告时，可使用此参数尝试修复所有 pdf 文件"<br>
+<code>invalid X X R object at offset XXXXX</code> 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题</li>
+<li><code>-d</code> 和 <code>-dc</code> 命令输入示例： <code>pytexmk -d old_tex_file new_tex_file</code> 和 <code>pytexmk -dc old_tex_file new_tex_file</code> 生成的改动对比文件名为 <code>LaTeXDiff.tex</code></li>
+<li><code>-pv</code> 参数的功能是：尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，仅支持输出目录下的 PDF 文件，如需在命令行中指定待编译主文件，则 <code>-pv</code> 命令，需放置 <code>document</code> 后面, <code>-pv</code> 命令无需指定参数，示例：<code>pytexmk main -pv</code>；如无需在命令行中指定待编译主文件，则直接输入 <code>-pv</code> 即可，示例：<code>pytexmk -pv</code></li>
+</ul>
 <h3 id="魔法注释">魔法注释 </h3>
 <p>PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译结果存放位置等（仅支持检索文档前 50 行）。</p>
 <table>
@@ -222,13 +229,13 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认生成的结果文件存放位置（目前默认存放在 <code>Build</code> 子文件夹下）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的辅助文件存放位置（目前默认存放在 <code>Auxiliary</code> 子文件夹下）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义其他索引宏包的配置</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义 PDF 文件打开方式</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义 PDF 文件打开程序</li>
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 预览与日志功能
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 解决终端中文显示问题</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> PDF 预览功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> PDF 预览功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 报错信息显示功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 实现日志记录功能</li>
 </ul>
@@ -245,6 +252,7 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 相关功能
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加编译结束后将辅助文件移动到根目录下功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> LaTeXDiff 命令行参数的实现</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加单个项目的配置文件功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 实现配置文件的解析功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 编译判断逻辑</li>
