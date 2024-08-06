@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-06 11:57:59 +0800
+LastEditTime : 2024-08-06 21:28:11 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -133,9 +133,9 @@ class MoveRemoveClean(object):
             if src_file_path.exists():
                 try:
                     shutil.move(str(src_file_path), str(dest_file_path))
-                    self.logger.info(f"{src_folder} 中 {file} 移动到 {dest_folder}")
+                    self.logger.info(f"{file} 移动到 {dest_folder}")
                 except OSError as e:
-                    self.logger.error(f"{src_folder} 中 {file} 移动到 {dest_folder} 失败: {e}")
+                    self.logger.error(f"{file} 移动到 {dest_folder} 失败: {e}")
 
 
     # --------------------------------------------------------------------------------
