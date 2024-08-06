@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 17:55:58 +0800
+LastEditTime : 2024-08-06 18:18:30 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -214,6 +214,10 @@ def main():
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
+    if pdf_preview_status:
+        pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
+        pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
+        PFO.pdf_preview(pdf_preview_status, outdir)
 
     if args.LaTeXDiff or args.LaTexDiff_compile:
         if args.LaTeXDiff:
@@ -310,12 +314,6 @@ def main():
         runtime_remove_out_outdir, _ = time_count(MRC.remove_specific_files, out_files, outdir)
         runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
         print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
-
-    if pdf_preview_status:
-        pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
-        print(pdf_files_in_outdir)
-        pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
-        PFO.pdf_preview(pdf_preview_status, outdir)
 
     if args.LaTeXDiff or args.LaTexDiff_compile:
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
