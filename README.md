@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-08-05 21:00:13 +0800
+ * LastEditTime : 2024-08-06 08:56:01 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -88,6 +88,7 @@ PyTeXMK 支持：
 **说明：**
 `-pr` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数尝试修复所有 pdf 文件"
 `invalid X X R object at offset XXXXX` 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题
+
 `-d` 和 `-dc` 命令输入示例： `pytexmk -d old_tex_file new_tex_file` 和 `pytexmk -dc old_tex_file new_tex_file` 生成的改动对比文件名为 `LaTeXDiff.tex`
 
 ### 魔法注释
