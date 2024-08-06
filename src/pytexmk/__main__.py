@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 22:21:42 +0800
+LastEditTime : 2024-08-06 22:24:09 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -47,7 +47,7 @@ from .check_version_model import UpdateChecker
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
-
+UC = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
 
 
 def main():
@@ -333,8 +333,7 @@ def main():
     if runtime_dict: # 如果存在运行时统计信息
         time_print(start_time, runtime_dict) # 打印编译时长统计
 
-    checker = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
-    checker.check_for_updates()
+    UC.check_for_updates()
 
 if __name__ == "__main__":
     main()
