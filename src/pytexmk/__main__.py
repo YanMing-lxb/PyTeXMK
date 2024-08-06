@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 11:17:55 +0800
+LastEditTime : 2024-08-06 14:37:52 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
+FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -172,7 +172,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 PDF 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help="尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件（如需指定在命令行中指定待编译主文件，则 [-pv] 命令，需放置 [document] 后面并无需指定参数，示例：pytexmk main -pv；如无需在命令行中指定待编译主文件，则直接输入 [-pv] 即可，示例：pytexmk -pv），如有填写 'FILE_NAME' 则不进行编译打开指定文件（注意仅支持输出目录下的 PDF 文件，示例：pytexmk -pv main）")
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help="尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，仅支持输出目录下的 PDF 文件，如需在命令行中指定待编译主文件，则 [-pv] 命令，需放置 [document] 后面, [-pv] 命令无需指定参数，示例：pytexmk main -pv；如无需在命令行中指定待编译主文件，则直接输入 [-pv] 即可，示例：pytexmk -pv")
     parser.add_argument('document', nargs='?', help="待编译主文件名")
     args = parser.parse_args()
 
