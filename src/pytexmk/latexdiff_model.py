@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-06 22:10:38 +0800
+LastEditTime : 2024-08-06 22:15:04 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
@@ -128,7 +128,7 @@ class LaTeXDiff_Aux:
             with open(output_file_name, 'w', encoding='utf-8') as output_file:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
-                self.logger.info(f"已压平文件：{output_file_name}")
+            self.logger.info(f"已压平文件：{output_file_name}")
         except Exception as e:
             self.logger.error(f"压平出错：{e}")
         finally:
