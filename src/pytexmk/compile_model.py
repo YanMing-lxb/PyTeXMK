@@ -32,7 +32,7 @@ from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
-from .additional_operation import MoveRemoveClean
+from .additional_operation_model import MoveRemoveClean
 console = console.Console()
 
 
@@ -57,7 +57,7 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
                          r'LaTeX Warning: Label\(s\) may have changed\.',
                          r'No file .*(\.toc|\.lof)\.']]  # 匹配需要重新运行的LaTeX警告
 
-class CompileModel(object):
+class CompileLaTeX(object):
 
     def __init__(self, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet):
         """

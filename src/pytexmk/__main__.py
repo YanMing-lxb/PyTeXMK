@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 21:36:20 +0800
+LastEditTime : 2024-08-06 21:44:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -37,12 +37,12 @@ from .version import script_name, __version__
 from .language import lang_help
 from .language_model import check_language, info_desrption
 
-from .compile_model import CompileModel
+from .compile_model import CompileLaTeX
 from .logger_config import setup_logger
-from .additional_operation import MoveRemoveClean, MainFileJudgment, PdfFileOperation
-from .info_print import time_count, time_print, print_message
+from .additional_operation_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation
+from .info_print_model import time_count, time_print, print_message
 from .latexdiff_model import LaTeXDiff_Aux
-from .check_version import UpdateChecker
+from .check_version_model import UpdateChecker
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
@@ -55,7 +55,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileModel(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet)
+    compile_model = CompileLaTeX(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet)
 
     # 检查并处理已存在的 LaTeX 输出文件
     print('检测识别已有辅助文件...')

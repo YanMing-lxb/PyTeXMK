@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-06 21:11:32 +0800
+LastEditTime : 2024-08-06 21:38:14 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
@@ -28,10 +28,9 @@ import re
 import sys
 import logging
 import subprocess
-from rich import print  # 导入rich库的print函数
 from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
-from .additional_operation import MoveRemoveClean
+from .additional_operation_model import MoveRemoveClean
 console = console.Console()
 
 
