@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-06 22:01:45 +0800
+LastEditTime : 2024-08-06 22:10:38 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
@@ -148,17 +148,6 @@ class LaTeXDiff_Aux:
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 
         if result.stderr:
-            console.print(f"[bold red]错误信息：[/bold red]{result.stderr}")
-        
-        # 使用 pathlib 删除 old_tex_file 和 new_tex_file
-        try:
-            Path(old_tex_file).unlink()
-            self.logger.info(f"已删除文件：{old_tex_file}")
-        except Exception as e:
-            self.logger.error(f"删除文件 {old_tex_file} 出错：{e}")
-
-        try:
-            Path(new_tex_file).unlink()
-            self.logger.info(f"已删除文件：{new_tex_file}")
-        except Exception as e:
-            self.logger.error(f"删除文件 {new_tex_file} 出错：{e}")
+            self.logger.error(f"LaTeXDiff 运行出错：{result.stderr}")
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+            sys.exit(1) # 退出程序

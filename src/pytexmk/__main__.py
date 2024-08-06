@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 21:59:38 +0800
+LastEditTime : 2024-08-06 22:13:28 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -325,7 +325,7 @@ def main():
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
         else:
-            print_message("开始预处理工作", "additional")
+            print_message("LaTeXDiff 预处理", "additional")
             if LDA.check_aux_files(old_tex_file): # 检查辅助文件是否存在
                 logger.info(f"{old_tex_file} 的辅助文件存在")
                 if LDA.check_aux_files(new_tex_file):
@@ -338,7 +338,11 @@ def main():
                         print_message("LaTeXDiff 运行", "running")
                         runtime_compile_LaTeXDiff, _ = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file)
                         runtime_dict["LaTeXDiff 运行"] = runtime_compile_LaTeXDiff
-
+                        
+                        print_message("LaTeXDiff 后处理", "additional")
+                        print('删除 Flatten 后的文件...')
+                        runtime_remove_flatten_root, _ = time_count(MRC.remove_specific_files, [old_tex_file, new_tex_file], '.')
+                        runtime_dict["清除文件夹内输出文件"] = runtime_remove_flatten_root
                         if args.LaTexDiff_compile:
                             out_files = [f"LaTeXDiff{suffix}" for suffix in suffixes_out]
                             print_message("开始预处理命令", "additional")
