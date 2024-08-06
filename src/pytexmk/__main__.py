@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 20:53:55 +0800
+LastEditTime : 2024-08-06 21:36:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -33,7 +33,9 @@ import importlib.resources
 from rich_argparse import RichHelpFormatter
 
 from .version import script_name, __version__
-from .language import *
+
+from .language import lang_help
+from .language_model import check_language, info_desrption
 
 from .compile_model import CompileModel
 from .logger_config import setup_logger
@@ -155,7 +157,7 @@ def main():
     # --------------------------------------------------------------------------------
     # TODO 完善对魔法注释的说明
 
-    help_list = check_language(help_strings_zh, help_strings_en) # 检查并获取对应语言的帮助信息
+    help_list = check_language(lang_help.help_strings_zh, lang_help.help_strings_en) # 检查并获取对应语言的帮助信息
 
     parser = argparse.ArgumentParser(description=info_desrption(help_list, 'description'), formatter_class=RichHelpFormatter, epilog=info_desrption(help_list, 'epilog'), add_help=False)
     parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desrption(help_list,'version'))
