@@ -26,7 +26,9 @@ magic_comments_description_zh = {
 }
 
 description_en = r"""
-    LaTeX auxiliary compilation program, for detailed instructions, please run the [-r] parameter. If you find any bugs, please update to the latest version and submit an issue in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues
+    <LaTeX Auxiliary Compilation Program>
+    For information on magic comments and other detailed instructions, please run the [-r] parameter to read the README file.
+    If you find any bugs, please update to the latest version and feel free to submit an Issue in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues
     """
 description_zh = r"""
     <LaTeX 辅助编译程序>
