@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-02 18:01:27 +0800
+LastEditTime : 2024-08-06 10:06:41 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -28,6 +28,7 @@ import sys
 import fitz
 import shutil
 import logging
+import webbrowser
 from rich import print
 from pathlib import Path
 
@@ -177,59 +178,6 @@ class MoveRemoveClean(object):
                         except OSError as e:
                             self.logger.error(f"{file_path.name} 移动到 {dest_folder} 失败: {e}")  # 记录文件移动失败错误信息
                         break  # 匹配到一个模式后，不再检查其他模式
-
-
-    # --------------------------------------------------------------------------------
-    # 定义清理所有 pdf 文件
-    # --------------------------------------------------------------------------------
-    def pdf_repair(self, project_name, root_dir, excluded_folder):
-        """
-        清理指定目录下的PDF文件，排除特定文件夹中的文件，并对每个PDF文件进行修复操作。
-          
-        参数:
-        - project_name: 项目名称，用于排除特定名称的PDF文件。
-        - root_dir: 要扫描的根目录。
-        - excluded_folder: 要排除的文件夹名称。
-          
-        功能:
-        - 遍历指定目录，收集所有子文件夹中的PDF文件路径，排除根目录和特定文件夹中的文件。
-        - 对每个PDF文件进行打开和关闭操作，以修复可能存在的文件未正确关闭的问题。
-        - 记录处理过程中的错误信息，并显示处理失败的文件名称。
-        """
-        # 将根目录转换为Path对象
-        root_dir = Path(root_dir)
-        pdf_files = []
-        # 遍历根目录下的所有文件和文件夹
-        for path in root_dir.rglob('*'):
-            # 跳过.git和.github文件夹
-            if '.git' in path.parts or '.github' in path.parts:
-                continue
-            # 跳过根目录和排除的文件夹
-            if path.is_dir() and path.name == excluded_folder:
-                continue
-            # 仅处理子文件夹中的PDF文件，并排除特定名称的PDF文件
-            if path.is_file() and path.suffix == '.pdf' and path.name != f'{project_name}.pdf':
-                pdf_files.append(path)
- 
-        if not pdf_files:
-            print("当前路径下未发现PDF文件。")
-            return
- 
-        print(f"共发现 [bold cyan]{len(pdf_files)}[/bold cyan] 个PDF文件。")
-        for pdf_file in pdf_files:
-            try:
-                # 使用fitz库打开PDF文件
-                with fitz.open(pdf_file) as doc:
-                    # 生成临时文件路径
-                    temp_path = pdf_file.with_suffix('.pdf.temp')
-                    # 保存修复后的PDF文件到临时路径
-                    doc.save(temp_path, garbage=3, deflate=True, clean=True)
-                # 覆盖原有文件
-                temp_path.replace(pdf_file)
-                self.logger.info(f"已处理并覆盖文件 {pdf_file}")
-            except Exception as e:
-                self.logger.error(f"处理出错文件 {pdf_file}: {e}")
-        print("[bold green]所有PDF文件已处理完成。")
 
 
 
@@ -389,3 +337,80 @@ class MainFileJudgment(object):
                     all_magic_comments[key] = []
                 all_magic_comments[key].append((file_path, value))  # 存储文件路径和魔法注释值
         return all_magic_comments  # 返回提取的键值对字典
+
+class PdfFileOperation(object):
+
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
+    def pdf_preview(self, project_name, outdir):
+        try:
+            pdf_name = f"{project_name}.pdf"
+            # 使用 pathlib 拼接 pdf 文件路径
+            pdf_path = Path(outdir) / pdf_name
+            print(f"[bold green]正在打开 {pdf_name} 文件...")
+            # 使用 pathlib 获取 pdf 文件的绝对路径
+            local_path = f"file://{pdf_path.resolve().as_posix()}"
+            self.logger.info(f'{pdf_name} 的本地路径是：{local_path}')
+            # 使用 webbrowser 打开 pdf 文件
+            webbrowser.open(local_path)
+        except Exception as e:
+            # 记录打开 README 文件时的错误信息
+            self.logger.error(f"打开 {pdf_name} 文件时出错: {e}")
+        finally:
+            # 打印退出信息并退出程序
+            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+            sys.exit()
+
+
+        # --------------------------------------------------------------------------------
+    # 定义清理所有 pdf 文件
+    # --------------------------------------------------------------------------------
+    def pdf_repair(self, project_name, root_dir, excluded_folder):
+        """
+        清理指定目录下的PDF文件，排除特定文件夹中的文件，并对每个PDF文件进行修复操作。
+          
+        参数:
+        - project_name: 项目名称，用于排除特定名称的PDF文件。
+        - root_dir: 要扫描的根目录。
+        - excluded_folder: 要排除的文件夹名称。
+          
+        功能:
+        - 遍历指定目录，收集所有子文件夹中的PDF文件路径，排除根目录和特定文件夹中的文件。
+        - 对每个PDF文件进行打开和关闭操作，以修复可能存在的文件未正确关闭的问题。
+        - 记录处理过程中的错误信息，并显示处理失败的文件名称。
+        """
+        # 将根目录转换为Path对象
+        root_dir = Path(root_dir)
+        pdf_files = []
+        # 遍历根目录下的所有文件和文件夹
+        for path in root_dir.rglob('*'):
+            # 跳过.git和.github文件夹
+            if '.git' in path.parts or '.github' in path.parts:
+                continue
+            # 跳过根目录和排除的文件夹
+            if path.is_dir() and path.name == excluded_folder:
+                continue
+            # 仅处理子文件夹中的PDF文件，并排除特定名称的PDF文件
+            if path.is_file() and path.suffix == '.pdf' and path.name != f'{project_name}.pdf':
+                pdf_files.append(path)
+ 
+        if not pdf_files:
+            print("当前路径下未发现PDF文件。")
+            return
+ 
+        print(f"共发现 [bold cyan]{len(pdf_files)}[/bold cyan] 个PDF文件。")
+        for pdf_file in pdf_files:
+            try:
+                # 使用fitz库打开PDF文件
+                with fitz.open(pdf_file) as doc:
+                    # 生成临时文件路径
+                    temp_path = pdf_file.with_suffix('.pdf.temp')
+                    # 保存修复后的PDF文件到临时路径
+                    doc.save(temp_path, garbage=3, deflate=True, clean=True)
+                # 覆盖原有文件
+                temp_path.replace(pdf_file)
+                self.logger.info(f"已处理并覆盖文件 {pdf_file}")
+            except Exception as e:
+                self.logger.error(f"处理出错文件 {pdf_file}: {e}")
+        print("[bold green]所有PDF文件已处理完成。")

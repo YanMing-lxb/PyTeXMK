@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-05 19:42:50 +0800
+LastEditTime : 2024-08-06 10:09:41 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -35,13 +35,14 @@ from .version import script_name, __version__
 
 from .compile_model import CompileModel
 from .logger_config import setup_logger
-from .additional_operation import MoveRemoveClean, MainFileJudgment
+from .additional_operation import MoveRemoveClean, MainFileJudgment, PdfFileOperation
 from .info_print import time_count, time_print, print_message
 from .latexdiff_model import LaTeXDiff_Aux
 from .check_version import UpdateChecker
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
+PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 
 # --------------------------------------------------------------------------------
 # 整体进行编译
@@ -171,6 +172,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 PDF 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
+    parser.add_argument('-pv', '--pdf-preview', action='store_true', help="编译结束后尝试调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件")
     parser.add_argument('document', nargs='?', help="待编译主文件名")
     args = parser.parse_args()
 
@@ -369,7 +371,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
             print('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令')
         elif args.pdf_repair:
-            runtime_pdf_repair, _ = time_count(MRC.pdf_repair, project_name, '.', outdir)
+            runtime_pdf_repair, _ = time_count(PFO.pdf_repair, project_name, '.', outdir)
             runtime_dict["修复 PDF 文件"] = runtime_pdf_repair
         else:
             print_message("开始预处理命令", "additional")
@@ -388,7 +390,10 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             print('移动辅助文件到辅助目录...')
             runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
-                
+    
+    if args.pdf_preview:
+        PFO.pdf_preview(project_name, outdir)
+
     if runtime_dict: # 如果存在运行时统计信息
         time_print(start_time, runtime_dict) # 打印编译时长统计
 
