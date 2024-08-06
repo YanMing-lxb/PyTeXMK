@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 10:09:41 +0800
+LastEditTime : 2024-08-06 11:17:55 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -172,7 +172,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
     parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 PDF 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
-    parser.add_argument('-pv', '--pdf-preview', action='store_true', help="编译结束后尝试调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件")
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help="尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件（如需指定在命令行中指定待编译主文件，则 [-pv] 命令，需放置 [document] 后面并无需指定参数，示例：pytexmk main -pv；如无需在命令行中指定待编译主文件，则直接输入 [-pv] 即可，示例：pytexmk -pv），如有填写 'FILE_NAME' 则不进行编译打开指定文件（注意仅支持输出目录下的 PDF 文件，示例：pytexmk -pv main）")
     parser.add_argument('document', nargs='?', help="待编译主文件名")
     args = parser.parse_args()
 
@@ -208,18 +208,19 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     # TODO 添加块注释，或者整合到additional_operation.py中
     project_name = '' # 待编译主文件名
-    tex_files_in_root = MFJ.get_tex_files_in_root() # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件，并去掉文件后缀
+    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件，并去掉文件后缀
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
+    pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
 
     if args.LaTeXDiff or args.LaTexDiff_compile:
         if args.LaTeXDiff:
             old_tex_file, new_tex_file = args.LaTeXDiff # 获取 -d 参数指定的两个文件
         elif args.LaTexDiff_compile:
             old_tex_file, new_tex_file = args.LaTexDiff_compile # 获取 -dc 参数指定的两个文件
-        old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file) # 检查 old_tex_file 是否正确
-        new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file) # 检查 new_tex_file 是否正确
+        old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
+        new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
     else:
         current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
         if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
@@ -233,7 +234,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
             if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件，且只有一个存在 % TEX root 魔法注释
                 logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
-                check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1]) # 检查 magic comments 中指定的 root 文件名是否正确
+                check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1], '.tex') # 检查 magic comments 中指定的 root 文件名是否正确
                 if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
                     project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
                     print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
@@ -258,7 +259,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
         
-        project_name = MFJ.check_project_name(main_file_in_root, project_name) # 检查 project_name 是否正确 
+        project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确 
         
 
     if all_magic_comments: # 如果存在魔法注释
@@ -309,6 +310,11 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
         runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
         print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
 
+    if pdf_preview_status:
+        pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
+        print(pdf_files_in_outdir)
+        pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
+        PFO.pdf_preview(pdf_preview_status, outdir)
 
     if args.LaTeXDiff or args.LaTexDiff_compile:
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
@@ -391,7 +397,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
             runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
     
-    if args.pdf_preview:
+    if not pdf_preview_status:
         PFO.pdf_preview(project_name, outdir)
 
     if runtime_dict: # 如果存在运行时统计信息

@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-06 10:06:41 +0800
+LastEditTime : 2024-08-06 11:57:59 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
 Description  : 
@@ -190,60 +190,60 @@ class MainFileJudgment(object):
     # --------------------------------------------------------------------------------
     # 定义输入检查函数
     # --------------------------------------------------------------------------------
-    def check_project_name(self, main_tex_files, check_project_name):
+    def check_project_name(self, main_tex_files, check_project_name, suffixes):
         # 使用Path对象处理文件路径
         path_obj = Path(check_project_name)
         base_name = path_obj.stem  # 提取文件名（不包括后缀）
         file_extension = path_obj.suffix  # 提取文件后缀
  
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
-            self.logger.error("待编译主文件名中不能包含路径")
+            self.logger.error("文件名中不能包含路径")
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
-        if file_extension == '.tex':  # 判断后缀是否是 .tex
+        if file_extension == f'{suffixes}':  # 判断后缀是否是 .tex
             if base_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return base_name
             else:
-                self.logger.error(f"待编译主文件名 [bold cyan]{check_project_name}.tex[/bold cyan] 不存在于当前根目录下")
+                self.logger.error(f"[bold cyan]{check_project_name}{file_extension}[/bold cyan] 不存在于当前根目录下")
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1)
         if '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
             if check_project_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return check_project_name
             else:
-                self.logger.error(f"待编译主文件 [bold cyan]{check_project_name}.tex[/bold cyan] 不存在于当前根目录下")
+                self.logger.error(f"[bold cyan]{check_project_name}{suffixes}[/bold cyan] 不存在于当前根目录下")
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1)
         else:
-            self.logger.error(f"待编译主文件 [bold cyan]{check_project_name}[/bold cyan] 后缀不是.tex")
+            self.logger.error(f"[bold cyan]{check_project_name}[/bold cyan] 后缀不是{suffixes}")
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
 
     # --------------------------------------------------------------------------------
     # 定义 tex 文件检索函数
     # --------------------------------------------------------------------------------
-    def get_tex_files_in_root(self):
-        tex_files_in_root = []
+    def get_suffixes_files_in_dir(self, dir, suffixes):
+        suffixes_files_in_dir = []
         try:
             # 获取当前路径
-            current_path = Path(Path.cwd())
-            # 列出当前路径下所有以.tex结尾的文件
-            for file in current_path.glob('*.tex'):
+            current_path = Path(dir)  # 转换为Path对象
+            # 列出当前路径下所有以suffixes结尾的文件
+            for file in current_path.glob(f'*{suffixes}'):
                 # 去掉路径，提取文件名和后缀
                 base_name = file.stem
-                tex_files_in_root.append(base_name)
-                self.logger.info(f"搜索到 {base_name}.tex 文件")
+                suffixes_files_in_dir.append(base_name)
+                self.logger.info(f"搜索到 {base_name}{suffixes} 文件")
              
-            if tex_files_in_root:
-                self.logger.info(f"共发现 {len(tex_files_in_root)} 个 TeX 文件")
+            if suffixes_files_in_dir:
+                self.logger.info(f"共发现 {len(suffixes_files_in_dir)} 个 {suffixes} 文件")
             else:
-                self.logger.error("终端路径下不存在 .tex 文件！请检查终端显示路径是否是项目路径")
+                self.logger.error(f"终端路径下不存在 {suffixes} 文件！请检查终端显示路径是否是项目路径")
                 self.logger.warning(f"当前终端路径是：{current_path}")
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1)
         except Exception as e:
-            self.logger.error(f"搜索TeX文件时出错: {e}")
-        return tex_files_in_root    
+            self.logger.error(f"搜索 {suffixes} 文件时出错: {e}")
+        return suffixes_files_in_dir    
     
     # --------------------------------------------------------------------------------
     # 定义 tex 文件 \documentclass 和 \begin{document} 检索函数
