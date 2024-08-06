@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-05 21:19:40 +0800
+LastEditTime : 2024-08-06 17:24:15 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print.py
 Description  : 
@@ -230,3 +230,37 @@ def time_print(start_time, runtime_dict):
         print(f"运行 LaTeX 相关程序：{number_programmes_run} 个")  # 打印运行函数数量
     except Exception as e:
         logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息
+
+def readme_table(readme_dict):
+    """
+    打印README表格。
+
+    参数:
+    - readme_dict (dict): 包含README信息的字典。    
+
+    行为:
+    1. 创建表格对象。
+    2. 定义列名。
+    3. 添加数据到表格。
+    4. 打印表格。
+
+    异常处理:
+    - 如果在执行过程中发生异常，将错误信息记录到日志中。
+    """
+    try:
+        # 创建表格对象
+        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, title="README 信息")
+
+        # 定义列名
+        table.add_column("序号", justify="center", no_wrap=True)
+        table.add_column(Text("Magic Comment", justify="center"), style="cyan", justify="left", no_wrap=True)
+        table.add_column("Description", style="green", justify="center", no_wrap=True)
+
+        # 添加数据到表格
+        for i, (key, value) in enumerate(readme_dict.items()):
+            table.add_row(f"{i+1:02d}", key, value)
+
+        print("\n" + "[green]=" * 80 + "\n")  # 打印分隔线
+        return table
+    except Exception as e:
+        logger.error(f"执行函数 readme_table 时出错: {e}")  # 记录错误信息

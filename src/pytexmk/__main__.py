@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 14:37:52 +0800
+LastEditTime : 2024-08-06 16:53:57 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__main__.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/Lib/site-packages/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -30,8 +30,10 @@ import webbrowser
 from rich import print
 from pathlib import Path
 import importlib.resources
+from rich_argparse import RichHelpFormatter
 
 from .version import script_name, __version__
+from .language import *
 
 from .compile_model import CompileModel
 from .logger_config import setup_logger
@@ -110,7 +112,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
         runtime_Latex, _ = time_count(compile_model.compile_tex, )
         runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
 
-    # 编译完成，开始判断编译 XDV 文件
+    # 编译完成, 开始判断编译 XDV 文件
     if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
         print_message("DVIPDFMX 编译", "running")
         runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
@@ -147,33 +149,31 @@ def main():
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
     start_time = datetime.datetime.now() # 计算开始时间
-    # 不能再在这个程序上花时间了，该看论文学技术了，要不然博士怎么毕业啊，吐了。---- 焱铭,2024-07-28 21:02:30
+    # 不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
     # TODO 完善对魔法注释的说明
-    parser = argparse.ArgumentParser(
-        description=r"""
-LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数。
-如发现 BUG 请及时更新到最新版本并在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues""",
-        formatter_class=argparse.RawTextHelpFormatter,
-        epilog="欢迎使用 PyTeXMK！(魔法注释的说明请阅读 README 文件)")
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: {__version__}')
-    parser.add_argument('-r', '--readme', action='store_true', help="显示README文件")
-    parser.add_argument('-p', '--PdfLaTeX', action='store_true', help="PdfLaTeX 进行编译")
-    parser.add_argument('-x', '--XeLaTeX', action='store_true', help="XeLaTeX 进行编译")
-    parser.add_argument('-l', '--LuaLaTeX', action='store_true', help="LuaLaTeX 进行编译")
-    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help="使用 LaTeXDiff 进行编译，生成改动对比文件") # 吐了，又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
-    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help="使用 LaTeXDiff 进行编译，生成改动对比文件并编译新文件")
-    parser.add_argument('-c', '--clean', action='store_true', help="清除所有主文件的辅助文件")
-    parser.add_argument('-C', '--Clean', action='store_true', help="清除所有主文件的辅助文件（包含根目录）和输出文件")
-    parser.add_argument('-ca', '--clean-any', action='store_true', help="清除所有带辅助文件后缀的文件")
-    parser.add_argument('-Ca', '--Clean-any', action='store_true', help="清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件")
-    parser.add_argument('-uq', '--unquiet', action='store_true', help="非安静模式运行，此模式下终端显示日志信息")
-    parser.add_argument('-vb', '--verbose', action='store_true', help="显示 PyTeXMK 运行过程中的详细信息")
-    parser.add_argument('-pr', '--pdf-repair', action='store_true', help="尝试修复所有根目录以外的 PDF 文件，当 LaTeX 编译过程中警告 invalid X X R object 时，可使用此参数尝试修复所有 pdf 文件")
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help="尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，仅支持输出目录下的 PDF 文件，如需在命令行中指定待编译主文件，则 [-pv] 命令，需放置 [document] 后面, [-pv] 命令无需指定参数，示例：pytexmk main -pv；如无需在命令行中指定待编译主文件，则直接输入 [-pv] 即可，示例：pytexmk -pv")
-    parser.add_argument('document', nargs='?', help="待编译主文件名")
+
+    help_list = check_language(help_strings_zh, help_strings_en) # 检查并获取对应语言的帮助信息
+
+    parser = argparse.ArgumentParser(description=info_desrption(help_list, 'description'), formatter_class=RichHelpFormatter, epilog=info_desrption(help_list, 'epilog'))
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}')
+    parser.add_argument('-r', '--readme', action='store_true', help=info_desrption(help_list, 'readme'))
+    parser.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desrption(help_list, 'PdfLaTeX'))
+    parser.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desrption(help_list, 'XeLaTeX'))
+    parser.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desrption(help_list, 'LuaLaTeX'))
+    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff_compile'))
+    parser.add_argument('-c', '--clean', action='store_true', help=info_desrption(help_list, 'clean'))
+    parser.add_argument('-C', '--Clean', action='store_true', help=info_desrption(help_list, 'Clean'))
+    parser.add_argument('-ca', '--clean-any', action='store_true', help=info_desrption(help_list, 'clean_any'))
+    parser.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desrption(help_list, 'Clean_any'))
+    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desrption(help_list, 'unquiet'))
+    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desrption(help_list,'verbose'))
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desrption(help_list, 'pdf_repair'))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', metavar=('FILE_NAME'), default=None, help=info_desrption(help_list, 'pdf_preview'))
+    parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
     args = parser.parse_args()
 
     print(f"PyTeXMK 版本：[bold green]{__version__}[/bold green]\n")
@@ -206,9 +206,9 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
     # --------------------------------------------------------------------------------
-    # TODO 添加块注释，或者整合到additional_operation.py中
+    # TODO 添加块注释, 或者整合到additional_operation.py中
     project_name = '' # 待编译主文件名
-    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件，并去掉文件后缀
+    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件, 并去掉文件后缀
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
     magic_comments = {} # 存储魔法注释
@@ -223,28 +223,28 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
     else:
         current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
-        if args.document: # 当前目录下存在 tex 文件，且命令行参数中指定了主文件
+        if args.document: # 当前目录下存在 tex 文件, 且命令行参数中指定了主文件
             project_name = args.document # 使用命令行参数指定主文件
             print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
         elif len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个主文件
             project_name = main_file_in_root[0] # 使用该文件作为待编译主文件
             print(f"通过根目录下唯一主文件指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
 
-        elif 'root' in all_magic_comments: # 当前目录下存在多个主文件，且存在 % TEX root 魔法注释
+        elif 'root' in all_magic_comments: # 当前目录下存在多个主文件, 且存在 % TEX root 魔法注释
             logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
-            if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件，且只有一个存在 % TEX root 魔法注释
+            if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件, 且只有一个存在 % TEX root 魔法注释
                 logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
                 check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1], '.tex') # 检查 magic comments 中指定的 root 文件名是否正确
                 if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
                     project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
                     print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
                 else: # 如果 magic comments 中指定的 root 文件名与当前文件名不同
-                    logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同，无法确定主文件")
-            if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件，且多个 tex 文件中同时存在 % TEX root 魔法注释
-                logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义，无法根据魔法注释确定待编译主文件") 
+                    logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同, 无法确定主文件")
+            if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件, 且多个 tex 文件中同时存在 % TEX root 魔法注释
+                logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释确定待编译主文件") 
 
-        elif not project_name: # 如果当前根目录下存在多个主文件，且不存在 % TEX root 魔法注释，并且待编译主文件还没有找到
-            logger.info("无法根据魔法注释判断出待编译主文件，尝试根据默认主文件名指定待编译主文件")
+        elif not project_name: # 如果当前根目录下存在多个主文件, 且不存在 % TEX root 魔法注释, 并且待编译主文件还没有找到
+            logger.info("无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件")
             for file in main_file_in_root:
                 if file == "main": # 如果存在 main.tex 文件
                     project_name = file # 使用 main.tex 文件作为待编译主文件名
@@ -253,8 +253,8 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
                 logger.info("当前根目录下不存在名为 \"main.tex\" 的文件")
 
         if not project_name: # 如果当前根目录下不存在主文件且 -d 参数未指定
-            logger.error("无法进行编译，当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
-            logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译，或删除当前根目录下多余的 tex 文件")
+            logger.error("无法进行编译, 当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
+            logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译, 或删除当前根目录下多余的 tex 文件")
             logger.warning(f"当前根目录是：{current_path}")
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1)
@@ -319,7 +319,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     if args.LaTeXDiff or args.LaTexDiff_compile:
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
         if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
-            logger.error(f"不能对同一个文件进行比较，请检查文件名是否正确")
+            logger.error(f"不能对同一个文件进行比较, 请检查文件名是否正确")
             print('[bold red]正在退出 PyTeXMK ...[/bold red]')
             sys.exit(1) # 退出程序
         else:
@@ -351,12 +351,12 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
                         runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
                         runtime_dict["辅助文件->辅助目录"] = runtime_move_matched_files
                 else:
-                    logger.error(f"{new_tex_file} 的辅助文件不存在，请检查编译")
+                    logger.error(f"{new_tex_file} 的辅助文件不存在, 请检查编译")
                     print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                     sys.exit(1) # 退出程序
 
             else: # 如果辅助文件不存在
-                logger.error(f"{old_tex_file} 的辅助文件不存在，请检查编译")
+                logger.error(f"{old_tex_file} 的辅助文件不存在, 请检查编译")
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1) # 退出程序
             
@@ -403,7 +403,7 @@ LaTeX 辅助编译程序，如欲获取详细说明信息请运行 [-r] 参数�
     if runtime_dict: # 如果存在运行时统计信息
         time_print(start_time, runtime_dict) # 打印编译时长统计
 
-    checker = UpdateChecker(1, 6) # 访问超时，单位：秒；缓存时长，单位：小时
+    checker = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
     checker.check_for_updates()
 
 if __name__ == "__main__":
