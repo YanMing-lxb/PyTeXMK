@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-05 21:05:47 +0800
+LastEditTime : 2024-08-06 21:11:32 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
 Description  : 
@@ -70,14 +70,40 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     # latexdiff 自带的 --flatten 参数可以用于压平多文件，但如果项目用 BibTeX 管理引用，则会在压平后报错。
     def flatten_Latex(self, file_name):
+        """
+        将 LaTeX 文件及其所有引用的子文件压平为一个单一文件。
+         
+        参数:
+        file_name (str): 主 LaTeX 文件的名称（不带 .tex 扩展名）。
+         
+        返回:
+        str: 压平后的文件名称。
+         
+        行为逻辑:
+        1. 定义两个正则表达式来匹配 \input 和 \include 命令。
+        2. 打开输出文件并将 sys.stdout 重定向到该文件。
+        3. 递归地读取主 LaTeX 文件及其引用的所有子文件，并将内容写入输出文件。
+        4. 恢复 sys.stdout 并返回压平后的文件名称。
+        """
         def flattenLatex(tex_file_name):
+            """
+            递归地读取 LaTeX 文件及其引用的子文件，并将内容写入 sys.stdout。
+             
+            参数:
+            tex_file_name (str): LaTeX 文件的名称。
+             
+            行为逻辑:
+            1. 检查文件是否存在。
+            2. 读取文件内容，匹配 \input 和 \include 命令。
+            3. 对于匹配到的命令，递归调用自身处理引用的子文件。
+            4. 将未匹配到的行写入 sys.stdout。
+            """
             rootPath = Path(tex_file_name)
             if not rootPath.is_file():
                 raise FileNotFoundError(f"File {tex_file_name} not found.")
             dirpath = rootPath.parent
-            filename = rootPath.name
-            with open(tex_file_name, 'r', encoding='utf-8') as fh:
-                for line in fh:
+            with open(tex_file_name, 'r', encoding='utf-8') as file_handler:
+                for line in file_handler:
                     match_input = inputPattern.search(line)
                     match_include = includePattern.search(line)
                     if match_input:
@@ -92,20 +118,25 @@ class LaTeXDiff_Aux:
                         flattenLatex(dirpath / newFile)
                     else:
                         sys.stdout.write(line)
-
+ 
         # 定义正则表达式 匹配命令前面没有%的 \input 和 \include 命令
         inputPattern = re.compile(r'^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})', re.MULTILINE)
         includePattern = re.compile(r'^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})', re.MULTILINE)
-
+ 
         # 打开输出文件并将 sys.stdout 重定向到该文件
         output_file_name = f'{file_name}-flatten.tex'
-        with open(output_file_name, 'w', encoding='utf-8') as output_file:
-            sys.stdout = output_file
-            flattenLatex(f"{file_name}.tex")
-
-        # 恢复 sys.stdout
-        sys.stdout = sys.__stdout__
-        
+        try:
+            with open(output_file_name, 'w', encoding='utf-8') as output_file:
+                sys.stdout = output_file
+                flattenLatex(f"{file_name}.tex")
+        except Exception as e:
+            self.logger.error(f"生成压平文件时出错：{e}")
+        finally:
+            # 恢复 sys.stdout
+            sys.stdout = sys.__stdout__
+         
+        self.logger.info(f"已生成压平后的文件：{output_file_name}")
+ 
         return output_file_name
 
 
