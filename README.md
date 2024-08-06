@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-08-06 08:56:01 +0800
+ * LastEditTime : 2024-08-06 14:37:20 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -84,12 +84,13 @@ PyTeXMK 支持：
 | -uq, --unquiet   | 非安静模式运行，此模式下显示编译过程                    |
 | -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息                      |
 | -pr, --pdf-repair| 修复所有根目录以外的 pdf 文件                         |
+| -pv, --pdf-preview| 尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，如有填写 'FILE_NAME' 则不进行编译打开指定文件|
 
 **说明：**
-`-pr` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数尝试修复所有 pdf 文件"
+- `-pr` 参数的功能是 "当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数尝试修复所有 pdf 文件"
 `invalid X X R object at offset XXXXX` 警告的出现是由于 PDF 图片文件在创建、编辑或传输过程中发生了某种形式的损坏或非法操作导致的，可能的原因包括文件部分内容缺失、xref表损坏、或者是文件结构中的其他问题
-
-`-d` 和 `-dc` 命令输入示例： `pytexmk -d old_tex_file new_tex_file` 和 `pytexmk -dc old_tex_file new_tex_file` 生成的改动对比文件名为 `LaTeXDiff.tex`
+- `-d` 和 `-dc` 命令输入示例： `pytexmk -d old_tex_file new_tex_file` 和 `pytexmk -dc old_tex_file new_tex_file` 生成的改动对比文件名为 `LaTeXDiff.tex`
+- `-pv` 参数的功能是：尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，仅支持输出目录下的 PDF 文件，如需在命令行中指定待编译主文件，则 `-pv` 命令，需放置 `document` 后面, `-pv` 命令无需指定参数，示例：`pytexmk main -pv`；如无需在命令行中指定待编译主文件，则直接输入 `-pv` 即可，示例：`pytexmk -pv`
 
 ### 魔法注释
 
@@ -142,10 +143,10 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
     - [ ] 自定义默认生成的结果文件存放位置（目前默认存放在 `Build` 子文件夹下）
     - [ ] 自定义默认的辅助文件存放位置（目前默认存放在 `Auxiliary` 子文件夹下）
     - [ ] 自定义其他索引宏包的配置
-    - [ ] 自定义 PDF 文件打开方式
+    - [ ] 自定义 PDF 文件打开程序
 - [ ] 预览与日志功能
     - [ ] 解决终端中文显示问题
-    - [ ] PDF 预览功能
+    - [X] PDF 预览功能
     - [X] 报错信息显示功能
     - [X] 实现日志记录功能
 - [X] 完善清理功能
@@ -156,6 +157,7 @@ PyTeXMK 支持使用魔法注释来自定义编译命令、编译类型、编译
 - [X] 添加 PyTeXMK 更新检查功能
 - [ ] LaTeXDiff 相关功能
     - [X] 添加编译结束后将辅助文件移动到根目录下功能
+    - [X] LaTeXDiff 命令行参数的实现
     - [ ] 添加单个项目的配置文件功能
     - [ ] 实现配置文件的解析功能
     - [ ] LaTeXDiff 编译判断逻辑
