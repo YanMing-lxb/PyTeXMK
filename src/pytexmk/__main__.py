@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 10:28:47 +0800
+LastEditTime : 2024-08-07 17:57:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -30,17 +30,18 @@ import webbrowser
 from rich import print
 from pathlib import Path
 import importlib.resources
+from rich.console import Console
 from rich_argparse import RichHelpFormatter
 
 from .version import script_name, __version__
 
 from .language import lang_help
-from .language_model import check_language, info_desrption
+from .language_model import check_language, info_desc
 
 from .run_model import RUN
 from .logger_config import setup_logger
 from .additional_operation_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation
-from .info_print_model import time_count, time_print, print_message
+from .info_print_model import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_model import LaTeXDiff_Aux
 from .check_version_model import UpdateChecker
 
@@ -49,53 +50,63 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 UC = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
 
+
+lang = check_language()
+if lang:
+    help_list = lang_help.help_strings_zh
+    magic_comment_desc_list = lang_help.magic_comments_desc_zh
+else:
+    help_list = lang_help.help_strings_en
+    magic_comment_desc_list = lang_help.magic_comments_desc_en
+
+class CustomArgumentParser(argparse.ArgumentParser):
+    def exit(self, status=0, message=None):
+        if status == 0 and message is None:  # 只有在请求帮助信息时，status 为 0，message 为 None
+            # 检查并获取对应语言的帮助信息
+            print(f"\n{info_desc(help_list, 'mcd_description')}\n")
+            table = magic_comment_desc_table(magic_comment_desc_list, info_desc(help_list, 'mcd_title'))
+            console = Console() # 创建控制台对象
+            console.print(table)
+        super().exit(status, message)
+
+
+
+
 def parse_args():
     # 不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
     # --------------------------------------------------------------------------------
     # 定义命令行参数
     # --------------------------------------------------------------------------------
-    # TODO 完善对魔法注释的说明
-
-    # 检查并获取对应语言的帮助信息
-    help_list = check_language(lang_help.help_strings_zh, lang_help.help_strings_en)
-
     # 创建 ArgumentParser 对象
-    parser = argparse.ArgumentParser(
+    parser = CustomArgumentParser(
         prog = 'pytexmk',
-        description=info_desrption(help_list, 'description'), 
-        epilog=info_desrption(help_list, 'epilog'), 
+        description=info_desc(help_list, 'description'), 
+        # epilog=info_desc(help_list, 'epilog'), 
         formatter_class=RichHelpFormatter, 
         add_help=False)
 
     meg_clean = parser.add_mutually_exclusive_group()
     meg_engine = parser.add_mutually_exclusive_group()
-    meg_diff = parser.add_mutually_exclusive_group()
 
     # 添加命令行参数
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desrption(help_list,'version'))
-    parser.add_argument('-h', '--help', action='help', help=info_desrption(help_list, 'help'))
-    parser.add_argument('-r', '--readme', action='store_true', help=info_desrption(help_list, 'readme'))
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desc(help_list,'version'))
+    parser.add_argument('-h', '--help', action='help', help=info_desc(help_list, 'help'))
+    parser.add_argument('-r', '--readme', action='store_true', help=info_desc(help_list, 'readme'))
+    meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desc(help_list, 'PdfLaTeX'))
+    meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desc(help_list, 'XeLaTeX'))
+    meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desc(help_list, 'LuaLaTeX'))
+    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff_compile'))
+    meg_clean.add_argument('-c', '--clean', action='store_true', help=info_desc(help_list, 'clean'))
+    meg_clean.add_argument('-C', '--Clean', action='store_true', help=info_desc(help_list, 'Clean'))
+    meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=info_desc(help_list, 'clean_any'))
+    meg_clean.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desc(help_list, 'Clean_any'))
+    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desc(help_list, 'unquiet'))
+    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desc(help_list,'verbose'))
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desc(help_list, 'pdf_repair'))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desc(help_list, 'pdf_preview'))
+    parser.add_argument('document', nargs='?', help=info_desc(help_list, 'document'))
 
-    meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desrption(help_list, 'PdfLaTeX'))
-    meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desrption(help_list, 'XeLaTeX'))
-    meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desrption(help_list, 'LuaLaTeX'))
-
-    meg_diff.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
-    meg_diff.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff_compile'))
-
-    meg_clean.add_argument('-c', '--clean', action='store_true', help=info_desrption(help_list, 'clean'))
-    meg_clean.add_argument('-C', '--Clean', action='store_true', help=info_desrption(help_list, 'Clean'))
-    meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=info_desrption(help_list, 'clean_any'))
-    meg_clean.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desrption(help_list, 'Clean_any'))
-
-    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desrption(help_list, 'pdf_repair'))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desrption(help_list, 'pdf_preview'))
-
-    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desrption(help_list, 'unquiet'))
-    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desrption(help_list,'verbose'))
-
-    parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
-    
     # 解析命令行参数
     args = parser.parse_args()
 

@@ -1,3 +1,28 @@
+'''
+ =======================================================================
+ ····Y88b···d88P················888b·····d888·d8b·······················
+ ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ ······Y88o88P··················88888b·d88888···························
+ ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ ·······························································888·····
+ ··························································Y8b·d88P·····
+ ···························································"Y88P"······
+ =======================================================================
+
+ -----------------------------------------------------------------------
+Author       : 焱铭
+Date         : 2024-08-06 22:17:51 +0800
+LastEditTime : 2024-08-07 11:12:53 +0800
+Github       : https://github.com/YanMing-lxb/
+FilePath     : /PyTeXMK/src/pytexmk/run_model.py
+Description  : 
+ -----------------------------------------------------------------------
+'''
+
 from rich import print
 
 from .compile_model import CompileLaTeX
@@ -35,9 +60,9 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
     if bib_engine:
         if Latex_compilation_times_bib != 0:
-            print_message(f'{bib_engine} 文献编译', "running")
+            print_message(f'{bib_engine} 编译文献', "running")
             runtime_bib, _ = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
-            runtime_dict[name_target_bib] = runtime_bib
+            runtime_dict[f'{name_target_bib} 编译'] = runtime_bib
 
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
@@ -50,7 +75,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
             Latex_compilation_times_index = 1
             runtime_index, return_index = time_count(compile_model.compile_index, cmd)
             name_target_index = return_index # 获取 compile_index 函数得到的参数
-            runtime_dict[name_target_index] = runtime_index
+            runtime_dict[f'{name_target_index} 编译'] = runtime_index
     else:
         Latex_compilation_times_index = 0
 

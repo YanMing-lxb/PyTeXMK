@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-06 17:24:15 +0800
+LastEditTime : 2024-08-07 17:55:32 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/info_print.py
+FilePath     : /PyTeXMKd:/Application/miniconda3/envs/yanming/Lib/site-packages/pytexmk/info_print_model.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -183,7 +183,7 @@ def time_print(start_time, runtime_dict):
         number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
 
         # 创建表格对象
-        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, title="PyTeXMK 运行时长统计表")
+        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title="PyTeXMK 运行时长统计表")
 
         # 定义列名
         table.add_column("序号", justify="center", no_wrap=True)
@@ -231,12 +231,12 @@ def time_print(start_time, runtime_dict):
     except Exception as e:
         logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息
 
-def readme_table(readme_dict):
+def magic_comment_desc_table(magic_comment_desc_dict, mcd_title):
     """
     打印README表格。
 
     参数:
-    - readme_dict (dict): 包含README信息的字典。    
+    - magic_comment_desc_dict (dict): 包含README信息的字典。    
 
     行为:
     1. 创建表格对象。
@@ -249,18 +249,17 @@ def readme_table(readme_dict):
     """
     try:
         # 创建表格对象
-        table = Table(show_header=True, header_style="bold magenta", box=box.ASCII_DOUBLE_HEAD, title="README 信息")
+        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=mcd_title)
 
         # 定义列名
-        table.add_column("序号", justify="center", no_wrap=True)
+        table.add_column("No.", justify="center", no_wrap=True)
         table.add_column(Text("Magic Comment", justify="center"), style="cyan", justify="left", no_wrap=True)
-        table.add_column("Description", style="green", justify="center", no_wrap=True)
+        table.add_column(Text("Description", justify="center"), style="dark_cyan", justify="left", no_wrap=True)
 
         # 添加数据到表格
-        for i, (key, value) in enumerate(readme_dict.items()):
-            table.add_row(f"{i+1:02d}", key, value)
+        for i, (key, value) in enumerate(magic_comment_desc_dict.items()):
+            table.add_row(f"{i+1}", key, value)
 
-        print("\n" + "[green]=" * 80 + "\n")  # 打印分隔线
         return table
     except Exception as e:
-        logger.error(f"执行函数 readme_table 时出错: {e}")  # 记录错误信息
+        logger.error(f"执行函数 {__name__} 时出错: {e}")  # 记录错误信息
