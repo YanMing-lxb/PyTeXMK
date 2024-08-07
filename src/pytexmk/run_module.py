@@ -25,8 +25,8 @@ Description  :
 
 from rich import print
 
-from .compile_model import CompileLaTeX
-from .info_print_model import time_count, print_message
+from .compile_module import CompileLaTeX
+from .info_print_module import time_count, print_message
 
 # --------------------------------------------------------------------------------
 # 整体进行编译

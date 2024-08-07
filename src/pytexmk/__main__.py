@@ -16,14 +16,13 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 18:22:25 +0800
+LastEditTime : 2024-08-07 20:18:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import sys
 import argparse
 import datetime
 import webbrowser
@@ -36,14 +35,14 @@ from rich_argparse import RichHelpFormatter
 from .version import script_name, __version__
 
 from .language import lang_help
-from .language_model import check_language, info_desc
+from .language_module import check_language, info_desc
 
-from .run_model import RUN
+from .run_module import RUN
 from .logger_config import setup_logger
-from .additional_operation_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
-from .info_print_model import time_count, time_print, print_message, magic_comment_desc_table
-from .latexdiff_model import LaTeXDiff_Aux
-from .check_version_model import UpdateChecker
+from .additional_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
+from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
+from .latexdiff_module import LaTeXDiff_Aux
+from .check_version_module import UpdateChecker
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
@@ -120,7 +119,9 @@ def main():
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
+    project_name = '' # 待编译主文件名
     runtime_dict = {}
+    magic_comments = {} # 存储魔法注释
     suffixes_out = [".pdf", ".synctex.gz"]
     suffixes_aux = [".log", ".blg", ".ilg",  # 日志文件
                     ".aux", ".bbl", ".xml",  # 参考文献辅助文件
@@ -165,20 +166,21 @@ def main():
             exit_pytexmk()
 
     # --------------------------------------------------------------------------------
-    # 主文件逻辑判断
+    # 非编译预览 PDF 操作
     # --------------------------------------------------------------------------------
-    # TODO 添加块注释, 或者整合到additional_operation.py中
-    project_name = '' # 待编译主文件名
-    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 运行 get_tex_file_in_root 函数判断获取当前根目录下所有 tex 文件, 并去掉文件后缀
-    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 运行 find_tex_commands 函数判断获取当前根目录下的主文件列表
-    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 运行 search_magic_comments 函数搜索 main_file_in_root 每个文件的魔法注释
-    magic_comments = {} # 存储魔法注释
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
-
     if pdf_preview_status != 'Do not start' and pdf_preview_status != None: # 当 -pv 参数存在时, 有值且不等于默认值 'Do not start' 时, 进行 PDF 预览操作
         pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
         pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
-        PFO.pdf_preview(pdf_preview_status, outdir)
+        PFO.pdf_preview(pdf_preview_status, outdir) # 调用 pdf_preview 函数进行 PDF 预览操作
+
+    # --------------------------------------------------------------------------------
+    # 主文件逻辑预处理判断
+    # --------------------------------------------------------------------------------
+    # TODO 添加块注释, 或者整合到additional_operation.py中
+    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
+    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
+    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
 
     if args.LaTeXDiff or args.LaTexDiff_compile:
         if args.LaTeXDiff:

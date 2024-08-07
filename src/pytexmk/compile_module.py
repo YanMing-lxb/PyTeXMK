@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-07 11:28:14 +0800
+LastEditTime : 2024-08-07 20:20:21 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_model.py
+FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -32,7 +32,7 @@ from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
-from .additional_operation_model import MoveRemoveClean, exit_pytexmk
+from .additional_model import MoveRemoveClean, exit_pytexmk
 console = console.Console()
 
 

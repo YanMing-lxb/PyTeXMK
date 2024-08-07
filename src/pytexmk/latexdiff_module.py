@@ -30,7 +30,7 @@ import logging
 import subprocess
 from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
-from .additional_operation_model import MoveRemoveClean, exit_pytexmk
+from .additional_model import MoveRemoveClean, exit_pytexmk
 console = console.Console()
 
 
