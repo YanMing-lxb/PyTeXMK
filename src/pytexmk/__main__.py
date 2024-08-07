@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-06 22:24:09 +0800
+LastEditTime : 2024-08-07 10:27:07 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -49,8 +49,63 @@ MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 UC = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
 
+def parse_args():
+    # 不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
+    # --------------------------------------------------------------------------------
+    # 定义命令行参数
+    # --------------------------------------------------------------------------------
+    # TODO 完善对魔法注释的说明
+
+    # 检查并获取对应语言的帮助信息
+    help_list = check_language(lang_help.help_strings_zh, lang_help.help_strings_en)
+
+    # 创建 ArgumentParser 对象
+    parser = argparse.ArgumentParser(
+        prog = 'pytexmk',
+        description=info_desrption(help_list, 'description'), 
+        epilog=info_desrption(help_list, 'epilog'), 
+        formatter_class=RichHelpFormatter, 
+        add_help=False)
+
+    meg_clean = parser.add_mutually_exclusive_group()
+    meg_engine = parser.add_mutually_exclusive_group()
+    meg_diff = parser.add_mutually_exclusive_group()
+
+    # 添加命令行参数
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desrption(help_list,'version'))
+    parser.add_argument('-h', '--help', action='help', help=info_desrption(help_list, 'help'))
+    parser.add_argument('-r', '--readme', action='store_true', help=info_desrption(help_list, 'readme'))
+
+    meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desrption(help_list, 'PdfLaTeX'))
+    meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desrption(help_list, 'XeLaTeX'))
+    meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desrption(help_list, 'LuaLaTeX'))
+
+    meg_diff.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    meg_diff.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff_compile'))
+
+    meg_clean.add_argument('-c', '--clean', action='store_true', help=info_desrption(help_list, 'clean'))
+    meg_clean.add_argument('-C', '--Clean', action='store_true', help=info_desrption(help_list, 'Clean'))
+    meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=info_desrption(help_list, 'clean_any'))
+    meg_clean.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desrption(help_list, 'Clean_any'))
+
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desrption(help_list, 'pdf_repair'))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desrption(help_list, 'pdf_preview'))
+
+    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desrption(help_list, 'unquiet'))
+    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desrption(help_list,'verbose'))
+
+    parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
+    
+
+
+    # 解析命令行参数
+    args = parser.parse_args()
+
+    return args
 
 def main():
+    start_time = datetime.datetime.now() # 计算开始时间
+
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
     compiler_engine = "XeLaTeX"
     outdir = "./Build/"
@@ -69,39 +124,15 @@ def main():
 
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
-    start_time = datetime.datetime.now() # 计算开始时间
-    # 不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
-    # --------------------------------------------------------------------------------
-    # 定义命令行参数
-    # --------------------------------------------------------------------------------
-    # TODO 完善对魔法注释的说明
+    # 解析命令行参数
+    args = parse_args()
 
-    help_list = check_language(lang_help.help_strings_zh, lang_help.help_strings_en) # 检查并获取对应语言的帮助信息
-
-    parser = argparse.ArgumentParser(description=info_desrption(help_list, 'description'), formatter_class=RichHelpFormatter, epilog=info_desrption(help_list, 'epilog'), add_help=False)
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desrption(help_list,'version'))
-    parser.add_argument('-h', '--help', action='help', help=info_desrption(help_list, 'help'))
-    parser.add_argument('-r', '--readme', action='store_true', help=info_desrption(help_list, 'readme'))
-    parser.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desrption(help_list, 'PdfLaTeX'))
-    parser.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desrption(help_list, 'XeLaTeX'))
-    parser.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desrption(help_list, 'LuaLaTeX'))
-    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
-    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desrption(help_list, 'LaTeXDiff_compile'))
-    parser.add_argument('-c', '--clean', action='store_true', help=info_desrption(help_list, 'clean'))
-    parser.add_argument('-C', '--Clean', action='store_true', help=info_desrption(help_list, 'Clean'))
-    parser.add_argument('-ca', '--clean-any', action='store_true', help=info_desrption(help_list, 'clean_any'))
-    parser.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desrption(help_list, 'Clean_any'))
-    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desrption(help_list, 'unquiet'))
-    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desrption(help_list,'verbose'))
-    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desrption(help_list, 'pdf_repair'))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desrption(help_list, 'pdf_preview'))
-    parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
-    args = parser.parse_args()
+    # 实例化 logger 类
+    logger = setup_logger(args.verbose)
 
     print(f"PyTeXMK 版本：[bold green]{__version__}[/bold green]\n")
     print('[bold green]PyTeXMK 开始运行...\n')
 
-    logger = setup_logger(args.verbose) # 实例化 logger 类
 
     # --------------------------------------------------------------------------------
     # README 文件打开函数
@@ -220,7 +251,7 @@ def main():
         print(f"通过魔法注释找到辅助文件目录为 [bold cyan]{auxdir}[/bold cyan]")
 
     # --------------------------------------------------------------------------------
-    # 编译程序运行
+    # 匹配文件清除命令
     # --------------------------------------------------------------------------------
     out_files = [f"{project_name}{suffix}" for suffix in suffixes_out]
     aux_files = [f"{project_name}{suffix}" for suffix in suffixes_aux]
@@ -237,6 +268,9 @@ def main():
         runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
         print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
 
+    # --------------------------------------------------------------------------------
+    # LaTeXDiff 相关
+    # --------------------------------------------------------------------------------
     if args.LaTeXDiff or args.LaTexDiff_compile:
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
         if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
@@ -290,7 +324,9 @@ def main():
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
                 sys.exit(1) # 退出程序
             
-            
+    # --------------------------------------------------------------------------------
+    # LaTeX 运行相关
+    # --------------------------------------------------------------------------------        
     elif project_name: # 如果存在 project_name 
         if args.clean:
             runtime_remove_aux_auxdir, _ = time_count(MRC.remove_specific_files, aux_files, auxdir)
@@ -327,12 +363,21 @@ def main():
             runtime_move_aux_auxdir, _ = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict["辅助文件->辅助目录"] = runtime_move_aux_auxdir
     
+    # --------------------------------------------------------------------------------
+    # 编译结束后 PDF 预览
+    # --------------------------------------------------------------------------------       
     if pdf_preview_status == None: # 当终端有 -pv 参数时，但没设置值时，默认开启预览功能
         PFO.pdf_preview(project_name, outdir)
 
+    # --------------------------------------------------------------------------------
+    # 打印 PyTeXMK 运行时长统计信息
+    # --------------------------------------------------------------------------------       
     if runtime_dict: # 如果存在运行时统计信息
         time_print(start_time, runtime_dict) # 打印编译时长统计
 
+    # --------------------------------------------------------------------------------
+    # 检查更新
+    # --------------------------------------------------------------------------------
     UC.check_for_updates()
 
 if __name__ == "__main__":
