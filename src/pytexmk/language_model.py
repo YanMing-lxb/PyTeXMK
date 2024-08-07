@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 16:59:49 +0800
-LastEditTime : 2024-08-06 21:39:49 +0800
+LastEditTime : 2024-08-07 18:07:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/language_model.py
 Description  : 
@@ -25,13 +25,13 @@ Description  :
 
 import locale
 
-def check_language(info_strings_zh, info_strings_en):
+def check_language():
     # 获取当前系统的默认区域设置
     current_locale = locale.getdefaultlocale()
     if current_locale[0].startswith('zh'):
-        return info_strings_zh
+        return True
     else:
-        return info_strings_en
+        return False
 
-def info_desrption(info_list, key):
+def info_desc(info_list, key):
     return info_list[key]

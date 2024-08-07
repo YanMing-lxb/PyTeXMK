@@ -13,13 +13,13 @@ magic_comments_desc_zh = {
     '% !TEX auxdir = aux_folder': '指定辅助文件存放位置，仅支持文件夹名称'
 }
 
-description_en = r"""
-    [i]LaTeX Auxiliary Compilation Program[/i]
+description_en = """
+    [i]LaTeX Auxiliary Compilation Program[/]
     For information on magic comments and other detailed instructions, please run the -r parameter to read the README file.
     If you find any bugs, please update to the latest version and feel free to submit an Issue in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues
     """
-description_zh = r"""
-    [i]LaTeX 辅助编译程序[/i]
+description_zh = """
+    [i]LaTeX 辅助编译程序[/] 
     如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。
     发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues
     """

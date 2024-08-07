@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 17:57:06 +0800
+LastEditTime : 2024-08-07 18:05:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -331,7 +331,7 @@ def main():
             else: # 如果辅助文件不存在
                 logger.error(f"{old_tex_file} 的辅助文件不存在, 请检查编译")
                 print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                sys.exit(1) # 退出程序
+                sys.exit() # 退出程序
             
     # --------------------------------------------------------------------------------
     # LaTeX 运行相关
