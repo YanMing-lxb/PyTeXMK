@@ -75,7 +75,6 @@ class CustomArgumentParser(argparse.ArgumentParser):
 # 定义命令行参数
 # --------------------------------------------------------------------------------
 def parse_args():
-    # 不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
     # 创建 ArgumentParser 对象
     parser = CustomArgumentParser(
         prog = 'pytexmk',
@@ -94,7 +93,7 @@ def parse_args():
     meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desc(help_list, 'PdfLaTeX'))
     meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desc(help_list, 'XeLaTeX'))
     meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desc(help_list, 'LuaLaTeX'))
-    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff')) # 吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
+    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff'))
     parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff_compile'))
     meg_clean.add_argument('-c', '--clean', action='store_true', help=info_desc(help_list, 'clean'))
     meg_clean.add_argument('-C', '--Clean', action='store_true', help=info_desc(help_list, 'Clean'))
@@ -355,5 +354,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# 吐了啊，又搞了两天，我该好好学学 CAN 通信了，该死的强迫症，啊啊啊啊啊啊！ ---- 焱铭,2024-08-07 21:40:29
