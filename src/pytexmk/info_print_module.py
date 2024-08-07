@@ -18,7 +18,7 @@ Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
 LastEditTime : 2024-08-07 17:55:32 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMKd:/Application/miniconda3/envs/yanming/Lib/site-packages/pytexmk/info_print_model.py
+FilePath     : 
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -30,8 +30,10 @@ from rich import print
 from rich.text import Text
 from rich.table import Table
 from rich.console import Console
+
 console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象
+
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
@@ -71,6 +73,7 @@ def time_count(fun, *args):
         logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
         return None, None
 
+
 # --------------------------------------------------------------------------------
 # 计算 text 中非ASCII字符的数量
 # --------------------------------------------------------------------------------
@@ -78,6 +81,7 @@ def get_text_len(text):
     non_ascii_len = sum(1 for i in text if not i.isascii())
     text_len = len(text) + non_ascii_len
     return text_len
+
 
 # --------------------------------------------------------------------------------
 # 定义信息打印函数
@@ -231,6 +235,10 @@ def time_print(start_time, runtime_dict):
     except Exception as e:
         logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息
 
+
+# --------------------------------------------------------------------------------
+# 定义魔法注释说明表格函数
+# --------------------------------------------------------------------------------
 def magic_comment_desc_table(magic_comment_desc_dict, mcd_title):
     """
     打印README表格。

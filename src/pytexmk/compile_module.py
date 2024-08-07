@@ -24,15 +24,15 @@ Description  :
 '''
 # -*- coding: utf-8 -*-
 import re
-import sys
 import logging
 import subprocess
-from rich import print  # 导入rich库的print函数
 from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
-from .additional_model import MoveRemoveClean, exit_pytexmk
+
+from .additional_module import MoveRemoveClean, exit_pytexmk
+
 console = console.Console()
 
 

@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-06 21:28:11 +0800
+LastEditTime : 2024-08-07 21:07:30 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/additional_operation.py
+FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -36,6 +36,7 @@ class MoveRemoveClean(object):
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+
 
     # --------------------------------------------------------------------------------
     # 将指定文件从文件夹中清除
@@ -58,9 +59,10 @@ class MoveRemoveClean(object):
             if filepath.exists():
                 try:
                     filepath.unlink()  # 使用unlink删除文件
-                    self.logger.info(f"{folder} 中 {file} 删除成功")
+                    self.logger.info(f"{filepath} 删除成功")
                 except OSError as e:
-                    self.logger.error(f"{folder} 中 {file} 删除失败: {e}")
+                    self.logger.error(f"{filepath} 删除失败: {e}")
+
 
     # --------------------------------------------------------------------------------
     # 将正则表达式匹配的文件从文件夹中清除
@@ -90,6 +92,7 @@ class MoveRemoveClean(object):
                         self.logger.info(f"{filepath} 删除成功")
                     except OSError as e:
                         self.logger.error(f"{filepath} 删除失败: {e}")
+
 
     # --------------------------------------------------------------------------------
     # 将指定文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
@@ -127,15 +130,15 @@ class MoveRemoveClean(object):
                 try:
                     dest_file_path.unlink()
                 except OSError as e:
-                    self.logger.error(f"{dest_file_path} 未能删除: {e}")
+                    self.logger.error(f"{dest_file_path} 删除失败: {e}")
                     continue
 
             if src_file_path.exists():
                 try:
                     shutil.move(str(src_file_path), str(dest_file_path))
-                    self.logger.info(f"{file} 移动到 {dest_folder}")
+                    self.logger.info(f"{src_file_path} 成功移动到 {dest_folder}")
                 except OSError as e:
-                    self.logger.error(f"{file} 移动到 {dest_folder} 失败: {e}")
+                    self.logger.error(f"{src_file_path} 未能移动到 {dest_folder}: {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -169,14 +172,14 @@ class MoveRemoveClean(object):
                             try:
                                 dest_file_path.unlink()  # 删除目标文件
                             except OSError as e:
-                                self.logger.error(f"{dest_folder} 中旧 {file_path.name} 删除失败: {e}")  # 记录删除失败错误信息
+                                self.logger.error(f"{dest_file_path} 删除失败: {e}")  # 记录删除失败错误信息
                                 continue  # 跳过当前文件的移动操作
 
                         try:
                             shutil.move(str(file_path), str(dest_folder_path))  # 移动文件
-                            self.logger.info(f"{file_path.name} 移动到 {dest_folder}")  # 记录文件移动成功信息
+                            self.logger.info(f"{file_path.name} 成功移动到 {dest_folder}")  # 记录文件移动成功信息
                         except OSError as e:
-                            self.logger.error(f"{file_path.name} 移动到 {dest_folder} 失败: {e}")  # 记录文件移动失败错误信息
+                            self.logger.error(f"{file_path.name} 未能移动到 {dest_folder}: {e}")  # 记录文件移动失败错误信息
                         break  # 匹配到一个模式后，不再检查其他模式
 
 
@@ -185,7 +188,8 @@ class MainFileJudgment(object):
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        
+
+
     # --------------------------------------------------------------------------------
     # 定义输入检查函数
     # --------------------------------------------------------------------------------
@@ -194,7 +198,7 @@ class MainFileJudgment(object):
         path_obj = Path(check_project_name)
         base_name = path_obj.stem  # 提取文件名（不包括后缀）
         file_extension = path_obj.suffix  # 提取文件后缀
- 
+
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
             self.logger.error("文件名中不能包含路径")
             exit_pytexmk()
@@ -213,6 +217,7 @@ class MainFileJudgment(object):
         else:
             self.logger.error(f"[bold cyan]{check_project_name}[/bold cyan] 后缀不是{suffixes}")
             exit_pytexmk()
+
 
     # --------------------------------------------------------------------------------
     # 定义 tex 文件检索函数
@@ -238,7 +243,8 @@ class MainFileJudgment(object):
         except Exception as e:
             self.logger.error(f"搜索 {suffixes} 文件时出错: {e}")
         return suffixes_files_in_dir    
-    
+
+
     # --------------------------------------------------------------------------------
     # 定义 tex 文件 \documentclass 和 \begin{document} 检索函数
     # --------------------------------------------------------------------------------
@@ -278,7 +284,8 @@ class MainFileJudgment(object):
             exit_pytexmk()
         # 返回主文件列表
         return main_tex_files
-    
+
+
     # --------------------------------------------------------------------------------
     # 定义魔法注释检索函数 
     # --------------------------------------------------------------------------------
@@ -338,6 +345,10 @@ class PdfFileOperation(object):
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
+
+    # --------------------------------------------------------------------------------
+    # 定义 PDF 文件预览函数
+    # --------------------------------------------------------------------------------
     def pdf_preview(self, project_name, outdir):
         try:
             pdf_name = f"{project_name}.pdf"
@@ -357,8 +368,8 @@ class PdfFileOperation(object):
             exit_pytexmk()
 
 
-        # --------------------------------------------------------------------------------
-    # 定义清理所有 pdf 文件
+    # --------------------------------------------------------------------------------
+    # 定义 PDF 文件修复函数
     # --------------------------------------------------------------------------------
     def pdf_repair(self, project_name, root_dir, excluded_folder):
         """
@@ -409,6 +420,11 @@ class PdfFileOperation(object):
                 self.logger.error(f"处理出错文件 {pdf_file}: {e}")
         print("[bold green]所有PDF文件已处理完成。")
 
+
+
+# --------------------------------------------------------------------------------
+# 定义 PyTeXMK 退出函数
+# --------------------------------------------------------------------------------
 def exit_pytexmk():
     print('[bold red]正在退出 PyTeXMK ...[/bold red]')
     sys.exit() # 退出程序

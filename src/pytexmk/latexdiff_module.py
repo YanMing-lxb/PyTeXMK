@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-07 09:28:52 +0800
+LastEditTime : 2024-08-07 21:20:46 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/latexdiff_model.py
+FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -28,9 +28,11 @@ import re
 import sys
 import logging
 import subprocess
-from pathlib import Path  # 导入Path模块
-from rich import console  # 导入rich库的console模块
-from .additional_model import MoveRemoveClean, exit_pytexmk
+from pathlib import Path
+from rich import console
+
+from .additional_module import MoveRemoveClean, exit_pytexmk
+
 console = console.Console()
 
 
@@ -43,7 +45,8 @@ class LaTeXDiff_Aux:
         self.auxdir = auxdir
 
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
-        
+
+
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX辅助文件存在检查函数
     # --------------------------------------------------------------------------------

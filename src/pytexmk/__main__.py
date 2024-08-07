@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 20:18:27 +0800
+LastEditTime : 2024-08-07 20:50:32 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -39,7 +39,8 @@ from .language_module import check_language, info_desc
 
 from .run_module import RUN
 from .logger_config import setup_logger
-from .additional_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
+from .additional_module import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
+from .get_main_file_module import get_main_file
 from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_module import LaTeXDiff_Aux
 from .check_version_module import UpdateChecker
@@ -47,7 +48,7 @@ from .check_version_module import UpdateChecker
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
-UC = UpdateChecker(1, 6) # 访问超时, 单位：秒；缓存时长, 单位：小时
+UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒；缓存时长, 单位: 小时
 
 
 lang = check_language()
@@ -140,7 +141,7 @@ def main():
     # 实例化 logger 类
     logger = setup_logger(args.verbose)
 
-    print(f"PyTeXMK 版本：[bold green]{__version__}[/bold green]\n")
+    print(f"PyTeXMK 版本: [bold green]{__version__}[/bold green]\n")
     print('[bold green]PyTeXMK 开始运行...\n')
 
 
@@ -155,7 +156,7 @@ def main():
             readme_path = data_path / "README.html"
             print(f"[bold green]正在打开 README 文件...")
             # 使用 pathlib 获取 README.html 文件的绝对路径
-            logger.info('README 的本地路径是：file://' + readme_path.resolve().as_posix())
+            logger.info('README 的本地路径是: file://' + readme_path.resolve().as_posix())
             # 使用 webbrowser 打开 README.html 文件
             webbrowser.open('file://' + readme_path.resolve().as_posix())
         except Exception as e:
@@ -177,7 +178,6 @@ def main():
     # --------------------------------------------------------------------------------
     # 主文件逻辑预处理判断
     # --------------------------------------------------------------------------------
-    # TODO 添加块注释, 或者整合到additional_operation.py中
     tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
@@ -190,45 +190,11 @@ def main():
         old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
     else:
-        current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
-        if args.document: # 当前目录下存在 tex 文件, 且命令行参数中指定了主文件
-            project_name = args.document # 使用命令行参数指定主文件
-            print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
-        elif len(main_file_in_root) == 1: # 如果当前根目录下存在且只有一个主文件
-            project_name = main_file_in_root[0] # 使用该文件作为待编译主文件
-            print(f"通过根目录下唯一主文件指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
+        project_name = get_main_file(args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
 
-        elif 'root' in all_magic_comments: # 当前目录下存在多个主文件, 且存在 % TEX root 魔法注释
-            logger.info("魔法注释 % !TEX root 在当前根目录下主文件中有被定义")
-            if len(all_magic_comments['root']) == 1: # 当前目录下存在多个主文件, 且只有一个存在 % TEX root 魔法注释
-                logger.info(f"魔法注释 % !TEX root 只存在于 {all_magic_comments['root'][0][0]}.tex 中")
-                check_file = MFJ.check_project_name(main_file_in_root, all_magic_comments['root'][0][1], '.tex') # 检查 magic comments 中指定的 root 文件名是否正确
-                if f"{all_magic_comments['root'][0][0]}" == f"{check_file}": # 如果 magic comments 中指定的 root 文件名与当前文件名相同
-                    project_name = check_file # 使用魔法注释 % !TEX root 指定的文件作为主文件
-                    print(f"通过魔法注释 % !TEX root 指定待编译主文件为 [bold cyan]{project_name}.tex[/bold cyan]")
-                else: # 如果 magic comments 中指定的 root 文件名与当前文件名不同
-                    logger.warning(f"魔法注释 % !TEX root 指定的文件名 [bold cyan]{check_file}.tex[/bold cyan] 与当前文件名 [bold cyan]{all_magic_comments['root'][0][0]}.tex[/bold cyan] 不同, 无法确定主文件")
-            if len(all_magic_comments['root']) > 1: # 当前目录下存在多个主文件, 且多个 tex 文件中同时存在 % TEX root 魔法注释
-                logger.warning("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释确定待编译主文件") 
-
-        elif not project_name: # 如果当前根目录下存在多个主文件, 且不存在 % TEX root 魔法注释, 并且待编译主文件还没有找到
-            logger.info("无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件")
-            for file in main_file_in_root:
-                if file == "main": # 如果存在 main.tex 文件
-                    project_name = file # 使用 main.tex 文件作为待编译主文件名
-                    print(f"通过默认文件名 \"main.tex\" 指定待编译主文件为：[bold cyan]{project_name}.tex[/bold cyan]")
-            if not project_name: # 如果不存在 main.tex 文件
-                logger.info("当前根目录下不存在名为 \"main.tex\" 的文件")
-
-        if not project_name: # 如果当前根目录下不存在主文件且 -d 参数未指定
-            logger.error("无法进行编译, 当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
-            logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译, 或删除当前根目录下多余的 tex 文件")
-            logger.warning(f"当前根目录是：{current_path}")
-            exit_pytexmk()
-        
-        project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确 
-        
-
+    # --------------------------------------------------------------------------------
+    # 主文件魔法注释提取
+    # --------------------------------------------------------------------------------
     if all_magic_comments: # 如果存在魔法注释
         for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
             for value in values:  # 遍历魔法注释中所有值
