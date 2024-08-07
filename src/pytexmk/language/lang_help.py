@@ -1,5 +1,29 @@
+'''
+ =======================================================================
+ ····Y88b···d88P················888b·····d888·d8b·······················
+ ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ ······Y88o88P··················88888b·d88888···························
+ ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ ·······························································888·····
+ ··························································Y8b·d88P·····
+ ···························································"Y88P"······
+ =======================================================================
 
+ -----------------------------------------------------------------------
+Author       : 焱铭
+Date         : 2024-02-28 23:11:52 +0800
+LastEditTime : 2024-08-07 18:23:11 +0800
+Github       : https://github.com/YanMing-lxb/
+FilePath     : /PyTeXMK/src/pytexmk/language/lang_help.py
+Description  : 
+ -----------------------------------------------------------------------
+'''
 # -*- coding: utf-8 -*-
+
 magic_comments_desc_en = {
     '% !TEX program = pdflatex': 'Set program: xelatex, pdflatex, lualatex',
     '% !TEX root = file.tex': 'Set main file, supports root dir only',
@@ -14,20 +38,18 @@ magic_comments_desc_zh = {
 }
 
 description_en = """
-    [i]LaTeX Auxiliary Compilation Program[/]
+    [i]LaTeX Auxiliary Compilation Program -- YanMing[/] 
+    """
+description_zh = """
+    [i]LaTeX 辅助编译程序 -- 焱铭[/] 
+    """
+epilog_en = f"""
     For information on magic comments and other detailed instructions, please run the -r parameter to read the README file.
     If you find any bugs, please update to the latest version and feel free to submit an Issue in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues
     """
-description_zh = """
-    [i]LaTeX 辅助编译程序[/] 
-    如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。
-    发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue: https://github.com/YanMing-lxb/PyTeXMK/issues
-    """
-epilog_en = f"""
-    Welcome to PyTeXMK! -- YanMing
-    """
 epilog_zh = f"""
-    欢迎使用 PyTeXMK！ -- 焱铭
+    如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。
+    发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues
     """
 
 help_strings_en = {
@@ -75,5 +97,5 @@ help_strings_zh = {
     'pdf_preview': "尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [FILE_NAME] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)",
     'document': "待编译主文件名",
     'mcd_title': "魔法注释说明表",
-    'mcd_description': 'PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）',
+    'mcd_description': 'PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）',
 }
