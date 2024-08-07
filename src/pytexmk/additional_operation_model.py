@@ -181,7 +181,6 @@ class MoveRemoveClean(object):
 
 
 
-
 class MainFileJudgment(object):
 
     def __init__(self):
@@ -198,26 +197,22 @@ class MainFileJudgment(object):
  
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
             self.logger.error("文件名中不能包含路径")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1)
+            exit_pytexmk()
         if file_extension == f'{suffixes}':  # 判断后缀是否是 .tex
             if base_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return base_name
             else:
                 self.logger.error(f"[bold cyan]{check_project_name}{file_extension}[/bold cyan] 不存在于当前根目录下")
-                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                sys.exit(1)
+                exit_pytexmk()
         if '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
             if check_project_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return check_project_name
             else:
                 self.logger.error(f"[bold cyan]{check_project_name}{suffixes}[/bold cyan] 不存在于当前根目录下")
-                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                sys.exit(1)
+                exit_pytexmk()
         else:
             self.logger.error(f"[bold cyan]{check_project_name}[/bold cyan] 后缀不是{suffixes}")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1)
+            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 定义 tex 文件检索函数
@@ -233,14 +228,13 @@ class MainFileJudgment(object):
                 base_name = file.stem
                 suffixes_files_in_dir.append(base_name)
                 self.logger.info(f"搜索到 {base_name}{suffixes} 文件")
-             
+
             if suffixes_files_in_dir:
                 self.logger.info(f"共发现 {len(suffixes_files_in_dir)} 个 {suffixes} 文件")
             else:
                 self.logger.error(f"终端路径下不存在 {suffixes} 文件！请检查终端显示路径是否是项目路径")
                 self.logger.warning(f"当前终端路径是：{current_path}")
-                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                sys.exit(1)
+                exit_pytexmk()
         except Exception as e:
             self.logger.error(f"搜索 {suffixes} 文件时出错: {e}")
         return suffixes_files_in_dir    
@@ -281,8 +275,7 @@ class MainFileJudgment(object):
             # 如果没有找到主文件，则记录错误并退出程序
             self.logger.error("终端路径下不存在主文件！请检查终端显示路径是否是项目路径")
             self.logger.warning(f"当前终端路径：{Path.cwd()}")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1)
+            exit_pytexmk()
         # 返回主文件列表
         return main_tex_files
     
@@ -338,6 +331,8 @@ class MainFileJudgment(object):
                 all_magic_comments[key].append((file_path, value))  # 存储文件路径和魔法注释值
         return all_magic_comments  # 返回提取的键值对字典
 
+
+
 class PdfFileOperation(object):
 
     def __init__(self):
@@ -359,8 +354,7 @@ class PdfFileOperation(object):
             self.logger.error(f"打开 {pdf_name} 文件时出错: {e}")
         finally:
             # 打印退出信息并退出程序
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit()
+            exit_pytexmk()
 
 
         # --------------------------------------------------------------------------------
@@ -414,3 +408,7 @@ class PdfFileOperation(object):
             except Exception as e:
                 self.logger.error(f"处理出错文件 {pdf_file}: {e}")
         print("[bold green]所有PDF文件已处理完成。")
+
+def exit_pytexmk():
+    print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+    sys.exit() # 退出程序

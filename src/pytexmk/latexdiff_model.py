@@ -132,8 +132,7 @@ class LaTeXDiff_Aux:
             self.logger.info(f"已压平文件：{output_file_name}")
         except Exception as e:
             self.logger.error(f"压平出错：{e}")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
 
         return output_file_name
 
@@ -149,5 +148,4 @@ class LaTeXDiff_Aux:
 
         if result.stderr:
             self.logger.error(f"LaTeXDiff 运行出错：{result.stderr}")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()

@@ -32,7 +32,7 @@ from pathlib import Path  # 导入Path模块
 from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
-from .additional_operation_model import MoveRemoveClean
+from .additional_operation_model import MoveRemoveClean, exit_pytexmk
 console = console.Console()
 
 
@@ -125,8 +125,7 @@ class CompileLaTeX(object):
             self.logger.error(f'请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
     
     # --------------------------------------------------------------------------------
     # 定义信息获取函数
@@ -320,8 +319,7 @@ class CompileLaTeX(object):
             self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 定义参考文献判断函数
@@ -439,8 +437,7 @@ class CompileLaTeX(object):
             self.logger.error(f"{bib_engine} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 定义索引更新判断函数
@@ -564,8 +561,7 @@ class CompileLaTeX(object):
             self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 定义 xdv 编译函数
@@ -591,8 +587,7 @@ class CompileLaTeX(object):
             self.logger.error(f"DVIPDFMX 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
 
 
 # --------------------------------------------------------------------------------

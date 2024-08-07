@@ -40,7 +40,7 @@ from .language_model import check_language, info_desc
 
 from .run_model import RUN
 from .logger_config import setup_logger
-from .additional_operation_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation
+from .additional_operation_model import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
 from .info_print_model import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_model import LaTeXDiff_Aux
 from .check_version_model import UpdateChecker
@@ -162,8 +162,7 @@ def main():
             logger.error(f"打开 README 文件时出错: {e}")
         finally:
             # 打印退出信息并退出程序
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit()
+            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑判断
@@ -223,8 +222,7 @@ def main():
             logger.error("无法进行编译, 当前根目录下存在多个主文件：" + ", ".join(main_file_in_root))
             logger.warning("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = <待编译主文件名>\" 或在终端输入 \"pytexmk <待编译主文件名>\" 进行编译, 或删除当前根目录下多余的 tex 文件")
             logger.warning(f"当前根目录是：{current_path}")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1)
+            exit_pytexmk()
         
         project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确 
         
@@ -284,8 +282,7 @@ def main():
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
         if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
             logger.error(f"不能对同一个文件进行比较, 请检查文件名是否正确")
-            print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-            sys.exit(1) # 退出程序
+            exit_pytexmk()
         else:
             print_message("LaTeXDiff 预处理", "additional")
             if LDA.check_aux_files(old_tex_file): # 检查辅助文件是否存在
@@ -318,20 +315,17 @@ def main():
                             runtime_dict["结果文件->输出目录"] = runtime_move_out_outdir
                     except Exception as e:
                         logger.error(f"LaTeXDiff 编译出错: {e}")
-                        print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                        sys.exit(1) # 退出程序
+                        exit_pytexmk()
                     finally:
                         runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
                         runtime_dict["辅助文件->辅助目录"] = runtime_move_matched_files
                 else:
                     logger.error(f"{new_tex_file} 的辅助文件不存在, 请检查编译")
-                    print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                    sys.exit(1) # 退出程序
+                    exit_pytexmk()
 
             else: # 如果辅助文件不存在
                 logger.error(f"{old_tex_file} 的辅助文件不存在, 请检查编译")
-                print('[bold red]正在退出 PyTeXMK ...[/bold red]')
-                sys.exit(1) # 退出程序
+                exit_pytexmk()
             
     # --------------------------------------------------------------------------------
     # LaTeX 运行相关
