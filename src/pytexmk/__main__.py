@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 20:50:32 +0800
+LastEditTime : 2024-08-07 21:34:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -120,7 +120,6 @@ def main():
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
-    project_name = '' # 待编译主文件名
     runtime_dict = {}
     magic_comments = {} # 存储魔法注释
     suffixes_out = [".pdf", ".synctex.gz"]
@@ -200,7 +199,7 @@ def main():
             for value in values:  # 遍历魔法注释中所有值
                 if value[0] == project_name:  # 如果是project_name对应的文件
                     magic_comments[key] = value[1]  # 存储魔法注释
-                    logger.info(f"已从 {value[0]}.tex 中提取魔法注释 % !TEX {key} = {value[1]}")
+                    logger.info(f"提取魔法注释: {value[0]}.tex --> % !TEX {key} = {value[1]}")
 
     # --------------------------------------------------------------------------------
     # 编译类型判断

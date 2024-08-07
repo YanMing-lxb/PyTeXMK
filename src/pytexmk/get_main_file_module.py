@@ -16,13 +16,14 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-07 20:16:03 +0800
-LastEditTime : 2024-08-07 20:42:33 +0800
+LastEditTime : 2024-08-07 21:36:27 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/main_file_judgment_module.py
+FilePath     : /PyTeXMK/src/pytexmk/get_main_file_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 import logging
+from rich import print
 from pathlib import Path
 
 from .additional_module import MainFileJudgment, exit_pytexmk
@@ -33,7 +34,9 @@ MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 logger = logging.getLogger(__name__)
 
 def get_main_file(args_document, main_file_in_root, all_magic_comments):
+    project_name = ''
     current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
+
     if args_document: # 当前目录下存在 tex 文件, 且命令行参数中指定了主文件
         project_name = args_document # 使用命令行参数指定主文件
         print(f"通过命令行命令指定待编译主文件为：[bold cyan]{project_name}[/bold cyan]")
