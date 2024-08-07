@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 10:27:07 +0800
+LastEditTime : 2024-08-07 10:28:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -96,8 +96,6 @@ def parse_args():
 
     parser.add_argument('document', nargs='?', help=info_desrption(help_list, 'document'))
     
-
-
     # 解析命令行参数
     args = parser.parse_args()
 
