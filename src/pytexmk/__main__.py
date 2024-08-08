@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 21:43:06 +0800
+LastEditTime : 2024-08-08 09:15:32 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -67,6 +67,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
             table = magic_comment_desc_table(magic_comment_desc_list, info_desc(help_list, 'mcd_title'))
             console = Console() # 创建控制台对象
             console.print(table)
+            UC.check_for_updates()
         super().exit(status, message)
 
 
