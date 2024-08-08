@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-07 21:07:30 +0800
+LastEditTime : 2024-08-08 10:42:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -31,6 +31,21 @@ import logging
 import webbrowser
 from rich import print
 from pathlib import Path
+
+from .language import lang_additional
+from .language_module import check_language
+
+lang = check_language()
+if lang:
+    mrc_lang = lang_additional.mrc_lang_zh
+    mfj_lang = lang_additional.mfj_lang_zh
+    pfo_lang = lang_additional.pfo_lang_zh
+    exit_lang = lang_additional.exit_lang_zh
+else:
+    mrc_lang = lang_additional.mrc_lang_en
+    mfj_lang = lang_additional.mfj_lang_en
+    pfo_lang = lang_additional.pfo_lang_en
+    exit_lang = lang_additional.exit_lang_en
 
 class MoveRemoveClean(object):
 
@@ -59,9 +74,9 @@ class MoveRemoveClean(object):
             if filepath.exists():
                 try:
                     filepath.unlink()  # 使用unlink删除文件
-                    self.logger.info(f"{filepath} 删除成功")
+                    self.logger.info(f"{mrc_lang['del-success']}: {filepath}")
                 except OSError as e:
-                    self.logger.error(f"{filepath} 删除失败: {e}")
+                    self.logger.error(f"{mrc_lang['del-failed']}: {filepath} --> {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -89,9 +104,9 @@ class MoveRemoveClean(object):
                 if filepath.is_file() and compiled_pattern.match(filepath.name):
                     try:
                         filepath.unlink()  # 使用unlink删除文件
-                        self.logger.info(f"{filepath} 删除成功")
+                        self.logger.info(f"{mrc_lang['del-success']}: {filepath}")
                     except OSError as e:
-                        self.logger.error(f"{filepath} 删除失败: {e}")
+                        self.logger.error(f"{mrc_lang['del-failed']}: {filepath} --> {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -130,15 +145,15 @@ class MoveRemoveClean(object):
                 try:
                     dest_file_path.unlink()
                 except OSError as e:
-                    self.logger.error(f"{dest_file_path} 删除失败: {e}")
+                    self.logger.error(f"{mrc_lang['del-failed']}: {dest_file_path} --> {e}")
                     continue
 
             if src_file_path.exists():
                 try:
                     shutil.move(str(src_file_path), str(dest_file_path))
-                    self.logger.info(f"{src_file_path} 成功移动到 {dest_folder}")
+                    self.logger.info(f"{mrc_lang['move-success']}: {src_file_path} ==> {dest_folder}")
                 except OSError as e:
-                    self.logger.error(f"{src_file_path} 未能移动到 {dest_folder}: {e}")
+                    self.logger.error(f"{mrc_lang['move-failed']}: {src_file_path} ==> {dest_folder} --> {e}")
 
 
     # --------------------------------------------------------------------------------
@@ -172,14 +187,14 @@ class MoveRemoveClean(object):
                             try:
                                 dest_file_path.unlink()  # 删除目标文件
                             except OSError as e:
-                                self.logger.error(f"{dest_file_path} 删除失败: {e}")  # 记录删除失败错误信息
+                                self.logger.error(f"{mrc_lang['del-failed']}: {dest_file_path} --> {e}")  # 记录删除失败错误信息
                                 continue  # 跳过当前文件的移动操作
 
                         try:
                             shutil.move(str(file_path), str(dest_folder_path))  # 移动文件
-                            self.logger.info(f"{file_path.name} 成功移动到 {dest_folder}")  # 记录文件移动成功信息
+                            self.logger.info(f"{mrc_lang['move-success']}: {file_path.name} ==> {dest_folder}")  # 记录文件移动成功信息
                         except OSError as e:
-                            self.logger.error(f"{file_path.name} 未能移动到 {dest_folder}: {e}")  # 记录文件移动失败错误信息
+                            self.logger.error(f"{mrc_lang['move-failed']}: {file_path.name} ==> {dest_folder} --> {e}")  # 记录文件移动失败错误信息
                         break  # 匹配到一个模式后，不再检查其他模式
 
 
@@ -200,22 +215,22 @@ class MainFileJudgment(object):
         file_extension = path_obj.suffix  # 提取文件后缀
 
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
-            self.logger.error("文件名中不能包含路径")
+            self.logger.error(mfj_lang['cannot-contain-path'])
             exit_pytexmk()
         if file_extension == f'{suffixes}':  # 判断后缀是否是 .tex
             if base_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return base_name
             else:
-                self.logger.error(f"[bold cyan]{check_project_name}{file_extension}[/bold cyan] 不存在于当前根目录下")
+                self.logger.error(f"{mfj_lang['not-in-root']}: [bold cyan]{check_project_name}{file_extension}[/bold cyan]")
                 exit_pytexmk()
         if '.' not in check_project_name:  # 判断输入 check_project_name 中没有 后缀
             if check_project_name in main_tex_files:  # 判断文件名是否在 main_tex_files 中
                 return check_project_name
             else:
-                self.logger.error(f"[bold cyan]{check_project_name}{suffixes}[/bold cyan] 不存在于当前根目录下")
+                self.logger.error(f"{mfj_lang['not-in-root']}: [bold cyan]{check_project_name}{suffixes}[/bold cyan]")
                 exit_pytexmk()
         else:
-            self.logger.error(f"[bold cyan]{check_project_name}[/bold cyan] 后缀不是{suffixes}")
+            self.logger.error(f"{mfj_lang['file-not-tex']}: [bold cyan]{check_project_name}[/bold cyan]")
             exit_pytexmk()
 
 
@@ -232,16 +247,16 @@ class MainFileJudgment(object):
                 # 去掉路径，提取文件名和后缀
                 base_name = file.stem
                 suffixes_files_in_dir.append(base_name)
-                self.logger.info(f"搜索到 {base_name}{suffixes} 文件")
+                self.logger.info(f"{mfj_lang['search-result']}: {base_name}{suffixes}")
 
             if suffixes_files_in_dir:
-                self.logger.info(f"共发现 {len(suffixes_files_in_dir)} 个 {suffixes} 文件")
+                self.logger.info(f"{suffixes} {mfj_lang['file-num']}: {len(suffixes_files_in_dir)}")
             else:
-                self.logger.error(f"终端路径下不存在 {suffixes} 文件！请检查终端显示路径是否是项目路径")
-                self.logger.warning(f"当前终端路径是：{current_path}")
+                self.logger.error(f"{suffixes} {mfj_lang['path-error']}")
+                self.logger.warning(f"{mfj_lang['terminal-path']}：{current_path}")
                 exit_pytexmk()
         except Exception as e:
-            self.logger.error(f"搜索 {suffixes} 文件时出错: {e}")
+            self.logger.error(f"{mfj_lang['search-file-error']}: {suffixes} --> {e}")
         return suffixes_files_in_dir    
 
 
@@ -269,18 +284,18 @@ class MainFileJudgment(object):
                     # 如果找到主文件特征命令，则将文件名添加到主文件列表中
                     if is_main_file:
                         main_tex_files.append(file_name)
-                    self.logger.info(f"已通过特征命令检索到主文件 {file_name}")
+                    self.logger.info(f"{mfj_lang['search-file-feature']}: {file_name}")
             except Exception as e:
                 # 捕获并记录文件读取错误
-                self.logger.error(f"读取文件 {file_name}.tex 时出错: {e}")
+                self.logger.error(f"{mfj_lang['read-file-error']}: {file_name}.tex --> {e}")
                 continue
         # 如果有找到主文件，则记录数量
         if main_tex_files:
-            self.logger.info(f"共发现 {len(main_tex_files)} 个主文件")
+            self.logger.info(f"{mfj_lang['find-main-file-num']}: {len(main_tex_files)}")
         else:
             # 如果没有找到主文件，则记录错误并退出程序
-            self.logger.error("终端路径下不存在主文件！请检查终端显示路径是否是项目路径")
-            self.logger.warning(f"当前终端路径：{Path.cwd()}")
+            self.logger.error(mfj_lang['terminal-path-error'])
+            self.logger.warning(f"{mfj_lang['terminal-path']}：{Path.cwd()}")
             exit_pytexmk()
         # 返回主文件列表
         return main_tex_files
@@ -326,7 +341,7 @@ class MainFileJudgment(object):
                                 file_magic_comments[file_path][magic_comment_key] = matched_comment_value  # 存储魔法注释
                                 break  # 跳出当前循环，避免重复匹配同一关键字
             except Exception as e:
-                self.logger.error(f"读取文件 {file_path} 时出错: {e}")
+                self.logger.error(f"{mfj_lang['read-file-error']}: {file_path} --> {e}")
                 continue  # 跳过当前文件，继续处理下一个文件
 
         # 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}
@@ -354,15 +369,15 @@ class PdfFileOperation(object):
             pdf_name = f"{project_name}.pdf"
             # 使用 pathlib 拼接 pdf 文件路径
             pdf_path = Path(outdir) / pdf_name
-            print(f"[bold green]正在打开 {pdf_name} 文件...")
+            print(f"[bold green]{pfo_lang['file-openning']} {pdf_name}")
             # 使用 pathlib 获取 pdf 文件的绝对路径
             local_path = f"file://{pdf_path.resolve().as_posix()}"
-            self.logger.info(f'{pdf_name} 的本地路径是：{local_path}')
+            self.logger.info(f'{pfo_lang['file-path']}: {local_path}')
             # 使用 webbrowser 打开 pdf 文件
             webbrowser.open(local_path)
         except Exception as e:
             # 记录打开 README 文件时的错误信息
-            self.logger.error(f"打开 {pdf_name} 文件时出错: {e}")
+            self.logger.error(f"{pfo_lang['file-open-error']}: {pdf_name} -->{e}")
         finally:
             # 打印退出信息并退出程序
             exit_pytexmk()
@@ -401,10 +416,10 @@ class PdfFileOperation(object):
                 pdf_files.append(path)
  
         if not pdf_files:
-            print("当前路径下未发现PDF文件。")
+            print(pfo_lang['pdf-not-found'])
             return
  
-        print(f"共发现 [bold cyan]{len(pdf_files)}[/bold cyan] 个PDF文件。")
+        print(f"{pfo_lang['pdf-found-num']}: [bold cyan]{len(pdf_files)}[/bold cyan]")
         for pdf_file in pdf_files:
             try:
                 # 使用fitz库打开PDF文件
@@ -415,10 +430,10 @@ class PdfFileOperation(object):
                     doc.save(temp_path, garbage=3, deflate=True, clean=True)
                 # 覆盖原有文件
                 temp_path.replace(pdf_file)
-                self.logger.info(f"已处理并覆盖文件 {pdf_file}")
+                self.logger.info(f"{pfo_lang['repair-success']}: {pdf_file}")
             except Exception as e:
-                self.logger.error(f"处理出错文件 {pdf_file}: {e}")
-        print("[bold green]所有PDF文件已处理完成。")
+                self.logger.error(f"{pfo_lang['repair-failed']}: {pdf_file} --> {e}")
+        print(f"[bold green]{pfo_lang['repair-finished']}[/bold green]")
 
 
 
@@ -426,5 +441,5 @@ class PdfFileOperation(object):
 # 定义 PyTeXMK 退出函数
 # --------------------------------------------------------------------------------
 def exit_pytexmk():
-    print('[bold red]正在退出 PyTeXMK ...[/bold red]')
+    print(f'[bold red]{exit_lang["exiting"]}[/bold red]')
     sys.exit() # 退出程序
