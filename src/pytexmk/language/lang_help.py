@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-07 18:23:11 +0800
+LastEditTime : 2024-08-08 08:49:55 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/language/lang_help.py
 Description  : 
@@ -70,7 +70,7 @@ help_strings_en = {
     'unquiet': "run in non-quiet mode, displaying log information in the terminal",
     'verbose': "show detailed information during PyTeXMK operation",
     'pdf_repair': "attempt to repair all PDF files outside the root directory. Use this option if you encounter 'invalid X X R object' warnings during LaTeX compilation",
-    'pdf_preview': "preview the generated PDF file using a web browser or local PDF reader after compilation. If you need to specify the main file to be compiled in the command line, place the -pv command after the document without specifying parameters (e.g., pytexmk main -pv); if you do not need to specify the main file in the command line, just enter -pv (e.g., pytexmk -pv). If [FILE_NAME] is specified, it opens the specified file without compiling (only supports PDF files in the output directory, e.g., pytexmk -pv main)",
+    'pdf_preview': "preview the generated PDF file using a web browser or local PDF reader after compilation. If you need to specify the main file to be compiled in the command line, place the -pv command after the document without specifying parameters (e.g., pytexmk main -pv); if you do not need to specify the main file in the command line, just enter -pv (e.g., pytexmk -pv). If [dark_cyan]FILE_NAME[/dark_cyan] is specified, it opens the specified file without compiling (only supports PDF files in the output directory, e.g., pytexmk -pv main)",
     'document': "main file name to be compiled",
     'mcd_title': "Magic Comments Description Table",
     'mcd_description': 'PyTeXMK supports using magic comments to define the main file to be compiled, the compilation program, the storage location of the compilation results, etc. (only supports searching the first 50 lines of the document)',
@@ -94,7 +94,7 @@ help_strings_zh = {
     'unquiet': "非安静模式运行, 此模式下终端显示日志信息",
     'verbose': "显示 PyTeXMK 运行过程中的详细信息",
     'pdf_repair': "尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R object 时, 可使用此参数尝试修复所有 pdf 文件",
-    'pdf_preview': "尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [FILE_NAME] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)",
+    'pdf_preview': "尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)",
     'document': "待编译主文件名",
     'mcd_title': "魔法注释说明表",
     'mcd_description': 'PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）',
