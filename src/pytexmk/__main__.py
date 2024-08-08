@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-08 10:44:24 +0800
+LastEditTime : 2024-08-08 12:08:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -34,8 +34,8 @@ from rich_argparse import RichHelpFormatter
 
 from .version import script_name, __version__
 
-from .language import lang_help
-from .language_module import check_language, info_desc
+from .language import lang_main
+from .language_module import check_language
 
 from .run_module import RUN
 from .logger_config import setup_logger
@@ -53,18 +53,20 @@ UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒；缓存时长, 单位: 小
 
 lang = check_language()
 if lang:
-    help_list = lang_help.help_strings_zh
-    magic_comment_desc_list = lang_help.magic_comments_desc_zh
+    magic_comment_desc_dic = lang_main.magic_comments_desc_zh
+    help_lang = lang_main.help_lang_zh
+    main_lang = lang_main.main_lang_zh
 else:
-    help_list = lang_help.help_strings_en
-    magic_comment_desc_list = lang_help.magic_comments_desc_en
+    magic_comment_desc_dic = lang_main.magic_comments_desc_en
+    help_lang = lang_main.help_lang_en
+    main_lang = lang_main.main_lang_en
 
 class CustomArgumentParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
         if status == 0 and message is None:  # 只有在请求帮助信息时，status 为 0，message 为 None
             # 检查并获取对应语言的帮助信息
-            print(f"\n{info_desc(help_list, 'mcd_description')}\n")
-            table = magic_comment_desc_table(magic_comment_desc_list, info_desc(help_list, 'mcd_title'))
+            print(f"\n{help_lang['mcd_description']}\n")
+            table = magic_comment_desc_table(magic_comment_desc_dic, help_lang['mcd_title'])
             console = Console() # 创建控制台对象
             console.print(table)
             UC.check_for_updates()
@@ -79,8 +81,8 @@ def parse_args():
     # 创建 ArgumentParser 对象
     parser = CustomArgumentParser(
         prog = 'pytexmk',
-        description=info_desc(help_list, 'description'), 
-        epilog=info_desc(help_list, 'epilog'), 
+        description=help_lang['description'], 
+        epilog=help_lang['epilog'], 
         formatter_class=RichHelpFormatter, 
         add_help=False)
 
@@ -88,23 +90,23 @@ def parse_args():
     meg_engine = parser.add_mutually_exclusive_group()
 
     # 添加命令行参数
-    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=info_desc(help_list,'version'))
-    parser.add_argument('-h', '--help', action='help', help=info_desc(help_list, 'help'))
-    parser.add_argument('-r', '--readme', action='store_true', help=info_desc(help_list, 'readme'))
-    meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=info_desc(help_list, 'PdfLaTeX'))
-    meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=info_desc(help_list, 'XeLaTeX'))
-    meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=info_desc(help_list, 'LuaLaTeX'))
-    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff'))
-    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=info_desc(help_list, 'LaTeXDiff_compile'))
-    meg_clean.add_argument('-c', '--clean', action='store_true', help=info_desc(help_list, 'clean'))
-    meg_clean.add_argument('-C', '--Clean', action='store_true', help=info_desc(help_list, 'Clean'))
-    meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=info_desc(help_list, 'clean_any'))
-    meg_clean.add_argument('-Ca', '--Clean-any', action='store_true', help=info_desc(help_list, 'Clean_any'))
-    parser.add_argument('-uq', '--unquiet', action='store_true', help=info_desc(help_list, 'unquiet'))
-    parser.add_argument('-vb', '--verbose', action='store_true', help=info_desc(help_list,'verbose'))
-    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=info_desc(help_list, 'pdf_repair'))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=info_desc(help_list, 'pdf_preview'))
-    parser.add_argument('document', nargs='?', help=info_desc(help_list, 'document'))
+    parser.add_argument('-v', '--version', action='version', version=f'{script_name}: version [i]{__version__}', help=help_lang['version'])
+    parser.add_argument('-h', '--help', action='help', help=help_lang['help'])
+    parser.add_argument('-r', '--readme', action='store_true', help=help_lang['readme'])
+    meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=help_lang['PdfLaTeX'])
+    meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=help_lang['XeLaTeX'])
+    meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=help_lang['LuaLaTeX'])
+    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=help_lang['LaTeXDiff'])
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=help_lang['LaTeXDiff_compile'])
+    meg_clean.add_argument('-c', '--clean', action='store_true', help=help_lang['clean'])
+    meg_clean.add_argument('-C', '--Clean', action='store_true', help=help_lang['Clean'])
+    meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=help_lang['clean_any'])
+    meg_clean.add_argument('-Ca', '--Clean-any', action='store_true', help=help_lang['Clean_any'])
+    parser.add_argument('-uq', '--unquiet', action='store_true', help=help_lang['unquiet'])
+    parser.add_argument('-vb', '--verbose', action='store_true', help=help_lang['verbose'])
+    parser.add_argument('-pr', '--pdf-repair', action='store_true', help=help_lang['pdf_repair'])
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=help_lang['pdf_preview'])
+    parser.add_argument('document', nargs='?', help=help_lang['document'])
 
     # 解析命令行参数
     args = parser.parse_args()
@@ -143,8 +145,8 @@ def main():
     # 实例化 logger 类
     logger = setup_logger(args.verbose)
 
-    print(f"PyTeXMK 版本: [bold green]{__version__}[/bold green]\n")
-    print('[bold green]PyTeXMK 开始运行...\n')
+    print(f"{main_lang['pytexmk_version']} [i bold green]{__version__}[/bold green]\n")
+    print(f'[bold green]{main_lang['pytexmk_start']}\n')
 
 
     # --------------------------------------------------------------------------------
@@ -156,14 +158,14 @@ def main():
             data_path = Path(importlib.resources.files('pytexmk')) / 'data'
             # 使用 pathlib 拼接 README.html 文件路径
             readme_path = data_path / "README.html"
-            print(f"[bold green]正在打开 README 文件...")
+            print(f"[bold green]{main_lang['readme_openning']}")
             # 使用 pathlib 获取 README.html 文件的绝对路径
-            logger.info('README 的本地路径是: file://' + readme_path.resolve().as_posix())
+            logger.info(f"{main_lang['readme_path']} file://{readme_path.resolve().as_posix()}")
             # 使用 webbrowser 打开 README.html 文件
-            webbrowser.open('file://' + readme_path.resolve().as_posix())
+            webbrowser.open(f'file://{readme_path.resolve().as_posix()}')
         except Exception as e:
             # 记录打开 README 文件时的错误信息
-            logger.error(f"打开 README 文件时出错: {e}")
+            logger.error(f"{main_lang['readme_open_error']} {e}")
         finally:
             # 打印退出信息并退出程序
             exit_pytexmk()
@@ -202,7 +204,7 @@ def main():
             for value in values:  # 遍历魔法注释中所有值
                 if value[0] == project_name:  # 如果是project_name对应的文件
                     magic_comments[key] = value[1]  # 存储魔法注释
-                    logger.info(f"提取魔法注释: {value[0]}.tex ==> % !TEX {key} = {value[1]}")
+                    logger.info(f"{main_lang['extract_magic_comments']} {value[0]}.tex ==> % !TEX {key} = {value[1]}")
 
     # --------------------------------------------------------------------------------
     # 编译类型判断
@@ -215,17 +217,17 @@ def main():
         compiler_engine = "LuaLaTeX"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
         compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
-        print(f"通过魔法注释设置编译器为 [bold cyan]{compiler_engine}[/bold cyan]")
+        print(f"{main_lang['magic_comment_program']} [bold cyan]{compiler_engine}[/bold cyan]")
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
     # --------------------------------------------------------------------------------
     if magic_comments.get('outdir'): # 如果存在 magic comments 且 outdir 存在
         outdir = magic_comments['outdir'] # 使用 magic comments 中的 outdir 作为输出目录
-        print(f"通过魔法注释找到输出目录为 [bold cyan]{outdir}[/bold cyan]")
+        print(f"{main_lang['magic_comment_outdir']} [bold cyan]{outdir}[/bold cyan]")
     if magic_comments.get('auxdir'): # 如果存在 magic comments 且 auxdir 存在
         auxdir = magic_comments['auxdir'] # 使用 magic comments 中的 auxdir 作为辅助文件目录
-        print(f"通过魔法注释找到辅助文件目录为 [bold cyan]{auxdir}[/bold cyan]")
+        print(f"{main_lang['magic_comment_auxdir']} [bold cyan]{auxdir}[/bold cyan]")
 
     # --------------------------------------------------------------------------------
     # 匹配文件清除命令
@@ -245,6 +247,7 @@ def main():
         runtime_dict["清除文件夹内输出文件"] = runtime_remove_out_outdir
         print('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令')
 
+    # TODO 接着双语化
     # --------------------------------------------------------------------------------
     # LaTeXDiff 相关
     # --------------------------------------------------------------------------------
@@ -290,7 +293,7 @@ def main():
                         runtime_move_matched_files, _ = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
                         runtime_dict["辅助文件->辅助目录"] = runtime_move_matched_files
                 else:
-                    logger.error(f"{new_tex_file} 的辅助文件不存在, 请检查编译")
+                    logger.error(f"{new_tex_file} 的辅助文件不存在, 请检查编译") # TODO 要求辅助文件不存在时要自动进行编译
                     exit_pytexmk()
 
             else: # 如果辅助文件不存在
