@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 16:59:49 +0800
-LastEditTime : 2024-08-09 21:23:19 +0800
+LastEditTime : 2024-08-09 21:40:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/language_module.py
 Description  : 
@@ -32,11 +32,11 @@ from pathlib import Path
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
     current_locale = locale.getdefaultlocale()
-    if current_locale[0].startswith('zh'):
-        lang = None
-    else:
-        lang = ['en']
-
     locale_path = Path(__file__).resolve().parent / 'locale'
-    translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
+
+    if current_locale[0].startswith('zh'):
+        translation = gettext.NullTranslations()
+    else:
+        translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
+    
     return translation.gettext
