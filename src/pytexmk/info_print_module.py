@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-07 17:55:32 +0800
+LastEditTime : 2024-08-09 20:41:12 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : 
+FilePath     : /PyTeXMK/src/pytexmk/info_print_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -31,9 +31,12 @@ from rich.text import Text
 from rich.table import Table
 from rich.console import Console
 
+from .language_module import set_language
+
 console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象
 
+_ = set_language('info_print')  # 设置语言
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
@@ -66,11 +69,14 @@ def time_count(fun, *args):
         time_end = datetime.datetime.now()
         # 计算函数执行的总时间（以秒为单位）
         time_run = (time_end - time_start).total_seconds()
-        # 返回函数执行时间和函数返回值，时间保留四位小数
+        # 如果函数没有返回值，只返回执行时间
+        if fun_return is None:
+            return round(time_run, 4)
+        # 否则返回函数执行时间和函数返回值，时间保留四位小数
         return round(time_run, 4), fun_return
     except Exception as e:
         # 如果执行函数时出错，记录错误信息并返回None
-        logger.error(f"执行函数 {fun.__name__} 时出错: {e}")
+        logger.error(_('执行函数 %(args)s 时出错: ') % {'args': {fun.__name__}} + str(e))
         return None, None
 
 
@@ -133,7 +139,7 @@ def print_message(message, state):
         console.print(banner)
         console.print(out_dec_chars * 80 + "\n", style=f"{out_dec_chars_style}")
     except Exception as e:
-        logger.error(f"执行函数 print_message 时出错: {e}")  # 记录错误日志
+        logger.error(_('打印模块信息时出错: ') + str(e))  # 记录错误日志
     
 
 # --------------------------------------------------------------------------------
@@ -174,10 +180,10 @@ def time_print(start_time, runtime_dict):
         if time_LaTeX_list:  # 如果存在LaTeX编译时长列表
             time_LaTeX = sum(time_LaTeX_list)  # 对筛选后的值求和
             time_python = total_seconds - time_LaTeX  # 计算Python运行时长
-            runtime_dict.update({'LaTeX 编译时长': time_LaTeX, 'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk})
+            runtime_dict.update({_('LaTeX 编译时长'): time_LaTeX, _('Python 运行时长'): time_python, _('PyTeXMK 运行时长'): time_pytexmk})
         else:  # 如果不存在LaTeX编译时长列表
             time_python = total_seconds  # 计算Python运行时长
-            runtime_dict.update({'Python 运行时长': time_python, 'PyTeXMK 运行时长': time_pytexmk}) # 添加统计信息到字典
+            runtime_dict.update({_('Python 运行时长'): time_python, _('PyTeXMK 运行时长'): time_pytexmk}) # 添加统计信息到字典
 
         # 格式化所有时间
         max_whole_digits = max(len(str(int(value))) for value in runtime_dict.values())  # 获取所有时间中小数点前的最大位数
@@ -187,15 +193,15 @@ def time_print(start_time, runtime_dict):
         number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
 
         # 创建表格对象
-        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title="PyTeXMK 运行时长统计表")
+        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=_("PyTeXMK 运行时长统计表"))
 
         # 定义列名
-        table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column(Text("运行项目", justify="center"), style="cyan", justify="left", no_wrap=True)
-        table.add_column("运行时长", style="green", justify="center", no_wrap=True)
-        table.add_column("序号", justify="center", no_wrap=True)
-        table.add_column(Text("运行项目", justify="center"), style="cyan", justify="left", no_wrap=True)
-        table.add_column("运行时长", style="green", justify="center", no_wrap=True)
+        table.add_column("No.", justify="center", no_wrap=True)
+        table.add_column(Text(_("运行项目"), justify="center"), style="cyan", justify="left", no_wrap=True)
+        table.add_column(_("运行时长"), style="green", justify="center", no_wrap=True)
+        table.add_column("No.", justify="center", no_wrap=True)
+        table.add_column(Text(_("运行项目"), justify="center"), style="cyan", justify="left", no_wrap=True)
+        table.add_column(_("运行时长"), style="green", justify="center", no_wrap=True)
 
         # 计算打印表格列数
         length = len(runtime_dict) / 2
@@ -230,16 +236,16 @@ def time_print(start_time, runtime_dict):
         print("\n" + "=" * 80 + "\n")  # 打印分隔线
         console.print(table)  # 打印表格
 
-        print(f"PyTeXMK 运行时长：{hours} 小时 {minutes} 分 {seconds} 秒 {milliseconds} 毫秒 ({total_seconds:.3f} s total)")  # 打印总运行时长
-        print(f"运行 LaTeX 相关程序：{number_programmes_run} 个")  # 打印运行函数数量
+        print(_('PyTeXMK 运行时长: ') + f"{hours} h {minutes} min {seconds} s {milliseconds} ms ({total_seconds:.3f} s total)")  # 打印总运行时长
+        print(_('运行 LaTeX 程序数目: ') + f"{number_programmes_run}")  # 打印运行函数数量
     except Exception as e:
-        logger.error(f"执行函数 time_print 时出错: {e}")  # 记录错误信息
+        logger.error(_('打印运行时长统计表时出错: ') + str(e))  # 记录错误信息
 
 
 # --------------------------------------------------------------------------------
 # 定义魔法注释说明表格函数
 # --------------------------------------------------------------------------------
-def magic_comment_desc_table(magic_comment_desc_dict, mcd_title):
+def magic_comment_desc_table():
     """
     打印README表格。
 
@@ -255,9 +261,16 @@ def magic_comment_desc_table(magic_comment_desc_dict, mcd_title):
     异常处理:
     - 如果在执行过程中发生异常，将错误信息记录到日志中。
     """
+
+    magic_comment_desc_dic = {
+        '% !TEX program = XeLaTeX': _("指定编译程序: XeLaTeX PdfLaTeX LuaLaTeX"),
+        '% !TEX root = main.tex': _("指定待编译主文件名，仅支持根目录下的文件"),
+        '% !TEX outdir = out_folder': _("指定编译结果存放位置，仅支持文件夹名称"),
+        '% !TEX auxdir = aux_folder': _("指定辅助文件存放位置，仅支持文件夹名称")
+        }
     try:
         # 创建表格对象
-        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=mcd_title)
+        table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=_("魔法注释说明表"))
 
         # 定义列名
         table.add_column("No.", justify="center", no_wrap=True)
@@ -265,9 +278,9 @@ def magic_comment_desc_table(magic_comment_desc_dict, mcd_title):
         table.add_column(Text("Description", justify="center"), style="dark_cyan", justify="left", no_wrap=True)
 
         # 添加数据到表格
-        for i, (key, value) in enumerate(magic_comment_desc_dict.items()):
+        for i, (key, value) in enumerate(magic_comment_desc_dic.items()):
             table.add_row(f"{i+1}", key, value)
 
         return table
     except Exception as e:
-        logger.error(f"执行函数 {__name__} 时出错: {e}")  # 记录错误信息
+        logger.error(_('打印魔法注释说明表时出错: ') + str(e))  # 记录错误信息

@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-08-06 14:37:20 +0800
+ * LastEditTime : 2024-08-09 20:45:21 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -49,7 +49,7 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`xelatex` 编译、待编译主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
+PyTeXMK 默认参数：`XeLaTeX` 编译、待编译主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
 
 请仔细阅读：[待编译主文件及编译类型选定逻辑](#待编译主文件及编译类型选定逻辑)
 
@@ -58,7 +58,7 @@ PyTeXMK 默认参数：`xelatex` 编译、待编译主文件名 main.tex、batch
 ### 编译命令
 PyTeXMK 支持：
 
-- 编译命令：`xelatex` `pdflatex` `lualatex`
+- 编译程序：`XeLaTeX` `PdfLaTeX` `LuaLaTeX`
 - 参考文献：`bibtex` `biblatex` `thebibliography`
 - 符号索引：`glossaries` `nomencl` `mkeidx`
 
@@ -72,16 +72,16 @@ PyTeXMK 支持：
 |------------------|------------------------------------------------------|
 | -h, --help       | 显示帮助信息                                          |
 | -v, --version    | 显示程序版本号                                        |
-| -p, --pdflatex   | pdflatex 进行编译                                     |
-| -x, --xelatex    | xelatex 进行编译                                      |
-| -l, --lualatex   | lualatex 进行编译                                     |
+| -p, --PdfLaTeX   | PdfLaTeX 进行编译                                     |
+| -x, --XeLaTeX    | XeLaTeX 进行编译                                      |
+| -l, --LuaLaTeX   | LuaLaTeX 进行编译                                     |
 | -d, --LaTeXDiff  | 使用 LaTeXDiff 进行编译，生成改动对比文件|
 | -dc, --LaTexDiff-compile  | 使用 LaTeXDiff 进行编译，生成改动对比文件并编译新文件|
 | -c, --clean      | 清除所有主文件的辅助文件                               |
 | -C, --Clean      | 清除所有主文件的辅助文件（包含根目录）和输出文件         |
 | -ca, --clean-any | 清除所有带辅助文件后缀的文件                           |
 | -Ca, --Clean-any | 清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件|
-| -uq, --unquiet   | 非安静模式运行，此模式下显示编译过程                    |
+| -nq, --non_quiet | 非安静模式运行，此模式下显示编译过程                    |
 | -vb, --verbose   | 显示 PyTeXMK 运行过程中的详细信息                      |
 | -pr, --pdf-repair| 修复所有根目录以外的 pdf 文件                         |
 | -pv, --pdf-preview| 尝试编译结束后调用 Web 浏览器或者本地PDF阅读器预览生成的PDF文件，如有填写 'FILE_NAME' 则不进行编译打开指定文件|
@@ -98,16 +98,16 @@ PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编
 
 | Magic Comment              | Description                                            |
 |----------------------------|--------------------------------------------------------|
-| `% !TEX program = xelatex` | 指定编译类型，可选 `xelatex` `pdflatex` `lualatex`       |
-| `% !TEX root = file.tex`   | 指定待编译 LaTeX 文件名，仅支持主文件在项目根目录下的情况   |
-| `% !TEX outdir = PDFfile`  | 指定编译结果存放位置，仅支持文件夹名称                     |
-| `% !TEX auxdir = auxfiles` | 指定辅助文件存放位置，仅支持文件夹名称                     |
+| `% !TEX program = XeLaTeX` | 指定编译类型，可选 `XeLaTeX` `PdfLaTeX` `LuaLaTeX`       |
+| `% !TEX root = main.tex`   | 指定待编译 LaTeX 文件名，仅支持主文件在项目根目录下的情况   |
+| `% !TEX outdir = out_folde`  | 指定编译结果存放位置，仅支持文件夹名称                     |
+| `% !TEX auxdir = aux_folder` | 指定辅助文件存放位置，仅支持文件夹名称                     |
 
 > 魔法注释仅支持在主文件中定义，不支持在子文件中定义。
 
 ### 待编译主文件及编译类型选定逻辑
 
-- PyTeXMK 优先使用终端输入命令 `-p` `-x` `-l` 参数指定的编译类型，如果没有指定，则会使用 `% !TEX program = xelatex` 指定的编译类型，如果没有指定，则会使用默认的编译类型 `xelatex`
+- PyTeXMK 优先使用终端输入命令 `-p` `-x` `-l` 参数指定的编译类型，如果没有指定，则会使用 `% !TEX program = XeLaTeX` 指定的编译类型，如果没有指定，则会使用默认的编译类型 `XeLaTeX`
 - PyTeXMK 待编译主文件选定逻辑顺序：
     1. 如果命令行参数中指定了主文件，则使用该主文件名。
     2. 如果当前根目录下存在且只有一个主文件，则使用该文件作为待编译主文件。
@@ -139,7 +139,7 @@ PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编
     - [X] 自动判断是否需要编译索引文件
     - [X] 自动判断是否要重新编译
 - [ ] 增加配置文件功能
-    - [ ] 自定义默认的编译引擎 （目前默认编译命令是 `xelatex`）
+    - [ ] 自定义默认的编译引擎 （目前默认编译命令是 `XeLaTeX`）
     - [ ] 自定义默认生成的结果文件存放位置（目前默认存放在 `Build` 子文件夹下）
     - [ ] 自定义默认的辅助文件存放位置（目前默认存放在 `Auxiliary` 子文件夹下）
     - [ ] 自定义其他索引宏包的配置
@@ -161,3 +161,4 @@ PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编
     - [ ] 添加单个项目的配置文件功能
     - [ ] 实现配置文件的解析功能
     - [ ] LaTeXDiff 编译判断逻辑
+- [X] 程序国际化

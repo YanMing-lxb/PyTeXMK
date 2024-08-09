@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-08-07 11:12:53 +0800
+LastEditTime : 2024-08-09 15:38:31 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/run_model.py
+FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -26,26 +26,30 @@ Description  :
 from rich import print
 
 from .compile_module import CompileLaTeX
+from .language_module import set_language
 from .info_print_module import time_count, print_message
+
+_ = set_language('run')
+
 
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet):
+def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet):
     
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileLaTeX(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet)
+    compile_model = CompileLaTeX(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet)
 
     # 检查并处理已存在的 LaTeX 输出文件
-    print('检测识别已有辅助文件...')
+    print(_('检测识别已有辅助文件...'))
     runtime_read, return_read = time_count(compile_model.prepare_LaTeX_output_files, ) # 读取 LaTeX 文件
     cite_counter, toc_file, index_aux_content_dict_old = return_read # 获取 read_LaTeX_files 函数得到的参数
-    runtime_dict['检测辅助文件'] = runtime_read
+    runtime_dict[_('检测辅助文件')] = runtime_read
 
     # 首次编译 LaTeX 文档
-    print_message(f"1 次 {compiler_engine} 编译", "running")
-    runtime_Latex, _ = time_count(compile_model.compile_tex, ) 
+    print_message(_("1 次 %(args)s 编译") % {'args': compiler_engine}, "running")
+    runtime_Latex = time_count(compile_model.compile_tex, ) 
     runtime_dict[f'{compiler_engine} {abbreviations_num[0]}'] = runtime_Latex
 
     # 读取日志文件
@@ -55,27 +59,27 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
 
     # 编译参考文献
     runtime_bib_judgment, return_bib_judgment = time_count(compile_model.bib_judgment, cite_counter) # 判断是否需要编译参考文献
-    runtime_dict['编译文献判定'] = runtime_bib_judgment
+    runtime_dict[_('编译文献判定')] = runtime_bib_judgment
 
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = return_bib_judgment # 获取 bib_judgment 函数得到的参数
     if bib_engine:
         if Latex_compilation_times_bib != 0:
-            print_message(f'{bib_engine} 编译文献', "running")
-            runtime_bib, _ = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
-            runtime_dict[f'{name_target_bib} 编译'] = runtime_bib
+            print_message(_('%(args)s 编译文献') % {'args': bib_engine}, "running")
+            runtime_bib = time_count(compile_model.compile_bib, bib_engine) # 编译参考文献
+            runtime_dict[_('%(args)s 编译') % {'args': name_target_bib}] = runtime_bib
 
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(compile_model.index_judgment, index_aux_content_dict_old) # 判断是否需要编译目录索引
     print_index, run_index_list_cmd = return_index_judgment
-    runtime_dict['编译索引判定'] = runtime_makindex_judgment
+    runtime_dict[_('编译索引判定')] = runtime_makindex_judgment
 
     if run_index_list_cmd: # 存在目录索引编译命令
         for cmd in run_index_list_cmd:
-            print_message(f"{cmd[0]} 编译", "running")
+            print_message(_('%(args)s 编译') % {'args': {cmd[0]}}, "running")
             Latex_compilation_times_index = 1
             runtime_index, return_index = time_count(compile_model.compile_index, cmd)
             name_target_index = return_index # 获取 compile_index 函数得到的参数
-            runtime_dict[f'{name_target_index} 编译'] = runtime_index
+            runtime_dict[_('%(args)s 编译') % {'args': name_target_index}] = runtime_index
     else:
         Latex_compilation_times_index = 0
 
@@ -90,22 +94,22 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
 
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
-        print_message(f"{times} 次 {compiler_engine} 编译", "running")
-        runtime_Latex, _ = time_count(compile_model.compile_tex, )
+        print_message(_("%(args1)s 次 %(args2)s 编译") % {'args1': str(times), 'args2': compiler_engine}, "running")
+        runtime_Latex = time_count(compile_model.compile_tex, )
         runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
 
     # 编译完成, 开始判断编译 XDV 文件
     if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
-        print_message("DVIPDFMX 编译", "running")
-        runtime_xdv, _ = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
-        runtime_dict['DVIPDFMX 编译'] = runtime_xdv
+        print_message(_("DVIPDFMX 编译"), "running")
+        runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
+        runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
 
     # 显示编译过程中关键信息
-    print_message("完成所有编译", "success")
+    print_message(_("完成所有编译"), "success")
     
-    print(f"文档整体：{compiler_engine} 编译 {Latex_compilation_times+1} 次")
-    print(f"参考文献：{print_bib}")
-    print(f"目录索引：{print_index}")
+    print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiler_engine, 'args2': str(Latex_compilation_times+1)})
+    print(_("参考文献: ") + print_bib)
+    print(_("目录索引: ") + print_index)
 
     return runtime_dict
 

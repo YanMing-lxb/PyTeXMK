@@ -103,3 +103,58 @@ endif
 	
 	@$(MAKE) clean
 	echo "Upload Success";
+
+pot:
+	@xgettext --output=./src/pytexmk/locale/en/main.pot ./src/pytexmk/__main__.py
+	@xgettext --output=./src/pytexmk/locale/en/additional.pot ./src/pytexmk/additional_module.py
+	@xgettext --output=./src/pytexmk/locale/en/info_print.pot ./src/pytexmk/info_print_module.py
+	@xgettext --output=./src/pytexmk/locale/en/compile.pot ./src/pytexmk/compile_module.py
+	@xgettext --output=./src/pytexmk/locale/en/latexdiff.pot ./src/pytexmk/latexdiff_module.py
+	@xgettext --output=./src/pytexmk/locale/en/get_main_file.pot ./src/pytexmk/get_main_file_module.py
+	@xgettext --output=./src/pytexmk/locale/en/run.pot ./src/pytexmk/run_module.py
+	@xgettext --output=./src/pytexmk/locale/en/check_version.pot ./src/pytexmk/check_version_module.py
+	@xgettext --output=./src/pytexmk/locale/en/logger_config.pot ./src/pytexmk/logger_config.py
+# 作为一名专业的程序国际化专家，请在保留 msgid 中的原文的基础上，将 msgid 中的内容翻译成程序中用的英文，并填写到对应的 msgstr "" 中。
+mo:
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/main.mo ./src/pytexmk/locale/en/main.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/additional.mo ./src/pytexmk/locale/en/additional.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/info_print.mo ./src/pytexmk/locale/en/info_print.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/compile.mo ./src/pytexmk/locale/en/compile.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/latexdiff.mo ./src/pytexmk/locale/en/latexdiff.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/get_main_file.mo ./src/pytexmk/locale/en/get_main_file.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/run.mo ./src/pytexmk/locale/en/run.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/check_version.mo ./src/pytexmk/locale/en/check_version.pot
+	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/logger_config.mo ./src/pytexmk/locale/en/logger_config.pot
+
+poup:
+	@xgettext --output=./src/pytexmk/locale/en/main-temp.pot ./src/pytexmk/__main__.py
+	@xgettext --output=./src/pytexmk/locale/en/additional-temp.pot ./src/pytexmk/additional_module.py
+	@xgettext --output=./src/pytexmk/locale/en/info_print-temp.pot ./src/pytexmk/additional_module.py
+	@xgettext --output=./src/pytexmk/locale/en/compile-temp.pot ./src/pytexmk/compile_module.py
+	@xgettext --output=./src/pytexmk/locale/en/latexdiff-temp.pot ./src/pytexmk/latexdiff_module.py
+	@xgettext --output=./src/pytexmk/locale/en/get_main_file-temp.pot ./src/pytexmk/get_main_file_module.py
+	@xgettext --output=./src/pytexmk/locale/en/run-temp.pot ./src/pytexmk/run_module.py
+	@xgettext --output=./src/pytexmk/locale/en/check_version-temp.pot ./src/pytexmk/check_version_module.py
+	@xgettext --output=./src/pytexmk/locale/en/logger_config-temp.pot ./src/pytexmk/logger_config.py
+
+	@msgmerge --update ./src/pytexmk/locale/en/main.pot ./src/pytexmk/locale/en/main-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/additional.pot ./src/pytexmk/locale/en/additional-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/info_print.pot ./src/pytexmk/locale/en/info_print-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/compile.pot ./src/pytexmk/locale/en/compile-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/latexdiff.pot ./src/pytexmk/locale/en/latexdiff-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/get_main_file.pot ./src/pytexmk/locale/en/get_main_file-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/run.pot ./src/pytexmk/locale/en/run-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/check_version.pot ./src/pytexmk/locale/en/check_version-temp.pot
+	@msgmerge --update ./src/pytexmk/locale/en/logger_config.pot ./src/pytexmk/locale/en/logger_config-temp.pot
+
+	@$(MAKE) mo
+
+	@del .\src\pytexmk\locale\en\main-temp.pot
+	@del .\src\pytexmk\locale\en\additional-temp.pot
+	@del .\src\pytexmk\locale\en\info_print-temp.pot
+	@del .\src\pytexmk\locale\en\compile-temp.pot
+	@del .\src\pytexmk\locale\en\latexdiff-temp.pot
+	@del .\src\pytexmk\locale\en\get_main_file-temp.pot
+	@del .\src\pytexmk\locale\en\run-temp.pot
+	@del .\src\pytexmk\locale\en\check_version-temp.pot
+	@del .\src\pytexmk\locale\en\logger_config-temp.pot

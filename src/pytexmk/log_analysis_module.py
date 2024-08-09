@@ -25,6 +25,9 @@ Description  :
 
 import re
 
+from .language_module import set_language
+
+_ = set_language('log_analysis')
 
 # TODO: 完善LogAnalyzer类 这个只是一个大概的样子
 class LogAnalyzer:

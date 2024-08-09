@@ -3,6 +3,10 @@ import toml
 import logging
 from pathlib import Path
 
+from .language_module import set_language
+
+_ = set_language('config')
+
 class ConfigParser:
     """
     用于解析配置文件的类

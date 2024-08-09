@@ -16,22 +16,28 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 16:59:49 +0800
-LastEditTime : 2024-08-07 18:07:10 +0800
+LastEditTime : 2024-08-09 11:05:15 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/language_model.py
+FilePath     : /PyTeXMK/src/pytexmk/language_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 
 import locale
+import gettext
+from pathlib import Path
 
 # --------------------------------------------------------------------------------
 # 定义系统语言检查函数
 # --------------------------------------------------------------------------------
-def check_language():
-    # 获取当前系统的默认区域设置
+def set_language(lang_file):
     current_locale = locale.getdefaultlocale()
     if current_locale[0].startswith('zh'):
-        return True
+        lang = None
     else:
-        return False
+        lang = ['en']
+    lang = ['en']
+
+    locale_path = Path(__file__).resolve().parent / 'locale'
+    translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
+    return translation.gettext

@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2024-08-05 17:23:31 +0800
+LastEditTime : 2024-08-09 20:25:01 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/check_version.py
+FilePath     : /PyTeXMK/src/pytexmk/check_version_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -33,6 +33,10 @@ import importlib.metadata
 import importlib.resources
 from packaging import version
 from datetime import timedelta
+
+from .language_module import set_language
+
+_ = set_language('check_version')
 
 
 class UpdateChecker():
@@ -95,11 +99,11 @@ class UpdateChecker():
             if cache_path.exists() and (cache_time_remaining > 0):  # 检查缓存文件是否存在且未过期
                 with cache_path.open('r') as f:  # 打开缓存文件
                     data = toml.load(f)  # 加载缓存文件内容
-                    self.logger.info(f'读取 PyTeXMK 版本缓存文件中的版本号，缓存有效期：{int(hours):02}小时{int(minutes):02}分{int(seconds):02}秒。')  # 记录日志信息
-                    self.logger.info(f'PyTeXMK 版本缓存文件路径: {self.cache_file}')  # 记录日志信息
+                    self.logger.info(_("读取 PyTeXMK 版本缓存文件中的版本号，缓存有效期: ") + f'{int(hours):02} h {int(minutes):02} min {int(seconds):02} s')  # 记录日志信息
+                    self.logger.info(_("PyTeXMK 版本缓存文件路径: ") + str(self.cache_file))  # 记录日志信息
                     return data.get("latest_version")  # 返回最新版本号
         except Exception as e:
-            self.logger.error(f"加载缓存版本时出错: {e}")  # 记录错误信息
+            self.logger.error(_("加载缓存版本时出错: ") + str(e))  # 记录错误信息
         return None  # 如果加载失败或缓存文件无效，返回 None
 
     # --------------------------------------------------------------------------------
@@ -122,7 +126,7 @@ class UpdateChecker():
                 toml.dump({"latest_version": latest_version}, f)
         except Exception as e:
             # 如果更新缓存时出错，记录错误日志
-            self.logger.error(f"更新版本缓存时出错: {e}")
+            self.logger.error(_("更新版本缓存时出错: ") + str(e))
 
     # --------------------------------------------------------------------------------
     # 定义 网络获取版本信息函数
@@ -167,19 +171,19 @@ class UpdateChecker():
                 # 使用max函数和key参数找到最新版本
                 latest_version = max(version_objects)
 
-                self.logger.info(f"获取 {package_name} 最新版本号成功: [bold green]{latest_version}[/bold green]")  # 记录成功信息
+                self.logger.info(_("获取 %(args)s 最新版本号成功: ") % {"args": {package_name}} + f"[bold green]{latest_version}[/bold green]")  # 记录成功信息
                 return latest_version  # 返回最新版本号
             else:
-                self.logger.error(f"获取 {package_name} 最新版本号失败: 未找到版本号")  # 记录错误信息
+                self.logger.error(_("获取 %(args)s 最新版本号失败: 未找到版本号") % {"args": {package_name}})  # 记录错误信息
                 return None  # 返回 None
 
         except Exception as e:  # 捕获所有异常
-            self.logger.error(f"获取 {package_name} 最新版本号出错: {e}")  # 记录错误信息
+            self.logger.error(_("获取 %(args)s 最新版本号出错: ") % {"args": {package_name}} + str(e))  # 记录错误信息
             return None  # 返回 None
         finally:
             end_time = time.time()  # 记录结束时间
             elapsed_time = round(end_time - start_time, 4)  # 计算耗时
-            self.logger.info(f"获取最新版本号耗时: {elapsed_time} 秒")  # 记录耗时信息
+            self.logger.info(_("获取最新版本号耗时: ") + f"{elapsed_time} s")  # 记录耗时信息
 
     # --------------------------------------------------------------------------------
     # 定义 更新检查主函数
@@ -210,7 +214,7 @@ class UpdateChecker():
         current_version = version.parse(importlib.metadata.version("pytexmk"))
 
         if current_version < latest_version:
-            print(f"有新版本可用: [bold green]{latest_version}[/bold green] 当前版本: [bold red]{current_version}[/bold red]")
-            print("请运行 [bold green]'pip install --upgrade pytexmk'[/bold green] 进行更新")
+            print(_("有新版本可用: ") + f"[bold green]{latest_version}[/bold green] " + _("当前版本: ") + f"[bold red]{current_version}[/bold red]")
+            print(_("请运行 [bold green]'pip install --upgrade pytexmk'[/bold green] 进行更新"))
         else:
-            print(f"当前版本: [bold green]{current_version}[/bold green]")
+            print(_("当前版本: ") + f"[bold green]{current_version}[/bold green]")

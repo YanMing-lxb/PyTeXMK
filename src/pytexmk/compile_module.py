@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-07 20:20:21 +0800
+LastEditTime : 2024-08-09 15:46:33 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -31,9 +31,12 @@ from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain，用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 
+from .language_module import set_language
 from .additional_module import MoveRemoveClean, exit_pytexmk
 
 console = console.Console()
+
+_ = set_language('compile')
 
 
 # 定义正则表达式模式
@@ -59,7 +62,7 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
 
 class CompileLaTeX(object):
 
-    def __init__(self, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, unquiet):
+    def __init__(self, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet):
         """
         初始化 CompileModel 类实例。
 
@@ -71,7 +74,7 @@ class CompileLaTeX(object):
         - aux_files (list): 辅助文件列表。
         - outdir (str): 输出文件的目录路径。
         - auxdir (str): 辅助文件的目录路径。
-        - unquiet (bool): 是否非静默模式运行。
+        - non_quiet (bool): 是否非静默模式运行。
 
         行为:
         - 初始化输出文件名为空字符串，调用_setup_logger方法设置日志记录器，
@@ -87,7 +90,7 @@ class CompileLaTeX(object):
         self.aux_files = aux_files
         self.auxdir = auxdir
         self.outdir = outdir
-        self.unquiet = unquiet 
+        self.non_quiet = non_quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
@@ -115,14 +118,14 @@ class CompileLaTeX(object):
         errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
         # "errors"是一个元组列表
         if errors:  # 如果有错误
-            self.logger.error('编译过程发生错误:')  # 记录错误信息
+            self.logger.error(_('编译过程发生错误: '))  # 记录错误信息
 
             self.logger.error('\n'.join(
                 [error.replace('\r', '').strip() for error
                     in chain(*errors) if error.strip()]
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
-            self.logger.error(f'请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
+            self.logger.error(_("请查看日志文件以获取详细信息: ") + f'{self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
@@ -202,7 +205,7 @@ class CompileLaTeX(object):
             try:
                 counter = _count_citations(file_name)
             except IOError:
-                self.logger.info(f'文件不存在或无法读取，跳过文件: {file_name}')
+                self.logger.info(_("文件不存在或无法读取，跳过文件: %(args)s") % {'args': file_name})
                 pass
             else:
                 cite_counter[file_name] = counter
@@ -258,7 +261,7 @@ class CompileLaTeX(object):
                         index_ext_i_content = fobj.read()
                     index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
         else:
-            self.logger.warning(f"未找到辅助文件: {self.project_name}.aux")
+            self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
 
         return index_aux_content_dict_old
     
@@ -307,16 +310,16 @@ class CompileLaTeX(object):
         options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiler_engine == 'XeLaTeX':
             options.insert(5, "-no-pdf")
-        if self.unquiet:
+        if self.non_quiet:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
         else:
             options.insert(4, "-interaction=batchmode") # 静默编译
-        console.print(f"[bold]运行命令: [/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+        console.print(_("[bold]运行命令: ") + f"[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
 
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"{self.compiler_engine} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
+            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") %{'args': self.compiler_engine} + f"{self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
@@ -365,7 +368,7 @@ class CompileLaTeX(object):
                     with bcf_file_path.open('r', encoding='utf-8') as fobj:  # 打开bcf文件
                         match_biber_bib = BIBER_BIB_PATTERN.search(fobj.read())  # 检索bcf文件中是否存在bib文件名
                     if not match_biber_bib:
-                        print_bib = f"未设置参考文献数据库文件: {self.bib_file}"
+                        print_bib = _("未设置参考文献数据库文件: ") + self.bib_file
                     else:
                         self.bib_file = match_biber_bib.group(1)  # 获取bib文件名
                         bib_engine = 'biber'  # 设置参考文献编译引擎为biber
@@ -374,37 +377,37 @@ class CompileLaTeX(object):
                 elif match_bibtex:  # 判断应使用 bibtex 引擎编译
                     match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)  # 检索aux文件中是否存在bib文件名
                     if not match_bibtex_bib:
-                        print_bib =  f"未设置参考文献数据库文件: {self.bib_file}"
+                        print_bib =  _("未设置参考文献数据库文件: ") + self.bib_file
                     else:
                         self.bib_file = match_bibtex_bib.group(1)  # 获取bib文件名
                         bib_engine = 'bibtex'  # 设置参考文献编译引擎为bibtex
                         Latex_compilation_times = 2  # LaTeX 额外编译次数 
 
-                print_bib = f"{bib_engine} 编译参考文献"
+                print_bib = bib_engine + _("编译参考文献")
                 name_target = bib_engine
 
                 bib_file_path = Path(self.bib_file)  # 使用pathlib创建bib文件路径
                 if not bib_file_path.exists():  # 检查bib文件是否存在
-                    print_bib = f"未找到参考文献数据库文件: {self.bib_file}"
+                    print_bib = _("未找到参考文献数据库文件: ") + self.bib_file
                     Latex_compilation_times = 2
                 
                 new_cite_counter = self._generate_citation_counter()  # 获取新的引用数目
                 if old_cite_counter == new_cite_counter:  # 如果引用数量没有发生变化
-                    print_bib = f"参考文献引用数量没有变化"
+                    print_bib = _("参考文献引用数量没有变化")
                     Latex_compilation_times = 0
 
                 if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查LaTeX输出中是否有bbl文件缺失的提示
                     re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查LaTeX输出中是否有引用未定义的提示
-                    print_bib = "LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示"
+                    print_bib = _("LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示")
                     Latex_compilation_times = 2
 
             elif re.search(r'\\bibcite', aux_content):
-                print_bib = "thebibliography 环境实现排版 "
+                print_bib = _("thebibliography 环境实现排版")
 
             else:
-                print_bib = "没有引用参考文献或编译工具不属于 bibtex 或 biber "
+                print_bib = _("没有引用参考文献或编译工具不属于 bibtex 或 biber")
         else:
-            self.logger.warning(f"未找到辅助文件: {self.project_name}.aux")
+            self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
         return bib_engine, Latex_compilation_times, print_bib, name_target  # 返回参考文献编译引擎、LaTeX编译次数、打印信息和目标名称
     
     # --------------------------------------------------------------------------------
@@ -427,14 +430,14 @@ class CompileLaTeX(object):
         # self.logger.info('Running bibtex...')  # 记录日志，显示正在运行bibtex
         options = [bib_engine, self.project_name]
 
-        if not self.unquiet and bib_engine == 'biber':
+        if not self.non_quiet and bib_engine == 'biber':
             options.insert(1, "-quiet") # 静默编译
                 
-        console.print(f"[bold]运行命令: [/bold][cyan]{' '.join(options)}[/cyan]\n")
+        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"{bib_engine} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
+            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': bib_engine} + f"{self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
@@ -463,22 +466,22 @@ class CompileLaTeX(object):
         """
         make_index = False  # 初始化是否需要重新生成索引的标志
         if re.search(f'No file {index_aux_infile}.', self.out):  # 检查输出中是否包含“没有该输入文件”的信息
-            print_index = '重新编译索引，因日志文件提示没有输入文件'
+            print_index = _('重新编译索引，因日志文件提示没有输入文件')
             make_index = True  # 如果包含，则需要重新生成词汇表
         elif Path(index_aux_infile).exists() and Path(index_aux_outfile).exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
             with open(index_aux_infile, 'r', encoding='utf-8') as fobj:  # 打开输入文件
                 file_content = fobj.read()  # 读取文件内容并存储在变量中
             if file_content is not None:
                 if str(index_aux_content_dict_old[index_aux_infile]) != file_content:  # 比较词汇表文件内容与记录的内容
-                    print_index = '重新编译索引，因词汇表文件内容发生变化'
+                    print_index = _('重新编译索引，因词汇表文件内容发生变化')
                     make_index = True  # 如果不一致，则需要重新生成词汇表
                 else:
-                    print_index = '无需编译索引，因词汇表文件内容没有变化'
+                    print_index = _('无需编译索引，因词汇表文件内容没有变化')
             else:
-                print_index = '无需编译索引，因没有索引内容'
+                print_index = _('无需编译索引，因没有索引内容')
         else:
             make_index = True
-            print_index = f'重新编译索引，因以下索引辅助文件之一存在缺失: {index_aux_infile}, {index_aux_outfile}'
+            print_index = _("重新编译索引，因以下索引辅助文件之一存在缺失: ") + f'{index_aux_infile}, {index_aux_outfile}'
         return print_index, make_index
     
     # --------------------------------------------------------------------------------
@@ -528,7 +531,7 @@ class CompileLaTeX(object):
             if make_index:
                 run_index_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
         else:
-            print_index = "glossaries、nomencl 和 makeidx 以外宏包，无法进行编译索引"
+            print_index = _("glossaries、nomencl 和 makeidx 以外宏包，无法进行编译索引")
         return print_index, run_index_list_cmd
 
     # --------------------------------------------------------------------------------
@@ -553,12 +556,12 @@ class CompileLaTeX(object):
         """
         # 运行 makeindex 命令
         name_target = f"{cmd[0]}"
-        console.print(f"[bold]运行命令: [/bold][cyan]{cmd[1]}[/cyan]\n")
+        console.print(_("[bold]运行命令:") + f" [/bold][cyan]{cmd[1]}[/cyan]\n")
         try:
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
         except:
-            self.logger.error(f"{cmd[0]} 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
+            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': {cmd[0]}} + f"{self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
@@ -578,13 +581,13 @@ class CompileLaTeX(object):
         5. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
         options = ["DVIPDFMX", "-V", "2.0", f"{self.project_name}"]
-        if not self.unquiet:
+        if not self.non_quiet:
             options.insert(1, "-q") # 静默编译
-        console.print(f"[bold]运行命令: [/bold][cyan]{' '.join(options)}[/cyan]\n")
+        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{' '.join(options)}[/cyan]\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(f"DVIPDFMX 编译失败，请查看日志文件以获取详细信息: {self.auxdir}{self.project_name}.log")
+            self.logger.error(_("DVIPDFMX 编译失败，请查看日志文件以获取详细信息: ") + f"{self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()

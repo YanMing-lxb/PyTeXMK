@@ -27,6 +27,10 @@ import logging
 import logging.config
 from rich.logging import RichHandler  # 导入rich库的日志处理模块
 
+from .language_module import set_language
+
+_ = set_language('logger_config')
+
 
 # --------------------------------------------------------------------------------
 # 定义日志记录器
@@ -50,7 +54,7 @@ def setup_logger(verbose):
     
     # 如果设置了verbose 选项，则将日志级别设置为INFO，以便输出更多信息
     if verbose:
-        print("启用 PyTeXMK 详细日志输出...")
+        print(_("启用 PyTeXMK 详细日志输出..."))
         logging.basicConfig(
             level="INFO",
             format=FORMAT,

@@ -31,7 +31,10 @@ import subprocess
 from pathlib import Path
 from rich import console
 
+from .language_module import set_language
 from .additional_module import MoveRemoveClean, exit_pytexmk
+
+_ = set_language('latexdiff')
 
 console = console.Console()
 
@@ -102,7 +105,7 @@ class LaTeXDiff_Aux:
             """
             rootPath = Path(tex_file_name)
             if not rootPath.is_file():
-                raise FileNotFoundError(f"File {tex_file_name} not found.")
+                raise FileNotFoundError(_('文件不存在: ') + tex_file_name)
             dirpath = rootPath.parent
             with open(tex_file_name, 'r', encoding='utf-8') as file_handler:
                 for line in file_handler:
@@ -132,9 +135,9 @@ class LaTeXDiff_Aux:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
             sys.stdout = sys.__stdout__
-            self.logger.info(f"已压平文件：{output_file_name}")
+            self.logger.info(_("已压平文件: ") + output_file_name)
         except Exception as e:
-            self.logger.error(f"压平出错：{e}")
+            self.logger.error(_("压平出错: ") + str(e))
             exit_pytexmk()
 
         return output_file_name
@@ -146,9 +149,9 @@ class LaTeXDiff_Aux:
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file):
         options = ["latexdiff", old_tex_file, new_tex_file]
         command = f"{' '.join(options)} > LaTeXDiff.tex --encoding=utf8"
-        console.print(f"[bold]运行命令：[/bold][cyan]{command}[/cyan]\n")
+        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}[/cyan]\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 
         if result.stderr:
-            self.logger.error(f"LaTeXDiff 运行出错：{result.stderr}")
+            self.logger.error(_("LaTeXDiff 运行出错: ") + str(result.stderr))
             exit_pytexmk()
