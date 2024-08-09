@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-09 19:58:32 +0800
+LastEditTime : 2024-08-09 21:21:16 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -273,7 +273,7 @@ def main():
                             
                             RUN(runtime_dict, "LaTeXDiff", compiler_engine, out_files, aux_files, outdir, auxdir, args.non_quiet)
 
-                            print_message(_("开始后处理命令"), "additional")
+                            print_message(_("开始后处理"), "additional")
 
                             print(_('移动结果文件到输出目录...'))
                             runtime_move_out_outdir = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
@@ -314,14 +314,14 @@ def main():
             runtime_pdf_repair = time_count(PFO.pdf_repair, project_name, '.', outdir)
             runtime_dict[_("修复 PDF 文件")] = runtime_pdf_repair
         else:
-            print_message(_("开始预处理命令"), "additional")
+            print_message(_("开始预处理"), "additional")
             print(_('检测并移动辅助文件到根目录...'))
             runtime_move_aux_root  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
             runtime_dict[_('辅助文件->根目录')] = runtime_move_aux_root
             
             RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.non_quiet)
 
-            print_message(_("开始后处理命令"), "additional")
+            print_message(_("开始后处理"), "additional")
 
             print(_('移动结果文件到输出目录...'))
             runtime_move_out_outdir = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录

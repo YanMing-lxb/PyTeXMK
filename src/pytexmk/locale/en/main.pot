@@ -214,12 +214,12 @@ msgid "删除 Flatten 后的文件..."
 msgstr "Deleting flattened files..."
 
 #: src/pytexmk/__main__.py:272 src/pytexmk/__main__.py:317
-msgid "开始预处理命令"
-msgstr "Starting preprocessing command"
+msgid "开始预处理"
+msgstr "Starting preprocessing"
 
 #: src/pytexmk/__main__.py:276 src/pytexmk/__main__.py:324
-msgid "开始后处理命令"
-msgstr "Starting postprocessing command"
+msgid "开始后处理"
+msgstr "Starting postprocessing"
 
 #: src/pytexmk/__main__.py:278 src/pytexmk/__main__.py:326
 msgid "移动结果文件到输出目录..."
