@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 16:59:49 +0800
-LastEditTime : 2024-08-09 21:14:46 +0800
+LastEditTime : 2024-08-09 21:23:19 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/language_module.py
 Description  : 
@@ -36,7 +36,6 @@ def set_language(lang_file):
         lang = None
     else:
         lang = ['en']
-    lang = ['en']
 
     locale_path = Path(__file__).resolve().parent / 'locale'
     translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
