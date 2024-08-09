@@ -1,0 +1,87 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-09 19:30+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/pytexmk/info_print_module.py:79
+#, python-format
+msgid "执行函数 %(args)s 时出错: "
+msgstr "Error executing function %(args)s: "
+
+#: src/pytexmk/info_print_module.py:142
+msgid "打印模块信息时出错: "
+msgstr "Error printing module information: "
+
+#: src/pytexmk/info_print_module.py:183
+msgid "LaTeX 编译时长"
+msgstr "LaTeX compile time"
+
+#: src/pytexmk/info_print_module.py:183 src/pytexmk/info_print_module.py:186
+msgid "Python 运行时长"
+msgstr "Python runtime"
+
+#: src/pytexmk/info_print_module.py:183 src/pytexmk/info_print_module.py:186
+msgid "PyTeXMK 运行时长"
+msgstr "PyTeXMK runtime"
+
+#: src/pytexmk/info_print_module.py:196
+msgid "PyTeXMK 运行时长统计表"
+msgstr "PyTeXMK runtime statistics table"
+
+#: src/pytexmk/info_print_module.py:200 src/pytexmk/info_print_module.py:203
+msgid "运行项目"
+msgstr "Run project"
+
+#: src/pytexmk/info_print_module.py:201 src/pytexmk/info_print_module.py:204
+msgid "运行时长"
+msgstr "Run time"
+
+#: src/pytexmk/info_print_module.py:239
+msgid "PyTeXMK 运行时长: "
+msgstr "PyTeXMK runtime: "
+
+#: src/pytexmk/info_print_module.py:240
+msgid "运行 LaTeX 程序数目: "
+msgstr "Number of LaTeX runs: "
+
+#: src/pytexmk/info_print_module.py:242
+msgid "打印运行时长统计表时出错: "
+msgstr "Error printing runtime statistics table: "
+
+#: src/pytexmk/info_print_module.py:266
+msgid "指定编译程序: XeLaTeX PdfLaTeX LuaLaTeX"
+msgstr "Specify compile program: XeLaTeX PdfLaTeX LuaLaTeX"
+
+#: src/pytexmk/info_print_module.py:267
+msgid "指定待编译主文件名，仅支持根目录下的文件"
+msgstr "Specify main file to compile, root dir only"
+
+#: src/pytexmk/info_print_module.py:268
+msgid "指定编译结果存放位置，仅支持文件夹名称"
+msgstr "Specify compile result location, folder names only"
+
+#: src/pytexmk/info_print_module.py:269
+msgid "指定辅助文件存放位置，仅支持文件夹名称"
+msgstr "Specify auxiliary file location, folder names only"
+
+#: src/pytexmk/info_print_module.py:273
+msgid "魔法注释说明表"
+msgstr "Magic comment explanation table"
+
+#: src/pytexmk/info_print_module.py:286
+msgid "打印魔法注释说明表时出错: "
+msgstr "Error printing magic comment explanation table: "

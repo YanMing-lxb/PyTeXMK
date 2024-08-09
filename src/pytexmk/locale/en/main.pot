@@ -1,0 +1,270 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-09 14:49+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/pytexmk/__main__.py:59
+msgid ""
+"\n"
+"PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅"
+"支持检索文档前 50 行）\n"
+msgstr ""
+"\n"
+"PyTeXMK - supports using magic comments to define the main file to be compiled, "
+"compiler, storage location of compilation results, etc. (only supports "
+"retrieving the first 50 lines of the document)\n"
+
+#: src/pytexmk/__main__.py:76
+msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
+msgstr "[i]LaTeX Auxiliary Compiler  ---- Yan Ming[/]"
+
+#: src/pytexmk/__main__.py:77
+msgid ""
+"如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发现 "
+"BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://github.com/"
+"YanMing-lxb/PyTeXMK/issues"
+msgstr ""
+"To learn about magic comments and other detailed instructions, please run the -r "
+"parameter to read the README file. If you find a BUG, please update to the latest "
+"version promptly, and feel free to submit an Issue in the Github repository: "
+"https://github.com/YanMing-lxb/PyTeXMK/issues"
+
+#: src/pytexmk/__main__.py:85
+msgid "显示 PyTeXMK 的版本号并退出"
+msgstr "Show the version number of PyTeXMK and exit"
+
+#: src/pytexmk/__main__.py:86
+msgid "显示 PyTeXMK 的帮助信息并退出"
+msgstr "Show help information for PyTeXMK and exit"
+
+#: src/pytexmk/__main__.py:87
+msgid "显示README文件"
+msgstr "Show the README file"
+
+#: src/pytexmk/__main__.py:88
+msgid "PdfLaTeX 进行编译"
+msgstr "Compile with PdfLaTeX"
+
+#: src/pytexmk/__main__.py:89
+msgid "XeLaTeX 进行编译"
+msgstr "Compile with XeLaTeX"
+
+#: src/pytexmk/__main__.py:90
+msgid "LuaLaTeX 进行编译"
+msgstr "Compile with LuaLaTeX"
+
+#: src/pytexmk/__main__.py:91
+msgid "使用 LaTeXDiff 进行编译, 生成改动对比文件"
+msgstr "Compile using LaTeXDiff, generate a comparison file for changes"
+
+#: src/pytexmk/__main__.py:92
+msgid "使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件"
+msgstr "Compile using LaTeXDiff, generate a comparison file for changes and compile the new file"
+
+#: src/pytexmk/__main__.py:93
+msgid "清除所有主文件的辅助文件"
+msgstr "Clear all auxiliary files of the main file"
+
+#: src/pytexmk/__main__.py:94
+msgid "清除所有主文件的辅助文件（包含根目录）和输出文件"
+msgstr "Clear all auxiliary files of the main file (including root directory) and output files"
+
+#: src/pytexmk/__main__.py:95
+msgid "清除所有带辅助文件后缀的文件"
+msgstr "Clear all files with auxiliary file suffixes"
+
+#: src/pytexmk/__main__.py:96
+msgid "清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件"
+msgstr "Clear all files with auxiliary file suffixes (including root directory) and main file output files"
+
+#: src/pytexmk/__main__.py:97
+msgid "非安静模式运行, 此模式下终端显示日志信息"
+msgstr "Run in non-quiet mode, where log information is displayed in the terminal"
+
+#: src/pytexmk/__main__.py:98
+msgid "显示 PyTeXMK 运行过程中的详细信息"
+msgstr "Show detailed information during the PyTeXMK runtime"
+
+#: src/pytexmk/__main__.py:99
+msgid ""
+"尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R "
+"object 时, 可使用此参数尝试修复所有 pdf 文件"
+msgstr ""
+"Attempt to fix all PDF files outside the root directory, when LaTeX compilation "
+"process warns about invalid X X R object, this parameter can be used to attempt "
+"to fix all pdf files"
+
+#: src/pytexmk/__main__.py:100
+msgid ""
+"尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在"
+"命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示"
+"例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, "
+"示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打"
+"开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"
+msgstr ""
+"Attempt to call a web browser or local PDF reader to preview the generated PDF "
+"file after compilation (if you need to specify the main file to be compiled in "
+"the command line, then the -pv command, needs to be placed after document and "
+"does not need to specify parameters, example: pytexmk main -pv; if you do not "
+"need to specify the main file to be compiled in the command line, then simply "
+"enter -pv, example: pytexmk -pv), if [dark_cyan]FILE_NAME[/dark_cyan] is filled "
+"in, it will not compile and will open the specified file (note that only PDF "
+"files in the output directory are supported, example: pytexmk -pv main)"
+
+#: src/pytexmk/__main__.py:101
+msgid "待编译主文件名"
+msgstr "Main file name to be compiled"
+
+#: src/pytexmk/__main__.py:140
+#, python-format
+msgid "PyTeXMK 版本: %(args)s"
+msgstr "PyTeXMK version: %(args)s"
+
+#: src/pytexmk/__main__.py:141
+msgid "[bold green]PyTeXMK 开始运行...\n"
+msgstr "[bold green]PyTeXMK is starting...\n"
+
+#: src/pytexmk/__main__.py:153
+msgid "[bold green]正在打开 README 文件..."
+msgstr "[bold green]Opening README file..."
+
+#: src/pytexmk/__main__.py:155
+#, python-format
+msgid "README 本地路径: %(args)s"
+msgstr "Local path of README: %(args)s"
+
+#: src/pytexmk/__main__.py:160
+msgid "打开 README 文件出错: "
+msgstr "Error opening README file: "
+
+#: src/pytexmk/__main__.py:199
+msgid "提取魔法注释: "
+msgstr "Extracting magic comments: "
+
+#: src/pytexmk/__main__.py:212
+msgid "通过魔法注释设置程序为: "
+msgstr "Setting program via magic comments: "
+
+#: src/pytexmk/__main__.py:219
+msgid "通过魔法注释设置输出目录: "
+msgstr "Setting output directory via magic comments: "
+
+#: src/pytexmk/__main__.py:222
+msgid "通过魔法注释设置辅助目录: "
+msgstr "Setting auxiliary directory via magic comments: "
+
+#: src/pytexmk/__main__.py:233 src/pytexmk/__main__.py:237
+msgid "清除所有的辅助文件"
+msgstr "Clear all auxiliary files"
+
+#: src/pytexmk/__main__.py:234
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令"
+msgstr "[bold green]Completed the instruction to clear all files with auxiliary file suffixes"
+
+#: src/pytexmk/__main__.py:239 src/pytexmk/__main__.py:269
+#: src/pytexmk/__main__.py:311
+msgid "清除文件夹内输出文件"
+msgstr "Clear output files in the folder"
+
+#: src/pytexmk/__main__.py:240
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令"
+msgstr "[bold green]Completed the instruction to clear all files with auxiliary file suffixes and main file output files"
+
+#: src/pytexmk/__main__.py:249
+msgid "不能对同一个文件进行比较, 请检查文件名是否正确"
+msgstr "Cannot compare the same file, please check if the file name is correct"
+
+#: src/pytexmk/__main__.py:252
+msgid "LaTeXDiff 预处理"
+msgstr "LaTeXDiff preprocessing"
+
+#: src/pytexmk/__main__.py:254 src/pytexmk/__main__.py:256
+#, python-format
+msgid "%(args)s 的辅助文件存在"
+msgstr "Auxiliary file for %(args)s exists"
+
+#: src/pytexmk/__main__.py:260
+msgid "全辅助文件->根目录"
+msgstr "All AUX files -> Root dir"
+
+#: src/pytexmk/__main__.py:262 src/pytexmk/__main__.py:264
+msgid "LaTeXDiff 运行"
+msgstr "LaTeXDiff running"
+
+#: src/pytexmk/__main__.py:266
+msgid "LaTeXDiff 后处理"
+msgstr "LaTeXDiff postprocessing"
+
+#: src/pytexmk/__main__.py:267
+msgid "删除 Flatten 后的文件..."
+msgstr "Deleting flattened files..."
+
+#: src/pytexmk/__main__.py:272 src/pytexmk/__main__.py:317
+msgid "开始预处理命令"
+msgstr "Starting preprocessing command"
+
+#: src/pytexmk/__main__.py:276 src/pytexmk/__main__.py:324
+msgid "开始后处理命令"
+msgstr "Starting postprocessing command"
+
+#: src/pytexmk/__main__.py:278 src/pytexmk/__main__.py:326
+msgid "移动结果文件到输出目录..."
+msgstr "Moving result files to output directory..."
+
+#: src/pytexmk/__main__.py:280 src/pytexmk/__main__.py:328
+msgid "结果文件->输出目录"
+msgstr "RES files -> OUT dir"
+
+#: src/pytexmk/__main__.py:282
+msgid "LaTeXDiff 编译出错: "
+msgstr "LaTeXDiff compile error: "
+
+#: src/pytexmk/__main__.py:286 src/pytexmk/__main__.py:332
+msgid "辅助文件->辅助目录"
+msgstr "AUX files -> AUX dir"
+
+#: src/pytexmk/__main__.py:301 src/pytexmk/__main__.py:307
+msgid "清除文件夹内辅助文件"
+msgstr "Clear auxiliary files in the folder"
+
+#: src/pytexmk/__main__.py:303 src/pytexmk/__main__.py:309
+msgid "清除根目录内辅助文件"
+msgstr "Clear auxiliary files in the root directory"
+
+#: src/pytexmk/__main__.py:304
+msgid "[bold green]已完成清除所有主文件的辅助文的件指令"
+msgstr "[bold green]Completed the instruction to clear all auxiliary files of the main file"
+
+#: src/pytexmk/__main__.py:312
+msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令"
+msgstr "[bold green]Completed the instruction to clear all auxiliary files and output files of the main file"
+
+#: src/pytexmk/__main__.py:315
+msgid "修复 PDF 文件"
+msgstr "Fix PDF files"
+
+#: src/pytexmk/__main__.py:318
+msgid "检测并移动辅助文件到根目录..."
+msgstr "Detecting and moving auxiliary files to root directory..."
+
+#: src/pytexmk/__main__.py:320
+msgid "辅助文件->根目录"
+msgstr "AUX files -> Root dir"
+
+#: src/pytexmk/__main__.py:330
+msgid "移动辅助文件到辅助目录..."
+msgstr "Moving auxiliary files to auxiliary directory..."

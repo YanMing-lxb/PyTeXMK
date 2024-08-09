@@ -1,0 +1,116 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-08-09 14:49+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/pytexmk/additional_module.py:67 src/pytexmk/additional_module.py:97
+msgid "删除成功: "
+msgstr "Deletion successful: "
+
+#: src/pytexmk/additional_module.py:69 src/pytexmk/additional_module.py:99
+#: src/pytexmk/additional_module.py:138 src/pytexmk/additional_module.py:180
+msgid "删除失败: "
+msgstr "Deletion failed: "
+
+#: src/pytexmk/additional_module.py:144 src/pytexmk/additional_module.py:185
+msgid "移动成功: "
+msgstr "Move successful: "
+
+#: src/pytexmk/additional_module.py:146 src/pytexmk/additional_module.py:187
+msgid "移动失败: "
+msgstr "Move failed: "
+
+#: src/pytexmk/additional_module.py:208
+msgid "文件名中不能存在路径"
+msgstr "Path cannot exist in filename"
+
+#: src/pytexmk/additional_module.py:214 src/pytexmk/additional_module.py:220
+msgid "文件不存在于当前路径下: "
+msgstr "File does not exist in current path: "
+
+#: src/pytexmk/additional_module.py:223
+msgid "文件类型非 tex: "
+msgstr "File type is not tex: "
+
+#: src/pytexmk/additional_module.py:240
+msgid "搜索到: "
+msgstr "Found: "
+
+#: src/pytexmk/additional_module.py:243
+msgid "文件数目: "
+msgstr "Number of files: "
+
+#: src/pytexmk/additional_module.py:245
+msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
+msgstr "File does not exist in current path, please check if the terminal display path is the project path"
+
+#: src/pytexmk/additional_module.py:246 src/pytexmk/additional_module.py:288
+msgid "当前终端路径: "
+msgstr "Current terminal path: "
+
+#: src/pytexmk/additional_module.py:249
+msgid "文件搜索失败: "
+msgstr "File search failed: "
+
+#: src/pytexmk/additional_module.py:277
+msgid "通过特征命令检索到主文件: "
+msgstr "Retrieved main file via feature command: "
+
+#: src/pytexmk/additional_module.py:280 src/pytexmk/additional_module.py:334
+#: src/pytexmk/additional_module.py:370
+msgid "打开文件失败: "
+msgstr "Failed to open file: "
+
+#: src/pytexmk/additional_module.py:284
+msgid "发现主文件数量: "
+msgstr "Number of main files found: "
+
+#: src/pytexmk/additional_module.py:287
+msgid "终端路径下不存在主文件！请检查终端显示路径是否是项目路径！"
+msgstr "Main file does not exist under terminal path! Please check if the terminal display path is the project path!"
+
+#: src/pytexmk/additional_module.py:362
+msgid "[bold green]正在打开文件..."
+msgstr "[bold green]Opening file..."
+
+#: src/pytexmk/additional_module.py:365
+msgid "文件路径: "
+msgstr "File path: "
+
+#: src/pytexmk/additional_module.py:409
+msgid "当前路径下未找到 PDF 文件: "
+msgstr "No PDF files found in current path: "
+
+#: src/pytexmk/additional_module.py:412
+msgid "找到 PDF 文件数目: "
+msgstr "Number of PDF files found: "
+
+#: src/pytexmk/additional_module.py:423
+msgid "修复成功: "
+msgstr "Fix successful: "
+
+#: src/pytexmk/additional_module.py:425
+msgid "修复失败: "
+msgstr "Fix failed: "
+
+#: src/pytexmk/additional_module.py:426
+msgid "[bold green]修复 PDF 结束[/bold green]"
+msgstr "[bold green]PDF fix complete[/bold green]"
+
+#: src/pytexmk/additional_module.py:434
+msgid "[bold red]正在退出 PyTeXMK..."
+msgstr "[bold red]Exiting PyTeXMK..."
