@@ -61,9 +61,12 @@ diff_tex_file = "diff.tex"  # 差异TeX文件
 
 class ConfigParser:
     """
-    用于解析配置文件的类
+    配置解析器类，用于处理系统配置和本地配置文件的加载和生成。
     """
     def __init__(self):
+        """
+        初始化配置解析器，设置日志记录器，获取系统配置文件路径和本地配置文件路径。
+        """
         self.logger = logging.getLogger(__name__)  # 加载日志记录器
         self.system_config_path = self._get_system_config_path()  # 获取系统配置文件路径
         self.local_config_path = Path.cwd() / '.pytexmkrc'  # 获取本地配置文件路径
@@ -71,7 +74,9 @@ class ConfigParser:
 
     def _get_system_config_path(self):
         """
-        获取系统配置文件路径
+        获取系统配置文件路径。
+        返回:
+            Path: 系统配置文件路径。
         """
         try:
             home_path = Path.home()  # 获取用户主目录
@@ -81,10 +86,11 @@ class ConfigParser:
             self.logger.error(_("获取用户主目录失败: ") + str(e))
             return None
 
-
     def load_config(self):
         """
-        加载配置文件并返回解析后的配置字典
+        加载系统配置和本地配置文件，优先使用本地配置。
+        返回:
+            dict: 最终的配置字典。
         """
         system_config = self._load_toml(self.system_config_path)  # 加载系统配置文件
         local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
@@ -99,10 +105,13 @@ class ConfigParser:
         self.logger.info(_("配置文件加载完成"))
         return final_config
 
-
     def _load_toml(self, path):
         """
-        加载指定路径的toml文件并返回解析后的字典
+        加载指定路径的 TOML 配置文件。
+        参数:
+            path (Path): 配置文件路径。
+        返回:
+            dict: 配置字典。
         """
         if not path.exists():
             self.logger.warning(_("配置文件不存在: ") + str(path))
@@ -117,11 +126,12 @@ class ConfigParser:
             self.logger.error(_("配置文件加载失败: ") + f"{path} --> {e}")
             return None
 
-
     def generate_default_config_file(self, path, config):
         """
-        确保指定路径的配置文件存在，如果不存在则创建默认配置文件
-        将默认配置写入toml文件，并包含注释
+        生成默认配置文件。
+        参数:
+            path (Path): 配置文件路径。
+            config (str): 配置内容。
         """
         if not path.exists():
             try:
