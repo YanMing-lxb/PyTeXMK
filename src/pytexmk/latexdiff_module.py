@@ -16,14 +16,13 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-07 21:20:46 +0800
+LastEditTime : 2024-08-13 17:12:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import os
 import re
 import sys
 import logging
@@ -65,7 +64,7 @@ class LaTeXDiff_Aux:
         """
         aux_files = [f"{file_name}{suffix}" for suffix in self.suffixes_aux]
         for file in aux_files:
-            if os.path.exists(os.path.join(self.auxdir, file)):
+            if (self.auxdir / file).exists():
                 return True
         return False
 
