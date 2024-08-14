@@ -59,10 +59,6 @@ new_tex_file = "new.tex"  # 新TeX文件
 diff_tex_file = "diff.tex"  # 差异TeX文件
 """
 
-import logging
-from pathlib import Path
-import toml
-
 class ConfigParser:
     """
     用于解析配置文件的类
