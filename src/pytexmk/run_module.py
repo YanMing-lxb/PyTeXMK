@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-08-09 15:38:31 +0800
+LastEditTime : 2024-08-14 23:18:53 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -53,7 +53,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     runtime_dict[f'{compiler_engine} {abbreviations_num[0]}'] = runtime_Latex
 
     # 读取日志文件
-    with open(f'{project_name}.log', 'r', encoding='utf-8') as fobj:
+    with open(f'{project_name}.log', 'r', encoding='utf-8', errors='ignore') as fobj:
         log_content = fobj.read()
     compile_model.check_errors(log_content)
 
