@@ -13,7 +13,7 @@ compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
 [pdf]
-pdf_preview = true # PDF预览，指编译结束后是否打开PDF文件
+pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
@@ -22,7 +22,7 @@ output_folder = "Build" # 输出文件夹
 
 # 索引配置
 [index]
-ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名，否则输入文件后缀
+ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
 
@@ -39,7 +39,7 @@ compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
 [pdf]
-pdf_preview = true # PDF预览，指编译结束后是否打开PDF文件
+pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
@@ -48,7 +48,7 @@ output_folder = "Build" # 输出文件夹
 
 # 索引配置
 [index]
-ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名，否则输入文件后缀
+ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
 
@@ -61,11 +61,11 @@ diff_tex_file = "diff.tex"  # 差异TeX文件
 
 class ConfigParser:
     """
-    配置解析器类，用于处理系统配置和本地配置文件的加载和生成。
+    配置解析器类, 用于处理系统配置和本地配置文件的加载和生成。
     """
     def __init__(self):
         """
-        初始化配置解析器，设置日志记录器，获取系统配置文件路径和本地配置文件路径。
+        初始化配置解析器, 设置日志记录器, 获取系统配置文件路径和本地配置文件路径。
         """
         self.logger = logging.getLogger(__name__)  # 加载日志记录器
         self.system_config_path = self._get_system_config_path()  # 获取系统配置文件路径
@@ -88,19 +88,19 @@ class ConfigParser:
 
     def load_config(self):
         """
-        加载系统配置和本地配置文件，优先使用本地配置。
+        加载系统配置和本地配置文件, 优先使用本地配置。
         返回:
             dict: 最终的配置字典。
         """
         system_config = self._load_toml(self.system_config_path)  # 加载系统配置文件
         local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
 
-        # 优先使用本地配置，如果本地配置不存在则使用系统配置
+        # 优先使用本地配置, 如果本地配置不存在则使用系统配置
         final_config = system_config.copy() if system_config else {}
         if local_config:
             final_config.update(local_config)
         else:
-            self.logger.info(_("未找到本地配置文件，使用系统配置"))
+            self.logger.info(_("未找到本地配置文件, 使用系统配置"))
 
         self.logger.info(_("配置文件加载完成"))
         return final_config
