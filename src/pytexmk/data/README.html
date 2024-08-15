@@ -207,6 +207,7 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置编译结果存放位置</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 根据魔法注释设置辅助文件存放位置</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 解决魔法注释大小写空格敏感问题</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 相关魔法注释</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 魔法注释重复定义的处理逻辑
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 主文件于子文件中魔法注释的冲突处理</li>
@@ -225,11 +226,18 @@
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 增加配置文件功能
 <ul>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的编译引擎 （目前默认编译命令是 <code>XeLaTeX</code>）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认生成的结果文件存放位置（目前默认存放在 <code>Build</code> 子文件夹下）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义默认的辅助文件存放位置（目前默认存放在 <code>Auxiliary</code> 子文件夹下）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义其他索引宏包的配置</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 自定义 PDF 文件打开程序</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认的编译引擎 （目前默认编译命令是 <code>XeLaTeX</code>）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认生成的结果文件存放位置（目前默认存放在 <code>Build</code> 子文件夹下）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认的辅助文件存放位置（目前默认存放在 <code>Auxiliary</code> 子文件夹下）</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 可配置其他索引宏包的配置</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置 PDF 编译完是否默认预览</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 可配置 PDF 文件打开程序</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认安静模式状态</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认详细模式状态</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认文件名称</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认 LaTeXDiff 新 TeX 文件名</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认 LaTeXDiff 旧 TeX 文件名</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认 LaTeXDiff 输出文件名</li>
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 预览与日志功能
@@ -237,6 +245,7 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 解决终端中文显示问题</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> PDF 预览功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 报错信息显示功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 进一步完善报错信息显示功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 实现日志记录功能</li>
 </ul>
 </li>
@@ -253,12 +262,16 @@
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加编译结束后将辅助文件移动到根目录下功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> LaTeXDiff 命令行参数的实现</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 添加单个项目的配置文件功能</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 实现配置文件的解析功能</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加单个项目的配置文件功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 编译判断逻辑</li>
 </ul>
 </li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 程序国际化</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> README 文档完善
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 增加配置文件相关说明</li>
+</ul>
+</li>
 </ul>
 </div>
       </div>
