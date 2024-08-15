@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-09 21:21:16 +0800
+LastEditTime : 2024-08-16 00:09:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -42,11 +42,13 @@ from .get_main_file_module import get_main_file
 from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_module import LaTeXDiff_Aux
 from .check_version_module import UpdateChecker
+from .config_module import ConfigParser
 
 MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒；缓存时长, 单位: 小时
+CP = ConfigParser() # 实例化 ConfigParser 类
 
 _ = set_language('main')
 
@@ -88,8 +90,8 @@ def parse_args():
     meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=_("PdfLaTeX 进行编译"))
     meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=_("XeLaTeX 进行编译"))
     meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=_("LuaLaTeX 进行编译"))
-    parser.add_argument('-d', '--LaTeXDiff', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件"))
-    parser.add_argument('-dc', '--LaTexDiff-compile', nargs=2, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件"))
+    parser.add_argument('-d', '--LaTeXDiff', nargs='?', const=None, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs='?', const=None, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
     meg_clean.add_argument('-c', '--clean', action='store_true', help=_("清除所有主文件的辅助文件"))
     meg_clean.add_argument('-C', '--Clean', action='store_true', help=_("清除所有主文件的辅助文件（包含根目录）和输出文件"))
     meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=_("清除所有带辅助文件后缀的文件"))
@@ -97,7 +99,7 @@ def parse_args():
     parser.add_argument('-nq', '--non-quiet', action='store_true', help=_("非安静模式运行, 此模式下终端显示日志信息"))
     parser.add_argument('-vb', '--verbose', action='store_true', help=_("显示 PyTeXMK 运行过程中的详细信息"))
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help=_("尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R object 时, 可使用此参数尝试修复所有 pdf 文件"))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not start', metavar='FILE_NAME', help=_("尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not preview', metavar='FILE_NAME', help=_("尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"))
     parser.add_argument('document', nargs='?', help=_("待编译主文件名"))
 
     # 解析命令行参数
@@ -113,9 +115,14 @@ def main():
     start_time = datetime.datetime.now() # 计算开始时间
 
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
-    compiler_engine = "XeLaTeX"
+    default_file = "main"
+    compiled_program = "XeLaTeX"
+    non_quiet = False
+    verbose = False
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
+    diff_tex_file = "LaTeXDiff"
+    pdf_preview_status = "Do not start"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
     runtime_dict = {}
     magic_comments = {} # 存储魔法注释
@@ -134,11 +141,82 @@ def main():
     # 解析命令行参数
     args = parse_args()
 
-    # 实例化 logger 类
-    logger = setup_logger(args.verbose)
 
     print(_("PyTeXMK 版本: %(args)s") % {"args": f"[i bold green]{__version__}[/i bold green]\n"})
     print(_("[bold green]PyTeXMK 开始运行...\n"))
+
+    # --------------------------------------------------------------------------------
+    # 配置文件相关
+    # --------------------------------------------------------------------------------
+    config_dict = CP.init_config_file() # 初始化配置文件，获取配置文件中的参数
+
+    # 读取配置文件中的参数
+    if config_dict["default_file"]: # 如果存在配置文件中的默认文件名
+        default_file = config_dict["default_file"]
+        logger.info(_("通过配置文件设置默认文件为: ") + f"[bold cyan]{default_file}")
+    if config_dict["compiled_program"]: # 如果存在配置文件中的编译器
+        compiled_program = config_dict["compiled_program"]
+        logger.info(_("通过配置文件设置编译器为: ") + f"[bold cyan]{compiled_program}")
+    if config_dict["verbose"]: # 如果存在配置文件中的详细模式参数
+        verbose = config_dict["verbose"]
+        logger.info(_("通过配置文件设置详细模式为: ") + f"[bold cyan]{verbose}")
+    if config_dict['quiet_mode']: # 如果存在配置文件中的安静模式参数
+        non_quiet = config_dict['quiet_mode']
+        logger.info(_("通过配置文件设置安静模式为: ") + f"[bold cyan]{non_quiet}")
+
+    if config_dict["folder"]: # 如果存在配置文件中的文件夹参数
+        if config_dict["folder"]["outdir"]: # 如果存在配置文件中的输出目录
+            outdir = config_dict["folder"]["outdir"]
+            logger.info(_("通过配置文件设置输出目录为: ") + f"[bold cyan]{outdir}")
+        if config_dict["folder"]["auxdir"]: # 如果存在配置文件中的辅助目录
+            auxdir = config_dict["folder"]["auxdir"]
+            logger.info(_("通过配置文件设置辅助目录为: ") + f"[bold cyan]{auxdir}")
+
+    if config_dict["pdf"]: # 如果存在配置文件中的 pdf 参数
+        if config_dict["pdf"]["pdf_preview"]: # 如果存在配置文件中的 pdf_preview 参数
+            pdf_preview_status = None # 置空 pdf_preview_status，表示编译结束预览 PDF
+            logger.info(_("通过配置文件设置 PDF 预览为: ") + f"[bold cyan]{args.pdf_preview}")
+        if config_dict["pdf"]["viewer"]: # 如果存在配置文件中的 viewer 参数
+            PFO.set_viewer(config_dict["pdf"]["viewer"])
+            logger.info(_("通过配置文件设置 PDF 预览器为: ") + f"[bold cyan]{PFO.viewer}")
+
+    if config_dict["index"]: # 如果存在配置文件中的 index 参数
+        # TODO 与之对应的 index_judgment 函数关于配置部分接口需要完善
+        if config_dict["index"]["index_style_file"]: # 如果存在配置文件中的 index_style_file 参数
+            index_style_file = config_dict["index"]["index_style_file"]
+            logger.info(_("通过配置文件设置索引文件名为: ") + f"[bold cyan]{index_style_file}")
+        if config_dict["index"]["input_suffix"]: # 如果存在配置文件中的 input_suffix 参数
+            input_suffix = config_dict["index"]["input_suffix"]
+            logger.info(_("通过配置文件设置索引输入文件后缀为: ") + f"[bold cyan]{input_suffix}")
+        if config_dict["index"]["output_suffix"]: # 如果存在配置文件中的 output_suffix 参数
+            output_suffix = config_dict["index"]["output_suffix"]
+            logger.info(_("通过配置文件设置索引输出文件后缀为: ") + f"[bold cyan]{output_suffix}")
+
+    if config_dict["latexdiff"]: # 如果存在配置文件中的 latexdiff 参数
+        if config_dict["latexdiff"]["old_tex_file"]: # 如果存在配置文件中的 old_tex_file 参数
+            old_tex_file = config_dict["latexdiff"]["old_tex_file"]
+            logger.info(_("通过配置文件设置 LaTeXDiff 旧文件为: ") + f"[bold cyan]{old_tex_file}")
+        if config_dict["latexdiff"]["new_tex_file"]: # 如果存在配置文件中的 new_tex_file 参数
+            new_tex_file = config_dict["latexdiff"]["new_tex_file"]
+            logger.info(_("通过配置文件设置 LaTeXDiff 新文件为: ") + f"[bold cyan]{new_tex_file}")
+        if config_dict["latexdiff"]["diff_tex_file"]: # 如果存在配置文件中的 diff_tex_file 参数
+            diff_tex_file = config_dict["latexdiff"]["diff_tex_file"]
+            logger.info(_("通过配置文件设置 LaTeXDiff 对比文件为: ") + f"[bold cyan]{diff_tex_file}")
+    
+    # TODO 添加suffixes_aux 与 suffixes_out 相关的配置参数和功能
+    
+    # --------------------------------------------------------------------------------
+    # 详细模式及实例化日志
+    # --------------------------------------------------------------------------------
+    verbose = args.verbose
+    logger = setup_logger(verbose)
+
+    # --------------------------------------------------------------------------------
+    # 命令行安静模式判断
+    # --------------------------------------------------------------------------------
+    if args.non_quiet: # 如果存在 non_quiet 参数
+        non_quiet = True
+        logger.info(_("非安静模式运行"))
 
 
     # --------------------------------------------------------------------------------
@@ -166,7 +244,7 @@ def main():
     # 非编译预览 PDF 操作
     # --------------------------------------------------------------------------------
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
-    if pdf_preview_status != 'Do not start' and pdf_preview_status != None: # 当 -pv 参数存在时, 有值且不等于默认值 'Do not start' 时, 进行 PDF 预览操作
+    if pdf_preview_status != 'Do not preview' and pdf_preview_status != None: # 当 -pv 参数存在时, 有值且不等于默认值 'Do not preview' 时, 进行 PDF 预览操作
         pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
         pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
         PFO.pdf_preview(pdf_preview_status, outdir) # 调用 pdf_preview 函数进行 PDF 预览操作
@@ -177,7 +255,7 @@ def main():
     tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
     main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
-
+    
     if args.LaTeXDiff or args.LaTexDiff_compile:
         if args.LaTeXDiff:
             old_tex_file, new_tex_file = args.LaTeXDiff # 获取 -d 参数指定的两个文件
@@ -185,8 +263,9 @@ def main():
             old_tex_file, new_tex_file = args.LaTexDiff_compile # 获取 -dc 参数指定的两个文件
         old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
+        diff_tex_file = MFJ.check_project_name(main_file_in_root, diff_tex_file, '.tex') # 检查 diff_tex_file 是否正确
     else:
-        project_name = get_main_file(args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
+        project_name = get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
 
     # --------------------------------------------------------------------------------
     # 主文件魔法注释提取
@@ -202,14 +281,14 @@ def main():
     # 编译类型判断
     # -------------------------------------------------------------------------------- 
     if args.XeLaTeX:
-        compiler_engine = "XeLaTeX"
+        compiled_program = "XeLaTeX"
     elif args.PdfLaTeX:
-        compiler_engine = "PdfLaTeX"
+        compiled_program = "PdfLaTeX"
     elif args.LuaLaTeX:
-        compiler_engine = "LuaLaTeX"
+        compiled_program = "LuaLaTeX"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
-        compiler_engine = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
-        print(_("通过魔法注释设置程序为: ") + f"[bold cyan]{compiler_engine}[/bold cyan]")
+        compiled_program = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
+        print(_("通过魔法注释设置程序为: ") + f"[bold cyan]{compiled_program}")
 
     # --------------------------------------------------------------------------------
     # 输出文件路径判断
@@ -244,6 +323,9 @@ def main():
     # LaTeXDiff 相关
     # --------------------------------------------------------------------------------
     if args.LaTeXDiff or args.LaTexDiff_compile:
+        if not old_tex_file or not new_tex_file:
+            logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
+            exit_pytexmk()
         LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
         if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
             logger.error(_("不能对同一个文件进行比较, 请检查文件名是否正确"))
@@ -260,7 +342,7 @@ def main():
                     runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
                     try:
                         print_message(_("LaTeXDiff 运行"), "running")
-                        runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file)
+                        runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file)
                         runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
                         
                         print_message(_("LaTeXDiff 后处理"), "additional")
@@ -268,10 +350,10 @@ def main():
                         runtime_remove_flatten_root = time_count(MRC.remove_specific_files, [old_tex_file, new_tex_file], '.')
                         runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
                         if args.LaTexDiff_compile:
-                            out_files = [f"LaTeXDiff{suffix}" for suffix in suffixes_out]
+                            out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
                             print_message(_("开始预处理命令"), "additional")
                             
-                            RUN(runtime_dict, "LaTeXDiff", compiler_engine, out_files, aux_files, outdir, auxdir, args.non_quiet)
+                            RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
 
                             print_message(_("开始后处理"), "additional")
 
@@ -319,7 +401,7 @@ def main():
             runtime_move_aux_root  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
             runtime_dict[_('辅助文件->根目录')] = runtime_move_aux_root
             
-            RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, args.non_quiet)
+            RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
 
             print_message(_("开始后处理"), "additional")
 

@@ -36,7 +36,7 @@ MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
 # 实例化 logger 类
 logger = logging.getLogger(__name__)
 
-def get_main_file(args_document, main_file_in_root, all_magic_comments):
+def get_main_file(default_file, args_document, main_file_in_root, all_magic_comments):
     project_name = ''
     current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
 
@@ -63,15 +63,15 @@ def get_main_file(args_document, main_file_in_root, all_magic_comments):
     elif not project_name: # 如果当前根目录下存在多个主文件, 且不存在 % TEX root 魔法注释, 并且待编译主文件还没有找到
         logger.info(_("无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"))
         for file in main_file_in_root:
-            if file == "main": # 如果存在 main.tex 文件
-                project_name = file # 使用 main.tex 文件作为待编译主文件名
-                print(_("通过默认文件名 \"main.tex\" 指定待编译主文件为: ") + f"[bold cyan]{project_name}.tex")
+            if file == default_file: # 如果存在 default_file.tex 文件
+                project_name = file # 使用 default_file.tex 文件作为待编译主文件名
+                print(_("通过默认文件名 \"%(args)s.tex\" 指定待编译主文件为: ") % {"args": default_file} + f"[bold cyan]{project_name}.tex")
         if not project_name: # 如果不存在 main.tex 文件
-            logger.info(_("当前根目录下不存在名为 \"main.tex\" 的文件"))
+            logger.info(_("当前根目录下不存在名为 \"%(args)s.tex\" 的文件") % {"args": default_file})
 
     if not project_name: # 如果当前根目录下不存在主文件且 -d 参数未指定
         logger.error(_("无法进行编译, 当前根目录下存在多个主文件: ") + ", ".join(main_file_in_root))
-        logger.warning(_("请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" 进行编译, 或删除当前根目录下多余的 tex 文件"))
+        logger.warning(_("请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 \"% !TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" 进行编译, 或删除当前根目录下多余的 tex 文件") % {"args": default_file})
         logger.warning(_("当前根目录是: ") + str(current_path))
         exit_pytexmk()
     

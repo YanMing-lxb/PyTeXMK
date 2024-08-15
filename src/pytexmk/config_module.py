@@ -1,6 +1,7 @@
 import toml
 import logging
 from pathlib import Path
+from collections import defaultdict
 
 from .language_module import set_language
 
@@ -8,33 +9,34 @@ _ = set_language('config')
 
 # 默认配置文件
 default_system_config = """
-default_files = "main" # 主文件名
+default_file = "main" # 主文件名，要求不输入文件后缀
 compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
+local_config_auto_init = true # 是否自动创建本地配置文件
 
 [pdf]
 pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
-aux_folder = "Auxiliary" # 辅助文件夹
-output_folder = "Build" # 输出文件夹
+aux_folder = "./Auxiliary/" # 辅助文件夹
+output_folder = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
-ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
+index_style_file = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old.tex"  # 旧TeX文件
-new_tex_file = "new.tex"  # 新TeX文件
-diff_tex_file = "diff.tex"  # 差异TeX文件
+old_tex_file = "old_tex"  # 旧TeX文件，要求不输入文件后缀
+new_tex_file = "new_tex"  # 新TeX文件，要求不输入文件后缀
+diff_tex_file = "LaTeXDiff"  # 差异TeX文件，要求不输入文件后缀
 """
         
 default_local_config = """
-default_files = "main" # 主文件名
+default_file = "main" # 主文件名，要求不输入文件后缀
 compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
@@ -43,20 +45,20 @@ pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
-aux_folder = "Auxiliary" # 辅助文件夹
-output_folder = "Build" # 输出文件夹
+aux_folder = "./Auxiliary/" # 辅助文件夹
+output_folder = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
-ist_file_name = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
+index_style_file = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old.tex"  # 旧TeX文件
-new_tex_file = "new.tex"  # 新TeX文件
-diff_tex_file = "diff.tex"  # 差异TeX文件
+old_tex_file = "old_tex"  # 旧TeX文件，要求不输入文件后缀
+new_tex_file = "new_tex"  # 新TeX文件，要求不输入文件后缀
+diff_tex_file = "LaTeXDiff"  # 差异TeX文件，要求不输入文件后缀
 """
 
 class ConfigParser:
@@ -86,25 +88,6 @@ class ConfigParser:
             self.logger.error(_("获取用户主目录失败: ") + str(e))
             return None
 
-    def load_config(self):
-        """
-        加载系统配置和本地配置文件, 优先使用本地配置。
-        返回:
-            dict: 最终的配置字典。
-        """
-        system_config = self._load_toml(self.system_config_path)  # 加载系统配置文件
-        local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
-
-        # 优先使用本地配置, 如果本地配置不存在则使用系统配置
-        final_config = system_config.copy() if system_config else {}
-        if local_config:
-            final_config.update(local_config)
-        else:
-            self.logger.info(_("未找到本地配置文件, 使用系统配置"))
-
-        self.logger.info(_("配置文件加载完成"))
-        return final_config
-
     def _load_toml(self, path):
         """
         加载指定路径的 TOML 配置文件。
@@ -126,7 +109,7 @@ class ConfigParser:
             self.logger.error(_("配置文件加载失败: ") + f"{path} --> {e}")
             return None
 
-    def generate_default_config_file(self, path, config):
+    def init_default_config(self, path, config):
         """
         生成默认配置文件。
         参数:
@@ -141,3 +124,28 @@ class ConfigParser:
                     f.write(config)
             except Exception as e:
                 self.logger.error(_("创建默认配置文件失败: ") + f"{path} --> {e}")
+    
+    def init_config_file(self):
+        """
+        初始化配置文件。
+        加载系统配置和本地配置文件, 优先使用本地配置。
+        返回:
+            dict: 最终的配置字典。
+        """
+        self.init_default_config(self.system_config_path, default_system_config)
+        system_config = self._load_toml(self.system_config_path)  # 加载系统配置文件
+        if system_config["local_config_auto_init"]:
+            self.init_default_config(self.local_config_path, default_local_config)
+            local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
+        
+        # 使用defaultdict来避免KeyError，默认值为None
+        # 如果系统配置存在，则基于系统配置创建defaultdict，否则创建一个空的defaultdict
+        final_config = defaultdict(lambda: None, system_config) if system_config else defaultdict(lambda: None)
+
+        if local_config:
+            final_config.update(local_config)
+        else:
+            self.logger.info(_("未找到本地配置文件, 使用系统配置"))
+
+        self.logger.info(_("配置文件加载完成"))
+        return final_config

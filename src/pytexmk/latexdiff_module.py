@@ -145,9 +145,9 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
-    def compile_LaTeXDiff(self, old_tex_file, new_tex_file):
+    def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file):
         options = ["latexdiff", old_tex_file, new_tex_file]
-        command = f"{' '.join(options)} > LaTeXDiff.tex --encoding=utf8"
+        command = f"{' '.join(options)} > {diff_tex_file}.tex --encoding=utf8"
         console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 

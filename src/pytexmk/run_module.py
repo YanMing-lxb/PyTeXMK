@@ -35,11 +35,11 @@ _ = set_language('run')
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet):
+def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet):
     
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
-    compile_model = CompileLaTeX(project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet)
+    compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
 
     # 检查并处理已存在的 LaTeX 输出文件
     print(_('检测识别已有辅助文件...'))
@@ -48,9 +48,9 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     runtime_dict[_('检测辅助文件')] = runtime_read
 
     # 首次编译 LaTeX 文档
-    print_message(_("1 次 %(args)s 编译") % {'args': compiler_engine}, "running")
+    print_message(_("1 次 %(args)s 编译") % {'args': compiled_program}, "running")
     runtime_Latex = time_count(compile_model.compile_tex, ) 
-    runtime_dict[f'{compiler_engine} {abbreviations_num[0]}'] = runtime_Latex
+    runtime_dict[f'{compiled_program} {abbreviations_num[0]}'] = runtime_Latex
 
     # 读取日志文件
     with open(f'{project_name}.log', 'r', encoding='utf-8', errors='ignore') as fobj:
@@ -94,12 +94,12 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
 
     # 进行额外的 LaTeX 编译
     for times in range(2, Latex_compilation_times+2):
-        print_message(_("%(args1)s 次 %(args2)s 编译") % {'args1': str(times), 'args2': compiler_engine}, "running")
+        print_message(_("%(args1)s 次 %(args2)s 编译") % {'args1': str(times), 'args2': compiled_program}, "running")
         runtime_Latex = time_count(compile_model.compile_tex, )
-        runtime_dict[f'{compiler_engine} {abbreviations_num[times-1]}'] = runtime_Latex
+        runtime_dict[f'{compiled_program} {abbreviations_num[times-1]}'] = runtime_Latex
 
     # 编译完成, 开始判断编译 XDV 文件
-    if compiler_engine == "XeLaTeX":  # 判断是否编译 xdv 文件
+    if compiled_program == "XeLaTeX":  # 判断是否编译 xdv 文件
         print_message(_("DVIPDFMX 编译"), "running")
         runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
@@ -107,7 +107,7 @@ def RUN(runtime_dict, project_name, compiler_engine, out_files, aux_files, outdi
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
     
-    print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiler_engine, 'args2': str(Latex_compilation_times+1)})
+    print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiled_program, 'args2': str(Latex_compilation_times+1)})
     print(_("参考文献: ") + print_bib)
     print(_("目录索引: ") + print_index)
 

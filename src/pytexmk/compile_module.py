@@ -62,13 +62,13 @@ LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
 
 class CompileLaTeX(object):
 
-    def __init__(self, project_name, compiler_engine, out_files, aux_files, outdir, auxdir, non_quiet):
+    def __init__(self, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet):
         """
         初始化 CompileModel 类实例。
 
         参数:
         - project_name (str): 项目的名称。
-        - compiler_engine (str): 编译引擎的名称。
+        - compiled_program (str): 编译引擎的名称。
         - LaTeXDiff (bool): 是否使用LaTeXDiff。
         - out_files (list): 输出文件列表。
         - aux_files (list): 辅助文件列表。
@@ -85,7 +85,7 @@ class CompileLaTeX(object):
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
 
         self.project_name = project_name
-        self.compiler_engine = compiler_engine
+        self.compiled_program = compiled_program
         self.out_files = out_files
         self.aux_files = aux_files
         self.auxdir = auxdir
@@ -307,8 +307,8 @@ class CompileLaTeX(object):
         6. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
 
-        options = [self.compiler_engine, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
-        if self.compiler_engine == 'XeLaTeX':
+        options = [self.compiled_program, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
+        if self.compiled_program == 'XeLaTeX':
             options.insert(5, "-no-pdf")
         if self.non_quiet:
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
@@ -319,7 +319,7 @@ class CompileLaTeX(object):
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
-            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") %{'args': self.compiler_engine} + f"{self.auxdir}{self.project_name}.log")
+            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") %{'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log")
             self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRC.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()

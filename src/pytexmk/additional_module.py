@@ -347,9 +347,23 @@ class MainFileJudgment(object):
 
 class PdfFileOperation(object):
 
-    def __init__(self):
+    def __init__(self, viewer = None):
         self.logger = logging.getLogger(__name__)
+        self.viewer = viewer
+    
+    def set_viewer(self, new_viewer):
+        self.viewer = new_viewer
 
+    # --------------------------------------------------------------------------------
+    # 定义 PDF 预览器选择函数
+    # --------------------------------------------------------------------------------
+    def _preview_pdf_by_viewer(self, local_path): # TODO：自己写一个简单的PDF预览器
+        if self.viewer:
+            self.logger.info(_("设置 PDF 查看器: ") + f"{self.viewer}")
+            # TODO：调用指定外部程序打开文件需要完善
+        else: 
+            self.logger.info(_("未设置 PDF 查看器，使用默认 PDF 查看器"))
+            webbrowser.open(local_path)
 
     # --------------------------------------------------------------------------------
     # 定义 PDF 文件预览函数
@@ -364,7 +378,7 @@ class PdfFileOperation(object):
             local_path = f"file://{pdf_path.resolve().as_posix()}"
             self.logger.info(_("文件路径: ") + f"{local_path}")
             # 使用 webbrowser 打开 pdf 文件
-            webbrowser.open(local_path)
+            self._preview_pdf_by_viewer(local_path)
         except Exception as e:
             # 记录打开 README 文件时的错误信息
             self.logger.error(_("打开文件失败: ") + f"{pdf_name} -->{e}")
