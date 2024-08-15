@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-09 19:16:19 +0800
+LastEditTime : 2024-08-15 10:43:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -64,7 +64,7 @@ class MoveRemoveClean(object):
             if filepath.exists():
                 try:
                     filepath.unlink()  # 使用unlink删除文件
-                    self.logger.info(_("删除成功: ") + filepath)
+                    self.logger.info(_("删除成功: ") + str(filepath))
                 except OSError as e:
                     self.logger.error(_("删除失败: ") + f"{filepath} --> {e}")
 
@@ -94,7 +94,7 @@ class MoveRemoveClean(object):
                 if filepath.is_file() and compiled_pattern.match(filepath.name):
                     try:
                         filepath.unlink()  # 使用unlink删除文件
-                        self.logger.info(_("删除成功: ") + filepath)
+                        self.logger.info(_("删除成功: ") + str(filepath))
                     except OSError as e:
                         self.logger.error(_("删除失败: ") + f"{filepath} --> {e}")
 
@@ -243,7 +243,7 @@ class MainFileJudgment(object):
                 self.logger.info(f"{suffixes}" + _("文件数目: ") + str(len(suffixes_files_in_dir)))
             else:
                 self.logger.error(_("文件不存在于当前路径下，请检查终端显示路径是否是项目路径"))
-                self.logger.warning(_("当前终端路径: ") + current_path)
+                self.logger.warning(_("当前终端路径: ") + str(current_path))
                 exit_pytexmk()
         except Exception as e:
             self.logger.error(_("文件搜索失败: ") + f"{suffixes} --> {e}")
@@ -274,7 +274,7 @@ class MainFileJudgment(object):
                     # 如果找到主文件特征命令，则将文件名添加到主文件列表中
                     if is_main_file:
                         main_tex_files.append(file_name)
-                    self.logger.info(_("通过特征命令检索到主文件: ") + file_name)
+                    self.logger.info(_("通过特征命令检索到主文件: ") + str(file_name))
             except Exception as e:
                 # 捕获并记录文件读取错误
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
@@ -285,7 +285,7 @@ class MainFileJudgment(object):
         else:
             # 如果没有找到主文件，则记录错误并退出程序
             self.logger.error(_("终端路径下不存在主文件！请检查终端显示路径是否是项目路径！"))
-            self.logger.warning(_("当前终端路径: ") + Path.cwd())
+            self.logger.warning(_("当前终端路径: ") + str(Path.cwd()))
             exit_pytexmk()
         # 返回主文件列表
         return main_tex_files
@@ -420,7 +420,7 @@ class PdfFileOperation(object):
                     doc.save(temp_path, garbage=3, deflate=True, clean=True)
                 # 覆盖原有文件
                 temp_path.replace(pdf_file)
-                self.logger.info(_("修复成功: ") + f"{pdf_file}")
+                self.logger.info(_("修复成功: ") + str(pdf_file))
             except Exception as e:
                 self.logger.error(_("修复失败: ") + f"{pdf_file} --> {e}")
         print(_("[bold green]修复 PDF 结束[/bold green]"))
