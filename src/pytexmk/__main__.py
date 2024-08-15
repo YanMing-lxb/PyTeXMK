@@ -285,11 +285,11 @@ def main():
                         runtime_move_matched_files = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
                         runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
                 else:
-                    logger.error("%(args)s 的辅助文件不存在, 请检查编译" % {"args": new_tex_file}) # TODO 要求辅助文件不存在时要自动进行编译
+                    logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": new_tex_file}) # TODO 要求辅助文件不存在时要自动进行编译
                     exit_pytexmk()
 
             else: # 如果辅助文件不存在
-                logger.error("%(args)s 的辅助文件不存在, 请检查编译" % {"args": old_tex_file})
+                logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": old_tex_file})
                 exit_pytexmk()
             
     # --------------------------------------------------------------------------------

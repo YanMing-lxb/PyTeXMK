@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-09 19:30+0800\n"
+"POT-Creation-Date: 2024-08-15 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,7 +28,7 @@ msgstr "Error printing module information: "
 
 #: src/pytexmk/info_print_module.py:183
 msgid "LaTeX 编译时长"
-msgstr "LaTeX compile time"
+msgstr "LaTeX compilation time"
 
 #: src/pytexmk/info_print_module.py:183 src/pytexmk/info_print_module.py:186
 msgid "Python 运行时长"
@@ -48,7 +48,7 @@ msgstr "Run project"
 
 #: src/pytexmk/info_print_module.py:201 src/pytexmk/info_print_module.py:204
 msgid "运行时长"
-msgstr "Run time"
+msgstr "Runtime"
 
 #: src/pytexmk/info_print_module.py:239
 msgid "PyTeXMK 运行时长: "
@@ -64,19 +64,19 @@ msgstr "Error printing runtime statistics table: "
 
 #: src/pytexmk/info_print_module.py:266
 msgid "指定编译程序: XeLaTeX PdfLaTeX LuaLaTeX"
-msgstr "Specify compile program: XeLaTeX PdfLaTeX LuaLaTeX"
+msgstr "Specify compiler: XeLaTeX PdfLaTeX LuaLaTeX"
 
 #: src/pytexmk/info_print_module.py:267
 msgid "指定待编译主文件名，仅支持根目录下的文件"
-msgstr "Specify main file to compile, root dir only"
+msgstr "Specify the main file to be compiled, only files in the root directory are supported"
 
 #: src/pytexmk/info_print_module.py:268
 msgid "指定编译结果存放位置，仅支持文件夹名称"
-msgstr "Specify compile result location, folder names only"
+msgstr "Specify the location to store the compilation results, only folder names are supported"
 
 #: src/pytexmk/info_print_module.py:269
 msgid "指定辅助文件存放位置，仅支持文件夹名称"
-msgstr "Specify auxiliary file location, folder names only"
+msgstr "Specify the location to store auxiliary files, only folder names are supported"
 
 #: src/pytexmk/info_print_module.py:273
 msgid "魔法注释说明表"
