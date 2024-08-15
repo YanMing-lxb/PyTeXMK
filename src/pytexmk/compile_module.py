@@ -314,7 +314,7 @@ class CompileLaTeX(object):
             options.insert(4, "-interaction=nonstopmode") # 非静默编译
         else:
             options.insert(4, "-interaction=batchmode") # 静默编译
-        console.print(_("[bold]运行命令: ") + f"[/bold][red][cyan]{' '.join(options)}[/cyan][/red]\n")
+        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
 
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
@@ -433,7 +433,7 @@ class CompileLaTeX(object):
         if not self.non_quiet and bib_engine == 'biber':
             options.insert(1, "-quiet") # 静默编译
                 
-        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{' '.join(options)}[/cyan]\n")
+        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
@@ -556,7 +556,7 @@ class CompileLaTeX(object):
         """
         # 运行 makeindex 命令
         name_target = f"{cmd[0]}"
-        console.print(_("[bold]运行命令:") + f" [/bold][cyan]{cmd[1]}[/cyan]\n")
+        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{cmd[1]}\n")
         try:
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
@@ -583,7 +583,7 @@ class CompileLaTeX(object):
         options = ["DVIPDFMX", "-V", "2.0", f"{self.project_name}"]
         if not self.non_quiet:
             options.insert(1, "-q") # 静默编译
-        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{' '.join(options)}[/cyan]\n")
+        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:

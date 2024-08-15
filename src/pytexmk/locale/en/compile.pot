@@ -36,8 +36,8 @@ msgstr "Auxiliary file not found: "
 
 #: src/pytexmk/compile_module.py:317 src/pytexmk/compile_module.py:436
 #: src/pytexmk/compile_module.py:559 src/pytexmk/compile_module.py:586
-msgid "[bold]运行命令: "
-msgstr "[bold]Running command: "
+msgid "[bold]运行命令: [/bold]"
+msgstr "[bold]Running command: [/bold]"
 
 #: src/pytexmk/compile_module.py:322 src/pytexmk/compile_module.py:440
 #: src/pytexmk/compile_module.py:564

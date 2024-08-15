@@ -148,7 +148,7 @@ class LaTeXDiff_Aux:
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file):
         options = ["latexdiff", old_tex_file, new_tex_file]
         command = f"{' '.join(options)} > LaTeXDiff.tex --encoding=utf8"
-        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}[/cyan]\n")
+        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 
         if result.stderr:
