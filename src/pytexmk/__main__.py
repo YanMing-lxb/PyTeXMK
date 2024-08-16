@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 17:08:17 +0800
+LastEditTime : 2024-08-16 19:33:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -171,8 +171,8 @@ def main():
     if config_dict["compiled_program"]: # 如果存在配置文件中的编译器
         compiled_program = config_dict["compiled_program"]
         logger.info(_("通过配置文件设置编译器为: ") + f"[bold cyan]{compiled_program}")
-    if config_dict['quiet_mode']: # 如果存在配置文件中的安静模式参数
-        non_quiet = config_dict['quiet_mode']
+    if config_dict['quiet_mode']: # 如果配置文件中的安静模式参数为 True
+        non_quiet = False
         logger.info(_("通过配置文件设置安静模式为: ") + f"[bold cyan]{non_quiet}")
 
     if config_dict["folder"]: # 如果存在配置文件中的文件夹参数
@@ -271,7 +271,7 @@ def main():
         if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
             print(_("命令行未指定 LaTeXDiff 相关参数"))
             if new_tex_file and old_tex_file:
-                print(_("根据配置文件设置 LaTeXDiff 新旧 TeX 文件为:"), old_tex_file, new_tex_file)
+                print(_("根据配置文件设置 LaTeXDiff 新旧 TeX 文件为: ") + old_tex_file, new_tex_file)
             else:
                 logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
                 exit_pytexmk()
@@ -286,7 +286,7 @@ def main():
         
         old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
-        print('[bold green]LaTeXDiff 相关参数设置成功', old_tex_file, new_tex_file)
+        print('[bold green]LaTeXDiff 相关参数设置成功: ' + old_tex_file, new_tex_file)
     else:
         project_name = get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
         project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
