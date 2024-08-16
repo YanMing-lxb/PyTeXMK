@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 20:41:45 +0800
+LastEditTime : 2024-08-16 20:50:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -385,7 +385,6 @@ def main():
                         runtime_remove_flatten_root = time_count(MRC.remove_specific_files, [old_tex_file, new_tex_file], '.')
                         runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
                         
-                        diff_tex_file = MFJ.check_project_name(main_file_in_root, diff_tex_file, '.tex') # 检查 diff_tex_file 是否正确
                         if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
                             out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
                             print_message(_("开始预处理命令"), "additional")
