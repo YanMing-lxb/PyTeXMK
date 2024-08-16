@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-16 18:11:22 +0800
+LastEditTime : 2024-08-16 19:38:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -358,7 +358,7 @@ class PdfFileOperation(object):
     # 定义 PDF 预览器选择函数
     # --------------------------------------------------------------------------------
     def _preview_pdf_by_viewer(self, local_path): # TODO：自己写一个简单的PDF预览器
-        if self.viewer == "default" and not self.viewer: 
+        if self.viewer == "default" or not self.viewer: 
             self.logger.info(_("未设置 PDF 查看器，使用默认 PDF 查看器"))
             webbrowser.open(local_path)
         elif self.viewer and self.viewer != "default":
