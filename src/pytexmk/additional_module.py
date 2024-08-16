@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-16 17:51:23 +0800
+LastEditTime : 2024-08-16 18:11:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -358,7 +358,6 @@ class PdfFileOperation(object):
     # 定义 PDF 预览器选择函数
     # --------------------------------------------------------------------------------
     def _preview_pdf_by_viewer(self, local_path): # TODO：自己写一个简单的PDF预览器
-        print('[bold green]正在打开文件...', self.viewer)
         if self.viewer == "default" and not self.viewer: 
             self.logger.info(_("未设置 PDF 查看器，使用默认 PDF 查看器"))
             webbrowser.open(local_path)
@@ -374,7 +373,6 @@ class PdfFileOperation(object):
             pdf_name = f"{project_name}.pdf"
             # 使用 pathlib 拼接 pdf 文件路径
             pdf_path = Path(outdir) / pdf_name
-            print(_("[bold green]正在打开文件..."))
             # 使用 pathlib 获取 pdf 文件的绝对路径
             local_path = f"file://{pdf_path.resolve().as_posix()}"
             self.logger.info(_("文件路径: ") + f"{local_path}")
