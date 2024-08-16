@@ -31,8 +31,8 @@ output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old_tex"  # 旧TeX文件
-new_tex_file = "new_tex"  # 新TeX文件
+old_tex_file = "old_file"  # 旧TeX文件
+new_tex_file = "new_file"  # 新TeX文件
 diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
         
@@ -58,8 +58,8 @@ output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old_tex"  # 旧TeX文件
-new_tex_file = "new_tex"  # 新TeX文件
+old_tex_file = "old_file"  # 旧TeX文件
+new_tex_file = "new_file"  # 新TeX文件
 diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
 
