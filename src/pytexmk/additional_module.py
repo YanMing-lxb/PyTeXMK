@@ -220,7 +220,7 @@ class MainFileJudgment(object):
                 self.logger.error(_("文件不存在于当前路径下: ") + f"[bold cyan]{check_project_name}{suffixes}[/bold cyan]")
                 exit_pytexmk()
         if file_extension!= f'{suffixes}':  # 判断后缀是否是 .tex
-            self.logger.error(_("文件类型非 tex: ") + f"[bold cyan]{check_project_name}[/bold cyan]")
+            self.logger.error(_("文件类型非 %(args)s: ") % {'args': suffixes} + f"[bold cyan]{check_project_name}{suffixes}")
             exit_pytexmk()
 
 

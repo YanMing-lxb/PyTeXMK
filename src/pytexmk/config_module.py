@@ -19,8 +19,8 @@ pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
-aux_folder = "./Auxiliary/" # 辅助文件夹
-output_folder = "./Build/" # 输出文件夹
+auxdir = "./Auxiliary/" # 辅助文件夹
+outdir = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
@@ -45,8 +45,8 @@ pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器
 
 [folder]
-aux_folder = "./Auxiliary/" # 辅助文件夹
-output_folder = "./Build/" # 输出文件夹
+auxdir = "./Auxiliary/" # 辅助文件夹
+outdir = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
@@ -133,14 +133,12 @@ class ConfigParser:
             dict: 最终的配置字典。
         """
         self.init_default_config(self.system_config_path, default_system_config)
-        system_config = self._load_toml(self.system_config_path)  # 加载系统配置文件
+        system_config = defaultdict(lambda: None, self._load_toml(self.system_config_path))  # 加载系统配置文件
         if system_config["local_config_auto_init"]:
             self.init_default_config(self.local_config_path, default_local_config)
             local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
         
-        # 使用defaultdict来避免KeyError，默认值为None
-        # 如果系统配置存在，则基于系统配置创建defaultdict，否则创建一个空的defaultdict
-        final_config = defaultdict(lambda: None, system_config) if system_config else defaultdict(lambda: None)
+        final_config = system_config if system_config else {}
 
         if local_config:
             final_config.update(local_config)
@@ -148,4 +146,8 @@ class ConfigParser:
             self.logger.info(_("未找到本地配置文件, 使用系统配置"))
 
         self.logger.info(_("配置文件加载完成"))
+
+        # 转换为 defaultdict 来避免KeyError，默认值为None
+        final_config = defaultdict(lambda: None, final_config)
+
         return final_config
