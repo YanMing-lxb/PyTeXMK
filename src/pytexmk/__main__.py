@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 00:09:22 +0800
+LastEditTime : 2024-08-16 11:10:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -99,7 +99,7 @@ def parse_args():
     parser.add_argument('-nq', '--non-quiet', action='store_true', help=_("非安静模式运行, 此模式下终端显示日志信息"))
     parser.add_argument('-vb', '--verbose', action='store_true', help=_("显示 PyTeXMK 运行过程中的详细信息"))
     parser.add_argument('-pr', '--pdf-repair', action='store_true', help=_("尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R object 时, 可使用此参数尝试修复所有 pdf 文件"))
-    parser.add_argument('-pv', '--pdf-preview', nargs='?', default='Do not preview', metavar='FILE_NAME', help=_("尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"))
+    parser.add_argument('-pv', '--pdf-preview', nargs='?', const='preview after compile', metavar='FILE_NAME', help=_("尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"))
     parser.add_argument('document', nargs='?', help=_("待编译主文件名"))
 
     # 解析命令行参数
@@ -122,7 +122,7 @@ def main():
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
     diff_tex_file = "LaTeXDiff"
-    pdf_preview_status = "Do not start"
+    pdf_preview_status = "preview after compile"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
     runtime_dict = {}
     magic_comments = {} # 存储魔法注释
@@ -174,7 +174,7 @@ def main():
 
     if config_dict["pdf"]: # 如果存在配置文件中的 pdf 参数
         if config_dict["pdf"]["pdf_preview"]: # 如果存在配置文件中的 pdf_preview 参数
-            pdf_preview_status = None # 置空 pdf_preview_status，表示编译结束预览 PDF
+            pdf_preview_status = "preview after compile" # 表示编译结束预览 PDF
             logger.info(_("通过配置文件设置 PDF 预览为: ") + f"[bold cyan]{args.pdf_preview}")
         if config_dict["pdf"]["viewer"]: # 如果存在配置文件中的 viewer 参数
             PFO.set_viewer(config_dict["pdf"]["viewer"])
@@ -244,7 +244,7 @@ def main():
     # 非编译预览 PDF 操作
     # --------------------------------------------------------------------------------
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
-    if pdf_preview_status != 'Do not preview' and pdf_preview_status != None: # 当 -pv 参数存在时, 有值且不等于默认值 'Do not preview' 时, 进行 PDF 预览操作
+    if pdf_preview_status and pdf_preview_status != 'preview after compile' and not args.document: # 当 -pv 指定参数时, 进行 PDF 预览操作
         pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
         pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
         PFO.pdf_preview(pdf_preview_status, outdir) # 调用 pdf_preview 函数进行 PDF 预览操作
@@ -416,7 +416,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 编译结束后 PDF 预览
     # --------------------------------------------------------------------------------       
-    if pdf_preview_status == None: # 当终端有 -pv 参数时，但没设置值时，默认开启预览功能
+    if pdf_preview_status == "preview after compile": # 当终端有 -pv 未指定参数时, 进行 PDF 预览操作
         PFO.pdf_preview(project_name, outdir)
 
     # --------------------------------------------------------------------------------
