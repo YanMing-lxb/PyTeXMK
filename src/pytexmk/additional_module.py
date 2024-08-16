@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-15 10:43:22 +0800
+LastEditTime : 2024-08-16 17:51:23 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -347,7 +347,7 @@ class MainFileJudgment(object):
 
 class PdfFileOperation(object):
 
-    def __init__(self, viewer = None):
+    def __init__(self, viewer = "default"):
         self.logger = logging.getLogger(__name__)
         self.viewer = viewer
     
@@ -358,12 +358,13 @@ class PdfFileOperation(object):
     # 定义 PDF 预览器选择函数
     # --------------------------------------------------------------------------------
     def _preview_pdf_by_viewer(self, local_path): # TODO：自己写一个简单的PDF预览器
-        if self.viewer:
-            self.logger.info(_("设置 PDF 查看器: ") + f"{self.viewer}")
-            # TODO：调用指定外部程序打开文件需要完善
-        else: 
+        print('[bold green]正在打开文件...', self.viewer)
+        if self.viewer == "default" and not self.viewer: 
             self.logger.info(_("未设置 PDF 查看器，使用默认 PDF 查看器"))
             webbrowser.open(local_path)
+        elif self.viewer and self.viewer != "default":
+            self.logger.info(_("设置 PDF 查看器: ") + f"{self.viewer}")
+            # TODO：调用指定外部程序打开文件需要完善
 
     # --------------------------------------------------------------------------------
     # 定义 PDF 文件预览函数

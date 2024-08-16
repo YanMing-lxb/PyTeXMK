@@ -16,7 +16,7 @@ local_config_auto_init = true # 是否自动创建本地配置文件
 
 [pdf]
 pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
-pdf_viewer = "default" # PDF查看器
+pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
 
 [folder]
 auxdir = "./Auxiliary/" # 辅助文件夹
@@ -24,9 +24,10 @@ outdir = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
-index_style_file = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
+index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
+# glossaries 宏包和 nomencl 宏包无需配置 [index]
 
 # LaTeX差异配置
 [latexdiff]
@@ -41,8 +42,8 @@ compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
 [pdf]
-pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
-pdf_viewer = "default" # PDF查看器
+pdf_preview = false # PDF预览, 指编译结束后是否打开PDF文件
+pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
 
 [folder]
 auxdir = "./Auxiliary/" # 辅助文件夹
@@ -50,9 +51,10 @@ outdir = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
-index_style_file = "nomencl.ist"  # 如果是文件名则输入文件名, 否则输入文件后缀
+index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
+# glossaries 宏包和 nomencl 宏包无需配置 [index]
 
 # LaTeX差异配置
 [latexdiff]

@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 17:01:49 +0800
+LastEditTime : 2024-08-16 17:08:17 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -267,17 +267,17 @@ def main():
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
     
     if args.LaTeXDiff or args.LaTeXDiff_compile or args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
+        # 当 -d -dc 参数存在但未在命令行指定两个 TeX 文件时, 尝试从配置文件中读取
         if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
             print(_("命令行未指定 LaTeXDiff 相关参数"))
-            if new_tex_file:
-                print(_("根据配置文件设置 LaTeXDiff 旧 TeX 文件为:"), new_tex_file)
-            if old_tex_file:
-                print(_("根据配置文件设置 LaTeXDiff 新 TeX 文件为:"), old_tex_file)
+            if new_tex_file and old_tex_file:
+                print(_("根据配置文件设置 LaTeXDiff 新旧 TeX 文件为:"), old_tex_file, new_tex_file)
             else:
                 logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
                 exit_pytexmk()
+        
         if args.LaTeXDiff and len(args.LaTeXDiff) != 2 or args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) != 2:
-            logger.error(_("请指定 LaTeXDiff 所需的新旧 TeX 文件"))
+            logger.error(_("请同时指定 LaTeXDiff 所需的新旧 TeX 文件"))
             exit_pytexmk()
         if args.LaTeXDiff and len(args.LaTeXDiff) == 2:
             old_tex_file, new_tex_file = args.LaTeXDiff
