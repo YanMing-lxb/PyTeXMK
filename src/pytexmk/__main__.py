@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 20:08:45 +0800
+LastEditTime : 2024-08-16 20:41:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -129,6 +129,7 @@ def main():
     diff_tex_file = "LaTeXDiff"
     pdf_preview_status = "preview after compile"
     magic_comments_keys = ["program", "root", "outdir", "auxdir"]
+    project_name = ""
     runtime_dict = {}
     magic_comments = {} # 存储魔法注释
     suffixes_out = [".pdf", ".synctex.gz"]
@@ -271,7 +272,8 @@ def main():
         if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
             print(_("命令行未指定 LaTeXDiff 相关参数"))
             if new_tex_file and old_tex_file:
-                print(_("根据配置文件设置 LaTeXDiff 新旧 TeX 文件为: ") + old_tex_file, new_tex_file)
+                print(_("根据配置文件设置 LaTeXDiff 新 TeX 文件为: ") + f"[bold cyan]{new_tex_file}")
+                print(_("根据配置文件设置 LaTeXDiff 旧 TeX 文件为: ") + f"[bold cyan]{old_tex_file}")
             else:
                 logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
                 exit_pytexmk()
@@ -286,7 +288,6 @@ def main():
         
         old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
-        print('[bold green]LaTeXDiff 相关参数设置成功: ' + old_tex_file, new_tex_file)
     else:
         project_name = get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
         project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
