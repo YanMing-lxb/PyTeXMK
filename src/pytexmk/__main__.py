@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 19:33:13 +0800
+LastEditTime : 2024-08-16 20:08:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -339,12 +339,18 @@ def main():
         runtime_remove_aux_matched_auxdir = time_count(MRC.remove_matched_files, aux_regex_files, '.')
         runtime_dict[_("清除所有的辅助文件")] = runtime_remove_aux_matched_auxdir
         print(_('[bold green]已完成清除所有带辅助文件后缀的文件的指令'))
+        if runtime_dict: # 如果存在运行时统计信息
+            time_print(start_time, runtime_dict) # 打印编译时长统计
+        return
     elif args.Clean_any:
         runtime_remove_aux_matched_auxdir = time_count(MRC.remove_matched_files, aux_regex_files, '.')
         runtime_dict[_("清除所有的辅助文件")] = runtime_remove_aux_matched_auxdir
         runtime_remove_out_outdir = time_count(MRC.remove_specific_files, out_files, outdir)
         runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_out_outdir
         print(_('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令'))
+        if runtime_dict: # 如果存在运行时统计信息
+            time_print(start_time, runtime_dict) # 打印编译时长统计
+        return
 
 
     # --------------------------------------------------------------------------------
