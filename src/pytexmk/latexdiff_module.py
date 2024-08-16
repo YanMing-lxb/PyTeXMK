@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-13 17:12:30 +0800
+LastEditTime : 2024-08-16 20:46:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -44,7 +44,7 @@ class LaTeXDiff_Aux:
         
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
         self.suffixes_aux = suffixes_aux
-        self.auxdir = auxdir
+        self.auxdir = Path(auxdir)
 
         self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
 
