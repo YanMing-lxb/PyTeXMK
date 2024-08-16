@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 11:10:45 +0800
+LastEditTime : 2024-08-16 12:45:15 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -66,6 +66,11 @@ class CustomArgumentParser(argparse.ArgumentParser):
             UC.check_for_updates()
         super().exit(status, message)
 
+class CustomHelpFormatter(RichHelpFormatter):
+    def _format_args(self, action, default_metavar):
+        if action.dest == 'LaTexDiff_compile' or action.dest == 'LaTeXDiff':
+            return 'OLD_FILE NEW_FILE'
+        return super()._format_args(action, default_metavar)
 
 
 # --------------------------------------------------------------------------------
@@ -90,8 +95,8 @@ def parse_args():
     meg_engine.add_argument('-p', '--PdfLaTeX', action='store_true', help=_("PdfLaTeX 进行编译"))
     meg_engine.add_argument('-x', '--XeLaTeX', action='store_true', help=_("XeLaTeX 进行编译"))
     meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=_("LuaLaTeX 进行编译"))
-    parser.add_argument('-d', '--LaTeXDiff', nargs='?', const=None, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
-    parser.add_argument('-dc', '--LaTexDiff-compile', nargs='?', const=None, metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
+    parser.add_argument('-d', '--LaTeXDiff', nargs='*', metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
+    parser.add_argument('-dc', '--LaTexDiff-compile', nargs='*', metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
     meg_clean.add_argument('-c', '--clean', action='store_true', help=_("清除所有主文件的辅助文件"))
     meg_clean.add_argument('-C', '--Clean', action='store_true', help=_("清除所有主文件的辅助文件（包含根目录）和输出文件"))
     meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=_("清除所有带辅助文件后缀的文件"))
@@ -206,18 +211,36 @@ def main():
     # TODO 添加suffixes_aux 与 suffixes_out 相关的配置参数和功能
     
     # --------------------------------------------------------------------------------
+    # -d 和 -dc 参数处理
+    # --------------------------------------------------------------------------------
+    if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
+        print(_("命令行未指定 LaTeXDiff 相关参数"))
+        if new_tex_file and old_tex_file:
+            print(_("使用配置文件设置的 LaTeXDiff 相关参数"))
+        else:
+            logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
+            exit_pytexmk()
+    elif args.LaTeXDiff and len(args.LaTeXDiff) != 2 or args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) != 2:
+        logger.error(_("请指定 LaTeXDiff 所需的新旧 TeX 文件"))
+        exit_pytexmk()
+    elif args.LaTeXDiff and len(args.LaTeXDiff) == 2:
+        old_tex_file, new_tex_file = args.LaTeXDiff
+    elif args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) == 2:
+        old_tex_file, new_tex_file = args.LaTeXDiff_compile
+
+    # --------------------------------------------------------------------------------
     # 详细模式及实例化日志
     # --------------------------------------------------------------------------------
-    verbose = args.verbose
+    verbose = args.verbose # 存储详细模式参数
     logger = setup_logger(verbose)
 
     # --------------------------------------------------------------------------------
     # 命令行安静模式判断
     # --------------------------------------------------------------------------------
     if args.non_quiet: # 如果存在 non_quiet 参数
-        non_quiet = True
+        non_quiet = args.non_quiet
+    if non_quiet == True: # 如果存在 anon_quiet 参数
         logger.info(_("非安静模式运行"))
-
 
     # --------------------------------------------------------------------------------
     # README 文件打开函数
@@ -257,10 +280,6 @@ def main():
     all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
     
     if args.LaTeXDiff or args.LaTexDiff_compile:
-        if args.LaTeXDiff:
-            old_tex_file, new_tex_file = args.LaTeXDiff # 获取 -d 参数指定的两个文件
-        elif args.LaTexDiff_compile:
-            old_tex_file, new_tex_file = args.LaTexDiff_compile # 获取 -dc 参数指定的两个文件
         old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
         diff_tex_file = MFJ.check_project_name(main_file_in_root, diff_tex_file, '.tex') # 检查 diff_tex_file 是否正确

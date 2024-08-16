@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 def get_main_file(default_file, args_document, main_file_in_root, all_magic_comments):
     project_name = ''
     current_path = Path.cwd()  # 使用pathlib库获取当前工作目录的路径
-
+    default_file = MFJ.check_project_name(main_file_in_root, default_file, '.tex') # 检查 default_file 是否正确
     if args_document: # 当前目录下存在 tex 文件, 且命令行参数中指定了主文件
         project_name = args_document # 使用命令行参数指定主文件
         print(_("通过命令行命令指定待编译主文件为: ") + f"[bold cyan]{project_name}")

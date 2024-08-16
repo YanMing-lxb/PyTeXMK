@@ -9,7 +9,7 @@ _ = set_language('config')
 
 # 默认配置文件
 default_system_config = """
-default_file = "main" # 主文件名，要求不输入文件后缀
+default_file = "main" # 主文件名
 compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 local_config_auto_init = true # 是否自动创建本地配置文件
@@ -30,13 +30,13 @@ output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old_tex"  # 旧TeX文件，要求不输入文件后缀
-new_tex_file = "new_tex"  # 新TeX文件，要求不输入文件后缀
-diff_tex_file = "LaTeXDiff"  # 差异TeX文件，要求不输入文件后缀
+old_tex_file = "old_tex"  # 旧TeX文件
+new_tex_file = "new_tex"  # 新TeX文件
+diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
         
 default_local_config = """
-default_file = "main" # 主文件名，要求不输入文件后缀
+default_file = "main" # 主文件名
 compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
@@ -56,9 +56,9 @@ output_suffix = ".nls"  # 输出文件后缀
 
 # LaTeX差异配置
 [latexdiff]
-old_tex_file = "old_tex"  # 旧TeX文件，要求不输入文件后缀
-new_tex_file = "new_tex"  # 新TeX文件，要求不输入文件后缀
-diff_tex_file = "LaTeXDiff"  # 差异TeX文件，要求不输入文件后缀
+old_tex_file = "old_tex"  # 旧TeX文件
+new_tex_file = "new_tex"  # 新TeX文件
+diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
 
 class ConfigParser:
