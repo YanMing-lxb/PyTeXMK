@@ -1,8 +1,7 @@
-# Configuration for Release Drafter: https://github.com/toolmantim/release-drafter
 # 配置Release Drafter：https://github.com/toolmantim/release-drafter
-name-template: 'PyTeXMK ${GITHUB_REF#refs/tags/} 🌈'
+name-template: 'PyTeXMK v$version🌈'
 # 发布名称模板：使用GitHub引用标签并添加彩虹表情
-tag-template: '${GITHUB_REF#refs/tags/}'
+# tag-template: 'v$version'
 # 标签模板：使用GitHub引用标签
 # version-template: $MAJOR.$MINOR.$PATCH
 # 版本模板：使用主要、次要和补丁版本号（当前被注释掉）
@@ -43,18 +42,18 @@ categories: # TODO 需要测试并学习使用
   # 测试分类：包括测试标签
 exclude-labels:
 # 排除标签配置
-  - reverted
-  - no-changelog
-  - skip-changelog
-  - invalid
+    - reverted
+    - no-changelog
+    - skip-changelog
+    - invalid
 # 排除的标签：包括还原、无变更日志、跳过变更日志和无效标签
 change-template: '* $TITLE (#$NUMBER) @$AUTHOR'
 # 变更模板：包括标题、编号和作者
 template: |
   ## What’s Changed
   $CHANGES
-# 模板：变更内容的格式
-Terms
-Privacy
-Security
-# 条款、隐私和安全
+# # 模板：变更内容的格式
+# Terms
+# Privacy
+# Security
+# # 条款、隐私和安全

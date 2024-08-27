@@ -1,0 +1,101 @@
+/*
+ *  =======================================================================
+ *  ····Y88b···d88P················888b·····d888·d8b·······················
+ *  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ *  ······Y88o88P··················88888b·d88888···························
+ *  ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ *  ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ *  ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ *  ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ *  ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ *  ·······························································888·····
+ *  ··························································Y8b·d88P·····
+ *  ···························································"Y88P"······
+ *  =======================================================================
+ * 
+ *  -----------------------------------------------------------------------
+ * Author       : 焱铭
+ * Date         : 2024-08-27 19:36:38 +0800
+ * LastEditTime : 2024-08-27 19:54:44 +0800
+ * Github       : https://github.com/YanMing-lxb/
+ * FilePath     : /PyTeXMK/.github/workflows/Publish.yml
+ * Description  : 
+ *  -----------------------------------------------------------------------
+ */
+
+name: Publish pytexmk 🐍  # 定义工作流的名称，当推送匹配的标签时发布到PyPI
+on:
+  push:
+    tags:
+      - v*  # 当推送以v开头的标签时触发此工作流
+
+jobs:
+  build:
+    name: Build PyTeXMK  # 定义构建作业的名称
+    runs-on: ubuntu-latest  # 指定运行此作业的操作系统
+
+    steps:
+    - name: Checkout source  # 检出源代码的步骤
+      uses: actions/checkout@v4  # 使用actions/checkout动作来检出代码
+
+    - name: Set up 🐍 Python  # 设置Python环境的步骤
+      uses: actions/setup-python@v5  # 使用actions/setup-python动作来设置Python环境
+      with:
+        python-version: "3.x"  # 指定Python版本为3.x
+
+    - name: Build 📦 source and wheel  # 构建源代码和wheel包的步骤
+      run: |
+        python3 -m pip install --upgrade build twine rich  # 安装构建和上传所需的工具
+        python3 -m build  # 构建源代码和wheel包
+
+    - name: Store the distribution packages  # 存储构建好的分发包的步骤
+      uses: actions/upload-artifact@v4  # 使用actions/upload-artifact动作来上传构建好的包
+      with:
+        name: python-package-distributions  # 指定上传的artifact名称
+        path: dist/  # 指定要上传的文件路径
+
+  publish-to-pypi:
+    name: Publish 🐍 PyTeXMK 📦 to PyPI  # 定义发布到PyPI作业的名称
+    if: startsWith(github.ref, 'refs/tags/')  # 只有在推送标签时才执行此作业
+    needs: build  # 指定此作业依赖于build作业
+    runs-on: ubuntu-latest  # 指定运行此作业的操作系统
+    environment:
+      name: pypi  # 定义环境名称
+      url: https://pypi.org/project/pytexmk  # 替换为实际的PyPI项目URL
+    permissions:
+      contents: read  # 需要读取内容的权限
+      id-token: write  # 需要写入ID令牌的权限
+
+    steps:
+    - name: Download all the 📦 dists  # 下载所有分发包的步骤
+      uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
+      with:
+        name: python-package-distributions  # 指定要下载的artifact名称
+        path: dist/  # 指定下载到的路径
+  - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
+      uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
+      with:
+        repository-url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
+
+
+
+  publish-to-github-release:
+    name: Publish 🐍 PyTeXMK 📦 to GitHub Release  # 定义发布到GitHub Release作业的名称
+    if: startsWith(github.ref, 'refs/tags/')  # 只有在推送标签时才执行此作业
+    needs: build  # 指定此作业依赖于build作业
+    runs-on: ubuntu-latest  # 指定运行此作业的操作系统
+
+    steps:
+    - name: Download all the 📦 dists  # 下载所有分发包的步骤
+      uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
+      with:
+        name: python-package-distributions  # 指定要下载的artifact名称
+        path: dist/  # 指定下载到的路径
+
+    - name: Publish to GitHub Release  # 发布到GitHub Release的步骤
+      uses: softprops/action-gh-release@v2.0.8  # 使用softprops/action-gh-release动作来发布到GitHub Release
+      with:
+        token: ${{ secrets.PUBLISH_PYTEXMK }}  # 替换为实际的GitHub Token
+        name: PyTeXMK ${{ github.ref_name }} # 
+        files: dist/*  # 指定要发布的文件路径
+        

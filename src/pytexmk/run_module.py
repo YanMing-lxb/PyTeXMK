@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-08-14 23:18:53 +0800
+LastEditTime : 2024-08-27 21:38:09 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -31,7 +31,7 @@ from .info_print_module import time_count, print_message
 
 _ = set_language('run')
 
-
+# 完善注释
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
