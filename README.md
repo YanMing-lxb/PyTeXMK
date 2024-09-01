@@ -118,6 +118,10 @@ PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编
         
 - PyTeXMK 会优先使用 `% !TEX outdir = PDFfile` 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 `Build`
 
+# 更新记录
+
+更新记录详见 [CHANGELOG.md](./CHANGELOG.md)
+
 # 未来工作方向
 
 - [X] 增加尝试修复根目录以外所有 PDF 文件的功能（在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 `invalid X X R object at offset XXXXX` 的警告的问题）

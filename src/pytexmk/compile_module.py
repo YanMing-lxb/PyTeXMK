@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-08-09 15:46:33 +0800
+LastEditTime : 2024-09-01 20:50:44 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -329,7 +329,7 @@ class CompileLaTeX(object):
     # --------------------------------------------------------------------------------
     def bib_judgment(self, old_cite_counter):
         """
-        判断是否需要使用biber或bibtex进行参考文献编译，并返回相应的编译引擎、额外编译次数、编译信息和目标名称。
+        判断是否需要使用biber或bibtex进行参考文献编译，并返回相应的编译引擎、LaTeX 编译次数、编译信息和目标名称。
         
         参数:
         - old_cite_counter (int): 之前的引用计数。
@@ -344,14 +344,14 @@ class CompileLaTeX(object):
         行为逻辑:
         1. 检查项目目录下是否存在aux文件，如果不存在则记录警告并返回。
         2. 读取aux文件内容，检查是否存在biber或bibtex的特征命令。
-        3. 如果存在biber特征命令，则进一步检查bcf文件中是否存在bib文件名，并设置相应的编译引擎和额外编译次数。
-        4. 如果存在bibtex特征命令，则直接从aux文件中提取bib文件名，并设置相应的编译引擎和额外编译次数。
+        3. 如果存在biber特征命令，则进一步检查bcf文件中是否存在bib文件名，并设置相应的编译引擎和 LaTeX 编译次数。
+        4. 如果存在bibtex特征命令，则直接从aux文件中提取bib文件名，并设置相应的编译引擎和 LaTeX 编译次数。
         5. 检查bib文件是否存在，如果不存在则更新编译信息。
-        6. 获取新的引用计数，如果引用计数没有变化，则更新编译信息并设置额外编译次数为0。
-        7. 检查LaTeX输出中是否有bbl文件缺失或引用未定义的提示，如果有则更新编译信息并设置额外编译次数。
-        8. 如果没有找到biber或bibtex特征命令，但存在bibcite命令，则更新编译信息为使用thebibliography环境排版。
+        6. 获取新的引用计数，如果引用计数没有变化，则更新编译信息并设置 LaTeX 编译次数为0。
+        7. 检查LaTeX输出中是否有bbl文件缺失或引用未定义的提示，如果有则更新编译信息并设置 LaTeX 编译次数。
+        8. 如果没有找到biber或bibtex特征命令，但存在bibcite命令，则更新编译信息为使用thebibliography环境排版，设置 LaTeX 编译次数。
         9. 如果没有引用参考文献或编译工具不属于bibtex或biber，则更新编译信息。
-        10. 返回编译引擎、额外编译次数、编译信息和目标名称。
+        10. 返回编译引擎、 LaTeX 编译次数、编译信息和目标名称。
         """
         bib_engine = None  # 初始化参考文献编译引擎为None
         name_target = None  # 初始化目标名称为None
@@ -372,7 +372,7 @@ class CompileLaTeX(object):
                     else:
                         self.bib_file = match_biber_bib.group(1)  # 获取bib文件名
                         bib_engine = 'biber'  # 设置参考文献编译引擎为biber
-                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
+                        Latex_compilation_times = 2  # LaTeX 编译次数 
                 
                 elif match_bibtex:  # 判断应使用 bibtex 引擎编译
                     match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)  # 检索aux文件中是否存在bib文件名
@@ -381,7 +381,7 @@ class CompileLaTeX(object):
                     else:
                         self.bib_file = match_bibtex_bib.group(1)  # 获取bib文件名
                         bib_engine = 'bibtex'  # 设置参考文献编译引擎为bibtex
-                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
+                        Latex_compilation_times = 2  # LaTeX 编译次数 
 
                 print_bib = bib_engine + _("编译参考文献")
                 name_target = bib_engine
@@ -403,6 +403,7 @@ class CompileLaTeX(object):
 
             elif re.search(r'\\bibcite', aux_content):
                 print_bib = _("thebibliography 环境实现排版")
+                Latex_compilation_times = 2
 
             else:
                 print_bib = _("没有引用参考文献或编译工具不属于 bibtex 或 biber")
