@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2024-09-01 21:34:24 +0800
+ * LastEditTime : 2024-09-01 22:23:25 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -50,3 +50,4 @@
 ### 其他
 - 新增 CHANGELOG.md 文件，用于记录版本更新日志。
 - 新增 Actions 工作流，用于自动化在 PYPI 和 GitHub 发布。
+- 新增英文 README.md 文件，用于介绍 PyTeXMK。
