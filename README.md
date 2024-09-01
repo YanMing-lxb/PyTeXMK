@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-09-01 21:24:05 +0800
+ * LastEditTime : 2024-09-01 22:21:26 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -27,7 +27,9 @@
 
 [![GitHub](https://img.shields.io/badge/Github-PyTeXMK-000000.svg)](https://github.com/YanMing-lxb/PyTeXMK) [![License](https://img.shields.io/badge/license-GPLv3-aff)](https://www.latex-project.org/lppl/) ![OS](https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg) [![GitHub release](https://img.shields.io/github/release/YanMing-lxb/PyTeXMK.svg?color=blueviolet&label=version&style=popout)](https://github.com/YanMing-lxb/PyTeXMK/releases/latest) [![Last Commit](https://img.shields.io/github/last-commit/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/zipball/master) [![Issues](https://img.shields.io/github/issues/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/issues) [![Github Action](https://github.com/YanMing-lxb/PyTeXMK/workflows/Test/badge.svg)](https://github.com/YanMing-lxb/PyTeXMK/actions) [![PyPI version](https://img.shields.io/pypi/v/pytexmk.svg)](https://pypi.python.org/pypi/pytexmk/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pytexmk.svg?label=PyPI%20downloads)](https://pypi.org/project/pytexmk/) ![GitHub repo size](https://img.shields.io/github/repo-size/YanMing-lxb/PyTeXMK)
 
-LaTeX 辅助编译命令行程序 LaTeX Auxiliary Compilation Command Line Tool
+[简体中文 README](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.md) | [English README](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.en.md)
+
+LaTeX 辅助编译命令行程序
 
 ---
 
@@ -49,8 +51,6 @@ pip3 install --upgrade pytexmk
 
 ## 使用入门
 
-PyTeXMK 默认参数：`XeLaTeX` 编译、待编译主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。
-
 请仔细阅读：[待编译主文件及编译类型选定逻辑](#待编译主文件及编译类型选定逻辑)
 
 > PyTeXMK，仅支持 utf-8 编码的 TeX 文件。
@@ -60,10 +60,11 @@ Pytexmk 默认配置如下：
 
 1. 编译程序：`XeLaTeX`
 2. 待编译主文件名：`main.tex`
-3. 编译结果存放在 LaTeX 项目的 Build 文件夹下
-4. 辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下
+3. 编译结果存放在 LaTeX 项目的 `Build` 文件夹下 (VSCode 用户则需要在 `settings.json` 中注意设置 `"latex-workshop.latex.outDir": "./Build",` 使得 LaTeX-Workshop 能够找到 pdf )
+4. 辅助文件存放在 LaTeX 项目的 `Auxiliary` 文件夹下
 5. 编译模式：batch 模式（编译过程信息不显，如需显示编译过程信息请使用 `-uq` 参数）
 
+> 注意：以上参数均可在配置文件中修改，具体请参考：[配置文件说明](#配置文件说明)
 
 
 ### 编译命令
@@ -139,11 +140,23 @@ PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编
 
 PyTeXMK 会优先使用 `% !TEX outdir = PDFfile` 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 `Build`
 
-# 更新记录
+### 配置文件说明
+PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文件。配置文件可以用于改变 Pytexmk 默认配置以及配置一些其他功能。
+系统配置文件在首次运行 PyTeXMK 时自动生成，位于用户目录下，文件名为 `.pytexmkrc`；
+本地配置文件会在该项目首次运行 PyTeXMK 时自动生成，位于当前工作目录下，文件名为 `.pytexmkrc`。
+自动生成的配置文件中存在详细的注释，请根据注释进行配置。
 
+#### 配置文件路径
+系统配置文件路径：Windows 系统为 `C:\Users\用户名\.pytexmkrc`，Linux 系统为 `~/.pytexmkrc`
+本地配置文件路径：为当前工作目录下的 `.pytexmkrc` 文件
+
+#### 配置文件优先级
+本地配置文件优先级高于系统配置文件，如果两者对相同参数进行配置，则优先使用本地配置文件的配置。
+
+## 更新记录
 更新记录详见 [CHANGELOG 文档](https://github.com/YanMing-lxb/PyTeXMK/blob/main/CHANGELOG.md)
 
-# 未来工作方向
+## 未来工作方向
 
 - [X] 增加尝试修复根目录以外所有 PDF 文件的功能（在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 `invalid X X R object at offset XXXXX` 的警告的问题）
 - [X] 完善主文件判断功能：
