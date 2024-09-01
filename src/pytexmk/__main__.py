@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-08-16 20:50:30 +0800
+LastEditTime : 2024-09-01 21:58:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -161,8 +161,37 @@ def main():
 
 
     # --------------------------------------------------------------------------------
+    # README 文件打开函数
+    # --------------------------------------------------------------------------------
+    if args.readme: # 如果存在 readme 参数
+        try:
+            # 使用 pathlib 获取包数据路径
+            data_path = Path(importlib.resources.files('pytexmk')) / 'data'
+            # 使用 pathlib 拼接 README.html 文件路径
+            readme_path = data_path / "README.html"
+            print(_("[bold green]正在打开 README 文件..."))
+            # 使用 pathlib 获取 README.html 文件的绝对路径
+            logger.info(_("README 本地路径: %(args)s") % {"args": f"file://{readme_path.resolve().as_posix()}"})
+            # 使用 webbrowser 打开 README.html 文件
+            webbrowser.open(f'file://{readme_path.resolve().as_posix()}')
+        except Exception as e:
+            # 记录打开 README 文件时的错误信息
+            logger.error(_("打开 README 文件出错: ") + str(e))
+        finally:
+            # 打印退出信息并退出程序
+            exit_pytexmk()
+    # --------------------------------------------------------------------------------
+    # TeX 文件获取判断，魔法注释获取
+    # --------------------------------------------------------------------------------
+    logger.info("-"*70)
+    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
+    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
+    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
+
+    # --------------------------------------------------------------------------------
     # 配置文件相关
     # --------------------------------------------------------------------------------
+    logger.info("-"*70)
     config_dict = CP.init_config_file() # 初始化配置文件，获取配置文件中的参数
 
     # 读取配置文件中的参数
@@ -222,32 +251,11 @@ def main():
     # --------------------------------------------------------------------------------
     # 命令行安静模式判断
     # --------------------------------------------------------------------------------
+    logger.info("-"*70)
     if args.non_quiet: # 如果存在 non_quiet 参数
         non_quiet = args.non_quiet
     if non_quiet == True: # 如果存在 anon_quiet 参数
         logger.info(_("非安静模式运行"))
-
-
-    # --------------------------------------------------------------------------------
-    # README 文件打开函数
-    # --------------------------------------------------------------------------------
-    if args.readme: # 如果存在 readme 参数
-        try:
-            # 使用 pathlib 获取包数据路径
-            data_path = Path(importlib.resources.files('pytexmk')) / 'data'
-            # 使用 pathlib 拼接 README.html 文件路径
-            readme_path = data_path / "README.html"
-            print(_("[bold green]正在打开 README 文件..."))
-            # 使用 pathlib 获取 README.html 文件的绝对路径
-            logger.info(_("README 本地路径: %(args)s") % {"args": f"file://{readme_path.resolve().as_posix()}"})
-            # 使用 webbrowser 打开 README.html 文件
-            webbrowser.open(f'file://{readme_path.resolve().as_posix()}')
-        except Exception as e:
-            # 记录打开 README 文件时的错误信息
-            logger.error(_("打开 README 文件出错: ") + str(e))
-        finally:
-            # 打印退出信息并退出程序
-            exit_pytexmk()
 
 
     # --------------------------------------------------------------------------------
@@ -262,11 +270,7 @@ def main():
 
     # --------------------------------------------------------------------------------
     # 主文件逻辑预处理判断
-    # --------------------------------------------------------------------------------
-    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
-    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
-    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
-    
+    # --------------------------------------------------------------------------------   
     if args.LaTeXDiff or args.LaTeXDiff_compile or args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
         # 当 -d -dc 参数存在但未在命令行指定两个 TeX 文件时, 尝试从配置文件中读取
         if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
@@ -300,6 +304,8 @@ def main():
         for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
             for value in values:  # 遍历魔法注释中所有值
                 if value[0] == project_name:  # 如果是project_name对应的文件
+                    if key == "root": # 如果是 root 关键字
+                        continue # 跳过 root 关键字
                     magic_comments[key] = value[1]  # 存储魔法注释
                     logger.info(_("提取魔法注释: ") + f"{value[0]}.tex ==> % !TEX {key} = {value[1]}")
 
