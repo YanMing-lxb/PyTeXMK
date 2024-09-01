@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-09-01 21:58:50 +0800
+LastEditTime : 2024-09-01 22:53:55 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -112,6 +112,20 @@ def parse_args():
 
     return args
 
+# --------------------------------------------------------------------------------
+# 标准化名称方法
+# --------------------------------------------------------------------------------
+def standardize_name(compiled_program):
+    # 样式标准化处理
+    compiled_program = compiled_program.lower() # 统一编译器名称为小写
+    if compiled_program == "xelatex":
+        compiled_program = "XeLaTeX"
+    elif compiled_program == "pdflatex":
+        compiled_program = "PdfLaTeX"
+    elif compiled_program == "lualatex":
+        compiled_program = "LuaLaTeX"
+    return compiled_program
+    
 
 # --------------------------------------------------------------------------------
 # 主程序
@@ -199,7 +213,7 @@ def main():
         default_file = config_dict["default_file"]
         logger.info(_("通过配置文件设置默认文件为: ") + f"[bold cyan]{default_file}")
     if config_dict["compiled_program"]: # 如果存在配置文件中的编译器
-        compiled_program = config_dict["compiled_program"]
+        compiled_program = standardize_name(config_dict["compiled_program"])
         logger.info(_("通过配置文件设置编译器为: ") + f"[bold cyan]{compiled_program}")
     if config_dict['quiet_mode']: # 如果配置文件中的安静模式参数为 True
         non_quiet = False
@@ -320,7 +334,7 @@ def main():
     elif args.LuaLaTeX:
         compiled_program = "LuaLaTeX"
     elif magic_comments.get('program'): # 如果存在 magic comments 且 program 存在
-        compiled_program = magic_comments['program'] # 使用 magic comments 中的 program 作为编译器
+        compiled_program = standardize_name(magic_comments['program']) # 使用 magic comments 中的 program 作为编译器
         print(_("通过魔法注释设置程序为: ") + f"[bold cyan]{compiled_program}")
 
 
