@@ -174,7 +174,7 @@ def main():
         logger.info(_("通过配置文件设置编译器为: ") + f"[bold cyan]{compiled_program}")
     if config_dict['quiet_mode']: # 如果配置文件中的安静模式参数为 True
         non_quiet = False
-        logger.info(_("通过配置文件设置安静模式为: ") + f"[bold cyan]{non_quiet}")
+        logger.info(_("通过配置文件设置安静模式为: ") + f"[bold cyan]{config_dict['quiet_mode']}")
 
     if config_dict["folder"]: # 如果存在配置文件中的文件夹参数
         if config_dict["folder"]["outdir"]: # 如果存在配置文件中的输出目录

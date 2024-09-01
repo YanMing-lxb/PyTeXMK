@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2024-09-01 20:57:58 +0800
+ * LastEditTime : 2024-09-01 21:34:24 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -45,6 +45,7 @@
 
 ### 修复
 - 修复了在 thebibliography 环境下参考文献无法正确编译的问题。
+- 修复 `-vb` 参属下部分显示结果不对的问题
 
 ### 其他
 - 新增 CHANGELOG.md 文件，用于记录版本更新日志。
