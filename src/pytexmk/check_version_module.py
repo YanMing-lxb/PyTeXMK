@@ -171,14 +171,14 @@ class UpdateChecker():
                 # 使用max函数和key参数找到最新版本
                 latest_version = max(version_objects)
 
-                self.logger.info(_("获取 %(args)s 最新版本号成功: ") % {"args": {package_name}} + f"[bold green]{latest_version}[/bold green]")  # 记录成功信息
+                self.logger.info(_("获取 %(args)s 最新版本号成功: ") % {"args": package_name} + f"[bold green]{latest_version}[/bold green]")  # 记录成功信息
                 return latest_version  # 返回最新版本号
             else:
-                self.logger.error(_("获取 %(args)s 最新版本号失败: 未找到版本号") % {"args": {package_name}})  # 记录错误信息
+                self.logger.error(_("获取 %(args)s 最新版本号失败: 未找到版本号") % {"args": package_name})  # 记录错误信息
                 return None  # 返回 None
 
         except Exception as e:  # 捕获所有异常
-            self.logger.error(_("获取 %(args)s 最新版本号出错: ") % {"args": {package_name}} + str(e))  # 记录错误信息
+            self.logger.error(_("获取 %(args)s 最新版本号出错: ") % {"args": package_name} + str(e))  # 记录错误信息
             return None  # 返回 None
         finally:
             end_time = time.time()  # 记录结束时间
