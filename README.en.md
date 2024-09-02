@@ -33,8 +33,8 @@ LaTeX Auxiliary Compilation Command Line Program
 ---
 
 <div align="center">
-    <img src="https://github.com/YanMing-lxb/PyTeXMK/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
-    <img src="https://github.com/YanMing-lxb/PyTeXMK/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
 </div>
 
 ## Installation
