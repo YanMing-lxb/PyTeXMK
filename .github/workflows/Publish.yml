@@ -49,11 +49,7 @@ jobs:
       uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
-        path: dist/  # 指定下载到的路径
-
-    - name: Remove README.md
-      run: |
-        rm ./README.md  # 删除README.md文件，避免上传到PyPI
+        path: ls -R
 
     - name: Display structure of downloaded files
     - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
