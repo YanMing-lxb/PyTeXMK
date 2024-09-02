@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-09-01 22:53:55 +0800
+LastEditTime : 2024-09-02 22:05:20 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -492,3 +492,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# TODO 添加预编译功能
