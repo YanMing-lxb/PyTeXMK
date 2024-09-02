@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-09-02 09:14:40 +0800
+ * LastEditTime : 2024-09-02 09:28:38 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -34,8 +34,8 @@ LaTeX 辅助编译命令行程序
 ---
 
 <div align="center">
-    <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
-    <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-right: 2.5px;">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-left: 2.5px;">
 </div>
 
 ## 安装

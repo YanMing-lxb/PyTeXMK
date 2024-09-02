@@ -26,8 +26,13 @@
       <div>
 <h1 id="pytexmk">PyTeXMK </h1>
 <p><a href="https://github.com/YanMing-lxb/PyTeXMK"><img src="https://img.shields.io/badge/Github-PyTeXMK-000000.svg" alt="GitHub"></a> <a href="https://www.latex-project.org/lppl/"><img src="https://img.shields.io/badge/license-GPLv3-aff" alt="License"></a> <img src="https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg" alt="OS"> <a href="https://github.com/YanMing-lxb/PyTeXMK/releases/latest"><img src="https://img.shields.io/github/release/YanMing-lxb/PyTeXMK.svg?color=blueviolet&amp;label=version&amp;style=popout" alt="GitHub release"></a> <a href="https://github.com/YanMing-lxb/PyTeXMK/zipball/master"><img src="https://img.shields.io/github/last-commit/YanMing-lxb/PyTeXMK" alt="Last Commit"></a> <a href="https://github.com/YanMing-lxb/PyTeXMK/issues"><img src="https://img.shields.io/github/issues/YanMing-lxb/PyTeXMK" alt="Issues"></a> <a href="https://github.com/YanMing-lxb/PyTeXMK/actions"><img src="https://github.com/YanMing-lxb/PyTeXMK/workflows/Test/badge.svg" alt="Github Action"></a> <a href="https://pypi.python.org/pypi/pytexmk/"><img src="https://img.shields.io/pypi/v/pytexmk.svg" alt="PyPI version"></a> <a href="https://pypi.org/project/pytexmk/"><img src="https://img.shields.io/pypi/dm/pytexmk.svg?label=PyPI%20downloads" alt="PyPI Downloads"></a> <img src="https://img.shields.io/github/repo-size/YanMing-lxb/PyTeXMK" alt="GitHub repo size"></p>
-<p>LaTeX 辅助编译命令行程序 LaTeX Auxiliary Compilation Command Line Tool</p>
+<p><a href="https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.md">简体中文 README</a> | <a href="https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.en.md">English README</a></p>
+<p>LaTeX 辅助编译命令行程序</p>
 <hr>
+<div align="center">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-right: 2.5px;">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-left: 2.5px;">
+</div>
 <h2 id="安装">安装 </h2>
 <p>官方版本 PyTeXMK 发布在 <a href="https://pypi.org/project/pytexmk/">PyPI</a> 上，并且可以通过 pip 包管理器从 PyPI 镜像轻松安装。</p>
 <p>请注意，您必须使用 Python 3 版本pip：</p>
@@ -35,10 +40,21 @@
 </code></pre><h2 id="升级">升级 </h2>
 <pre data-role="codeBlock" data-info="" class="language-text"><code>pip3 install --upgrade pytexmk
 </code></pre><h2 id="使用入门">使用入门 </h2>
-<p>PyTeXMK 默认参数：<code>XeLaTeX</code> 编译、待编译主文件名 main.tex、batch 模式（编译过程信息不显，如需显示编译过程信息请使用 <code>-uq</code> 参数）、编译结果存放在 LaTeX 项目的 Build 文件夹下 ( VSCode 用户则需要在 <code>settings.json</code> 中注意设置 <code>"latex-workshop.latex.outDir": "./Build",</code> 使得 LaTeX-Workshop 能够找到 pdf )、辅助文件存放在 LaTeX 项目的 Auxiliary 文件夹下。</p>
 <p>请仔细阅读：<a href="#%E5%BE%85%E7%BC%96%E8%AF%91%E4%B8%BB%E6%96%87%E4%BB%B6%E5%8F%8A%E7%BC%96%E8%AF%91%E7%B1%BB%E5%9E%8B%E9%80%89%E5%AE%9A%E9%80%BB%E8%BE%91">待编译主文件及编译类型选定逻辑</a></p>
 <blockquote>
 <p>PyTeXMK，仅支持 utf-8 编码的 TeX 文件。</p>
+</blockquote>
+<h3 id="默认配置">默认配置 </h3>
+<p>Pytexmk 默认配置如下：</p>
+<ol>
+<li>编译程序：<code>XeLaTeX</code></li>
+<li>待编译主文件名：<code>main.tex</code></li>
+<li>编译结果存放在 LaTeX 项目的 <code>Build</code> 文件夹下 (VSCode 用户则需要在 <code>settings.json</code> 中注意设置 <code>"latex-workshop.latex.outDir": "./Build",</code> 使得 LaTeX-Workshop 能够找到 pdf )</li>
+<li>辅助文件存放在 LaTeX 项目的 <code>Auxiliary</code> 文件夹下</li>
+<li>编译模式：batch 模式（编译过程信息不显，如需显示编译过程信息请使用 <code>-uq</code> 参数）</li>
+</ol>
+<blockquote>
+<p>注意：以上参数均可在配置文件中修改，具体请参考：<a href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E8%AF%B4%E6%98%8E">配置文件说明</a></p>
 </blockquote>
 <h3 id="编译命令">编译命令 </h3>
 <p>PyTeXMK 支持：</p>
@@ -172,12 +188,8 @@
 <p>魔法注释仅支持在主文件中定义，不支持在子文件中定义。</p>
 </blockquote>
 <h3 id="待编译主文件及编译类型选定逻辑">待编译主文件及编译类型选定逻辑 </h3>
-<ul>
-<li>
-<p>PyTeXMK 优先使用终端输入命令 <code>-p</code> <code>-x</code> <code>-l</code> 参数指定的编译类型，如果没有指定，则会使用 <code>% !TEX program = XeLaTeX</code> 指定的编译类型，如果没有指定，则会使用默认的编译类型 <code>XeLaTeX</code></p>
-</li>
-<li>
-<p>PyTeXMK 待编译主文件选定逻辑顺序：</p>
+<details>
+<summary><b>待编译主文件选定逻辑</b></summary>
 <ol>
 <li>如果命令行参数中指定了主文件，则使用该主文件名。</li>
 <li>如果当前根目录下存在且只有一个主文件，则使用该文件作为待编译主文件。</li>
@@ -186,21 +198,42 @@
 <li>如果无法根据魔法注释确定主文件，则尝试根据默认主文件名 <code>main.tex</code> 指定待编译主文件。</li>
 <li>如果仍然无法确定主文件，则输出错误信息并退出程序。</li>
 </ol>
-</li>
-<li>
+</details>
+<details>
+<summary><b>编译类型选定逻辑</b></summary>
+<ol>
+<li>PyTeXMK 优先使用终端输入命令 <code>-p</code> <code>-x</code> <code>-l</code> 参数指定的编译类型</li>
+<li>如果没有指定，则会使用 <code>% !TEX program = XeLaTeX</code> 指定的编译类型</li>
+<li>如果没有指定，则会使用默认的编译类型 <code>XeLaTeX</code></li>
+</ol>
+</details>
 <p>PyTeXMK 会优先使用 <code>% !TEX outdir = PDFfile</code> 指定的编译结果存放位置，如果没有指定，则会使用默认的编译结果存放位置 <code>Build</code></p>
-</li>
-</ul>
-<h1 id="未来工作方向">未来工作方向 </h1>
+<h3 id="配置文件说明">配置文件说明 </h3>
+<p>PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文件。配置文件可以用于改变 Pytexmk 默认配置以及配置一些其他功能。<br>
+系统配置文件在首次运行 PyTeXMK 时自动生成，位于用户目录下，文件名为 <code>.pytexmkrc</code>；<br>
+本地配置文件会在该项目首次运行 PyTeXMK 时自动生成，位于当前工作目录下，文件名为 <code>.pytexmkrc</code>。<br>
+自动生成的配置文件中存在详细的注释，请根据注释进行配置。</p>
+<h4 id="配置文件路径">配置文件路径 </h4>
+<p>系统配置文件路径：Windows 系统为 <code>C:\Users\用户名\.pytexmkrc</code>，Linux 系统为 <code>~/.pytexmkrc</code><br>
+本地配置文件路径：为当前工作目录下的 <code>.pytexmkrc</code> 文件</p>
+<h4 id="配置文件优先级">配置文件优先级 </h4>
+<p>本地配置文件优先级高于系统配置文件，如果两者对相同参数进行配置，则优先使用本地配置文件的配置。</p>
+<h2 id="更新记录">更新记录 </h2>
+<p>更新记录详见 <a href="https://github.com/YanMing-lxb/PyTeXMK/blob/main/CHANGELOG.md">CHANGELOG 文档</a></p>
+<h2 id="未来工作方向">未来工作方向 </h2>
 <ul>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 增加尝试修复根目录以外所有 PDF 文件的功能（在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 <code>invalid X X R object at offset XXXXX</code> 的警告的问题）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善主文件判断功能：
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 增加尝试修复根目录以外所有 PDF 文件的功能（在创建、编辑或传输过程中发生了某种形式的损坏或非法操作而导致在编译过程中出现类似 <code>invalid X X R object at offset XXXXX</code> 的警告的问题）</p>
+</li>
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善主文件判断功能：</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过检索 TeX 文件中的 <code>\documentclass[]{}</code> 或 <code>\begin{document}</code> 来判断</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 多主文件编译功能</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 魔法注释功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 魔法注释功能</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置主文件名</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 通过魔法注释设置编译引擎类型</li>
@@ -216,15 +249,19 @@
 </li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 编译次数自动判断功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 编译次数自动判断功能</p>
+  <details><summary>展开查看</summary>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善编译过程出错后的中断处理机制</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 自动判断是否需要编译参考文献</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 自动判断是否需要编译索引文件</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 自动判断是否要重新编译</li>
 </ul>
+  </details>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 增加配置文件功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox"> 增加配置文件功能</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认的编译引擎 （目前默认编译命令是 <code>XeLaTeX</code>）</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认生成的结果文件存放位置（目前默认存放在 <code>Build</code> 子文件夹下）</li>
@@ -240,7 +277,8 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 可配置默认 LaTeXDiff 输出文件名</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 预览与日志功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox"> 预览与日志功能</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 解决终端中文显示问题</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> PDF 预览功能</li>
@@ -249,16 +287,24 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 实现日志记录功能</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理功能</p>
+  <details><summary>展开查看</summary>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理辅助文件功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理所有文件功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 完善清理所有辅助文件功能</li>
 </ul>
+  </details>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加 PyTeXMK 更新检查功能</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 相关功能
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox"> 宏包检缺失并自动安装（texlive）</p>
+</li>
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加 PyTeXMK 更新检查功能</p>
+</li>
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 相关功能</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 添加编译结束后将辅助文件移动到根目录下功能</li>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> LaTeXDiff 命令行参数的实现</li>
@@ -266,8 +312,11 @@
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> LaTeXDiff 编译判断逻辑</li>
 </ul>
 </li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" checked=""> 程序国际化</li>
-<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> README 文档完善
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox" checked=""> 程序国际化</p>
+</li>
+<li class="task-list-item">
+<p><input type="checkbox" class="task-list-item-checkbox"> README 文档完善</p>
 <ul>
 <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox"> 增加配置文件相关说明</li>
 </ul>
