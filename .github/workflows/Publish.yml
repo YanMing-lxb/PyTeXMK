@@ -50,6 +50,11 @@ jobs:
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
         path: dist/  # 指定下载到的路径
+
+    - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
+      uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
+      with:
+        repository-url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
   
   publish-to-github-release:
     name: Publish 🐍 PyTeXMK 📦 to GitHub Release  # 定义发布到GitHub Release作业的名称
