@@ -44,10 +44,10 @@
 ## v0.8.11.20240901 - 2024-09-01
 
 ### 修复
-- 修复了在 thebibliography 环境下参考文献无法正确编译的问题。
+- 修复了在 `thebibliography` 环境下参考文献无法正确编译的问题。
 - 修复 `-vb` 参属下部分显示结果不对的问题
 
 ### 其他
-- 新增 CHANGELOG.md 文件，用于记录版本更新日志。
-- 新增 Actions 工作流，用于自动化在 PYPI 和 GitHub 发布。
-- 新增英文 README.md 文件，用于介绍 PyTeXMK。
+- 新增 `CHANGELOG.md` 文件，用于记录版本更新日志。
+- 新增 `Actions` 工作流，用于自动化在 PYPI 和 GitHub 发布。
+- 新增英文 `README.md` 文件，用于介绍 PyTeXMK。

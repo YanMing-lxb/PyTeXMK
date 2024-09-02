@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-09 16:11+0800\n"
+"POT-Creation-Date: 2024-09-02 09:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,20 +30,22 @@ msgstr "Please check the log file for detailed information: "
 msgid "文件不存在或无法读取，跳过文件: %(args)s"
 msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 
-#: src/pytexmk/compile_module.py:264 src/pytexmk/compile_module.py:410
+#: src/pytexmk/compile_module.py:264 src/pytexmk/compile_module.py:411
 msgid "未找到辅助文件: "
 msgstr "Auxiliary file not found: "
 
-#: src/pytexmk/compile_module.py:317 src/pytexmk/compile_module.py:436
-#: src/pytexmk/compile_module.py:559 src/pytexmk/compile_module.py:586
+#: src/pytexmk/compile_module.py:317 src/pytexmk/compile_module.py:437
+#: src/pytexmk/compile_module.py:560 src/pytexmk/compile_module.py:587
 msgid "[bold]运行命令: [/bold]"
 msgstr "[bold]Running command: [/bold]"
 
-#: src/pytexmk/compile_module.py:322 src/pytexmk/compile_module.py:440
-#: src/pytexmk/compile_module.py:564
+#: src/pytexmk/compile_module.py:322 src/pytexmk/compile_module.py:441
+#: src/pytexmk/compile_module.py:565
 #, python-format
 msgid "%(args)s 编译失败，请查看日志文件以获取详细信息: "
-msgstr "%(args)s compilation failed, please check the log file for detailed information: "
+msgstr ""
+"%(args)s compilation failed, please check the log file for detailed "
+"information: "
 
 #: src/pytexmk/compile_module.py:371 src/pytexmk/compile_module.py:380
 msgid "未设置参考文献数据库文件: "
@@ -63,40 +65,51 @@ msgstr "Number of bibliography references has not changed"
 
 #: src/pytexmk/compile_module.py:401
 msgid "LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示"
-msgstr "LaTeX compilation log contains hints of missing bbl file or undefined references"
+msgstr ""
+"LaTeX compilation log contains hints of missing bbl file or undefined "
+"references"
 
 #: src/pytexmk/compile_module.py:405
 msgid "thebibliography 环境实现排版"
 msgstr "thebibliography environment for typesetting"
 
-#: src/pytexmk/compile_module.py:408
+#: src/pytexmk/compile_module.py:409
 msgid "没有引用参考文献或编译工具不属于 bibtex 或 biber"
-msgstr "No bibliography references or the compilation tool is not bibtex or biber"
+msgstr ""
+"No bibliography references or the compilation tool is not bibtex or biber"
 
-#: src/pytexmk/compile_module.py:469
+#: src/pytexmk/compile_module.py:470
 msgid "重新编译索引，因日志文件提示没有输入文件"
 msgstr "Recompiling index because the log file indicates no input file"
 
-#: src/pytexmk/compile_module.py:476
+#: src/pytexmk/compile_module.py:477
 msgid "重新编译索引，因词汇表文件内容发生变化"
 msgstr "Recompiling index because the glossary file content has changed"
 
-#: src/pytexmk/compile_module.py:479
+#: src/pytexmk/compile_module.py:480
 msgid "无需编译索引，因词汇表文件内容没有变化"
-msgstr "No need to compile the index because the glossary file content has not changed"
+msgstr ""
+"No need to compile the index because the glossary file content has not "
+"changed"
 
-#: src/pytexmk/compile_module.py:481
+#: src/pytexmk/compile_module.py:482
 msgid "无需编译索引，因没有索引内容"
 msgstr "No need to compile the index because there is no index content"
 
-#: src/pytexmk/compile_module.py:484
+#: src/pytexmk/compile_module.py:485
 msgid "重新编译索引，因以下索引辅助文件之一存在缺失: "
-msgstr "Recompiling index because one of the following index auxiliary files is missing: "
+msgstr ""
+"Recompiling index because one of the following index auxiliary files is "
+"missing: "
 
-#: src/pytexmk/compile_module.py:534
+#: src/pytexmk/compile_module.py:535
 msgid "glossaries、nomencl 和 makeidx 以外宏包，无法进行编译索引"
-msgstr "Cannot compile index with packages other than glossaries, nomencl, and makeidx"
+msgstr ""
+"Cannot compile index with packages other than glossaries, nomencl, and "
+"makeidx"
 
-#: src/pytexmk/compile_module.py:590
+#: src/pytexmk/compile_module.py:591
 msgid "DVIPDFMX 编译失败，请查看日志文件以获取详细信息: "
-msgstr "DVIPDFMX compilation failed, please check the log file for detailed information: "
+msgstr ""
+"DVIPDFMX compilation failed, please check the log file for detailed "
+"information: "

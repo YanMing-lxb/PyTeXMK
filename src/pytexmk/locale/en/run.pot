@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-09 16:11+0800\n"
+"POT-Creation-Date: 2024-09-02 09:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,60 +17,60 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/run_module.py:45
+#: src/pytexmk/run_module.py:44
 msgid "检测识别已有辅助文件..."
 msgstr "Detecting existing auxiliary files..."
 
-#: src/pytexmk/run_module.py:48
+#: src/pytexmk/run_module.py:47
 msgid "检测辅助文件"
 msgstr "Detect AUX files"
 
-#: src/pytexmk/run_module.py:51
+#: src/pytexmk/run_module.py:50
 #, python-format
 msgid "1 次 %(args)s 编译"
 msgstr "1 time %(args)s compile"
 
-#: src/pytexmk/run_module.py:62
+#: src/pytexmk/run_module.py:61
 msgid "编译文献判定"
 msgstr "Compile bib judgment"
 
-#: src/pytexmk/run_module.py:67
+#: src/pytexmk/run_module.py:66
 #, python-format
 msgid "%(args)s 编译文献"
 msgstr "%(args)s compile bibliography"
 
-#: src/pytexmk/run_module.py:69 src/pytexmk/run_module.py:78
-#: src/pytexmk/run_module.py:82
+#: src/pytexmk/run_module.py:68 src/pytexmk/run_module.py:77
+#: src/pytexmk/run_module.py:81
 #, python-format
 msgid "%(args)s 编译"
 msgstr "%(args)s compile"
 
-#: src/pytexmk/run_module.py:74
+#: src/pytexmk/run_module.py:73
 msgid "编译索引判定"
 msgstr "Compile index judgment"
 
-#: src/pytexmk/run_module.py:97
+#: src/pytexmk/run_module.py:96
 #, python-format
 msgid "%(args1)s 次 %(args2)s 编译"
 msgstr "%(args1)s times %(args2)s compile"
 
-#: src/pytexmk/run_module.py:103 src/pytexmk/run_module.py:105
+#: src/pytexmk/run_module.py:102 src/pytexmk/run_module.py:104
 msgid "DVIPDFMX 编译"
 msgstr "DVIPDFMX compile"
 
-#: src/pytexmk/run_module.py:108
+#: src/pytexmk/run_module.py:107
 msgid "完成所有编译"
 msgstr "Complete all compilations"
 
-#: src/pytexmk/run_module.py:110
+#: src/pytexmk/run_module.py:109
 #, python-format
 msgid "文档整体: %(args1)s 编译 %(args2)s 次"
 msgstr "Overall document: %(args1)s compile %(args2)s times"
 
-#: src/pytexmk/run_module.py:111
+#: src/pytexmk/run_module.py:110
 msgid "参考文献: "
 msgstr "Bibliography: "
 
-#: src/pytexmk/run_module.py:112
+#: src/pytexmk/run_module.py:111
 msgid "目录索引: "
 msgstr "Table of contents: "

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-09 16:11+0800\n"
+"POT-Creation-Date: 2024-09-02 09:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,63 +17,87 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/get_main_file_module.py:45
+#: src/pytexmk/get_main_file_module.py:44
 msgid "通过命令行命令指定待编译主文件为: "
-msgstr "The main file to be compiled is specified by the command line command: "
+msgstr ""
+"The main file to be compiled is specified by the command line command: "
 
 #: src/pytexmk/get_main_file_module.py:48
 msgid "通过根目录下唯一主文件指定待编译主文件为: "
-msgstr "The main file to be compiled is specified by the unique main file in the root directory: "
+msgstr ""
+"The main file to be compiled is specified by the unique main file in the "
+"root directory: "
 
-#: src/pytexmk/get_main_file_module.py:51
+#: src/pytexmk/get_main_file_module.py:52
 msgid "魔法注释 % !TEX root 在当前根目录下主文件中有被定义"
-msgstr "The magic comment % !TEX root is defined in the main file in the current root directory"
+msgstr ""
+"The magic comment % !TEX root is defined in the main file in the current "
+"root directory"
 
-#: src/pytexmk/get_main_file_module.py:53
+#: src/pytexmk/get_main_file_module.py:54
 msgid "魔法注释 % !TEX root 只存在于: "
 msgstr "The magic comment % !TEX root only exists in: "
 
-#: src/pytexmk/get_main_file_module.py:57
+#: src/pytexmk/get_main_file_module.py:58
 msgid "通过魔法注释 % !TEX root 指定待编译主文件为: "
-msgstr "The main file to be compiled is specified by the magic comment % !TEX root: "
-
-#: src/pytexmk/get_main_file_module.py:59
-msgid "魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: "
-msgstr "The file name specified by the magic comment % !TEX root is different from the current file name, unable to determine the main file: "
+msgstr ""
+"The main file to be compiled is specified by the magic comment % !TEX root: "
 
 #: src/pytexmk/get_main_file_module.py:61
+msgid "魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: "
+msgstr ""
+"The file name specified by the magic comment % !TEX root is different from "
+"the current file name, unable to determine the main file: "
+
+#: src/pytexmk/get_main_file_module.py:63
 msgid ""
 "魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释"
 "确定待编译主文件"
 msgstr ""
-"The magic comment % !TEX root is defined in multiple main files in the current root directory, unable to determine the main file to be compiled based on the magic comment"
+"The magic comment % !TEX root is defined in multiple main files in the "
+"current root directory, unable to determine the main file to be compiled "
+"based on the magic comment"
 
-#: src/pytexmk/get_main_file_module.py:64
+#: src/pytexmk/get_main_file_module.py:66
 msgid ""
 "无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"
 msgstr ""
-"Unable to determine the main file to be compiled based on the magic comment, trying to specify the main file to be compiled based on the default main file name"
+"Unable to determine the main file to be compiled based on the magic comment, "
+"trying to specify the main file to be compiled based on the default main "
+"file name"
 
-#: src/pytexmk/get_main_file_module.py:68
-msgid "通过默认文件名 \"main.tex\" 指定待编译主文件为: "
-msgstr "The main file to be compiled is specified by the default file name \"main.tex\": "
-
-#: src/pytexmk/get_main_file_module.py:70
-msgid "当前根目录下不存在名为 \"main.tex\" 的文件"
-msgstr "The file named \"main.tex\" does not exist in the current root directory"
-
-#: src/pytexmk/get_main_file_module.py:73
-msgid "无法进行编译, 当前根目录下存在多个主文件: "
-msgstr "Unable to compile, there are multiple main files in the current root directory: "
+#: src/pytexmk/get_main_file_module.py:71
+#, fuzzy, python-format
+msgid "通过默认文件名 \"%(args)s.tex\" 指定待编译主文件为: "
+msgstr ""
+"The main file to be compiled is specified by the default file name \"main.tex"
+"\": "
 
 #: src/pytexmk/get_main_file_module.py:74
-msgid ""
-"请修改待编译主文件名为默认文件名 \"main.tex\" 或在文件中加入魔法注释 \"% !"
-"TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" 进行"
-"编译, 或删除当前根目录下多余的 tex 文件"
+#, fuzzy, python-format
+msgid "当前根目录下不存在名为 \"%(args)s.tex\" 的文件"
 msgstr ""
-"Please rename the main file to be compiled to the default file name \"main.tex\", or add the magic comment \"% !TEX root = [main file name to be compiled]\" in the file, or compile by entering \"pytexmk [main file name to be compiled]\" in the terminal, or delete the redundant tex files in the current root directory"
+"The file named \"main.tex\" does not exist in the current root directory"
 
-#: src/pytexmk/get_main_file_module.py:75
+#: src/pytexmk/get_main_file_module.py:77
+msgid "无法进行编译, 当前根目录下存在多个主文件: "
+msgstr ""
+"Unable to compile, there are multiple main files in the current root "
+"directory: "
+
+#: src/pytexmk/get_main_file_module.py:78
+#, fuzzy
+msgid ""
+"请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 "
+"\"% !TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" "
+"进行编译, 或删除当前根目录下多余的 tex 文件"
+msgstr ""
+"Please rename the main file to be compiled to the default file name \"main."
+"tex\", or add the magic comment \"% !TEX root = [main file name to be "
+"compiled]\" in the file, or compile by entering \"pytexmk [main file name to "
+"be compiled]\" in the terminal, or delete the redundant tex files in the "
+"current root directory"
+
+#: src/pytexmk/get_main_file_module.py:79
 msgid "当前根目录是: "
 msgstr "The current root directory is: "

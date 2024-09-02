@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-15 19:43+0800\n"
+"POT-Creation-Date: 2024-09-02 09:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -43,7 +43,7 @@ msgid "文件不存在于当前路径下: "
 msgstr "File does not exist in current path: "
 
 #: src/pytexmk/additional_module.py:223
-msgid "文件类型非 tex: "
+msgid "文件类型非 %(args)s: "
 msgstr "File type is not tex: "
 
 #: src/pytexmk/additional_module.py:240
@@ -56,7 +56,9 @@ msgstr "Number of files: "
 
 #: src/pytexmk/additional_module.py:245
 msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
-msgstr "File does not exist in current path, please check if the terminal display path is the project path"
+msgstr ""
+"File does not exist in current path, please check if the terminal display "
+"path is the project path"
 
 #: src/pytexmk/additional_module.py:246 src/pytexmk/additional_module.py:288
 msgid "当前终端路径: "
@@ -71,7 +73,7 @@ msgid "通过特征命令检索到主文件: "
 msgstr "Retrieved main file via feature command: "
 
 #: src/pytexmk/additional_module.py:280 src/pytexmk/additional_module.py:334
-#: src/pytexmk/additional_module.py:370
+#: src/pytexmk/additional_module.py:383
 msgid "打开文件失败: "
 msgstr "Failed to open file: "
 
@@ -81,36 +83,43 @@ msgstr "Number of main files found: "
 
 #: src/pytexmk/additional_module.py:287
 msgid "终端路径下不存在主文件！请检查终端显示路径是否是项目路径！"
-msgstr "Main file does not exist under terminal path! Please check if the terminal display path is the project path!"
+msgstr ""
+"Main file does not exist under terminal path! Please check if the terminal "
+"display path is the project path!"
 
 #: src/pytexmk/additional_module.py:362
-msgid "[bold green]正在打开文件..."
-msgstr "[bold green]Opening file..."
+msgid "未设置 PDF 查看器，使用默认 PDF 查看器"
+msgstr "No PDF viewer set, default PDF viewer used"
 
 #: src/pytexmk/additional_module.py:365
+msgid "设置 PDF 查看器: "
+msgstr "Setting up the PDF viewer: "
+
+#: src/pytexmk/additional_module.py:378
 msgid "文件路径: "
 msgstr "File path: "
 
-#: src/pytexmk/additional_module.py:409
-msgid "当前路径下未找到 PDF 文件: "
+#: src/pytexmk/additional_module.py:422
+#, fuzzy
+msgid "当前路径下未找到 PDF 文件"
 msgstr "No PDF files found in current path: "
 
-#: src/pytexmk/additional_module.py:412
+#: src/pytexmk/additional_module.py:425
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "
 
-#: src/pytexmk/additional_module.py:423
+#: src/pytexmk/additional_module.py:436
 msgid "修复成功: "
 msgstr "Fix successful: "
 
-#: src/pytexmk/additional_module.py:425
+#: src/pytexmk/additional_module.py:438
 msgid "修复失败: "
 msgstr "Fix failed: "
 
-#: src/pytexmk/additional_module.py:426
+#: src/pytexmk/additional_module.py:439
 msgid "[bold green]修复 PDF 结束[/bold green]"
 msgstr "[bold green]PDF fix complete[/bold green]"
 
-#: src/pytexmk/additional_module.py:434
+#: src/pytexmk/additional_module.py:447
 msgid "[bold red]正在退出 PyTeXMK..."
 msgstr "[bold red]Exiting PyTeXMK..."
