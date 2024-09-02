@@ -49,7 +49,7 @@ jobs:
       uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
-        path: ls -R dist/  # 指定下载到的路径
+        path: ls -R
 
     - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
       uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
