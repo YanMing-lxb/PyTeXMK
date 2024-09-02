@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 22:20:03 +0800
- * LastEditTime : 2024-09-01 22:20:28 +0800
+ * LastEditTime : 2024-09-02 09:11:50 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.en.md
  * Description  : 
@@ -31,6 +31,11 @@
 LaTeX Auxiliary Compilation Command Line Program
 
 ---
+
+<div align="center">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+</div>
 
 ## Installation
 
