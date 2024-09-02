@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2024-09-02 13:49:07 +0800
+ * LastEditTime : 2024-09-02 15:59:10 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -39,12 +39,13 @@
 
 ### 其他
 - 新增 CHANGELOG.md 文件，用于记录版本更新日志。
-- 新增 Actions 工作流，用于自动化在 PYPI 和 GitHub 发布。 -->
+ -->
 
 ## v0.8.12.2409
 
 ### 修复
 - 修复检查更新部分的 INFO 内容显示不正确的问题
+- 修复在 `thebibliography` 环境下参考文献编译次数过多的问题。
 
 ## v0.8.11.240901 - 2024-09-01 
 
