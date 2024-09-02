@@ -57,7 +57,7 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
       with:
         repository-url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
-        packages-dir: dist/
+        packages-dir: dist/dist/
   
   publish-to-github-release:
     name: Publish 🐍 PyTeXMK 📦 to GitHub Release  # 定义发布到GitHub Release作业的名称
