@@ -94,6 +94,7 @@ PyTeXMK 支持：
 | -l, --LuaLaTeX   | LuaLaTeX 进行编译                                     |
 | -d, --LaTeXDiff  | 使用 LaTeXDiff 进行编译，生成改动对比文件|
 | -dc, --LaTexDiff-compile  | 使用 LaTeXDiff 进行编译，生成改动对比文件并编译新文件|
+| -dr, --draft     | 启用草稿模式进行编译，提高编译速度 (无图显示)            |
 | -c, --clean      | 清除所有主文件的辅助文件                               |
 | -C, --Clean      | 清除所有主文件的辅助文件（包含根目录）和输出文件         |
 | -ca, --clean-any | 清除所有带辅助文件后缀的文件                           |

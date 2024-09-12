@@ -93,6 +93,7 @@ Options:
 | -l, --LuaLaTeX   | Compile with LuaLaTeX                                     |
 | -d, --LaTeXDiff  | Compile using LaTeXDiff to generate a comparison file|
 | -dc, --LaTexDiff-compile  | Compile using LaTeXDiff to generate a comparison file and compile the new file|
+| -dr, --draft     | Enable draft mode for compilation, improving compilation speed (no images displayed) |
 | -c, --clean      | Clean all auxiliary files of the main file                               |
 | -C, --Clean      | Clean all auxiliary files (including root directory) and output files of the main file         |
 | -ca, --clean-any | Clean all files with auxiliary file suffixes                           |
