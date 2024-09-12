@@ -32,7 +32,7 @@ from itertools import chain  # 导入chain，用于将多个迭代器连接成�
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 
 from .language_module import set_language
-from .additional_module import MoveRemoveOperationtiontion, exit_pytexmk
+from .additional_module import MoveRemoveOperation, exit_pytexmk
 
 console = console.Console()
 
