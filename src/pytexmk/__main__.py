@@ -38,7 +38,6 @@ from .run_module import RUN
 from .logger_config import setup_logger
 from .language_module import set_language
 from .additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
-from .get_main_file_module import get_main_file
 from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_module import LaTeXDiff_Aux
 from .check_version_module import UpdateChecker
@@ -307,7 +306,7 @@ def main():
         old_tex_file = MFO.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFO.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
     else:
-        project_name = get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
+        project_name = MFO.get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
         project_name = MFO.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
 
 

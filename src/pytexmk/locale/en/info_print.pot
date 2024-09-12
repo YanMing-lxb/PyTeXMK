@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 09:31+0800\n"
+"POT-Creation-Date: 2024-09-12 11:16+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,105 +16,71 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/additional_module.py:67 src/pytexmk/additional_module.py:97
-msgid "删除成功: "
-msgstr "Successfully deleted: "
-
-#: src/pytexmk/additional_module.py:69 src/pytexmk/additional_module.py:99
-#: src/pytexmk/additional_module.py:138 src/pytexmk/additional_module.py:180
-msgid "删除失败: "
-msgstr "Failed to delete: "
-
-#: src/pytexmk/additional_module.py:144 src/pytexmk/additional_module.py:185
-msgid "移动成功: "
-msgstr "Successfully moved: "
-
-#: src/pytexmk/additional_module.py:146 src/pytexmk/additional_module.py:187
-msgid "移动失败: "
-msgstr "Failed to move: "
-
-#: src/pytexmk/additional_module.py:208
-msgid "文件名中不能存在路径"
-msgstr "Path cannot exist in filename"
-
-#: src/pytexmk/additional_module.py:214 src/pytexmk/additional_module.py:220
-msgid "文件不存在于当前路径下: "
-msgstr "File does not exist in current path: "
-
-#: src/pytexmk/additional_module.py:223
+#: src/pytexmk/info_print_module.py:79
 #, python-format
-msgid "文件类型非 %(args)s: "
-msgstr "File type is not %(args)s: "
+msgid "执行函数 %(args)s 时出错: "
+msgstr "Error executing function %(args)s: "
 
-#: src/pytexmk/additional_module.py:240
-msgid "搜索到: "
-msgstr "Found: "
+#: src/pytexmk/info_print_module.py:142
+msgid "打印模块信息时出错: "
+msgstr "Error printing module information: "
 
-#: src/pytexmk/additional_module.py:243
-msgid "文件数目: "
-msgstr "Number of files: "
+#: src/pytexmk/info_print_module.py:183
+msgid "LaTeX 编译时长"
+msgstr "LaTeX Compilation Time"
 
-#: src/pytexmk/additional_module.py:245
-msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
-msgstr "File does not exist in current path, please check if the terminal display path is the project path"
+#: src/pytexmk/info_print_module.py:183 src/pytexmk/info_print_module.py:186
+msgid "Python 运行时长"
+msgstr "Python Execution Time"
 
-#: src/pytexmk/additional_module.py:246 src/pytexmk/additional_module.py:288
-msgid "当前终端路径: "
-msgstr "Current terminal path: "
+#: src/pytexmk/info_print_module.py:183 src/pytexmk/info_print_module.py:186
+msgid "PyTeXMK 运行时长"
+msgstr "PyTeXMK Execution Time"
 
-#: src/pytexmk/additional_module.py:249
-msgid "文件搜索失败: "
-msgstr "File search failed: "
+#: src/pytexmk/info_print_module.py:196
+msgid "PyTeXMK 运行时长统计表"
+msgstr "PyTeXMK Execution Time Statistics Table"
 
-#: src/pytexmk/additional_module.py:277
-msgid "通过特征命令检索到主文件: "
-msgstr "Retrieved main file via feature command: "
+#: src/pytexmk/info_print_module.py:200 src/pytexmk/info_print_module.py:203
+msgid "运行项目"
+msgstr "Run Project"
 
-#: src/pytexmk/additional_module.py:280 src/pytexmk/additional_module.py:334
-#: src/pytexmk/additional_module.py:383
-msgid "打开文件失败: "
-msgstr "Failed to open file: "
+#: src/pytexmk/info_print_module.py:201 src/pytexmk/info_print_module.py:204
+msgid "运行时长"
+msgstr "Execution Time"
 
-#: src/pytexmk/additional_module.py:284
-msgid "发现主文件数量: "
-msgstr "Number of main files found: "
+#: src/pytexmk/info_print_module.py:239
+msgid "PyTeXMK 运行时长: "
+msgstr "PyTeXMK Execution Time: "
 
-#: src/pytexmk/additional_module.py:287
-msgid "终端路径下不存在主文件！请检查终端显示路径是否是项目路径！"
-msgstr "Main file does not exist under terminal path! Please check if the terminal display path is the project path!"
+#: src/pytexmk/info_print_module.py:240
+msgid "运行 LaTeX 程序数目: "
+msgstr "Number of LaTeX Runs: "
 
-#: src/pytexmk/additional_module.py:362
-msgid "未设置 PDF 查看器，使用默认 PDF 查看器"
-msgstr "PDF viewer not set, using default PDF viewer"
+#: src/pytexmk/info_print_module.py:242
+msgid "打印运行时长统计表时出错: "
+msgstr "Error printing execution time statistics table: "
 
-#: src/pytexmk/additional_module.py:365
-msgid "设置 PDF 查看器: "
-msgstr "Set PDF viewer: "
+#: src/pytexmk/info_print_module.py:266
+msgid "指定编译程序: XeLaTeX PdfLaTeX LuaLaTeX"
+msgstr "Specify compilation program: XeLaTeX PdfLaTeX LuaLaTeX"
 
-#: src/pytexmk/additional_module.py:378
-msgid "文件路径: "
-msgstr "File path: "
+#: src/pytexmk/info_print_module.py:267
+msgid "指定待编译主文件名，仅支持根目录下的文件"
+msgstr "Specify the main file to be compiled, only files in the root directory are supported"
 
-#: src/pytexmk/additional_module.py:422
-msgid "当前路径下未找到 PDF 文件"
-msgstr "No PDF files found in current path"
+#: src/pytexmk/info_print_module.py:268
+msgid "指定编译结果存放位置，仅支持文件夹名称"
+msgstr "Specify the location to store compilation results, only folder names are supported"
 
-#: src/pytexmk/additional_module.py:425
-msgid "找到 PDF 文件数目: "
-msgstr "Number of PDF files found: "
+#: src/pytexmk/info_print_module.py:269
+msgid "指定辅助文件存放位置，仅支持文件夹名称"
+msgstr "Specify the location to store auxiliary files, only folder names are supported"
 
-#: src/pytexmk/additional_module.py:436
-msgid "修复成功: "
-msgstr "Fix successful: "
+#: src/pytexmk/info_print_module.py:273
+msgid "魔法注释说明表"
+msgstr "Magic Comment Explanation Table"
 
-#: src/pytexmk/additional_module.py:438
-msgid "修复失败: "
-msgstr "Fix failed: "
-
-#: src/pytexmk/additional_module.py:439
-msgid "[bold green]修复 PDF 结束[/bold green]"
-msgstr "[bold green]PDF fix finished[/bold green]"
-
-#: src/pytexmk/additional_module.py:447
-msgid "[bold red]正在退出 PyTeXMK..."
-msgstr "[bold red]Exiting PyTeXMK..."
+#: src/pytexmk/info_print_module.py:286
+msgid "打印魔法注释说明表时出错: "
+msgstr "Error printing magic comment explanation table: "

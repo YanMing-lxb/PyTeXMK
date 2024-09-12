@@ -110,7 +110,6 @@ pot:
 	@xgettext --output=./src/pytexmk/locale/en/check_version.pot ./src/pytexmk/check_version_module.py
 	@xgettext --output=./src/pytexmk/locale/en/compile.pot ./src/pytexmk/compile_module.py
 	@xgettext --output=./src/pytexmk/locale/en/config.pot ./src/pytexmk/config_module.py
-	@xgettext --output=./src/pytexmk/locale/en/get_main_file.pot ./src/pytexmk/get_main_file_module.py
 	@xgettext --output=./src/pytexmk/locale/en/info_print.pot ./src/pytexmk/info_print_module.py
 	@xgettext --output=./src/pytexmk/locale/en/latexdiff.pot ./src/pytexmk/latexdiff_module.py
 	@xgettext --output=./src/pytexmk/locale/en/logger_config.pot ./src/pytexmk/logger_config.py
@@ -123,7 +122,6 @@ mo:
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/check_version.mo ./src/pytexmk/locale/en/check_version.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/compile.mo ./src/pytexmk/locale/en/compile.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/config.mo ./src/pytexmk/locale/en/config.pot
-	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/get_main_file.mo ./src/pytexmk/locale/en/get_main_file.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/info_print.mo ./src/pytexmk/locale/en/info_print.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/latexdiff.mo ./src/pytexmk/locale/en/latexdiff.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/logger_config.mo ./src/pytexmk/locale/en/logger_config.pot
@@ -136,7 +134,6 @@ poup:
 	@xgettext --output=./src/pytexmk/locale/en/check_version-temp.pot ./src/pytexmk/check_version_module.py
 	@xgettext --output=./src/pytexmk/locale/en/compile-temp.pot ./src/pytexmk/compile_module.py
 	@xgettext --output=./src/pytexmk/locale/en/config-temp.pot ./src/pytexmk/config_module.py
-	@xgettext --output=./src/pytexmk/locale/en/get_main_file-temp.pot ./src/pytexmk/get_main_file_module.py
 	@xgettext --output=./src/pytexmk/locale/en/info_print-temp.pot ./src/pytexmk/info_print_module.py
 	@xgettext --output=./src/pytexmk/locale/en/latexdiff-temp.pot ./src/pytexmk/latexdiff_module.py
 	@xgettext --output=./src/pytexmk/locale/en/logger_config-temp.pot ./src/pytexmk/logger_config.py
@@ -147,7 +144,6 @@ poup:
 	@msgmerge --update ./src/pytexmk/locale/en/check_version.pot ./src/pytexmk/locale/en/check_version-temp.pot
 	@msgmerge --update ./src/pytexmk/locale/en/compile.pot ./src/pytexmk/locale/en/compile-temp.pot
 	@msgmerge --update ./src/pytexmk/locale/en/config.pot ./src/pytexmk/locale/en/config-temp.pot
-	@msgmerge --update ./src/pytexmk/locale/en/get_main_file.pot ./src/pytexmk/locale/en/get_main_file-temp.pot
 	@msgmerge --update ./src/pytexmk/locale/en/latexdiff.pot ./src/pytexmk/locale/en/latexdiff-temp.pot
 	@msgmerge --update ./src/pytexmk/locale/en/run.pot ./src/pytexmk/locale/en/run-temp.pot
 	@msgmerge --update ./src/pytexmk/locale/en/logger_config.pot ./src/pytexmk/locale/en/logger_config-temp.pot
@@ -160,7 +156,6 @@ poup:
 	@del .\src\pytexmk\locale\en\check_version-temp.pot
 	@del .\src\pytexmk\locale\en\compile-temp.pot
 	@del .\src\pytexmk\locale\en\config-temp.pot
-	@del .\src\pytexmk\locale\en\get_main_file-temp.pot
 	@del .\src\pytexmk\locale\en\latexdiff-temp.pot
 	@del .\src\pytexmk\locale\en\run-temp.pot
 	@del .\src\pytexmk\locale\en\logger_config-temp.pot
