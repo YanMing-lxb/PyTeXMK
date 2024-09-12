@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-08-14 23:18:53 +0800
+LastEditTime : 2024-09-12 13:44:23 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -26,16 +26,20 @@ Description  :
 from rich import print
 
 from .compile_module import CompileLaTeX
+from .additional_module import MainFileOperation
 from .language_module import set_language
 from .info_print_module import time_count, print_message
 
 _ = set_language('run')
+MFO = MainFileOperation() # 实例化 MainFileOperation 类
 
 # --------------------------------------------------------------------------------
 # 整体进行编译
 # --------------------------------------------------------------------------------
-def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet):
-    
+def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, draft):
+    # 草稿模式函数启用
+    MFO.draft_model(project_name, draft, True)
+
     abbreviations_num = ('1st', '2nd', '3rd', '4th', '5th', '6th')
     # 编译前的准备工作
     compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
@@ -102,6 +106,8 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
         print_message(_("DVIPDFMX 编译"), "running")
         runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
+
+    MFO.draft_model(project_name, draft, False)
 
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")

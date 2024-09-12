@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-09-12 11:00:50 +0800
+LastEditTime : 2024-09-12 13:49:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -96,6 +96,7 @@ def parse_args():
     meg_engine.add_argument('-l', '--LuaLaTeX', action='store_true', help=_("LuaLaTeX 进行编译"))
     parser.add_argument('-d', '--LaTeXDiff', nargs='*', metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
     parser.add_argument('-dc', '--LaTeXDiff-compile', nargs='*', metavar=('OLD_FILE', 'NEW_FILE'), help=_("使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"))
+    parser.add_argument('-dr', '--draft', action='store_true', help=_("启用草稿模式进行编译，提高编译速度 (无图显示)"))
     meg_clean.add_argument('-c', '--clean', action='store_true', help=_("清除所有主文件的辅助文件"))
     meg_clean.add_argument('-C', '--Clean', action='store_true', help=_("清除所有主文件的辅助文件（包含根目录）和输出文件"))
     meg_clean.add_argument('-ca', '--clean-any', action='store_true', help=_("清除所有带辅助文件后缀的文件"))
@@ -408,7 +409,7 @@ def main():
                             out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
                             print_message(_("开始预处理命令"), "additional")
                             
-                            RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
+                            RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
 
                             print_message(_("开始后处理"), "additional")
 
@@ -456,7 +457,7 @@ def main():
             runtime_move_aux_root  = time_count(MRO.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
             runtime_dict[_('辅助文件->根目录')] = runtime_move_aux_root
             
-            RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
+            RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
 
             print_message(_("开始后处理"), "additional")
 

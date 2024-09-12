@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-09-12 11:12:19 +0800
+LastEditTime : 2024-09-12 14:37:41 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -391,6 +391,108 @@ class MainFileOperation(object):
             exit_pytexmk()
         
         return project_name
+
+
+    # --------------------------------------------------------------------------------
+    # 定义草稿模式切换函数 
+    # --------------------------------------------------------------------------------
+    """
+    函数 `draft_model` 用于根据指定的项目名称和草稿模式设置，更新 LaTeX 文档的草稿模式。
+    
+    参数说明:
+    - `self`: 类的实例对象。
+    - `project_name`: 字符串，表示要处理的 LaTeX 项目文件名。
+    - `draft_run`: 布尔值，表示是否启用草稿模式。如果为 `True`，则启用草稿模式；否则跳过处理。
+    - `draft_judgement`: 布尔值，表示是否在 `\documentclass` 命令中添加或移除 "draft" 选项。如果为 `True`，则添加 "draft"；否则移除 "draft"。
+    
+    返回说明:
+    - 无返回值。函数直接修改指定文件的内容。
+    
+    行为逻辑说明:
+    1. 如果 `draft_run` 为 `True`，则继续处理；否则跳过处理并记录日志。
+    2. 确保文件名以 `.tex` 结尾。
+    3. 定义正则表达式模式来匹配 `\documentclass[args1, args2, ...]{class}` 命令。
+    4. 根据 `draft_judgement` 的值决定是否添加或移除 "draft" 选项。
+    5. 获取文件大小，并根据文件大小决定是直接读取到内存处理还是逐行处理。
+    6. 如果文件大小小于 1 MB，则直接读取到内存处理；否则逐行处理。
+    7. 处理完成后，记录日志并返回。
+    8. 如果处理过程中发生错误（如文件未找到、权限错误等），则记录错误日志。
+    """
+    
+    def draft_model(self, project_name, draft_run, draft_judgement):
+        if draft_run:
+            project_name = f"{project_name}.tex"  # 确保文件名以.tex 结尾
+            
+            try:
+                # 定义正则表达式模式来匹配 \documentclass[args1, args2, ...]{class} 命令
+                pattern = re.compile(r'(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[([^\]]*)\])?\{([^\}]*)\}')
+                
+                # 根据 draft_judgement 的值决定是否添加或移除 "draft,"
+                def replace_draft(match):
+                    options = match.group(1) or ''
+                    class_type = match.group(2)
+    
+                    if draft_judgement:
+                        if 'draft' not in options:
+                            options = 'draft' if not options else 'draft, ' + options
+                    else:
+                        options = re.sub(r'\bdraft\b,?', '', options)
+    
+                    options = options.strip()
+                    options = f'[{options}]' if options else ''
+    
+                    return f'\\documentclass{options}{{{class_type}}}'
+    
+                # 获取文件大小
+                file_path = Path(project_name)
+                file_size = file_path.stat().st_size
+                size_threshold = 1 * 1024**2  # 1 MB 作为阈值
+    
+                if draft_judgement:
+                    self.logger.info(_("处理文件: %(args)s, 文件大小: ") % {"args": project_name} + f"{file_size / 1024**2:.3f} MB")
+    
+                if file_size < size_threshold:
+                    # 小文件,直接读取到内存处理
+                    if draft_judgement:
+                        self.logger.info(_("文件较小,直接读取到内存处理"))
+                    with file_path.open('r', encoding='utf-8') as file_in:
+                        content = file_in.read()
+    
+                    modified_content = pattern.sub(replace_draft, content)
+    
+                    if modified_content == content:
+                        self.logger.info(_("未匹配到内容, 文件未修改."))
+                    else:
+                        with file_path.open('w', encoding='utf-8') as file_out:
+                            file_out.write(modified_content)
+                else:
+                    # 大文件,逐行处理
+                    if draft_judgement:
+                        self.logger.info(_("文件较大,逐行处理"))
+                    temp_file = file_path.with_suffix('.tmp')
+    
+                    with file_path.open('r', encoding='utf-8') as file_in, temp_file.open('w', encoding='utf-8') as file_out:
+                        for line in file_in:
+                            modified_line = pattern.sub(replace_draft, line)
+                            file_out.write(modified_line)
+    
+                    if not content_modified:
+                        self.logger.info(_("未匹配到内容, 文件未修改."))
+                    else:
+                        temp_file.replace(file_path)
+                if draft_judgement:
+                    self.logger.info(_("启用草稿模式"))
+                else:
+                    self.logger.info(_("关闭草稿模式"))
+            except FileNotFoundError:
+                self.logger.error(_("文件未找到: ") + project_name)
+            except PermissionError:
+                self.logger.error(_("权限错误: 无法读取或写入文件: ") + project_name)
+            except Exception as e:
+                self.logger.error(_("更新草稿模式时出错: " + str(e)))
+        else:
+            if draft_judgement:
+                self.logger.info(_("草稿模式未启用, 跳过处理."))
 
 
 
