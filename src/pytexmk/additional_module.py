@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-08-16 19:38:47 +0800
+LastEditTime : 2024-09-12 11:03:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -37,7 +37,7 @@ from .language_module import set_language
 _ = set_language('additional')
 
 
-class MoveRemoveClean(object):
+class MoveRemoveOperation(object):
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ class MoveRemoveClean(object):
 
 
 
-class MainFileJudgment(object):
+class MainFileOperation(object):
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)

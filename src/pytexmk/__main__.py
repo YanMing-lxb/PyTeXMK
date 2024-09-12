@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-09-02 22:05:20 +0800
+LastEditTime : 2024-09-12 11:00:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -37,15 +37,15 @@ from .version import script_name, __version__
 from .run_module import RUN
 from .logger_config import setup_logger
 from .language_module import set_language
-from .additional_module import MoveRemoveClean, MainFileJudgment, PdfFileOperation, exit_pytexmk
+from .additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
 from .get_main_file_module import get_main_file
 from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
 from .latexdiff_module import LaTeXDiff_Aux
 from .check_version_module import UpdateChecker
 from .config_module import ConfigParser
 
-MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
-MRC = MoveRemoveClean() # 实例化 MoveRemoveClean 类
+MFO = MainFileOperation() # 实例化 MainFileOperation 类
+MRO = MoveRemoveOperation() # 实例化 MoveRemoveOperation 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒；缓存时长, 单位: 小时
 CP = ConfigParser() # 实例化 ConfigParser 类
@@ -198,9 +198,9 @@ def main():
     # TeX 文件获取判断，魔法注释获取
     # --------------------------------------------------------------------------------
     logger.info("-"*70)
-    tex_files_in_root = MFJ.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
-    main_file_in_root = MFJ.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
-    all_magic_comments = MFJ.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
+    tex_files_in_root = MFO.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
+    main_file_in_root = MFO.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
+    all_magic_comments = MFO.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
 
     # --------------------------------------------------------------------------------
     # 配置文件相关
@@ -277,8 +277,8 @@ def main():
     # --------------------------------------------------------------------------------
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
     if pdf_preview_status and pdf_preview_status != 'preview after compile' and not args.document: # 当 -pv 指定参数时, 进行 PDF 预览操作
-        pdf_files_in_outdir = MFJ.get_suffixes_files_in_dir(outdir, '.pdf')
-        pdf_preview_status = MFJ.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
+        pdf_files_in_outdir = MFO.get_suffixes_files_in_dir(outdir, '.pdf')
+        pdf_preview_status = MFO.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
         PFO.pdf_preview(pdf_preview_status, outdir) # 调用 pdf_preview 函数进行 PDF 预览操作
 
 
@@ -304,11 +304,11 @@ def main():
         if args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) == 2:
             old_tex_file, new_tex_file = args.LaTeXDiff_compile
         
-        old_tex_file = MFJ.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
-        new_tex_file = MFJ.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
+        old_tex_file = MFO.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
+        new_tex_file = MFO.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
     else:
         project_name = get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
-        project_name = MFJ.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
+        project_name = MFO.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
 
 
     # --------------------------------------------------------------------------------
@@ -357,16 +357,16 @@ def main():
     aux_regex_files = [f".*\\{suffix}" for suffix in suffixes_aux]
 
     if args.clean_any:
-        runtime_remove_aux_matched_auxdir = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+        runtime_remove_aux_matched_auxdir = time_count(MRO.remove_matched_files, aux_regex_files, '.')
         runtime_dict[_("清除所有的辅助文件")] = runtime_remove_aux_matched_auxdir
         print(_('[bold green]已完成清除所有带辅助文件后缀的文件的指令'))
         if runtime_dict: # 如果存在运行时统计信息
             time_print(start_time, runtime_dict) # 打印编译时长统计
         return
     elif args.Clean_any:
-        runtime_remove_aux_matched_auxdir = time_count(MRC.remove_matched_files, aux_regex_files, '.')
+        runtime_remove_aux_matched_auxdir = time_count(MRO.remove_matched_files, aux_regex_files, '.')
         runtime_dict[_("清除所有的辅助文件")] = runtime_remove_aux_matched_auxdir
-        runtime_remove_out_outdir = time_count(MRC.remove_specific_files, out_files, outdir)
+        runtime_remove_out_outdir = time_count(MRO.remove_specific_files, out_files, outdir)
         runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_out_outdir
         print(_('[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令'))
         if runtime_dict: # 如果存在运行时统计信息
@@ -393,7 +393,7 @@ def main():
                     logger.info(_("%(args)s 的辅助文件存在") % {"args": new_tex_file})
                     old_tex_file = LDA.flatten_Latex(old_tex_file)
                     new_tex_file = LDA.flatten_Latex(new_tex_file)
-                    runtime_move_matched_files = time_count(MRC.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
+                    runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
                     runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
                     try:
                         print_message(_("LaTeXDiff 运行"), "running")
@@ -402,7 +402,7 @@ def main():
                         
                         print_message(_("LaTeXDiff 后处理"), "additional")
                         print(_('删除 Flatten 后的文件...'))
-                        runtime_remove_flatten_root = time_count(MRC.remove_specific_files, [old_tex_file, new_tex_file], '.')
+                        runtime_remove_flatten_root = time_count(MRO.remove_specific_files, [old_tex_file, new_tex_file], '.')
                         runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
                         
                         if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
@@ -414,13 +414,13 @@ def main():
                             print_message(_("开始后处理"), "additional")
 
                             print(_('移动结果文件到输出目录...'))
-                            runtime_move_out_outdir = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
+                            runtime_move_out_outdir = time_count(MRO.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
                             runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
                     except Exception as e:
                         logger.error(_("LaTeXDiff 编译出错: ") + str(e))
                         exit_pytexmk()
                     finally:
-                        runtime_move_matched_files = time_count(MRC.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
+                        runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
                         runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
                 else:
                     logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": new_tex_file}) # TODO 要求辅助文件不存在时要自动进行编译
@@ -435,17 +435,17 @@ def main():
     # --------------------------------------------------------------------------------        
     elif project_name: # 如果存在 project_name 
         if args.clean:
-            runtime_remove_aux_auxdir = time_count(MRC.remove_specific_files, aux_files, auxdir)
+            runtime_remove_aux_auxdir = time_count(MRO.remove_specific_files, aux_files, auxdir)
             runtime_dict[_("清除文件夹内辅助文件")] = runtime_remove_aux_auxdir
-            runtime_remove_aux_root = time_count(MRC.remove_specific_files, aux_files, '.')
+            runtime_remove_aux_root = time_count(MRO.remove_specific_files, aux_files, '.')
             runtime_dict[_("清除根目录内辅助文件")] = runtime_remove_aux_root
             print(_('[bold green]已完成清除所有主文件的辅助文的件指令'))
         elif args.Clean:
-            runtime_remove_aux_auxdir = time_count(MRC.remove_specific_files, aux_files, auxdir)
+            runtime_remove_aux_auxdir = time_count(MRO.remove_specific_files, aux_files, auxdir)
             runtime_dict[_("清除文件夹内辅助文件")] = runtime_remove_aux_auxdir
-            runtime_remove_aux_root = time_count(MRC.remove_specific_files, aux_files, '.')
+            runtime_remove_aux_root = time_count(MRO.remove_specific_files, aux_files, '.')
             runtime_dict[_("清除根目录内辅助文件")] = runtime_remove_aux_root
-            runtime_remove_out_outdir = time_count(MRC.remove_specific_files, out_files, outdir)
+            runtime_remove_out_outdir = time_count(MRO.remove_specific_files, out_files, outdir)
             runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_out_outdir
             print(_('[bold green]已完成清除所有主文件的辅助文件和输出文件的指令'))
         elif args.pdf_repair:
@@ -454,7 +454,7 @@ def main():
         else:
             print_message(_("开始预处理"), "additional")
             print(_('检测并移动辅助文件到根目录...'))
-            runtime_move_aux_root  = time_count(MRC.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
+            runtime_move_aux_root  = time_count(MRO.move_specific_files, aux_files, auxdir, ".") # 将辅助文件移动到根目录
             runtime_dict[_('辅助文件->根目录')] = runtime_move_aux_root
             
             RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
@@ -462,11 +462,11 @@ def main():
             print_message(_("开始后处理"), "additional")
 
             print(_('移动结果文件到输出目录...'))
-            runtime_move_out_outdir = time_count(MRC.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
+            runtime_move_out_outdir = time_count(MRO.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
             runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
 
             print(_('移动辅助文件到辅助目录...'))
-            runtime_move_aux_auxdir = time_count(MRC.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
+            runtime_move_aux_auxdir = time_count(MRO.move_specific_files, aux_files, ".", auxdir) # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
     
 

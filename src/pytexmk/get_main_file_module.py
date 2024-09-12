@@ -27,11 +27,11 @@ from rich import print
 from pathlib import Path
 
 from .language_module import set_language
-from .additional_module import MainFileJudgment, exit_pytexmk
+from .additional_module import MainFileOperation, exit_pytexmk
 
 _ = set_language('get_main_file')
 
-MFJ = MainFileJudgment() # 实例化 MainFileJudgment 类
+MFJ = MainFileOperation() # 实例化 MainFileOperation 类
 
 # 实例化 logger 类
 logger = logging.getLogger(__name__)

@@ -32,7 +32,7 @@ from itertools import chain  # 导入chain，用于将多个迭代器连接成�
 from collections import defaultdict  # 导入defaultdict，用于创建带有默认值的字典
 
 from .language_module import set_language
-from .additional_module import MoveRemoveClean, exit_pytexmk
+from .additional_module import MoveRemoveOperationtiontion, exit_pytexmk
 
 console = console.Console()
 
@@ -79,7 +79,7 @@ class CompileLaTeX(object):
         行为:
         - 初始化输出文件名为空字符串，调用_setup_logger方法设置日志记录器，
         - 初始化编译引擎、项目名称、输出文件、辅助文件、辅助目录、输出目录、静默模式等属性，
-        - 初始化参考文献文件路径为空字符串，初始化 MoveRemoveClean 类对象。
+        - 初始化参考文献文件路径为空字符串，初始化 MoveRemoveOperationtion 类对象。
         """
         self.out = ''  # 初始化输出文件名为空字符串
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
@@ -93,7 +93,7 @@ class CompileLaTeX(object):
         self.non_quiet = non_quiet 
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
-        self.MRC = MoveRemoveClean()  # 初始化 MoveRemoveClean 类对象
+        self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
 
     # --------------------------------------------------------------------------------
     # 定义日志检查函数
@@ -126,8 +126,8 @@ class CompileLaTeX(object):
             ))  # 将错误信息逐行记录，去除多余的空格和换行符
 
             self.logger.error(_("请查看日志文件以获取详细信息: ") + f'{self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
-            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
     
     # --------------------------------------------------------------------------------
@@ -320,8 +320,8 @@ class CompileLaTeX(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") %{'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log")
-            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
 
     # --------------------------------------------------------------------------------
@@ -439,8 +439,8 @@ class CompileLaTeX(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': bib_engine} + f"{self.auxdir}{self.project_name}.log")
-            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
 
     # --------------------------------------------------------------------------------
@@ -563,8 +563,8 @@ class CompileLaTeX(object):
             return name_target
         except:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': {cmd[0]}} + f"{self.auxdir}{self.project_name}.log")
-            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
 
     # --------------------------------------------------------------------------------
@@ -589,8 +589,8 @@ class CompileLaTeX(object):
             subprocess.run(options, check=True, text=True, capture_output=False)
         except:
             self.logger.error(_("DVIPDFMX 编译失败，请查看日志文件以获取详细信息: ") + f"{self.auxdir}{self.project_name}.log")
-            self.MRC.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRC.move_specific_files(self.out_files, '.', self.outdir)
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
 
 
