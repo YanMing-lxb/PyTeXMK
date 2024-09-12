@@ -107,7 +107,7 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
         runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
 
-    MFO.draft_model(project_name, draft, False)
+
 
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
@@ -115,6 +115,10 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
     print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiled_program, 'args2': str(Latex_compilation_times+1)})
     print(_("参考文献: ") + print_bib)
     print(_("目录索引: ") + print_index)
+
+    # 结束草稿模式
+    print("\n")
+    MFO.draft_model(project_name, draft, False)
 
     return runtime_dict
 
