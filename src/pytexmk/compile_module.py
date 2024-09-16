@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-09-02 15:56:57 +0800
+LastEditTime : 2024-09-16 19:49:04 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -306,8 +306,8 @@ class CompileLaTeX(object):
         5. 使用 subprocess.run 执行编译命令。
         6. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
-
-        options = [self.compiled_program, "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
+        
+        options = [self.compiled_program.lower(), "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiled_program == 'XeLaTeX':
             options.insert(5, "-no-pdf")
         if self.non_quiet:
@@ -581,7 +581,7 @@ class CompileLaTeX(object):
         4. 尝试运行编译命令。
         5. 如果编译失败，记录错误信息，移动辅助文件和输出文件到指定目录，并退出程序。
         """
-        options = ["DVIPDFMX", "-V", "2.0", f"{self.project_name}"]
+        options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if not self.non_quiet:
             options.insert(1, "-q") # 静默编译
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
