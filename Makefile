@@ -11,19 +11,21 @@ ifeq ($(OS),Windows_NT)
 
 else
 ifeq ($(shell uname -s),Linux)
-	echo "Mac System";
+	echo "Linux System";
 	@rm -fr build/ dist/ src/*.egg-info/
 	@find . | grep __pycache__ | xargs rm -fr
 	@find . | grep .pyc | xargs rm -f
 else 
 ifeq ($(shell uname -s),Darwin)
-echo "Linux System";
+echo "Mac System";
 @rm -rf build/ dist/ src/*.egg-info/
 @find . | grep __pycache__ | xargs rm -rf
 @find . | grep .pyc | xargs rm -f
 endif
 endif
+	echo "完成清除任务";
 endif
+
 
 html:
 	@pandoc README.md > README.html
@@ -60,6 +62,7 @@ ifeq ($(shell uname -s),Darwin)
 	@$(MAKE) clean
 endif
 endif
+	echo "完成测试任务";
 endif
 
 inswhl:clean all
@@ -69,16 +72,17 @@ ifeq ($(OS),Windows_NT)
 	for /r dist %%i in (*.whl) do echo %%i & @pip install "%%~fi"
 else
 ifeq ($(shell uname -s),Linux)
-	echo "Mac System";
+	echo "Linux System";
 	yes | pip uninstall pytexmk
 	@pip install dist/*.whl
 else 
 ifeq ($(shell uname -s),Darwin)
-echo "Linux System";
+echo "Mac System";
 yes | pip uninstall pytexmk
 @pip install dist/*.whl
 endif
 endif
+	echo "完成编译安装任务";
 endif
 	echo "Install pytexmk*.whl file Success";
 	
@@ -91,14 +95,15 @@ ifeq ($(OS),Windows_NT)
 	for /r dist %%i in (*.whl) do echo %%i & @twine upload "%%~fi"
 else
 ifeq ($(shell uname -s),Linux)
-	echo "Mac System";
+	echo "Linxu System";
 	@twine upload dist/*
 else 
 ifeq ($(shell uname -s),Darwin)
-echo "Linux System";
+echo "Mac System";
 @twine upload dist/*
 endif
 endif
+	echo "完成上传任务";
 endif
 	
 	@$(MAKE) clean
@@ -114,6 +119,7 @@ pot:
 	@xgettext --output=./src/pytexmk/locale/en/latexdiff.pot ./src/pytexmk/latexdiff_module.py
 	@xgettext --output=./src/pytexmk/locale/en/logger_config.pot ./src/pytexmk/logger_config.py
 	@xgettext --output=./src/pytexmk/locale/en/run.pot ./src/pytexmk/run_module.py
+	echo "已生成 pot 文件";
 
 # 作为一名专业的程序国际化专家，请在保留 msgid 中的原文的基础上，将 msgid 中的内容翻译成程序中用的英文，并填写到对应的 msgstr "" 中。
 mo:
@@ -126,6 +132,7 @@ mo:
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/latexdiff.mo ./src/pytexmk/locale/en/latexdiff.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/logger_config.mo ./src/pytexmk/locale/en/logger_config.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/run.mo ./src/pytexmk/locale/en/run.pot
+	echo "已生成 mo 文件";
 
 poup:
 
@@ -187,4 +194,5 @@ ifeq ($(shell uname -s),Darwin)
 	@rm ./src/pytexmk/locale/en/logger_config-temp.pot
 	@rm ./src/pytexmk/locale/en/info_print-temp.pot
 endif
+	echo "已完成国际化文件更新";
 endif
