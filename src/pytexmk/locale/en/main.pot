@@ -182,12 +182,10 @@ msgid "通过配置文件设置安静模式为: "
 msgstr "Set quiet mode via configuration file: "
 
 #: src/pytexmk/__main__.py:225
-#, fuzzy
 msgid "通过配置文件设置输出目录为: "
 msgstr "Set output directory via configuration file: "
 
 #: src/pytexmk/__main__.py:228
-#, fuzzy
 msgid "通过配置文件设置辅助目录为: "
 msgstr "Set auxiliary directory via configuration file: "
 
