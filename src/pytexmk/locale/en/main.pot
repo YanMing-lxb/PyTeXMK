@@ -85,7 +85,7 @@ msgstr ""
 
 #: src/pytexmk/__main__.py:99
 msgid "启用草稿模式进行编译，提高编译速度 (无图显示)"
-msgstr ""
+msgstr "Enable draft mode for compilation to improve compilation speed (not shown)"
 
 #: src/pytexmk/__main__.py:100
 msgid "清除所有主文件的辅助文件"
