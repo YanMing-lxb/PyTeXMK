@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-09-12 13:44:23 +0800
+LastEditTime : 2024-09-20 10:30:16 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -78,7 +78,7 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
 
     if run_index_list_cmd: # 存在目录索引编译命令
         for cmd in run_index_list_cmd:
-            print_message(_('%(args)s 编译') % {'args': {cmd[0]}}, "running")
+            print_message(_('%(args)s 编译') % {'args': cmd[0]}, "running")
             Latex_compilation_times_index = 1
             runtime_index, return_index = time_count(compile_model.compile_index, cmd)
             name_target_index = return_index # 获取 compile_index 函数得到的参数

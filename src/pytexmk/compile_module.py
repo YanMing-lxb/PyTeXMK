@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-09-16 19:49:04 +0800
+LastEditTime : 2024-09-20 12:27:02 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -562,7 +562,7 @@ class CompileLaTeX(object):
             subprocess.run(cmd[1], check=True, text=True, capture_output=False)
             return name_target
         except:
-            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': {cmd[0]}} + f"{self.auxdir}{self.project_name}.log")
+            self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': cmd[0]} + f"{self.auxdir}{self.project_name}.log")
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
