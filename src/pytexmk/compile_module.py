@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-09-20 14:02:36 +0800
+LastEditTime : 2024-09-20 14:21:52 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -559,7 +559,7 @@ class CompileLaTeX(object):
         name_target = f"{cmd[0]}"
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{cmd[1]}\n")
         try:
-            subprocess.run(cmd[1].split(", "), check=True, text=True, capture_output=False, shell=True) # 使用shell=True：告诉subprocess.run使用shell来执行命令，这样可以利用shell的功能来搜索PATH中的命令。
+            subprocess.run(cmd[1], check=True, text=True, capture_output=False, shell=True) # 使用shell=True：告诉subprocess.run使用shell来执行命令，这样可以利用shell的功能来搜索PATH中的命令。
             return name_target
         except Exception as e:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': cmd[0]} + f"{self.auxdir}{self.project_name}.log\n{e}")
