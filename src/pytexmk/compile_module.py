@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-09-20 14:21:52 +0800
+LastEditTime : 2024-09-21 20:46:30 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -317,7 +317,7 @@ class CompileLaTeX(object):
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
 
         try:
-            subprocess.run(options, check=True, text=True, capture_output=False, shell=True)
+            subprocess.run(options, check=True, text=True, capture_output=False)
         except Exception as e:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") %{'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
@@ -436,7 +436,7 @@ class CompileLaTeX(object):
                 
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
-            subprocess.run(options, check=True, text=True, capture_output=False, shell=True)
+            subprocess.run(options, check=True, text=True, capture_output=False)
         except Exception as e:
             self.logger.error(_("%(args)s 编译失败，请查看日志文件以获取详细信息: ") % {'args': bib_engine} + f"{self.auxdir}{self.project_name}.log\n{e}")
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
@@ -586,7 +586,7 @@ class CompileLaTeX(object):
             options.insert(1, "-q") # 静默编译
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
-            subprocess.run(options, check=True, text=True, capture_output=False, shell=True)
+            subprocess.run(options, check=True, text=True, capture_output=False)
         except Exception as e:
             self.logger.error(_("DVIPDFMX 编译失败，请查看日志文件以获取详细信息: ") + f"{self.auxdir}{self.project_name}.log\n{e}")
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
