@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-09-12 14:37:41 +0800
+LastEditTime : 2024-09-22 11:14:44 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -475,11 +475,7 @@ class MainFileOperation(object):
                         for line in file_in:
                             modified_line = pattern.sub(replace_draft, line)
                             file_out.write(modified_line)
-    
-                    if not content_modified:
-                        self.logger.info(_("未匹配到内容, 文件未修改."))
-                    else:
-                        temp_file.replace(file_path)
+
                 if draft_judgement:
                     self.logger.info(_("启用草稿模式"))
                 else:

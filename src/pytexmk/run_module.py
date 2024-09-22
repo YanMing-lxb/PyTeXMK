@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-09-20 13:02:19 +0800
+LastEditTime : 2024-09-22 11:12:23 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -117,7 +117,6 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
     print(_("目录索引: ") + print_index)
 
     # 结束草稿模式
-    print("\n")
     MFO.draft_model(project_name, draft, False)
 
     return runtime_dict
