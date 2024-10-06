@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-09-02 09:28:38 +0800
+ * LastEditTime : 2024-10-06 20:35:07 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -55,6 +55,8 @@ pip3 install --upgrade pytexmk
 ```
 
 ## 使用入门
+
+基础使用参见：[Issues #1](https://github.com/YanMing-lxb/PyTeXMK/issues/1#issuecomment-2383474600)
 
 请仔细阅读：[待编译主文件及编译类型选定逻辑](#待编译主文件及编译类型选定逻辑)
 

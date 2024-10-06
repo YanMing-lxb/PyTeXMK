@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 22:20:03 +0800
- * LastEditTime : 2024-09-02 09:11:50 +0800
+ * LastEditTime : 2024-10-06 20:36:33 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.en.md
  * Description  : 
@@ -54,6 +54,7 @@ pip3 install --upgrade pytexmk
 ```
 
 ## Getting Started
+For basic usage see: [Issues #1](https://github.com/YanMing-lxb/PyTeXMK/issues/1#issuecomment-2383474600)
 
 Please read carefully: [Logic for Selecting the Main File to Compile and Compilation Type](#logic-for-selecting-the-main-file-to-compile-and-compilation-type)
 
