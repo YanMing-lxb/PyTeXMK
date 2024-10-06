@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 09:31+0800\n"
+"POT-Creation-Date: 2024-10-06 21:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -103,10 +103,10 @@ msgstr ""
 "missing: "
 
 #: src/pytexmk/compile_module.py:535
-msgid "glossaries、nomencl 和 makeidx 以外宏包，无法进行编译索引"
-msgstr ""
-"Cannot compile index with packages other than glossaries, nomencl, and "
-"makeidx"
+#, fuzzy
+msgid ""
+"使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引，因此不编译索引"
+msgstr "Index not compiled because a package other than glossaries, nomencl, or makeidx is used or the index is not set up."
 
 #: src/pytexmk/compile_module.py:591
 msgid "DVIPDFMX 编译失败，请查看日志文件以获取详细信息: "

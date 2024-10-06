@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-12 14:49+0800\n"
+"POT-Creation-Date: 2024-10-06 21:53+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,7 +74,7 @@ msgid "通过特征命令检索到主文件: "
 msgstr "Retrieved main file via feature command: "
 
 #: src/pytexmk/additional_module.py:280 src/pytexmk/additional_module.py:334
-#: src/pytexmk/additional_module.py:534
+#: src/pytexmk/additional_module.py:530
 msgid "打开文件失败: "
 msgstr "Failed to open file: "
 
@@ -180,7 +180,7 @@ msgstr "Processing file: %(args)s, file size: "
 msgid "文件较小,直接读取到内存处理"
 msgstr "File is small, reading directly into memory for processing"
 
-#: src/pytexmk/additional_module.py:464 src/pytexmk/additional_module.py:480
+#: src/pytexmk/additional_module.py:464
 msgid "未匹配到内容, 文件未修改."
 msgstr "No content matched, file not modified."
 
@@ -188,63 +188,63 @@ msgstr "No content matched, file not modified."
 msgid "文件较大,逐行处理"
 msgstr "File is large, processing line by line"
 
-#: src/pytexmk/additional_module.py:484
+#: src/pytexmk/additional_module.py:480
 msgid "启用草稿模式"
 msgstr "Draft mode enabled"
 
-#: src/pytexmk/additional_module.py:486
+#: src/pytexmk/additional_module.py:482
 msgid "关闭草稿模式"
 msgstr "Draft mode disabled"
 
-#: src/pytexmk/additional_module.py:488
+#: src/pytexmk/additional_module.py:484
 msgid "文件未找到: "
 msgstr "File not found: "
 
-#: src/pytexmk/additional_module.py:490
+#: src/pytexmk/additional_module.py:486
 msgid "权限错误: 无法读取或写入文件: "
 msgstr "Permission error: Unable to read or write file: "
 
-#: src/pytexmk/additional_module.py:492
+#: src/pytexmk/additional_module.py:488
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
 
-#: src/pytexmk/additional_module.py:495
+#: src/pytexmk/additional_module.py:491
 msgid "草稿模式未启用, 跳过处理."
 msgstr "Draft mode not enabled, skipping processing."
 
-#: src/pytexmk/additional_module.py:513
+#: src/pytexmk/additional_module.py:509
 msgid "未设置 PDF 查看器，使用默认 PDF 查看器"
 msgstr "No PDF viewer set, default PDF viewer used"
 
-#: src/pytexmk/additional_module.py:516
+#: src/pytexmk/additional_module.py:512
 msgid "设置 PDF 查看器: "
 msgstr "Setting up the PDF viewer: "
 
-#: src/pytexmk/additional_module.py:529
+#: src/pytexmk/additional_module.py:525
 msgid "文件路径: "
 msgstr "File path: "
 
-#: src/pytexmk/additional_module.py:573
+#: src/pytexmk/additional_module.py:569
 #, fuzzy
 msgid "当前路径下未找到 PDF 文件"
 msgstr "No PDF files found in current path: "
 
-#: src/pytexmk/additional_module.py:576
+#: src/pytexmk/additional_module.py:572
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "
 
-#: src/pytexmk/additional_module.py:587
+#: src/pytexmk/additional_module.py:583
 msgid "修复成功: "
 msgstr "Fix successful: "
 
-#: src/pytexmk/additional_module.py:589
+#: src/pytexmk/additional_module.py:585
 msgid "修复失败: "
 msgstr "Fix failed: "
 
-#: src/pytexmk/additional_module.py:590
+#: src/pytexmk/additional_module.py:586
 msgid "[bold green]修复 PDF 结束[/bold green]"
 msgstr "[bold green]PDF fix complete[/bold green]"
 
-#: src/pytexmk/additional_module.py:598
+#: src/pytexmk/additional_module.py:594
 msgid "[bold red]正在退出 PyTeXMK..."
 msgstr "[bold red]Exiting PyTeXMK..."

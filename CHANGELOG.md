@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2024-10-06 21:45:36 +0800
+ * LastEditTime : 2024-10-06 21:53:06 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -45,6 +45,7 @@
 ### 改进
 - 去掉冗余代码，调整显示
 - 完善 README，新增基础使用
+- 调整提示信息内容，避免误解
 
 ### 修复
 - 修复 log文件中存在 “No file {self.project_name}.bbl” 时，编译次数判断错误的问题 https://github.com/YanMing-lxb/PyTeXMK/issues/2

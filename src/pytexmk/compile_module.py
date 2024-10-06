@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-10-06 21:36:29 +0800
+LastEditTime : 2024-10-06 21:52:27 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -532,7 +532,7 @@ class CompileLaTeX(object):
             if make_index:
                 run_index_list_cmd.append(['makeidx', f"makeindex {self.project_name}.idx"])
         else:
-            print_index = _("glossaries、nomencl 和 makeidx 以外宏包，无法进行编译索引")
+            print_index = _("使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引，因此不编译索引")
         return print_index, run_index_list_cmd
 
     # --------------------------------------------------------------------------------
