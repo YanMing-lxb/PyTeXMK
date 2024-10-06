@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2024-09-21 20:46:30 +0800
+LastEditTime : 2024-10-06 21:36:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
 Description  : 
@@ -399,7 +399,7 @@ class CompileLaTeX(object):
                 if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查LaTeX输出中是否有bbl文件缺失的提示
                     re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查LaTeX输出中是否有引用未定义的提示
                     print_bib = _("LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示")
-                    Latex_compilation_times = 1
+                    Latex_compilation_times = 2
 
             elif re.search(r'\\bibcite', aux_content):
                 print_bib = _("thebibliography 环境实现排版")
