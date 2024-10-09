@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-08-16 20:46:29 +0800
+LastEditTime : 2024-10-09 20:33:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -104,7 +104,8 @@ class LaTeXDiff_Aux:
             """
             rootPath = Path(tex_file_name)
             if not rootPath.is_file():
-                raise FileNotFoundError(_('文件不存在: ') + tex_file_name)
+                self.logger.error(_('文件不存在: ') + tex_file_name)
+                exit_pytexmk()
             dirpath = rootPath.parent
             with open(tex_file_name, 'r', encoding='utf-8') as file_handler:
                 for line in file_handler:
