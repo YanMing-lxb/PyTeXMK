@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-10-12 13:28:14 +0800
+LastEditTime : 2024-10-12 13:48:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -385,53 +385,53 @@ def main():
         if old_tex_file == new_tex_file: # 如果 old_tex_file 和 new_tex_file 相同
             logger.error(_("不能对同一个文件进行比较, 请检查文件名是否正确"))
             exit_pytexmk()
+
+        print_message(_("LaTeXDiff 预处理"), "additional")
+
+        # 检查辅助文件是否存在 TODO 要求辅助文件不存在时要自动进行编译
+        LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
+        if LDA.check_aux_files(old_tex_file): 
+            logger.info(_("%(args)s 的辅助文件存在") % {"args": old_tex_file})
+        else: # 如果辅助文件不存在
+            logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": old_tex_file})
+            exit_pytexmk()
+        if LDA.check_aux_files(new_tex_file):
+            logger.info(_("%(args)s 的辅助文件存在") % {"args": new_tex_file})
         else:
-            print_message(_("LaTeXDiff 预处理"), "additional")
+            logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": new_tex_file}) 
+            exit_pytexmk()
 
-            # 检查辅助文件是否存在
-            LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
-            if LDA.check_aux_files(old_tex_file): 
-                logger.info(_("%(args)s 的辅助文件存在") % {"args": old_tex_file})
-            else: # 如果辅助文件不存在
-                logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": old_tex_file})
-                exit_pytexmk()
-            if LDA.check_aux_files(new_tex_file):
-                logger.info(_("%(args)s 的辅助文件存在") % {"args": new_tex_file})
-            else:
-                logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": new_tex_file}) # TODO 要求辅助文件不存在时要自动进行编译
-                exit_pytexmk()
-
-            old_tex_file = LDA.flatten_Latex(old_tex_file)
-            new_tex_file = LDA.flatten_Latex(new_tex_file)
-            runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
-            runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
-            try:
-                print_message(_("LaTeXDiff 运行"), "running")
-                runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file)
-                runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
+        old_tex_file = LDA.flatten_Latex(old_tex_file)
+        new_tex_file = LDA.flatten_Latex(new_tex_file)
+        runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
+        runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
+        try:
+            print_message(_("LaTeXDiff 运行"), "running")
+            runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file)
+            runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
+            
+            print_message(_("LaTeXDiff 后处理"), "additional")
+            print(_('删除 Flatten 后的文件...'))
+            runtime_remove_flatten_root = time_count(MRO.remove_specific_files, [old_tex_file, new_tex_file], '.')
+            runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
+            
+            if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
+                out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
+                print_message(_("开始预处理命令"), "additional")
                 
-                print_message(_("LaTeXDiff 后处理"), "additional")
-                print(_('删除 Flatten 后的文件...'))
-                runtime_remove_flatten_root = time_count(MRO.remove_specific_files, [old_tex_file, new_tex_file], '.')
-                runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
-                
-                if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
-                    out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
-                    print_message(_("开始预处理命令"), "additional")
-                    
-                    RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
+                RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
 
-                    print_message(_("开始后处理"), "additional")
+                print_message(_("开始后处理"), "additional")
 
-                    print(_('移动结果文件到输出目录...'))
-                    runtime_move_out_outdir = time_count(MRO.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
-                    runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
-            except Exception as e:
-                logger.error(_("LaTeXDiff 编译出错: ") + str(e))
-                exit_pytexmk()
-            finally:
-                runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
-                runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
+                print(_('移动结果文件到输出目录...'))
+                runtime_move_out_outdir = time_count(MRO.move_specific_files, out_files, ".", outdir) # 将输出文件移动到指定目录
+                runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
+        except Exception as e:
+            logger.error(_("LaTeXDiff 编译出错: ") + str(e))
+            exit_pytexmk()
+        finally:
+            runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, '.', auxdir) # 将所有辅助文件移动到根目录
+            runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
                 
             
     # --------------------------------------------------------------------------------
