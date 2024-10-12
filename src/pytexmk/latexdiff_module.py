@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-10-09 20:36:43 +0800
+LastEditTime : 2024-10-12 15:49:31 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -129,26 +129,48 @@ class LaTeXDiff_Aux:
         includePattern = re.compile(r'^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})', re.MULTILINE)
  
         # 打开输出文件并将 sys.stdout 重定向到该文件
-        output_file_name = f'{file_name}-flatten.tex'
+        output_file_name = f'{file_name}-flatten'
         try:
-            with open(output_file_name, 'w', encoding='utf-8') as output_file:
+            with open(output_file_name+'.tex', 'w', encoding='utf-8') as output_file:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
             sys.stdout = sys.__stdout__
-            self.logger.info(_("已压平文件: ") + output_file_name)
+            self.logger.info(_("已压平文件: ") + output_file_name + '.tex')
         except Exception as e:
             self.logger.error(_("压平出错: ") + str(e))
             exit_pytexmk()
 
         return output_file_name
+    
+    # --------------------------------------------------------------------------------
+    # 判断在指定后缀的新旧辅助文件是否同时存在
+    # --------------------------------------------------------------------------------
+    def aux_files_both_exist(self, old_file, new_file, suffix):
+        """
+        删除匹配正则表达式的文件。
+
+        参数:
+        - old_file: 旧文件名，无后缀。
+        - new_file: 新文件名，无后缀。
+        - suffix: 后缀名，如'.bbl'。
+
+        行为:
+        - 检查新旧辅助文件是否同时存在。
+        - 如果存在，则返回True，否则返回False。
+        """
+        old_file_path = Path(old_file + suffix)  # 转换为Path对象
+        new_file_path = Path(new_file + suffix)  # 转换为Path对象
+        if old_file_path.exists() and new_file_path.exists():
+            self.logger.info(_("新旧辅助文件同时存在: ") + str(old_file_path) + " " + str(new_file_path))
+            return suffix
 
 
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
-    def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file):
-        options = ["latexdiff", old_tex_file, new_tex_file]
-        command = f"{' '.join(options)} > {diff_tex_file}.tex --encoding=utf8"
+    def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
+        options = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix]
+        command = f"{' '.join(options)} > {diff_tex_file + suffix} --encoding=utf8"
         console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 

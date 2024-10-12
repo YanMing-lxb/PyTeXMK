@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-09-22 11:12:23 +0800
+LastEditTime : 2024-10-12 16:11:04 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -107,14 +107,51 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
         runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
         runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
 
-
-
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
     
     print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiled_program, 'args2': str(Latex_compilation_times+1)})
     print(_("参考文献: ") + print_bib)
     print(_("目录索引: ") + print_index)
+
+    # 结束草稿模式
+    MFO.draft_model(project_name, draft, False)
+
+    return runtime_dict
+
+
+
+# --------------------------------------------------------------------------------
+# LaTeX Diff 编译
+# --------------------------------------------------------------------------------
+def LaTeXDiffRUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, draft):
+    # 草稿模式函数启用
+    MFO.draft_model(project_name, draft, True)
+
+    abbreviations_num = ('1st', '2nd')
+    # 编译前的准备工作
+    compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
+
+
+    # 首次编译 LaTeX 文档
+    print_message(_("1 次 %(args)s 编译") % {'args': compiled_program}, "running")
+    runtime_Latex = time_count(compile_model.compile_tex, ) 
+    runtime_dict[f'{compiled_program} {abbreviations_num[0]}'] = runtime_Latex
+
+    print_message(_("2 次 %(args1)s 编译") % {'args1': compiled_program}, "running")
+    runtime_Latex = time_count(compile_model.compile_tex, )
+    runtime_dict[f'{compiled_program} {abbreviations_num[1]}'] = runtime_Latex
+
+    # 编译完成, 开始判断编译 XDV 文件
+    if compiled_program == "XeLaTeX":  # 判断是否编译 xdv 文件
+        print_message(_("DVIPDFMX 编译"), "running")
+        runtime_xdv = time_count(compile_model.compile_xdv, ) # 编译 xdv 文件
+        runtime_dict[_('DVIPDFMX 编译')] = runtime_xdv
+
+    # 显示编译过程中关键信息
+    print_message(_("完成所有编译"), "success")
+    
+    print(_("文档整体: %(args1)s 编译 %(args2)s 次") % {'args1': compiled_program, 'args2': str(2)})
 
     # 结束草稿模式
     MFO.draft_model(project_name, draft, False)

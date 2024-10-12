@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2024-10-09 20:34:42 +0800
+ * LastEditTime : 2024-10-12 16:13:33 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -42,6 +42,9 @@
  -->
 
 ## v0.9.3.XXX
+### 新增
+- LaTeXDiff 新增风格选择，支持在参考文献和符号索引中显示修改痕迹
+
 ### 改进
 - 调整 LaTeXDiff 相关的代码结构，提高可读性
 

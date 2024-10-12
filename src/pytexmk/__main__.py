@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-10-12 13:48:01 +0800
+LastEditTime : 2024-10-12 16:10:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -34,7 +34,7 @@ from rich_argparse import RichHelpFormatter
 
 from .version import script_name, __version__
 
-from .run_module import RUN
+from .run_module import RUN, LaTeXDiffRUN
 from .logger_config import setup_logger
 from .language_module import set_language
 from .additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
@@ -401,25 +401,36 @@ def main():
             logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": new_tex_file}) 
             exit_pytexmk()
 
-        old_tex_file = LDA.flatten_Latex(old_tex_file)
-        new_tex_file = LDA.flatten_Latex(new_tex_file)
+        old_tex_file_flatten = LDA.flatten_Latex(old_tex_file)
+        new_tex_file_flatten = LDA.flatten_Latex(new_tex_file)
         runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
         runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
+        latex_diff_style = input(_("请输入 LaTeXDiff 的显示风格: a 或者 b"))
+
         try:
             print_message(_("LaTeXDiff 运行"), "running")
-            runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file)
+            aux_suffixes_exit = []
+            if latex_diff_style == 'a':
+                for aux_suffix in ['.bbl', '.nls', '.gls', '.idx']:
+                    aux_suffixes_exit.append(LDA.aux_files_both_exist(old_tex_file, new_tex_file, aux_suffix))
+                for aux_suffix in aux_suffixes_exit:    
+                    runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file, aux_suffix)
+
+            runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file_flatten, new_tex_file_flatten, diff_tex_file, ".tex")
             runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
             
             print_message(_("LaTeXDiff 后处理"), "additional")
             print(_('删除 Flatten 后的文件...'))
-            runtime_remove_flatten_root = time_count(MRO.remove_specific_files, [old_tex_file, new_tex_file], '.')
+            runtime_remove_flatten_root = time_count(MRO.remove_specific_files, [f"{old_tex_file_flatten}.tex", f"{new_tex_file_flatten}.tex"], '.')
             runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
             
             if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
                 out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
                 print_message(_("开始预处理命令"), "additional")
-                
-                RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
+                if latex_diff_style == 'a':
+                    LaTeXDiffRUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
+                elif latex_diff_style == 'b':
+                    RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
 
                 print_message(_("开始后处理"), "additional")
 
