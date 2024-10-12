@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2024-10-12 15:49:31 +0800
+LastEditTime : 2024-10-12 16:23:19 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -170,7 +170,7 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
         options = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix]
-        command = f"{' '.join(options)} > {diff_tex_file + suffix} --encoding=utf8"
+        command = f"{' '.join(options)} > {diff_tex_file}{suffix} --encoding=utf8"
         console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}\n")
         result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
 

@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-10-12 16:10:29 +0800
+LastEditTime : 2024-10-12 16:33:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -405,14 +405,15 @@ def main():
         new_tex_file_flatten = LDA.flatten_Latex(new_tex_file)
         runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
         runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
-        latex_diff_style = input(_("请输入 LaTeXDiff 的显示风格: a 或者 b"))
+        latex_diff_style = input(_("请输入 LaTeXDiff 的显示风格 (a 或者 b): "))
 
         try:
             print_message(_("LaTeXDiff 运行"), "running")
             aux_suffixes_exit = []
             if latex_diff_style == 'a':
                 for aux_suffix in ['.bbl', '.nls', '.gls', '.idx']:
-                    aux_suffixes_exit.append(LDA.aux_files_both_exist(old_tex_file, new_tex_file, aux_suffix))
+                    aux_file_exit = LDA.aux_files_both_exist(old_tex_file, new_tex_file, aux_suffix)
+                    aux_suffixes_exit.append(aux_file_exit) if aux_file_exit else None
                 for aux_suffix in aux_suffixes_exit:    
                     runtime_compile_LaTeXDiff = time_count(LDA.compile_LaTeXDiff, old_tex_file, new_tex_file, diff_tex_file, aux_suffix)
 
