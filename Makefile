@@ -7,7 +7,7 @@ ifeq ($(OS),Windows_NT)
 	echo "Windows System";
 	@if exist build rmdir build /s /q
 	@if exist dist rmdir dist /s /q
-	@if exist src/pytexmk.egg-info rmdir src/pytexmk.egg-info /s /q
+	@if exist "src/pytexmk.egg-info" rmdir "src/pytexmk.egg-info" /s /q
 
 else
 ifeq ($(shell uname -s),Linux)
