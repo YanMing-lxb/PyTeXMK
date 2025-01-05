@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-02-29 10:23:19 +0800
- * LastEditTime : 2024-10-06 20:35:07 +0800
+ * LastEditTime : 2025-01-05 16:40:43 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.md
  * Description  : 
@@ -160,6 +160,16 @@ PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文
 
 #### 配置文件优先级
 本地配置文件优先级高于系统配置文件，如果两者对相同参数进行配置，则优先使用本地配置文件的配置。
+
+## 构建 `Wheel` 
+
+```
+1. 安装 Python3
+2. pip install -r requirements-windows.txt
+3. pip install pyinstaller
+4. make
+```
+另外在 Windows 中 make 命令需要单独配置：详见 [Window 下使用 make](https://github.com/YanMing-lxb/PyTeXMK/blob/main/doc/Window_下使用_make.md)
 
 ## 更新记录
 更新记录详见 [CHANGELOG 文档](https://github.com/YanMing-lxb/PyTeXMK/blob/main/CHANGELOG.md)
