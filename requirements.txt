@@ -1,0 +1,5 @@
+PyMuPDF==1.24.13
+packaging==24.2
+rich==13.9.4
+rich_argparse==1.6.0
+toml==0.10.2
