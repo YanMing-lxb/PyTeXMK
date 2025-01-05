@@ -19,7 +19,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2025-01-05 16:37:31 +0800
- * LastEditTime : 2025-01-05 16:37:37 +0800
+ * LastEditTime : 2025-01-05 16:44:33 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/docs/Window 下使用 make.md
  * Description  : 
@@ -32,7 +32,7 @@
 ```cmd
 where mingw32-make.exe
 ```
-结果显示实例：
+结果显示示例：
 ```cmd
 C:\Applications\Strawberry\c\bin\mingw32-make.exe
 ```
