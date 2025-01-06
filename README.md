@@ -234,3 +234,7 @@ PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文
 - [X] 程序国际化
 - [ ] README 文档完善
     - [ ] 增加配置文件相关说明
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)

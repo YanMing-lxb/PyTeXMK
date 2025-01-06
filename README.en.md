@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 22:20:03 +0800
- * LastEditTime : 2024-10-06 20:36:33 +0800
+ * LastEditTime : 2025-01-06 22:14:24 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.en.md
  * Description  : 
@@ -218,3 +218,7 @@ For the update log, please see the [CHANGELOG document](https://github.com/YanMi
 - [X] Program internationalization
 - [ ] README document improvement
     - [ ] Add configuration file related instructions
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)
