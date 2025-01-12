@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 22:20:03 +0800
- * LastEditTime : 2025-01-06 22:14:24 +0800
+ * LastEditTime : 2025-01-12 21:44:18 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/README.en.md
  * Description  : 
@@ -113,12 +113,12 @@ Options:
 
 PyTeXMK supports using magic comments to define the main file to be compiled, compilation program, location to store compilation results, etc. (only supports searching the first 50 lines of the document).
 
-| Magic Comment              | Description                                            |
-|----------------------------|--------------------------------------------------------|
-| `% !TEX program = XeLaTeX` | Specify the compilation type, optional `XeLaTeX` `PdfLaTeX` `LuaLaTeX`       |
-| `% !TEX root = main.tex`   | Specify the LaTeX filename to be compiled, only supports the main file in the project root directory   |
-| `% !TEX outdir = out_folde`  | Specify the location to store compilation results, only supports folder names                     |
-| `% !TEX auxdir = aux_folder` | Specify the location to store auxiliary files, only supports folder names                     |
+| Magic Comment                  | Description                                                                                         |    Examples                |
+|--------------------------------|-----------------------------------------------------------------------------------------------------|----------------------------|
+| `% !TEX program = <XeLaTeX>`   | Specify the compilation type, optional `XeLaTeX` `PdfLaTeX` `LuaLaTeX`                              | `% !TEX program = PdfLaTeX`|
+| `% !TEX root = <main_file>`    | Specify the LaTeX filename to be compiled, only supports the main file in the project root directory| `% !TEX root = test_file`  |
+| `% !TEX outdir = <out_folde>`  | Specify the location to store compilation results, only supports folder names                       | `% !TEX outdir = output`   |
+| `% !TEX auxdir = <aux_folder>` | Specify the location to store auxiliary files, only supports folder names                           | `% !TEX auxdir = auxfiles` |
 
 > Magic comments only support definition in the main file, not in sub-files.
 
@@ -126,12 +126,13 @@ PyTeXMK supports using magic comments to define the main file to be compiled, co
 <details>
 <summary><b>Logic for Selecting the Main File to Compile</b></summary>
 
-1. If the main file is specified in the command line parameters, use that main file name.
-2. If there is one and only one main file in the current root directory, use that file as the main file to be compiled.
-3. If there is a magic comment `% !TEX root`, use the file specified by the magic comment as the main file.
-4. Search for `\documentclass[]{}` or `\begin{document}` in the TeX file to determine (only supports searching the first 200 lines)
-5. If the main file cannot be determined by the magic comment, try to specify the main file to be compiled based on the default main file name `main.tex`.
-6. If the main file still cannot be determined, output an error message and exit the program.
+1. If a master file is specified in the command line arguments, the master file is compiled. For example: `pytexmk <main file name>` The main file name may not be followed by a file suffix. 3.
+2. If there is only one `TEX` file in the current root directory, that file is used as the master file to be compiled. 4.
+3. If there is a magic comment `% !TEX root`, the file specified by the magic comment is used as the master file to be compiled.
+4. retrieve `\documentclass[]{}` or `\begin{document}` from `TEX` file (only supports retrieving the first 200 lines of the document)
+5. if the main file cannot be determined from the magic comment, try to specify the main file to be compiled based on the default main file name, `main.tex`. 7.
+6. If you still cannot determine the main file, output an error message and exit the program.
+
 </details>
 
 <details>
