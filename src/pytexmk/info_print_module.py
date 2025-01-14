@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-03-03 10:34:41 +0800
-LastEditTime : 2024-08-09 20:41:12 +0800
+LastEditTime : 2025-01-14 16:26:45 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/info_print_module.py
 Description  : 
@@ -37,6 +37,9 @@ console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象
 
 _ = set_language('info_print')  # 设置语言
+
+# 总字符串长度
+total_len = 78
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
@@ -126,7 +129,7 @@ def print_message(message, state):
 
     try:
         # 计算左右两侧 X 的数量
-        padding_size = 80 - get_text_len(message) - 4  # 计算需要填充的空格数量
+        padding_size = total_len - get_text_len(message) - 4  # 计算需要填充的空格数量
         left_padding = padding_size // 2  # 计算左侧填充的X数量
         right_padding = padding_size - left_padding  # 计算右侧填充的X数量
         
@@ -135,9 +138,9 @@ def print_message(message, state):
 
         banner = f"[{in_dec_chars_style}]{left_banner}[/{in_dec_chars_style}]" + f"[{message_style}]| {message} |[/{message_style}]" + f"[{in_dec_chars_style}]{right_banner}[/{in_dec_chars_style}]"
         
-        console.print("\n" + out_dec_chars * 80, style=f"{out_dec_chars_style}")
+        console.print("\n" + out_dec_chars * total_len, style=f"{out_dec_chars_style}")
         console.print(banner)
-        console.print(out_dec_chars * 80 + "\n", style=f"{out_dec_chars_style}")
+        console.print(out_dec_chars * total_len + "\n", style=f"{out_dec_chars_style}")
     except Exception as e:
         logger.error(_('打印模块信息时出错: ') + str(e))  # 记录错误日志
     
@@ -233,7 +236,7 @@ def time_print(start_time, runtime_dict):
                 row_data.extend(["", "", ""])
             table.add_row(*row_data)
 
-        print("\n" + "=" * 80 + "\n")  # 打印分隔线
+        print("\n" + "=" * total_len + "\n")  # 打印分隔线
         console.print(table)  # 打印表格
 
         print(_('PyTeXMK 运行时长: ') + f"{hours} h {minutes} min {seconds} s {milliseconds} ms ({total_seconds:.3f} s total)")  # 打印总运行时长
