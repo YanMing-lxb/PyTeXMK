@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2024-09-22 11:14:44 +0800
+LastEditTime : 2025-01-15 15:02:50 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -69,6 +69,7 @@ class MoveRemoveOperation(object):
                     self.logger.error(_("删除失败: ") + f"{filepath} --> {e}")
 
 
+
     # --------------------------------------------------------------------------------
     # 将正则表达式匹配的文件从文件夹中清除
     # --------------------------------------------------------------------------------
@@ -100,7 +101,7 @@ class MoveRemoveOperation(object):
 
 
     # --------------------------------------------------------------------------------
-    # 将指定文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
+    # 将指定文件从根目录移动到目标文件夹,如果目标文件存在则覆盖
     # --------------------------------------------------------------------------------
     def move_specific_files(self, files, src_folder, dest_folder):
         """
@@ -121,11 +122,8 @@ class MoveRemoveOperation(object):
         src_folder_path = Path(src_folder)
         dest_folder_path = Path(dest_folder)
 
-        if not src_folder_path.exists():
-            return
-
-        if not dest_folder_path.exists():
-            dest_folder_path.mkdir(parents=True)  # 如果目标文件夹不存在，则创建它
+        if not src_folder_path.exists() or not dest_folder_path.exists():
+            dest_folder_path.mkdir(parents=True, exist_ok=True)  # 创建目标文件夹 如果 exist_ok=True,当目标文件夹已存在时,mkdir() 不会引发错误.
 
         for file in files:
             src_file_path = src_folder_path / file
@@ -146,31 +144,35 @@ class MoveRemoveOperation(object):
                     self.logger.error(_("移动失败: ") + f"{src_file_path} ==> {dest_folder} --> {e}")
 
 
+
     # --------------------------------------------------------------------------------
-    # 将正则表达式匹配的文件从根目录移动到目标文件夹，如果目标文件存在则覆盖
+    # 将正则表达式匹配的文件从根目录移动到目标文件夹,如果目标文件存在则覆盖
     # --------------------------------------------------------------------------------
     def move_matched_files(self, patterns, src_folder, dest_folder):
         """
-        将匹配正则表达式模式的文件从源文件夹移动到目标文件夹。
-        如果目标文件夹不存在，则创建它。
-        如果目标文件夹中已存在同名文件，则先删除旧文件。
-        移动文件时，如果发生错误，则记录错误信息。
+        将匹配正则表达式模式的文件从源文件夹移动到目标文件夹.
+        如果目标文件夹不存在,则创建它.
+        如果目标文件夹中已存在同名文件,则先删除旧文件.
+        移动文件时,如果发生错误,则记录错误信息.
 
         参数:
-        - patterns (list): 正则表达式模式列表。
-        - src_folder (str): 源文件夹路径。
-        - dest_folder (str): 目标文件夹路径。
+        - patterns (list): 正则表达式模式列表.
+        - src_folder (str): 源文件夹路径.
+        - dest_folder (str): 目标文件夹路径.
         """
         src_folder_path = Path(src_folder)  # 将源文件夹路径转换为Path对象
         dest_folder_path = Path(dest_folder)  # 将目标文件夹路径转换为Path对象
 
-        if not dest_folder_path.exists():  # 检查目标文件夹是否存在
-            dest_folder_path.mkdir(parents=True)  # 如果目标文件夹不存在，则创建它
+        # 创建目标文件夹(如果不存在)
+        dest_folder_path.mkdir(parents=True, exist_ok=True) # exist_ok=True,当目标文件夹已存在时,mkdir() 不会引发错误.
+
+        # 编译正则表达式模式以提高匹配性能
+        compiled_patterns = [re.compile(pattern) for pattern in patterns]
 
         for file_path in src_folder_path.iterdir():  # 遍历源文件夹中的所有文件
             if file_path.is_file():  # 确保是文件而不是文件夹
-                for pattern in patterns:  # 遍历所有正则表达式模式
-                    if re.match(pattern, file_path.name):  # 检查文件名是否匹配正则表达式模式
+                for pattern in compiled_patterns:  # 遍历所有正则表达式模式
+                    if pattern.match(file_path.name):  # 检查文件名是否匹配正则表达式模式
                         dest_file_path = dest_folder_path / file_path.name  # 构建目标文件路径
 
                         if dest_file_path.exists():  # 检查目标文件是否存在
@@ -185,7 +187,7 @@ class MoveRemoveOperation(object):
                             self.logger.info(_("移动成功: ") + f"{file_path.name} ==> {dest_folder}")  # 记录文件移动成功信息
                         except OSError as e:
                             self.logger.error(_("移动失败: ") + f"{file_path.name} ==> {dest_folder} --> {e}")  # 记录文件移动失败错误信息
-                        break  # 匹配到一个模式后，不再检查其他模式
+                        break  # 匹配到一个模式后,不再检查其他模式
 
 
 
@@ -201,7 +203,7 @@ class MainFileOperation(object):
     def check_project_name(self, main_tex_files, check_project_name, suffixes):
         # 使用Path对象处理文件路径
         path_obj = Path(check_project_name)
-        base_name = path_obj.stem  # 提取文件名（不包括后缀）
+        base_name = path_obj.stem  # 提取文件名(不包括后缀)
         file_extension = path_obj.suffix  # 提取文件后缀
 
         if '/' in check_project_name or '\\' in check_project_name:  # 判断是否是没有后缀的路径
@@ -228,13 +230,23 @@ class MainFileOperation(object):
     # 定义 tex 文件检索函数
     # --------------------------------------------------------------------------------
     def get_suffixes_files_in_dir(self, dir, suffixes):
+        """
+        获取指定后缀的文件名列表.
+
+        参数:
+        - dir (str): 目标目录路径.
+        - suffixes (str): 文件后缀.
+
+        返回:
+        - suffixes_files_in_dir (list): 匹配后缀的文件名列表.
+        """
         suffixes_files_in_dir = []
+        # 获取当前路径
+        current_path = Path(dir)  # 转换为Path对象
         try:
-            # 获取当前路径
-            current_path = Path(dir)  # 转换为Path对象
             # 列出当前路径下所有以suffixes结尾的文件
             for file in current_path.glob(f'*{suffixes}'):
-                # 去掉路径，提取文件名和后缀
+                # 去掉路径,提取文件名和后缀
                 base_name = file.stem
                 suffixes_files_in_dir.append(base_name)
                 self.logger.info(_("搜索到: ") + f"{base_name}{suffixes}")
@@ -271,7 +283,7 @@ class MainFileOperation(object):
                         # 检查是否包含主文件特征命令
                         if r"\documentclass" in line or r"\begin{document}" in line:
                             is_main_file = True
-                    # 如果找到主文件特征命令，则将文件名添加到主文件列表中
+                    # 如果找到主文件特征命令,则将文件名添加到主文件列表中
                     if is_main_file:
                         main_tex_files.append(file_name)
                     self.logger.info(_("通过特征命令检索到主文件: ") + str(file_name))
@@ -279,12 +291,12 @@ class MainFileOperation(object):
                 # 捕获并记录文件读取错误
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
                 continue
-        # 如果有找到主文件，则记录数量
+        # 如果有找到主文件,则记录数量
         if main_tex_files:
             self.logger.info(_("发现主文件数量: ") + str(len(main_tex_files)))
         else:
-            # 如果没有找到主文件，则记录错误并退出程序
-            self.logger.error(_("终端路径下不存在主文件！请检查终端显示路径是否是项目路径！"))
+            # 如果没有找到主文件,则记录错误并退出程序
+            self.logger.error(_("终端路径下不存在主文件!请检查终端显示路径是否是项目路径!"))
             self.logger.warning(_("当前终端路径: ") + str(Path.cwd()))
             exit_pytexmk()
         # 返回主文件列表
@@ -296,21 +308,21 @@ class MainFileOperation(object):
     # --------------------------------------------------------------------------------
     def search_magic_comments(self, main_file_in_root, magic_comment_keys):  # 搜索TeX文件中的魔法注释
         """
-        搜索指定TeX文件中的魔法注释。
+        搜索指定TeX文件中的魔法注释.
 
         参数:
-        - main_file_in_root (list): 包含TeX文件路径的列表。
-        - magic_comment_keys (list): 包含魔法注释关键字的列表。
+        - main_file_in_root (list): 包含TeX文件路径的列表.
+        - magic_comment_keys (list): 包含魔法注释关键字的列表.
 
         返回:
-        - dict: 包含所有魔法注释的字典，格式为{magic_comment_key: [(file_path, magic_comment_value),...],...}。
+        - dict: 包含所有魔法注释的字典,格式为{magic_comment_key: [(file_path, magic_comment_value),...],...}.
 
         行为逻辑:
-        1. 遍历TeX文件列表，打开每个文件并读取前50行。
-        2. 使用正则表达式匹配魔法注释关键字。
-        3. 如果匹配到魔法注释，将其存储在字典中。
-        4. 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}。
-        5. 返回包含所有魔法注释的字典。
+        1. 遍历TeX文件列表,打开每个文件并读取前50行.
+        2. 使用正则表达式匹配魔法注释关键字.
+        3. 如果匹配到魔法注释,将其存储在字典中.
+        4. 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}.
+        5. 返回包含所有魔法注释的字典.
         """
         file_magic_comments = {}  # 用于存储每个文件的魔法注释
 
@@ -329,10 +341,10 @@ class MainFileOperation(object):
                                 if file_path not in file_magic_comments:  # 如果文件路径不在字典中
                                     file_magic_comments[file_path] = {}
                                 file_magic_comments[file_path][magic_comment_key] = matched_comment_value  # 存储魔法注释
-                                break  # 跳出当前循环，避免重复匹配同一关键字
+                                break  # 跳出当前循环,避免重复匹配同一关键字
             except Exception as e:
                 self.logger.error(_("打开文件失败: ") + f"{file_path} --> {e}")
-                continue  # 跳过当前文件，继续处理下一个文件
+                continue  # 跳过当前文件,继续处理下一个文件
 
         # 将数据结构从{file_path: {magic_comment_key: magic_comment_value},...}转换为{magic_comment_key: [(file_path, magic_comment_value),...],...}
         all_magic_comments = {}
@@ -397,26 +409,26 @@ class MainFileOperation(object):
     # 定义草稿模式切换函数 
     # --------------------------------------------------------------------------------
     """
-    函数 `draft_model` 用于根据指定的项目名称和草稿模式设置，更新 LaTeX 文档的草稿模式。
+    函数 `draft_model` 用于根据指定的项目名称和草稿模式设置,更新 LaTeX 文档的草稿模式.
     
     参数说明:
-    - `self`: 类的实例对象。
-    - `project_name`: 字符串，表示要处理的 LaTeX 项目文件名。
-    - `draft_run`: 布尔值，表示是否启用草稿模式。如果为 `True`，则启用草稿模式；否则跳过处理。
-    - `draft_judgement`: 布尔值，表示是否在 `\documentclass` 命令中添加或移除 "draft" 选项。如果为 `True`，则添加 "draft"；否则移除 "draft"。
+    - `self`: 类的实例对象.
+    - `project_name`: 字符串,表示要处理的 LaTeX 项目文件名.
+    - `draft_run`: 布尔值,表示是否启用草稿模式.如果为 `True`,则启用草稿模式;否则跳过处理.
+    - `draft_judgement`: 布尔值,表示是否在 `\documentclass` 命令中添加或移除 "draft" 选项.如果为 `True`,则添加 "draft";否则移除 "draft".
     
     返回说明:
-    - 无返回值。函数直接修改指定文件的内容。
+    - 无返回值.函数直接修改指定文件的内容.
     
     行为逻辑说明:
-    1. 如果 `draft_run` 为 `True`，则继续处理；否则跳过处理并记录日志。
-    2. 确保文件名以 `.tex` 结尾。
-    3. 定义正则表达式模式来匹配 `\documentclass[args1, args2, ...]{class}` 命令。
-    4. 根据 `draft_judgement` 的值决定是否添加或移除 "draft" 选项。
-    5. 获取文件大小，并根据文件大小决定是直接读取到内存处理还是逐行处理。
-    6. 如果文件大小小于 1 MB，则直接读取到内存处理；否则逐行处理。
-    7. 处理完成后，记录日志并返回。
-    8. 如果处理过程中发生错误（如文件未找到、权限错误等），则记录错误日志。
+    1. 如果 `draft_run` 为 `True`,则继续处理;否则跳过处理并记录日志.
+    2. 确保文件名以 `.tex` 结尾.
+    3. 定义正则表达式模式来匹配 `\documentclass[args1, args2, ...]{class}` 命令.
+    4. 根据 `draft_judgement` 的值决定是否添加或移除 "draft" 选项.
+    5. 获取文件大小,并根据文件大小决定是直接读取到内存处理还是逐行处理.
+    6. 如果文件大小小于 1 MB,则直接读取到内存处理;否则逐行处理.
+    7. 处理完成后,记录日志并返回.
+    8. 如果处理过程中发生错误(如文件未找到、权限错误等),则记录错误日志.
     """
     
     def draft_model(self, project_name, draft_run, draft_judgement):
@@ -504,13 +516,13 @@ class PdfFileOperation(object):
     # --------------------------------------------------------------------------------
     # 定义 PDF 预览器选择函数
     # --------------------------------------------------------------------------------
-    def _preview_pdf_by_viewer(self, local_path): # TODO：自己写一个简单的PDF预览器
+    def _preview_pdf_by_viewer(self, local_path): # TODO:自己写一个简单的PDF预览器
         if self.viewer == "default" or not self.viewer: 
-            self.logger.info(_("未设置 PDF 查看器，使用默认 PDF 查看器"))
+            self.logger.info(_("未设置 PDF 查看器,使用默认 PDF 查看器"))
             webbrowser.open(local_path)
         elif self.viewer and self.viewer != "default":
             self.logger.info(_("设置 PDF 查看器: ") + f"{self.viewer}")
-            # TODO：调用指定外部程序打开文件需要完善
+            # TODO:调用指定外部程序打开文件需要完善
 
     # --------------------------------------------------------------------------------
     # 定义 PDF 文件预览函数
@@ -538,17 +550,17 @@ class PdfFileOperation(object):
     # --------------------------------------------------------------------------------
     def pdf_repair(self, project_name, root_dir, excluded_folder):
         """
-        清理指定目录下的PDF文件，排除特定文件夹中的文件，并对每个PDF文件进行修复操作。
+        清理指定目录下的PDF文件,排除特定文件夹中的文件,并对每个PDF文件进行修复操作.
           
         参数:
-        - project_name: 项目名称，用于排除特定名称的PDF文件。
-        - root_dir: 要扫描的根目录。
-        - excluded_folder: 要排除的文件夹名称。
+        - project_name: 项目名称,用于排除特定名称的PDF文件.
+        - root_dir: 要扫描的根目录.
+        - excluded_folder: 要排除的文件夹名称.
           
         功能:
-        - 遍历指定目录，收集所有子文件夹中的PDF文件路径，排除根目录和特定文件夹中的文件。
-        - 对每个PDF文件进行打开和关闭操作，以修复可能存在的文件未正确关闭的问题。
-        - 记录处理过程中的错误信息，并显示处理失败的文件名称。
+        - 遍历指定目录,收集所有子文件夹中的PDF文件路径,排除根目录和特定文件夹中的文件.
+        - 对每个PDF文件进行打开和关闭操作,以修复可能存在的文件未正确关闭的问题.
+        - 记录处理过程中的错误信息,并显示处理失败的文件名称.
         """
         # 将根目录转换为Path对象
         root_dir = Path(root_dir)
@@ -561,7 +573,7 @@ class PdfFileOperation(object):
             # 跳过根目录和排除的文件夹
             if path.is_dir() and path.name == excluded_folder:
                 continue
-            # 仅处理子文件夹中的PDF文件，并排除特定名称的PDF文件
+            # 仅处理子文件夹中的PDF文件,并排除特定名称的PDF文件
             if path.is_file() and path.suffix == '.pdf' and path.name != f'{project_name}.pdf':
                 pdf_files.append(path)
  

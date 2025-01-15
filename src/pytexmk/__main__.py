@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2024-10-12 16:33:01 +0800
+LastEditTime : 2025-01-15 15:04:22 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -46,7 +46,7 @@ from .config_module import ConfigParser
 MFO = MainFileOperation() # 实例化 MainFileOperation 类
 MRO = MoveRemoveOperation() # 实例化 MoveRemoveOperation 类
 PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
-UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒；缓存时长, 单位: 小时
+UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒;缓存时长, 单位: 小时
 CP = ConfigParser() # 实例化 ConfigParser 类
 
 _ = set_language('main')
@@ -55,7 +55,7 @@ _ = set_language('main')
 
 class CustomArgumentParser(argparse.ArgumentParser):
     def exit(self, status=0, message=None):
-        if status == 0 and message is None:  # 只有在请求帮助信息时，status 为 0，message 为 None
+        if status == 0 and message is None:  # 只有在请求帮助信息时,status 为 0,message 为 None
             # 检查并获取对应语言的帮助信息
             print(_("\nPyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）\n")
 )
@@ -195,7 +195,7 @@ def main():
             # 打印退出信息并退出程序
             exit_pytexmk()
     # --------------------------------------------------------------------------------
-    # TeX 文件获取判断，魔法注释获取
+    # TeX 文件获取判断,魔法注释获取
     # --------------------------------------------------------------------------------
     logger.info("-"*70)
     tex_files_in_root = MFO.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
@@ -206,7 +206,7 @@ def main():
     # 配置文件相关
     # --------------------------------------------------------------------------------
     logger.info("-"*70)
-    config_dict = CP.init_config_file() # 初始化配置文件，获取配置文件中的参数
+    config_dict = CP.init_config_file() # 初始化配置文件,获取配置文件中的参数
 
     # 读取配置文件中的参数
     if config_dict["default_file"]: # 如果存在配置文件中的默认文件名
@@ -314,14 +314,16 @@ def main():
     # --------------------------------------------------------------------------------
     # 主文件魔法注释提取
     # --------------------------------------------------------------------------------
-    if all_magic_comments: # 如果存在魔法注释
+    if all_magic_comments:  # 如果存在魔法注释
         for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
+            if key == "root":  # 如果是 root 关键字,跳过
+                continue
+
             for value in values:  # 遍历魔法注释中所有值
                 if value[0] == project_name:  # 如果是project_name对应的文件
-                    if key == "root": # 如果是 root 关键字
-                        continue # 跳过 root 关键字
                     magic_comments[key] = value[1]  # 存储魔法注释
                     logger.info(_("提取魔法注释: ") + f"{value[0]}.tex ==> % !TEX {key} = {value[1]}")
+
 
 
     # --------------------------------------------------------------------------------

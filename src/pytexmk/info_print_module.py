@@ -46,39 +46,39 @@ total_len = 78
 # --------------------------------------------------------------------------------
 def time_count(fun, *args):
     """
-    计算并返回函数执行时间及函数返回值。
+    计算并返回函数执行时间及函数返回值.
     
     参数:
-    - fun: 需要计算执行时间的函数。
-    - *args: 传递给函数的参数。
+    - fun: 需要计算执行时间的函数.
+    - *args: 传递给函数的参数.
     
     返回:
-    - 返回一个元组，包含函数的执行时间和函数的返回值。如果函数执行过程中出现异常，则返回 (None, None)。
+    - 返回一个元组,包含函数的执行时间和函数的返回值.如果函数执行过程中出现异常,则返回 (None, None).
     
     行为:
-    1. 记录函数开始执行的时间。
-    2. 执行函数并记录其返回值。
-    3. 记录函数结束执行的时间。
-    4. 计算函数执行的总时间，并将其四舍五入到小数点后四位。
-    5. 返回函数执行时间和函数的返回值。
-    6. 如果在执行函数过程中出现异常，记录错误信息并返回 (None, None)。
+    1. 记录函数开始执行的时间.
+    2. 执行函数并记录其返回值.
+    3. 记录函数结束执行的时间.
+    4. 计算函数执行的总时间,并将其四舍五入到小数点后四位.
+    5. 返回函数执行时间和函数的返回值.
+    6. 如果在执行函数过程中出现异常,记录错误信息并返回 (None, None).
     """
     try:
         # 获取当前时间作为函数执行的开始时间
         time_start = datetime.datetime.now()
-        # 调用传入的函数并传入参数，获取函数返回值
+        # 调用传入的函数并传入参数,获取函数返回值
         fun_return = fun(*args)
         # 获取当前时间作为函数执行的结束时间
         time_end = datetime.datetime.now()
-        # 计算函数执行的总时间（以秒为单位）
+        # 计算函数执行的总时间(以秒为单位)
         time_run = (time_end - time_start).total_seconds()
-        # 如果函数没有返回值，只返回执行时间
+        # 如果函数没有返回值,只返回执行时间
         if fun_return is None:
             return round(time_run, 4)
-        # 否则返回函数执行时间和函数返回值，时间保留四位小数
+        # 否则返回函数执行时间和函数返回值,时间保留四位小数
         return round(time_run, 4), fun_return
     except Exception as e:
-        # 如果执行函数时出错，记录错误信息并返回None
+        # 如果执行函数时出错,记录错误信息并返回None
         logger.error(_('执行函数 %(args)s 时出错: ') % {'args': {fun.__name__}} + str(e))
         return None, None
 
@@ -97,16 +97,16 @@ def get_text_len(text):
 # --------------------------------------------------------------------------------
 def print_message(message, state):
     """
-    打印带有装饰的消息。
+    打印带有装饰的消息.
 
-    此函数接收一个消息字符串，计算其长度并根据需要添加装饰字符（X），
-    然后将消息打印在一个带有边框的横幅中。
+    此函数接收一个消息字符串,计算其长度并根据需要添加装饰字符(X),
+    然后将消息打印在一个带有边框的横幅中.
 
     参数:
-    - message (str): 要打印的消息字符串。
+    - message (str): 要打印的消息字符串.
 
     异常:
-    - Exception: 如果在打印过程中发生任何异常，将记录错误日志。
+    - Exception: 如果在打印过程中发生任何异常,将记录错误日志.
     """
     if state == "additional":
         in_dec_chars = "X"  # 设置内部装饰字符
@@ -150,23 +150,23 @@ def print_message(message, state):
 # --------------------------------------------------------------------------------
 def time_print(start_time, runtime_dict):
     """
-    计算并打印PyTeXMK运行时长的统计信息，包括总运行时间、各部分运行时间以及运行函数数量。
+    计算并打印PyTeXMK运行时长的统计信息,包括总运行时间、各部分运行时间以及运行函数数量.
     
     参数:
-    - start_time (datetime.datetime): PyTeXMK开始运行的时间。
-    - runtime_dict (dict): 包含运行项目名称和时长的字典。
+    - start_time (datetime.datetime): PyTeXMK开始运行的时间.
+    - runtime_dict (dict): 包含运行项目名称和时长的字典.
     
     行为:
-    1. 计算结束时间并计算总运行时间。
-    2. 将总运行时间分解为小时、分钟、秒和毫秒。
-    3. 计算运行函数数量（辅助函数除外）。
-    4. 计算LaTeX编译时长、Python运行时长和PyTeXMK总运行时长。
-    5. 将统计信息添加到runtime_dict中。
-    6. 创建并填充表格，显示运行项目的名称和时长。
-    7. 打印表格和总运行时间、运行函数数量。
+    1. 计算结束时间并计算总运行时间.
+    2. 将总运行时间分解为小时、分钟、秒和毫秒.
+    3. 计算运行函数数量(辅助函数除外).
+    4. 计算LaTeX编译时长、Python运行时长和PyTeXMK总运行时长.
+    5. 将统计信息添加到runtime_dict中.
+    6. 创建并填充表格,显示运行项目的名称和时长.
+    7. 打印表格和总运行时间、运行函数数量.
     
     异常处理:
-    - 如果在执行过程中发生异常，将错误信息记录到日志中。
+    - 如果在执行过程中发生异常,将错误信息记录到日志中.
     """
     try:
         end_time = datetime.datetime.now()  # 计算结束时间
@@ -193,7 +193,7 @@ def time_print(start_time, runtime_dict):
         formatted_times = {key: f"{value:0{max_whole_digits+5}.4f} s" for key, value in runtime_dict.items()}  # 格式化所有时间位数相同
         runtime_dict.update(formatted_times)  # 更新字典中的时间格式
 
-        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量（辅助函数除外）
+        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量(辅助函数除外)
 
         # 创建表格对象
         table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=_("PyTeXMK 运行时长统计表"))
@@ -250,19 +250,19 @@ def time_print(start_time, runtime_dict):
 # --------------------------------------------------------------------------------
 def magic_comment_desc_table():
     """
-    打印README表格。
+    打印README表格.
 
     参数:
-    - magic_comment_desc_dict (dict): 包含README信息的字典。    
+    - magic_comment_desc_dict (dict): 包含README信息的字典.    
 
     行为:
-    1. 创建表格对象。
-    2. 定义列名。
-    3. 添加数据到表格。
-    4. 打印表格。
+    1. 创建表格对象.
+    2. 定义列名.
+    3. 添加数据到表格.
+    4. 打印表格.
 
     异常处理:
-    - 如果在执行过程中发生异常，将错误信息记录到日志中。
+    - 如果在执行过程中发生异常,将错误信息记录到日志中.
     """
 
     magic_comment_desc_dic = {

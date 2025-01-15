@@ -38,9 +38,9 @@ class LogAnalyzer:
 
     def analyze_log(self, log_content):
         """
-        分析日志内容，提取警告和错误信息。
+        分析日志内容,提取警告和错误信息.
 
-        :param log_content: 日志文件的内容，字符串格式
+        :param log_content: 日志文件的内容,字符串格式
         """
         # 使用正则表达式匹配警告和错误信息
         warning_pattern = re.compile(r'warning: (.+)')
@@ -56,7 +56,7 @@ class LogAnalyzer:
 
     def read_log_file(self, file_path):
         """
-        读取日志文件并分析其内容。
+        读取日志文件并分析其内容.
 
         :param file_path: 日志文件的路径
         """
@@ -66,7 +66,7 @@ class LogAnalyzer:
 
     def get_summary(self):
         """
-        获取分析结果的摘要。
+        获取分析结果的摘要.
 
         :return: 包含警告和错误信息的字典
         """
