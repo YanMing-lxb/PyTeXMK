@@ -42,7 +42,7 @@ LaTeX 辅助编译命令行程序
 
 官方版本 PyTeXMK 发布在 [PyPI](https://pypi.org/project/pytexmk/) 上，并且可以通过 pip 包管理器从 PyPI 镜像轻松安装。
 
-请注意，您必须使用 Python 3 版本pip：
+请注意，您必须使用 Python 3 版本 pip：
 
 ```
 pip3 install pytexmk
@@ -120,12 +120,12 @@ PyTeXMK 支持：
 
 PyTeXMK 支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）。
 
-| Magic Comment                      | Description                                                | Examples                      |
-| ---------------------------------- | ---------------------------------------------------------  | ----------------------------- |
-| `% !TEX program = <XeLaTeX>`       | 指定编译类型，可选 `XeLaTeX` `PdfLaTeX` `LuaLaTeX`           | `% !TEX program = PdfLaTeX` |
-| `% !TEX root = <待编译主文件名>`    | 指定待编译 LaTeX 文件名，仅支持主文件在项目根目录下的情况       | `% !TEX root = test_file`   |
-| `% !TEX outdir = <out_folder>`     | 指定编译结果存放位置，仅支持文件夹名称                         | `% !TEX outdir = output`    |
-| `% !TEX auxdir = <aux_folder>`     | 指定辅助文件存放位置，仅支持文件夹名称                         | `% !TEX auxdir = auxfiles`  |
+| Magic Comment                      | Description                                               | Examples                      |
+| ---------------------------------- | --------------------------------------------------------- | ----------------------------- |
+| `% !TEX program = <XeLaTeX>`     | 指定编译类型，可选 `XeLaTeX` `PdfLaTeX` `LuaLaTeX`  | `% !TEX program = PdfLaTeX` |
+| `% !TEX root = <待编译主文件名>` | 指定待编译 LaTeX 文件名，仅支持主文件在项目根目录下的情况 | `% !TEX root = test_file`   |
+| `% !TEX outdir = <out_folder>`   | 指定编译结果存放位置，仅支持文件夹名称                    | `% !TEX outdir = output`    |
+| `% !TEX auxdir = <aux_folder>`   | 指定辅助文件存放位置，仅支持文件夹名称                    | `% !TEX auxdir = auxfiles`  |
 
 > 魔法注释仅支持在主文件中定义，不支持在子文件中定义。
 
@@ -259,3 +259,10 @@ PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)
+
+
+<divalign="center">
+
+## ༼ つ ◕_◕ ༽つ  Please share.
+
+</div>
