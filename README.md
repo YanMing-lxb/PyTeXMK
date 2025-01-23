@@ -260,7 +260,7 @@ PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文
 
 [![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)
 
-<divalign="center">
+<div align="center">
 
 ## ༼ つ ◕_◕ ༽つ  Please share.
 
