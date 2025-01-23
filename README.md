@@ -27,7 +27,7 @@
 
 [![GitHub](https://img.shields.io/badge/Github-PyTeXMK-000000.svg)](https://github.com/YanMing-lxb/PyTeXMK) [![License](https://img.shields.io/badge/license-GPLv3-aff)](https://www.latex-project.org/lppl/) ![OS](https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg) [![GitHub release](https://img.shields.io/github/release/YanMing-lxb/PyTeXMK.svg?color=blueviolet&label=version&style=popout)](https://github.com/YanMing-lxb/PyTeXMK/releases/latest) [![Last Commit](https://img.shields.io/github/last-commit/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/zipball/master) [![Issues](https://img.shields.io/github/issues/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/issues) [![PyPI version](https://img.shields.io/pypi/v/pytexmk.svg)](https://pypi.python.org/pypi/pytexmk/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pytexmk.svg?label=PyPI%20downloads)](https://pypi.org/project/pytexmk/) ![GitHub repo size](https://img.shields.io/github/repo-size/YanMing-lxb/PyTeXMK)
 
-[简体中文 README](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.md) | [English README](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.en.md)
+[简体中文](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.md) | [English](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.en.md)
 
 LaTeX 辅助编译命令行程序
 
@@ -259,7 +259,6 @@ PyTeXMK 支持两种配置文件，分别为系统配置文件和本地配置文
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)
-
 
 <divalign="center">
 
