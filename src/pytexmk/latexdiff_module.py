@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2025-01-15 14:57:06 +0800
+LastEditTime : 2025-01-29 22:02:08 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -30,8 +30,8 @@ import subprocess
 from pathlib import Path
 from rich import console
 
-from .language_module import set_language
-from .additional_module import MoveRemoveOperation, exit_pytexmk
+from pytexmk.language_module import set_language
+from pytexmk.additional_module import MoveRemoveOperation, exit_pytexmk
 
 _ = set_language('latexdiff')
 

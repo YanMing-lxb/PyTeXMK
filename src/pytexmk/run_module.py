@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2024-10-12 16:11:04 +0800
+LastEditTime : 2025-01-29 22:01:43 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/run_module.py
 Description  : 
@@ -25,10 +25,10 @@ Description  :
 
 from rich import print
 
-from .compile_module import CompileLaTeX
-from .additional_module import MainFileOperation
-from .language_module import set_language
-from .info_print_module import time_count, print_message
+from pytexmk.compile_module import CompileLaTeX
+from pytexmk.additional_module import MainFileOperation
+from pytexmk.language_module import set_language
+from pytexmk.info_print_module import time_count, print_message
 
 _ = set_language('run')
 MFO = MainFileOperation() # 实例化 MainFileOperation 类

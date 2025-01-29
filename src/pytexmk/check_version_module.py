@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2025-01-15 14:57:28 +0800
+LastEditTime : 2025-01-29 22:00:42 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version_module.py
 Description  : 
@@ -34,7 +34,7 @@ import importlib.resources
 from packaging import version
 from datetime import timedelta
 
-from .language_module import set_language
+from pytexmk.language_module import set_language
 
 _ = set_language('check_version')
 

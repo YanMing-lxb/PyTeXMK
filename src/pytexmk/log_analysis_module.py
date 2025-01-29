@@ -25,7 +25,7 @@ Description  :
 
 import re
 
-from .language_module import set_language
+from pytexmk.language_module import set_language
 
 _ = set_language('log_analysis')
 
