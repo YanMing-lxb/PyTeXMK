@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-29 21:33:01 +0800
+LastEditTime : 2025-01-29 21:56:33 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -26,29 +26,36 @@ Description  :
 import argparse
 import datetime
 import webbrowser
-from rich import print
 from pathlib import Path
-import importlib.resources
+import importlib.resources  # 用于访问打包资源
+
+# rich 库（美化 CLI 输出）
+from rich import print
 from rich.console import Console
 from rich_argparse import RichHelpFormatter
 
+# 版本信息
 from pytexmk.version import script_name, __version__
 
-from pytexmk.run_module import RUN, LaTeXDiffRUN
+# 日志与语言配置
 from pytexmk.logger_config import setup_logger
 from pytexmk.language_module import set_language
-from pytexmk.additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
-from pytexmk.info_print_module import time_count, time_print, print_message, magic_comment_desc_table
+
+# 信息输出模块
+from pytexmk.info_print_module import (
+    time_count, time_print, print_message, magic_comment_desc_table
+)
+
+# 主要功能模块
+from pytexmk.run_module import RUN, LaTeXDiffRUN
+from pytexmk.additional_module import (
+    MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
+)
 from pytexmk.latexdiff_module import LaTeXDiff_Aux
 from pytexmk.check_version_module import UpdateChecker
 from pytexmk.config_module import ConfigParser
 
-MFO = MainFileOperation() # 实例化 MainFileOperation 类
-MRO = MoveRemoveOperation() # 实例化 MoveRemoveOperation 类
-PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
 UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒;缓存时长, 单位: 小时
-CP = ConfigParser() # 实例化 ConfigParser 类
-
 _ = set_language('main')
 
 
@@ -132,6 +139,11 @@ def standardize_name(compiled_program):
 # --------------------------------------------------------------------------------
 def main():
     start_time = datetime.datetime.now() # 计算开始时间
+
+    MFO = MainFileOperation() # 实例化 MainFileOperation 类
+    MRO = MoveRemoveOperation() # 实例化 MoveRemoveOperation 类
+    PFO = PdfFileOperation() # 实例化 PdfFileOperation 类
+    CP = ConfigParser() # 实例化 ConfigParser 类
 
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
     default_file = "main"
