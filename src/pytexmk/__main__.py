@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-15 15:04:22 +0800
+LastEditTime : 2025-01-29 21:33:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -32,16 +32,16 @@ import importlib.resources
 from rich.console import Console
 from rich_argparse import RichHelpFormatter
 
-from .version import script_name, __version__
+from pytexmk.version import script_name, __version__
 
-from .run_module import RUN, LaTeXDiffRUN
-from .logger_config import setup_logger
-from .language_module import set_language
-from .additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
-from .info_print_module import time_count, time_print, print_message, magic_comment_desc_table
-from .latexdiff_module import LaTeXDiff_Aux
-from .check_version_module import UpdateChecker
-from .config_module import ConfigParser
+from pytexmk.run_module import RUN, LaTeXDiffRUN
+from pytexmk.logger_config import setup_logger
+from pytexmk.language_module import set_language
+from pytexmk.additional_module import MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
+from pytexmk.info_print_module import time_count, time_print, print_message, magic_comment_desc_table
+from pytexmk.latexdiff_module import LaTeXDiff_Aux
+from pytexmk.check_version_module import UpdateChecker
+from pytexmk.config_module import ConfigParser
 
 MFO = MainFileOperation() # 实例化 MainFileOperation 类
 MRO = MoveRemoveOperation() # 实例化 MoveRemoveOperation 类
