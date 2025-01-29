@@ -11,11 +11,11 @@ _ = set_language('config')
 default_system_config = """
 default_file = "main" # 主文件名
 compiled_program = "XeLaTeX" # 编译器
-quiet_mode = true # 静默模式
+non_quiet = false # 非静默模式
 local_config_auto_init = true # 是否自动创建本地配置文件
 
 [pdf]
-pdf_preview = true # PDF预览, 指编译结束后是否打开PDF文件
+pdf_preview_status = true # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
 
 [folder]
@@ -42,7 +42,7 @@ compiled_program = "XeLaTeX" # 编译器
 quiet_mode = true # 静默模式
 
 [pdf]
-pdf_preview = false # PDF预览, 指编译结束后是否打开PDF文件
+pdf_preview_status = false # PDF预览, 指编译结束后是否打开PDF文件
 pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
 
 [folder]

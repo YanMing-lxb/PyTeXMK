@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-29 22:27:37 +0800
+LastEditTime : 2025-01-29 23:27:24 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -143,18 +143,23 @@ def main():
     CP = ConfigParser() # 实例化 ConfigParser 类
 
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! 设置默认 ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
+    verbose = False
+
     default_file = "main"
     compiled_program = "XeLaTeX"
     non_quiet = False
-    verbose = False
+    local_config_auto_init = True # 是否自动创建本地配置文件
+
+    pdf_preview_status = "preview after compile"
+    pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
+
     outdir = "./Build/"
     auxdir = "./Auxiliary/"
-    diff_tex_file = "LaTeXDiff"
-    pdf_preview_status = "preview after compile"
-    magic_comments_keys = ["program", "root", "outdir", "auxdir"]
-    project_name = ""
-    runtime_dict = {}
-    magic_comments = {} # 存储魔法注释
+
+    old_tex_file = "old_file"  # 旧TeX文件
+    new_tex_file = "new_file"  # 新TeX文件
+    diff_tex_file = "LaTeXDiff" # 差异TeX文件
+
     suffixes_out = [".pdf", ".synctex.gz"]
     suffixes_aux = [".log", ".blg", ".ilg",  # 日志文件
                     ".aux", ".bbl", ".xml",  # 参考文献辅助文件
@@ -164,6 +169,12 @@ def main():
                     ".bak", ".spl",
                     ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing", ".gz",
                     ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv", ".fdb_latexmk", ".run.xml"]
+
+
+    magic_comments_keys = ["program", "root", "outdir", "auxdir"]
+    project_name = ""
+    runtime_dict = {}
+    magic_comments = {} # 存储魔法注释
 
     # ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! ! !
 
