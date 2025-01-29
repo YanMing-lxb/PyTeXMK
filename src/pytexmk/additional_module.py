@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-01-15 15:02:50 +0800
+LastEditTime : 2025-01-29 22:03:19 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -32,7 +32,7 @@ import webbrowser
 from rich import print
 from pathlib import Path
 
-from .language_module import set_language
+from pytexmk.language_module import set_language
 
 _ = set_language('additional')
 

@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from collections import defaultdict
 
-from .language_module import set_language
+from pytexmk.language_module import set_language
 
 _ = set_language('config')
 
