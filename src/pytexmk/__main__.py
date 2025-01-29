@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-29 21:56:33 +0800
+LastEditTime : 2025-01-29 22:27:37 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -123,16 +123,13 @@ def parse_args():
 # 标准化名称方法
 # --------------------------------------------------------------------------------
 def standardize_name(compiled_program):
-    # 样式标准化处理
-    compiled_program = compiled_program.lower() # 统一编译器名称为小写
-    if compiled_program == "xelatex":
-        compiled_program = "XeLaTeX"
-    elif compiled_program == "pdflatex":
-        compiled_program = "PdfLaTeX"
-    elif compiled_program == "lualatex":
-        compiled_program = "LuaLaTeX"
-    return compiled_program
-    
+    standard_names = {
+        "xelatex": "XeLaTeX",
+        "pdflatex": "PdfLaTeX",
+        "lualatex": "LuaLaTeX"
+    }
+    return standard_names.get(compiled_program.lower(), compiled_program)
+
 
 # --------------------------------------------------------------------------------
 # 主程序
