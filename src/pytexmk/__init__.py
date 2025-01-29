@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 12:27:07 +0800
-LastEditTime : 2025-01-29 21:46:13 +0800
+LastEditTime : 2025-01-29 22:06:25 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__init__.py
 Description  : 
@@ -37,3 +37,10 @@ pytexmk: LaTeX 编译 CLI 工具
 python -m nuitka --onefile --standalone --nofollow-import-to=pymupdf.mupdf  --jobs=8 --show-memory --remove-output --show-progress  ./src/pytexmk/__main__.py
 """
 
+import sys
+
+if sys.version_info[0] == 3:
+    from .__main__ import main  # 显式导出 main() 供 CLI 入口使用
+else:
+    # Don't import anything.
+    pass 
