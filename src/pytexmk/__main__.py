@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-29 23:27:24 +0800
+LastEditTime : 2025-01-30 10:55:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -248,8 +248,8 @@ def main():
             logger.info(_("通过配置文件设置辅助目录为: ") + f"[bold cyan]{auxdir}")
 
     if config_dict["pdf"]: # 如果存在配置文件中的 pdf 参数
-        if config_dict["pdf"]["pdf_preview"]: # 如果存在配置文件中的 pdf_preview 参数
-            pdf_preview_status = config_dict["pdf"]["pdf_preview"] # 表示编译结束预览 PDF
+        if config_dict["pdf"]["pdf_preview_status"]: # 如果存在配置文件中的 pdf_preview 参数
+            pdf_preview_status = config_dict["pdf"]["pdf_preview_status"] # 表示编译结束预览 PDF
             logger.info(_("通过配置文件设置 PDF 预览为: ") + f"[bold cyan]{pdf_preview_status}")
         if config_dict["pdf"]["pdf_viewer"]: # 如果存在配置文件中的 viewer 参数
             pdf_viewer = config_dict["pdf"]["pdf_viewer"]
