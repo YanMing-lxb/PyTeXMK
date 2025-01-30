@@ -10,9 +10,9 @@ authors = [
 ]
 description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Command Line Tool"
 keywords = ["LaTeX", "build", "latexmk"]
-dependencies = ["rich", "rich_argparse", "pymupdf", "toml", "packaging"]
+dependencies = ["rich", "rich_argparse", "pikepdf", "toml", "packaging"]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers ",
