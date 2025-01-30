@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-01-29 22:03:19 +0800
+LastEditTime : 2025-01-30 11:09:33 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -25,7 +25,7 @@ Description  :
 # -*- coding: utf-8 -*-
 import re
 import sys
-import fitz
+import pikepdf
 import shutil
 import logging
 import webbrowser
@@ -584,12 +584,11 @@ class PdfFileOperation(object):
         print(_("找到 PDF 文件数目: ") + f"[bold cyan]{len(pdf_files)}[/bold cyan]")
         for pdf_file in pdf_files:
             try:
-                # 使用fitz库打开PDF文件
-                with fitz.open(pdf_file) as doc:
-                    # 生成临时文件路径
-                    temp_path = pdf_file.with_suffix('.pdf.temp')
-                    # 保存修复后的PDF文件到临时路径
-                    doc.save(temp_path, garbage=3, deflate=True, clean=True)
+                pdf_file = Path(pdf_file)
+                temp_path = pdf_file.with_suffix('.pdf.temp')
+                # 读取并修复 PDF
+                with pikepdf.open(pdf_file) as pdf:
+                    pdf.save(temp_path)
                 # 覆盖原有文件
                 temp_path.replace(pdf_file)
                 self.logger.info(_("修复成功: ") + str(pdf_file))
