@@ -16,18 +16,18 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-30 10:55:58 +0800
+LastEditTime : 2025-01-30 17:29:48 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
+import sys
 import argparse
 import datetime
 import webbrowser
 from pathlib import Path
-import importlib.resources  # 用于访问打包资源
 
 # rich 库（美化 CLI 输出）
 from rich import print
@@ -199,21 +199,35 @@ def main():
     # --------------------------------------------------------------------------------
     if args.readme: # 如果存在 readme 参数
         try:
-            # 使用 pathlib 获取包数据路径
-            data_path = Path(importlib.resources.files('pytexmk')) / 'data'
+            # Nuitka 打包后的路径处理
+            if getattr(sys, 'frozen', True): # 判断程序是否被打包冻结
+                # Nuitka 打包后资源路径
+                base_path = Path(sys.executable).parent
+            else: # 程序未被打包冻结
+                import importlib.resources  # 用于访问打包资源
+                base_path = Path(importlib.resources.files('pytexmk')) # 使用 pathlib 获取包数据路径
+
             # 使用 pathlib 拼接 README.html 文件路径
-            readme_path = data_path / "README.html"
-            print(_("[bold green]正在打开 README 文件..."))
-            # 使用 pathlib 获取 README.html 文件的绝对路径
-            logger.info(_("README 本地路径: %(args)s") % {"args": f"file://{readme_path.resolve().as_posix()}"})
-            # 使用 webbrowser 打开 README.html 文件
-            webbrowser.open(f'file://{readme_path.resolve().as_posix()}')
+            readme_path = base_path / "data" / "README.html"
+
+            if readme_path.exists():
+                print(_("[bold green]正在打开 README 文件..."))
+                # 使用 pathlib 获取 README.html 文件的绝对路径
+                logger.info(_("README 本地路径: %(args)s") % {"args": f"file://{readme_path.resolve().as_posix()}"})
+                # 使用 webbrowser 打开 README.html 文件
+                webbrowser.open(f'file://{readme_path.resolve().as_posix()}')
+            else:
+                logger.error(_("README.html 文件未找到: ") + str(readme_path))
+                import time
+                time.sleep(60)
+                
         except Exception as e:
             # 记录打开 README 文件时的错误信息
             logger.error(_("打开 README 文件出错: ") + str(e))
         finally:
             # 打印退出信息并退出程序
             exit_pytexmk()
+            
     # --------------------------------------------------------------------------------
     # TeX 文件获取判断,魔法注释获取
     # --------------------------------------------------------------------------------
@@ -326,7 +340,7 @@ def main():
         
         old_tex_file = MFO.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
         new_tex_file = MFO.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
-    else:
+    elif not args.readme:
         project_name = MFO.get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
         project_name = MFO.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
 
