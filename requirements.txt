@@ -1,5 +1,5 @@
-pikepdf==9.5.1
 packaging==24.2
+pikepdf==9.5.1
 rich==13.9.4
 rich_argparse==1.6.0
 toml==0.10.2
