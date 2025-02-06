@@ -35,7 +35,7 @@ pytexmk: LaTeX 编译 CLI 工具
 
 
 python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-output --include-data-dir=./src/pytexmk/data=data --include-data-dir=./src/pytexmk/locale/=locale --company-name="YanMing" --product-name="pytexmk-cli" --file-version="1.0" --product-version="1.0" --file-description="LaTeX 编译 CLI 工具" ./src/pytexmk/__main__.py 
-
+pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
 import sys
