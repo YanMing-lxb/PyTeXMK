@@ -166,6 +166,17 @@ Local configuration file path: The `.pytexmkrc` file in the current working dire
 
 The local configuration file has a higher priority than the system configuration file. If both configure the same parameters, the configuration in the local configuration file will be prioritized.
 
+## Building the `Wheel`
+
+```
+1. Installing Python3
+2. pip install -r requirements-windows.txt
+3. pip install pyinstaller
+4. make
+```
+
+In addition, the make command needs to be configured separately on Windows: see [Using make on Windows](https://github.com/YanMing-lxb/PyTeXMK/blob/main/docs/Window%20%E4%B8%8B%E4%BD%BF%E7%94%A8%20make.md) for details.
+
 ## Update Log
 
 For the update log, please see the [CHANGELOG document](https://github.com/YanMing-lxb/PyTeXMK/blob/main/CHANGELOG.md)
