@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-01-30 11:09:33 +0800
+LastEditTime : 2025-02-06 19:39:56 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
 Description  : 
@@ -25,12 +25,12 @@ Description  :
 # -*- coding: utf-8 -*-
 import re
 import sys
-import pikepdf
 import shutil
 import logging
 import webbrowser
 from rich import print
 from pathlib import Path
+from pypdf import PdfReader, PdfWriter
 
 from pytexmk.language_module import set_language
 
@@ -548,49 +548,50 @@ class PdfFileOperation(object):
     # --------------------------------------------------------------------------------
     # 定义 PDF 文件修复函数
     # --------------------------------------------------------------------------------
-    def pdf_repair(self, project_name, root_dir, excluded_folder):
-        """
-        清理指定目录下的PDF文件,排除特定文件夹中的文件,并对每个PDF文件进行修复操作.
-          
-        参数:
-        - project_name: 项目名称,用于排除特定名称的PDF文件.
-        - root_dir: 要扫描的根目录.
-        - excluded_folder: 要排除的文件夹名称.
-          
-        功能:
-        - 遍历指定目录,收集所有子文件夹中的PDF文件路径,排除根目录和特定文件夹中的文件.
-        - 对每个PDF文件进行打开和关闭操作,以修复可能存在的文件未正确关闭的问题.
-        - 记录处理过程中的错误信息,并显示处理失败的文件名称.
+    def pdf_repair(self, project_name:str, root_dir:str, excluded_folder:str):
+        """ 对每个PDF文件进行打开和关闭操作,以修复可能存在的文件未正确关闭的问题.
+            遍历指定目录,收集所有子文件夹中的PDF文件路径
+            同时排除 .git、.github 和 excluded_folder 文件夹中的文件.
+
+        Parameters
+        ----------
+        project_name : str
+            项目名称,用于排除特定名称的PDF文件
+        root_dir : str
+            要扫描的根目录
+        excluded_folder : str
+            要排除的文件夹名称
         """
         # 将根目录转换为Path对象
         root_dir = Path(root_dir)
-        pdf_files = []
         # 遍历根目录下的所有文件和文件夹
-        for path in root_dir.rglob('*'):
-            # 跳过.git和.github文件夹
-            if '.git' in path.parts or '.github' in path.parts:
-                continue
-            # 跳过根目录和排除的文件夹
-            if path.is_dir() and path.name == excluded_folder:
-                continue
-            # 仅处理子文件夹中的PDF文件,并排除特定名称的PDF文件
-            if path.is_file() and path.suffix == '.pdf' and path.name != f'{project_name}.pdf':
-                pdf_files.append(path)
+        pdf_files = [
+            path for path in root_dir.rglob('*.pdf')  # 遍历根目录及其所有子目录中的所有以 '.pdf' 结尾的文件
+            if '.git' not in path.parts               # 排除路径中包含 '.git' 的文件
+            and '.github' not in path.parts           # 排除路径中包含 '.github' 的文件
+            and path.is_file()                        # 确保路径是一个文件
+            and path.name != f'{project_name}.pdf'    # 排除与项目名称相同的 PDF 文件
+            and path.parent.name != excluded_folder   # 排除指定的 excluded_folder 文件夹中的 PDF 文件
+        ]
  
         if not pdf_files:
-            print(_("当前路径下未找到 PDF 文件"))
+            print(_("当前路径下没有 PDF 文件"))
             return
  
         print(_("找到 PDF 文件数目: ") + f"[bold cyan]{len(pdf_files)}[/bold cyan]")
         for pdf_file in pdf_files:
             try:
-                pdf_file = Path(pdf_file)
-                temp_path = pdf_file.with_suffix('.pdf.temp')
-                # 读取并修复 PDF
-                with pikepdf.open(pdf_file) as pdf:
-                    pdf.save(temp_path)
-                # 覆盖原有文件
-                temp_path.replace(pdf_file)
+                # 读取并写入 PDF
+                reader = PdfReader(pdf_file)
+                writer = PdfWriter()
+
+                for page in reader.pages:
+                    writer.add_page(page)
+
+                # 直接写入到原始文件以覆盖它
+                with open(pdf_file, 'wb') as f:
+                    writer.write(f)
+
                 self.logger.info(_("修复成功: ") + str(pdf_file))
             except Exception as e:
                 self.logger.error(_("修复失败: ") + f"{pdf_file} --> {e}")
