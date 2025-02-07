@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-01-30 17:29:48 +0800
+LastEditTime : 2025-02-07 13:17:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -232,9 +232,9 @@ def main():
     # TeX 文件获取判断,魔法注释获取
     # --------------------------------------------------------------------------------
     logger.info("-"*70)
-    tex_files_in_root = MFO.get_suffixes_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
-    main_file_in_root = MFO.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
-    all_magic_comments = MFO.search_magic_comments(main_file_in_root, magic_comments_keys) # 搜索 main_file_in_root 中每个文件的魔法注释
+    tex_files_in_root = MFO.get_suffix_files_in_dir('.', '.tex') # 获取当前根目录下所有 tex 文件, 并去掉文件后缀
+    main_files_in_root = MFO.find_tex_commands(tex_files_in_root) # 判断获取当前根目录下的主文件列表
+    all_magic_comments = MFO.search_magic_comments(main_files_in_root, magic_comments_keys) # 搜索 main_files_in_root 中每个文件的魔法注释
 
     # --------------------------------------------------------------------------------
     # 配置文件相关
@@ -311,7 +311,7 @@ def main():
     # --------------------------------------------------------------------------------
     pdf_preview_status = args.pdf_preview # 存储是否需要预览 PDF 状态
     if pdf_preview_status and pdf_preview_status != 'preview after compile' and not args.document: # 当 -pv 指定参数时, 进行 PDF 预览操作
-        pdf_files_in_outdir = MFO.get_suffixes_files_in_dir(outdir, '.pdf')
+        pdf_files_in_outdir = MFO.get_suffix_files_in_dir(outdir, '.pdf')
         pdf_preview_status = MFO.check_project_name(pdf_files_in_outdir, pdf_preview_status, '.pdf')
         PFO.pdf_preview(pdf_preview_status, outdir) # 调用 pdf_preview 函数进行 PDF 预览操作
 
@@ -338,11 +338,10 @@ def main():
         if args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) == 2:
             old_tex_file, new_tex_file = args.LaTeXDiff_compile
         
-        old_tex_file = MFO.check_project_name(main_file_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
-        new_tex_file = MFO.check_project_name(main_file_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
-    elif not args.readme:
-        project_name = MFO.get_main_file(default_file, args.document, main_file_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
-        project_name = MFO.check_project_name(main_file_in_root, project_name, '.tex') # 检查 project_name 是否正确
+        old_tex_file = MFO.check_project_name(main_files_in_root, old_tex_file, '.tex') # 检查 old_tex_file 是否正确
+        new_tex_file = MFO.check_project_name(main_files_in_root, new_tex_file, '.tex') # 检查 new_tex_file 是否正确
+    elif not args.readme: # 如果不存在 readme 参数，也就是普通的编译模式
+        project_name = MFO.get_main_file(default_file, args.document, main_files_in_root, all_magic_comments) # 通过进行一系列判断获取主文件名
 
 
     # --------------------------------------------------------------------------------
@@ -352,11 +351,10 @@ def main():
         for key, values in all_magic_comments.items():  # 遍历所有提取的魔法注释
             if key == "root":  # 如果是 root 关键字,跳过
                 continue
-
-            for value in values:  # 遍历魔法注释中所有值
-                if value[0] == project_name:  # 如果是project_name对应的文件
-                    magic_comments[key] = value[1]  # 存储魔法注释
-                    logger.info(_("提取魔法注释: ") + f"{value[0]}.tex ==> % !TEX {key} = {value[1]}")
+            
+            if project_name in values: # 如果魔法注释中存在 project_name
+                magic_comments[key] = values[project_name]  # 存储魔法注释
+                logger.info(_("提取魔法注释: ") + f"{project_name}.tex ==> % !TEX {key} = {values[project_name]}")
 
 
 
