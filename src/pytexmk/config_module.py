@@ -6,7 +6,10 @@ from collections import defaultdict
 from pytexmk.language_module import set_language
 
 _ = set_language('config')
-
+# TODO : 创建三套配置文件模板，分别为用户配置、本地配置、默认配置
+# 用户配置：一般为系统管理员配置，存放位置为：用户主目录下。
+# 本地配置：一般为项目专用配置，存放位置为：当前工作目录下。
+# 默认配置：将 __main__.py 中的默认配置移至此处，方便用户修改, 存放位置为：pytexmk目录下。
 # 默认配置文件
 default_system_config = """
 default_file = "main" # 主文件名
@@ -151,5 +154,9 @@ class ConfigParser:
 
         # 转换为 defaultdict 来避免KeyError，默认值为None
         final_config = defaultdict(lambda: None, final_config)
+
+        # TODO: 校验配置项中default_file是否正确
+        # default_file = self.check_project_name(main_files_in_root, default_file, '.tex') # 检查 default_file 是否正确，主要是检查配置文件中的默认文件名是否正确
+
 
         return final_config

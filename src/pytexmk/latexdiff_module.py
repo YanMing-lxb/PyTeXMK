@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2025-01-29 22:02:08 +0800
+LastEditTime : 2025-02-07 13:44:10 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
 Description  : 
@@ -89,7 +89,7 @@ class LaTeXDiff_Aux:
         3. 递归地读取主 LaTeX 文件及其引用的所有子文件,并将内容写入输出文件.
         4. 恢复 sys.stdout 并返回压平后的文件名称.
         """
-        def flattenLatex(tex_file_name): # TODO 递归读取 flatten 文件功能有问题,未考虑自定义命令中存在 \input 和 \include 命令的情况
+        def flattenLatex(tex_file_name): # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
             """
             递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout.
              
