@@ -39,26 +39,26 @@ test:
 testwhl: clean all
 ifeq ($(OS),Windows_NT)
 	echo "Windows System";
-	echo y | pip uninstall pytexmk
+	echo y | python -m pip uninstall pytexmk
 	for /r dist %%i in (*.whl) do echo %%i & @pip install "%%~fi"
-	@python tests/test.py -w
-	echo y | pip uninstall pytexmk
+	@python tests/test.python -w
+	echo y | python -m pip uninstall pytexmk
 	@$(MAKE) clean
 else
 ifeq ($(shell uname -s),Linux)
 	echo "Linux System";
 	yes | pip uninstall pytexmk
 	@pip install dist/*.whl
-	@python tests/test.py -w
-	yes | pip uninstall pytexmk
+	@python tests/test.python -w
+	yes | python -m pip uninstall pytexmk
 	@$(MAKE) clean
 else
 ifeq ($(shell uname -s),Darwin)
 	echo "Mac System";
-	yes | pip uninstall pytexmk
-	@pip install dist/*.whl
-	@python tests/test.py -w
-	yes | pip uninstall pytexmk
+	yes | python -m pip uninstall pytexmk
+	@python -m pip install dist/*.whl
+	@python tests/test.python -w
+	yes | python -m pip uninstall pytexmk
 	@$(MAKE) clean
 endif
 endif
@@ -68,17 +68,17 @@ endif
 inswhl:clean all
 ifeq ($(OS),Windows_NT)
 	echo "Windows System";
-	echo y | pip uninstall pytexmk
+	echo y | python -m pip uninstall pytexmk
 	for /r dist %%i in (*.whl) do echo %%i & @pip install "%%~fi"
 else
 ifeq ($(shell uname -s),Linux)
 	echo "Linux System";
-	yes | pip uninstall pytexmk
+	yes | python -m pip uninstall pytexmk
 	@pip install dist/*.whl
 else 
 ifeq ($(shell uname -s),Darwin)
 echo "Mac System";
-yes | pip uninstall pytexmk
+yes | python -m pip uninstall pytexmk
 @pip install dist/*.whl
 endif
 endif
