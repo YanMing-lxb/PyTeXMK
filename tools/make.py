@@ -1,10 +1,11 @@
 import subprocess
 import shutil
+import re
 import sys
 from pathlib import Path
 from rich.console import Console
 
-from pytexmk.version import __version__
+
 
 
 console = Console()
@@ -82,8 +83,22 @@ def inswhl():
     subprocess.run(['pip', 'install', str(whl_files[0])], check=True)
     console.log("安装 pytexmk*.whl 成功")
 
+def get_version():
+    version_file = Path('src/pytexmk/version.py')
+    if not version_file.exists():
+        raise FileNotFoundError(f"文件 {version_file} 不存在")
+    
+    with open(version_file, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    version_match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", content)
+    if not version_match:
+        raise ValueError(f"无法在 {version_file} 中找到 __version__ 变量")
+    
+    return version_match.group(1)
+
 def upload():
-    version = __version__
+    version = get_version()
     tag_name = f"v{version}"
     
     # 创建标签
