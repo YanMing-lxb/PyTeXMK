@@ -30,8 +30,8 @@ import subprocess
 from pathlib import Path
 from rich import console
 
-from pytexmk.language_module import set_language
-from pytexmk.additional_module import MoveRemoveOperation, exit_pytexmk
+from pytexmk.language import set_language
+from pytexmk.additional import MoveRemoveOperation, exit_pytexmk
 
 _ = set_language('latexdiff')
 

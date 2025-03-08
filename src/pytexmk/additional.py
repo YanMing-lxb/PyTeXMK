@@ -33,7 +33,7 @@ from typing import List, Dict
 from collections import defaultdict
 from pypdf import PdfReader, PdfWriter
 
-from pytexmk.language_module import set_language
+from pytexmk.language import set_language
 
 _ = set_language('additional')
 

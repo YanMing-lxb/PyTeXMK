@@ -31,7 +31,7 @@ from rich.text import Text
 from rich.table import Table
 from rich.console import Console
 
-from pytexmk.language_module import set_language
+from pytexmk.language import set_language
 
 console = Console() # 创建控制台对象
 logger = logging.getLogger(__name__) # 创建日志对象

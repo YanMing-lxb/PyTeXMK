@@ -31,8 +31,8 @@ from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain,用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict,用于创建带有默认值的字典
 
-from pytexmk.language_module import set_language
-from pytexmk.additional_module import MoveRemoveOperation, exit_pytexmk
+from pytexmk.language import set_language
+from pytexmk.additional import MoveRemoveOperation, exit_pytexmk
 
 console = console.Console()
 

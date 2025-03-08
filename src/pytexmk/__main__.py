@@ -39,21 +39,21 @@ from pytexmk.version import script_name, __version__
 
 # 日志与语言配置
 from pytexmk.logger_config import setup_logger
-from pytexmk.language_module import set_language
+from pytexmk.language import set_language
 
 # 信息输出模块
-from pytexmk.info_print_module import (
+from pytexmk.info_print import (
     time_count, time_print, print_message, magic_comment_desc_table
 )
 
 # 主要功能模块
-from pytexmk.run_module import RUN, LaTeXDiffRUN
-from pytexmk.additional_module import (
+from pytexmk.run import RUN, LaTeXDiffRUN
+from pytexmk.additional import (
     MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk
 )
-from pytexmk.latexdiff_module import LaTeXDiff_Aux
-from pytexmk.check_version_module import UpdateChecker
-from pytexmk.config_module import ConfigParser
+from pytexmk.latexdiff import LaTeXDiff_Aux
+from pytexmk.check_version import UpdateChecker
+from pytexmk.config import ConfigParser
 
 UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒;缓存时长, 单位: 小时
 _ = set_language('__main__')

@@ -34,7 +34,7 @@ import importlib.resources
 from packaging import version
 from datetime import timedelta
 
-from pytexmk.language_module import set_language
+from pytexmk.language import set_language
 
 _ = set_language('check_version')
 

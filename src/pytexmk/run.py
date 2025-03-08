@@ -25,10 +25,10 @@ Description  :
 
 from rich import print
 
-from pytexmk.compile_module import CompileLaTeX
-from pytexmk.additional_module import MainFileOperation
-from pytexmk.language_module import set_language
-from pytexmk.info_print_module import time_count, print_message
+from pytexmk.compile import CompileLaTeX
+from pytexmk.additional import MainFileOperation
+from pytexmk.language import set_language
+from pytexmk.info_print import time_count, print_message
 
 _ = set_language('run')
 MFO = MainFileOperation() # 实例化 MainFileOperation 类

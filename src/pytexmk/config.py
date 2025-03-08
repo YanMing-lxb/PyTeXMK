@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from collections import defaultdict
 
-from pytexmk.language_module import set_language
+from pytexmk.language import set_language
 
 _ = set_language('config')
 # TODO : 创建三套配置文件模板，分别为用户配置、本地配置、默认配置
