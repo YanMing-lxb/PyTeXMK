@@ -29,6 +29,11 @@ endif
 
 html:
 	@pandoc README.md > README.html
+ifeq ($(OS),Windows_NT)
+	@move README.html src\pytexmk\data\README.html
+else
+	@mv README.html src/pytexmk/data/README.html
+endif
 
 rst:
 	@pandoc -s -t rst README.md > README.rst
