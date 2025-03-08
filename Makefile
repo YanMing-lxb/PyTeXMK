@@ -126,7 +126,7 @@ pot:
 	@xgettext --output=./src/pytexmk/locale/en/run.pot ./src/pytexmk/run_module.py
 	echo "已生成 pot 文件";
 
-# 作为一名专业的程序国际化专家，请在保留 msgid 中的原文的基础上，将 msgid 中的内容翻译成程序中用的英文，并填写到对应的 msgstr "" 中。
+# 作为一名专业的程序国际化专家，请在保留 msgid 中的原文的基础上，将 msgid 中的内容翻译成程序中用的英文，并填写到对应的 msgstr "" 中
 mo:
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/main.mo ./src/pytexmk/locale/en/main.pot
 	@msgfmt -o ./src/pytexmk/locale/en/LC_MESSAGES/additional.mo ./src/pytexmk/locale/en/additional.pot
@@ -140,7 +140,6 @@ mo:
 	echo "已生成 mo 文件";
 
 poup:
-
 	@xgettext --output=./src/pytexmk/locale/en/main-temp.pot ./src/pytexmk/__main__.py
 	@xgettext --output=./src/pytexmk/locale/en/additional-temp.pot ./src/pytexmk/additional_module.py
 	@xgettext --output=./src/pytexmk/locale/en/check_version-temp.pot ./src/pytexmk/check_version_module.py
@@ -165,15 +164,15 @@ poup:
 
 ifeq ($(OS),Windows_NT)
 	echo "Windows System"
-	@del ./src/pytexmk/locale/en/main-temp.pot
-	@del ./src/pytexmk/locale/en/additional-temp.pot
-	@del ./src/pytexmk/locale/en/check_version-temp.pot
-	@del ./src/pytexmk/locale/en/compile-temp.pot
-	@del ./src/pytexmk/locale/en/config-temp.pot
-	@del ./src/pytexmk/locale/en/latexdiff-temp.pot
-	@del ./src/pytexmk/locale/en/run-temp.pot
-	@del ./src/pytexmk/locale/en/logger_config-temp.pot
-	@del ./src/pytexmk/locale/en/info_print-temp.pot
+	@del /q /f /s "main-temp.pot"
+	@del /q /f /s "additional-temp.pot"
+	@del /q /f /s "check_version-temp.pot"
+	@del /q /f /s "compile-temp.pot"
+	@del /q /f /s "config-temp.pot"
+	@del /q /f /s "latexdiff-temp.pot"
+	@del /q /f /s "run-temp.pot"
+	@del /q /f /s "logger_config-temp.pot"
+	@del /q /f /s "info_print-temp.pot"
 else
 ifeq ($(shell uname -s),Linux)
 	echo "Linux System"
