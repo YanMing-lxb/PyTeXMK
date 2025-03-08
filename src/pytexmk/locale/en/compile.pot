@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-06 21:53+0800\n"
+"POT-Creation-Date: 2025-03-08 19:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,8 +25,8 @@ msgid "请查看日志文件以获取详细信息: "
 msgstr "Please check the log file for detailed information: "
 
 #: src/pytexmk/compile_module.py:208
-#, python-format
-msgid "文件不存在或无法读取，跳过文件: %(args)s"
+#, fuzzy, python-format
+msgid "文件不存在或无法读取,跳过文件: %(args)s"
 msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 
 #: src/pytexmk/compile_module.py:264 src/pytexmk/compile_module.py:411
@@ -41,8 +40,8 @@ msgstr "[bold]Running command: [/bold]"
 
 #: src/pytexmk/compile_module.py:322 src/pytexmk/compile_module.py:441
 #: src/pytexmk/compile_module.py:565
-#, python-format
-msgid "%(args)s 编译失败，请查看日志文件以获取详细信息: "
+#, fuzzy, python-format
+msgid "%(args)s 编译失败,请查看日志文件以获取详细信息: "
 msgstr ""
 "%(args)s compilation failed, please check the log file for detailed "
 "information: "
@@ -79,37 +78,37 @@ msgstr ""
 "No bibliography references or the compilation tool is not bibtex or biber"
 
 #: src/pytexmk/compile_module.py:470
-msgid "重新编译索引，因日志文件提示没有输入文件"
+msgid "重新编译索引,因日志文件提示没有输入文件"
 msgstr "Recompiling index because the log file indicates no input file"
 
 #: src/pytexmk/compile_module.py:477
-msgid "重新编译索引，因词汇表文件内容发生变化"
+msgid "重新编译索引,因词汇表文件内容发生变化"
 msgstr "Recompiling index because the glossary file content has changed"
 
 #: src/pytexmk/compile_module.py:480
-msgid "无需编译索引，因词汇表文件内容没有变化"
+msgid "无需编译索引,因词汇表文件内容没有变化"
 msgstr ""
 "No need to compile the index because the glossary file content has not "
 "changed"
 
 #: src/pytexmk/compile_module.py:482
-msgid "无需编译索引，因没有索引内容"
+msgid "无需编译索引,因没有索引内容"
 msgstr "No need to compile the index because there is no index content"
 
 #: src/pytexmk/compile_module.py:485
-msgid "重新编译索引，因以下索引辅助文件之一存在缺失: "
+msgid "重新编译索引,因以下索引辅助文件之一存在缺失: "
 msgstr ""
 "Recompiling index because one of the following index auxiliary files is "
 "missing: "
 
 #: src/pytexmk/compile_module.py:535
-#, fuzzy
-msgid ""
-"使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引，因此不编译索引"
-msgstr "Index not compiled because a package other than glossaries, nomencl, or makeidx is used or the index is not set up."
+msgid "使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引,因此不编译索引"
+msgstr ""
+"Index not compiled because a package other than glossaries, nomencl, or "
+"makeidx is used or the index is not set up."
 
 #: src/pytexmk/compile_module.py:591
-msgid "DVIPDFMX 编译失败，请查看日志文件以获取详细信息: "
+msgid "DVIPDFMX 编译失败,请查看日志文件以获取详细信息: "
 msgstr ""
 "DVIPDFMX compilation failed, please check the log file for detailed "
 "information: "

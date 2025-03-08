@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-15 19:43+0800\n"
+"POT-Creation-Date: 2025-03-08 19:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,18 +21,22 @@ msgstr ""
 msgid "文件不存在: "
 msgstr "File does not exist: "
 
-#: src/pytexmk/latexdiff_module.py:137
+#: src/pytexmk/latexdiff_module.py:138
 msgid "已压平文件: "
 msgstr "File flattened: "
 
-#: src/pytexmk/latexdiff_module.py:139
+#: src/pytexmk/latexdiff_module.py:140
 msgid "压平出错: "
 msgstr "Flattening error: "
 
-#: src/pytexmk/latexdiff_module.py:151
+#: src/pytexmk/latexdiff_module.py:164
+msgid "新旧辅助文件同时存在: "
+msgstr "Old and new auxiliary files exist at the same time."
+
+#: src/pytexmk/latexdiff_module.py:174
 msgid "[bold]运行命令: "
 msgstr "[bold]Running command: "
 
-#: src/pytexmk/latexdiff_module.py:155
+#: src/pytexmk/latexdiff_module.py:178
 msgid "LaTeXDiff 运行出错: "
 msgstr "LaTeXDiff execution error: "

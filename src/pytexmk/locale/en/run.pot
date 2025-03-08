@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-12 14:49+0800\n"
+"POT-Creation-Date: 2025-03-08 19:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr "Detecting existing auxiliary files..."
 msgid "检测辅助文件"
 msgstr "Detect AUX files"
 
-#: src/pytexmk/run_module.py:54
+#: src/pytexmk/run_module.py:54 src/pytexmk/run_module.py:137
 #, python-format
 msgid "1 次 %(args)s 编译"
 msgstr "1 time %(args)s compile"
@@ -55,22 +55,28 @@ msgid "%(args1)s 次 %(args2)s 编译"
 msgstr "%(args1)s times %(args2)s compile"
 
 #: src/pytexmk/run_module.py:106 src/pytexmk/run_module.py:108
+#: src/pytexmk/run_module.py:147 src/pytexmk/run_module.py:149
 msgid "DVIPDFMX 编译"
 msgstr "DVIPDFMX compile"
 
-#: src/pytexmk/run_module.py:113
+#: src/pytexmk/run_module.py:111 src/pytexmk/run_module.py:152
 msgid "完成所有编译"
 msgstr "Complete all compilations"
 
-#: src/pytexmk/run_module.py:115
+#: src/pytexmk/run_module.py:113 src/pytexmk/run_module.py:154
 #, python-format
 msgid "文档整体: %(args1)s 编译 %(args2)s 次"
 msgstr "Overall document: %(args1)s compile %(args2)s times"
 
-#: src/pytexmk/run_module.py:116
+#: src/pytexmk/run_module.py:114
 msgid "参考文献: "
 msgstr "Bibliography: "
 
-#: src/pytexmk/run_module.py:117
+#: src/pytexmk/run_module.py:115
 msgid "目录索引: "
 msgstr "Table of contents: "
+
+#: src/pytexmk/run_module.py:141
+#, fuzzy, python-format
+msgid "2 次 %(args1)s 编译"
+msgstr "1 time %(args)s compile"
