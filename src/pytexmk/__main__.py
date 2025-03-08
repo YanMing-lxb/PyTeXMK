@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-02-07 13:17:10 +0800
+LastEditTime : 2025-03-08 18:26:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -439,12 +439,17 @@ def main():
         new_tex_file_flatten = LDA.flatten_Latex(new_tex_file)
         runtime_move_matched_files = time_count(MRO.move_matched_files, aux_regex_files, auxdir, '.') # 将所有辅助文件移动到根目录
         runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
-        latex_diff_style = input(_("请输入 LaTeXDiff 的显示风格 (a 或者 b): "))
+        latex_diff_style = input(_(
+            "请输入 LaTeXDiff 的显示风格：\n"
+            "  1 - 显示参考文献/符号说明的修改\n"
+            "  2 - 不显示参考文献/符号说明的修改\n"
+            "请选择 (1 或者 2): "
+            ))
 
         try:
             print_message(_("LaTeXDiff 运行"), "running")
             aux_suffixes_exit = []
-            if latex_diff_style == 'a':
+            if latex_diff_style == '1':
                 for aux_suffix in ['.bbl', '.nls', '.gls', '.idx']:
                     aux_file_exit = LDA.aux_files_both_exist(old_tex_file, new_tex_file, aux_suffix)
                     aux_suffixes_exit.append(aux_file_exit) if aux_file_exit else None
@@ -462,11 +467,16 @@ def main():
             if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
                 out_files = [f"{diff_tex_file}{suffix}" for suffix in suffixes_out]
                 print_message(_("开始预处理命令"), "additional")
-                if latex_diff_style == 'a':
+                if latex_diff_style == '1':
                     LaTeXDiffRUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
-                elif latex_diff_style == 'b':
+                elif latex_diff_style == '2':
                     RUN(runtime_dict, diff_tex_file, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet, args.draft)
-
+                else:
+                    logger.error(_(
+                        "请输入正确的选项 (1 或者 2)\n"
+                        "  1 - 显示参考文献/符号说明的修改\n"
+                        "  2 - 不显示参考文献/符号说明的修改"
+                        ))
                 print_message(_("开始后处理"), "additional")
 
                 print(_('移动结果文件到输出目录...'))
