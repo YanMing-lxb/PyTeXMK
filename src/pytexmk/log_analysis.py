@@ -29,8 +29,10 @@ from pytexmk.language import set_language
 
 _ = set_language('log_analysis')
 
+
 # TODO: 完善LogAnalyzer类 这个只是一个大概的样子
 class LogAnalyzer:
+
     def __init__(self):
         self.warnings = []
         self.errors = []
@@ -70,11 +72,8 @@ class LogAnalyzer:
 
         :return: 包含警告和错误信息的字典
         """
-        return {
-            'warnings': self.warnings,
-            'errors': self.errors,
-            'other_messages': self.other_messages
-        }
+        return {'warnings': self.warnings, 'errors': self.errors, 'other_messages': self.other_messages}
+
 
 # 示例使用
 if __name__ == "__main__":

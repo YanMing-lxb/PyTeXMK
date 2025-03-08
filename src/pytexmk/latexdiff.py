@@ -38,16 +38,15 @@ _ = set_language('latexdiff')
 console = console.Console()
 
 
-
 class LaTeXDiff_Aux:
+
     def __init__(self, suffixes_aux, auxdir):
-        
+
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
         self.suffixes_aux = suffixes_aux
         self.auxdir = Path(auxdir)
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
-
 
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX辅助文件存在检查函数
@@ -67,7 +66,6 @@ class LaTeXDiff_Aux:
             if (self.auxdir / file).exists():
                 return True
         return False
-
 
     # --------------------------------------------------------------------------------
     # 定义 压平多文件的函数
@@ -89,7 +87,8 @@ class LaTeXDiff_Aux:
         3. 递归地读取主 LaTeX 文件及其引用的所有子文件,并将内容写入输出文件.
         4. 恢复 sys.stdout 并返回压平后的文件名称.
         """
-        def flattenLatex(tex_file_name): # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
+
+        def flattenLatex(tex_file_name):  # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
             """
             递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout.
              
@@ -123,15 +122,15 @@ class LaTeXDiff_Aux:
                         flattenLatex(dirpath / newFile)
                     else:
                         sys.stdout.write(line)
- 
+
         # 定义正则表达式 匹配命令前面没有%的 \input 和 \include 命令
         inputPattern = re.compile(r'^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})', re.MULTILINE)
         includePattern = re.compile(r'^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})', re.MULTILINE)
- 
+
         # 打开输出文件并将 sys.stdout 重定向到该文件
         output_file_name = f'{file_name}-flatten'
         try:
-            with open(output_file_name+'.tex', 'w', encoding='utf-8') as output_file:
+            with open(output_file_name + '.tex', 'w', encoding='utf-8') as output_file:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
             sys.stdout = sys.__stdout__
@@ -141,7 +140,7 @@ class LaTeXDiff_Aux:
             exit_pytexmk()
 
         return output_file_name
-    
+
     # --------------------------------------------------------------------------------
     # 判断在指定后缀的新旧辅助文件是否同时存在
     # --------------------------------------------------------------------------------
@@ -163,7 +162,6 @@ class LaTeXDiff_Aux:
         if old_file_path.exists() and new_file_path.exists():
             self.logger.info(_("新旧辅助文件同时存在: ") + str(old_file_path) + " " + str(new_file_path))
             return suffix
-
 
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数

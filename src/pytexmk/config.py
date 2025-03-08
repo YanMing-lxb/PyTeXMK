@@ -38,7 +38,7 @@ old_tex_file = "old_file"  # 旧TeX文件
 new_tex_file = "new_file"  # 新TeX文件
 diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
-        
+
 default_local_config = """
 default_file = "main" # 主文件名
 compiled_program = "XeLaTeX" # 编译器
@@ -66,10 +66,12 @@ new_tex_file = "new_file"  # 新TeX文件
 diff_tex_file = "LaTeXDiff"  # 差异TeX文件
 """
 
+
 class ConfigParser:
     """
     配置解析器类, 用于处理系统配置和本地配置文件的加载和生成。
     """
+
     def __init__(self):
         """
         初始化配置解析器, 设置日志记录器, 获取系统配置文件路径和本地配置文件路径。
@@ -129,7 +131,7 @@ class ConfigParser:
                     f.write(config)
             except Exception as e:
                 self.logger.error(_("创建默认配置文件失败: ") + f"{path} --> {e}")
-    
+
     def init_config_file(self):
         """
         初始化配置文件。
@@ -142,7 +144,7 @@ class ConfigParser:
         if system_config["local_config_auto_init"]:
             self.init_default_config(self.local_config_path, default_local_config)
             local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
-        
+
         final_config = system_config if system_config else {}
 
         if local_config:
@@ -157,6 +159,5 @@ class ConfigParser:
 
         # TODO: 校验配置项中default_file是否正确
         # default_file = self.check_project_name(main_files_in_root, default_file, '.tex') # 检查 default_file 是否正确，主要是检查配置文件中的默认文件名是否正确
-
 
         return final_config

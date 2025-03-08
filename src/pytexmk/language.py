@@ -27,6 +27,7 @@ import locale
 import gettext
 from pathlib import Path
 
+
 # --------------------------------------------------------------------------------
 # 定义系统语言检查函数
 # --------------------------------------------------------------------------------
@@ -38,5 +39,5 @@ def set_language(lang_file):
         translation = gettext.NullTranslations()
     else:
         translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
-    
+
     return translation.gettext

@@ -38,7 +38,6 @@ console = console.Console()
 
 _ = set_language('compile')
 
-
 # 定义正则表达式模式
 BIBER_PATTERN = re.compile(r'\\abx@aux@refcontext')  # 匹配 biber 命令
 BIBTEX_PATTERN = re.compile(r'\\bibdata')  # 匹配 bibtex 命令
@@ -54,11 +53,9 @@ BIBENTRY_PATTERN = re.compile(r'@.*\{(.*),\s')  # 匹配@entry{}命令
 
 ERROR_PATTTERN = re.compile(r'(?:^! (.*\nl\..*)$)|(?:^! (.*)$)|'
                             '(No pages of output.)', re.M)  # 匹配错误信息
-LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in
-                        [r'LaTeX Warning: Reference .* undefined',
-                         r'LaTeX Warning: There were undefined references\.',
-                         r'LaTeX Warning: Label\(s\) may have changed\.',
-                         r'No file .*(\.toc|\.lof)\.']]  # 匹配需要重新运行的LaTeX警告
+LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in [r'LaTeX Warning: Reference .* undefined', r'LaTeX Warning: There were undefined references\.', r'LaTeX Warning: Label\(s\) may have changed\.', r'No file .*(\.toc|\.lof)\.']
+                       ]  # 匹配需要重新运行的LaTeX警告
+
 
 class CompileLaTeX(object):
 
@@ -90,7 +87,7 @@ class CompileLaTeX(object):
         self.aux_files = aux_files
         self.auxdir = auxdir
         self.outdir = outdir
-        self.non_quiet = non_quiet 
+        self.non_quiet = non_quiet
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
@@ -120,16 +117,13 @@ class CompileLaTeX(object):
         if errors:  # 如果有错误
             self.logger.error(_('编译过程发生错误: '))  # 记录错误信息
 
-            self.logger.error('\n'.join(
-                [error.replace('\r', '').strip() for error
-                    in chain(*errors) if error.strip()]
-            ))  # 将错误信息逐行记录,去除多余的空格和换行符
+            self.logger.error('\n'.join([error.replace('\r', '').strip() for error in chain(*errors) if error.strip()]))  # 将错误信息逐行记录,去除多余的空格和换行符
 
             self.logger.error(_("请查看日志文件以获取详细信息: ") + f'{self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
-    
+
     # --------------------------------------------------------------------------------
     # 定义信息获取函数
     # --------------------------------------------------------------------------------
@@ -159,7 +153,7 @@ class CompileLaTeX(object):
             index_aux_content_dict_old = self._index_aux_content_get()
         else:
             # 如果不存在.aux文件,初始化引用计数器为默认值
-            cite_counter = {f'{self.project_name}.aux' : defaultdict(int)}
+            cite_counter = {f'{self.project_name}.aux': defaultdict(int)}
             index_aux_content_dict_old = dict()
         # 使用Path对象创建项目名称对应的.toc文件路径
         toc_file_path = Path(f'{self.project_name}.toc')
@@ -174,7 +168,7 @@ class CompileLaTeX(object):
 
         # 返回引用计数器、toc文件内容和词汇表文件内容
         return cite_counter, toc_file, index_aux_content_dict_old
-    
+
     # --------------------------------------------------------------------------------
     # 定义参考文献引用次数获取函数
     # --------------------------------------------------------------------------------
@@ -199,7 +193,7 @@ class CompileLaTeX(object):
         with open(file_name, 'r', encoding='utf-8') as fobj:
             main_aux_content = fobj.read()
         cite_counter[file_name] = _count_citations(file_name)
-    
+
         for match in re.finditer(r'\\@input\{(.*.aux)\}', main_aux_content):
             file_name = match.groups()[0]
             try:
@@ -209,13 +203,13 @@ class CompileLaTeX(object):
                 pass
             else:
                 cite_counter[file_name] = counter
-    
+
         return cite_counter
 
     # --------------------------------------------------------------------------------
     # 定义旧的符号索引辅助文件内容获取函数
     # --------------------------------------------------------------------------------
-    def _index_aux_content_get(self): 
+    def _index_aux_content_get(self):
         """
         获取项目中所有索引辅助文件的内容,并将其存储在一个字典中.
 
@@ -246,7 +240,7 @@ class CompileLaTeX(object):
                     if Path(f"{self.project_name}{ext_i}").exists() and Path(f"{self.project_name}{ext_o}").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
                         with open(Path(f"{self.project_name}{ext_o}"), 'r', encoding='utf-8') as fobj:
                             index_ext_i_content = fobj.read()
-                        index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content 
+                        index_aux_content_dict_old[f'{self.project_name}.{ext_i}'] = index_ext_i_content
             # 判断并获取 nomencl 宏包的辅助文件内容
             if Path(f"{self.project_name}.nlo").exists():
                 if Path(f"{self.project_name}.nlo").exists() and Path(f"{self.project_name}.nls").exists():  # 使用pathlib判断输出和输入扩展文件是否同时存在
@@ -264,7 +258,7 @@ class CompileLaTeX(object):
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
 
         return index_aux_content_dict_old
-    
+
     # --------------------------------------------------------------------------------
     # 定义目录更新判断函数
     # --------------------------------------------------------------------------------
@@ -306,20 +300,20 @@ class CompileLaTeX(object):
         5. 使用 subprocess.run 执行编译命令.
         6. 如果编译失败,记录错误信息,移动辅助文件和输出文件到指定目录,并退出程序.
         """
-        
+
         options = [self.compiled_program.lower(), "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiled_program == 'XeLaTeX':
             options.insert(5, "-no-pdf")
         if self.non_quiet:
-            options.insert(4, "-interaction=nonstopmode") # 非静默编译
+            options.insert(4, "-interaction=nonstopmode")  # 非静默编译
         else:
-            options.insert(4, "-interaction=batchmode") # 静默编译
+            options.insert(4, "-interaction=batchmode")  # 静默编译
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
 
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
         except Exception as e:
-            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") %{'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
+            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
             self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
             self.MRO.move_specific_files(self.out_files, '.', self.outdir)
             exit_pytexmk()
@@ -372,16 +366,16 @@ class CompileLaTeX(object):
                     else:
                         self.bib_file = match_biber_bib.group(1)  # 获取bib文件名
                         bib_engine = 'biber'  # 设置参考文献编译引擎为biber
-                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
-                
+                        Latex_compilation_times = 2  # LaTeX 额外编译次数
+
                 elif match_bibtex:  # 判断应使用 bibtex 引擎编译
                     match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)  # 检索aux文件中是否存在bib文件名
                     if not match_bibtex_bib:
-                        print_bib =  _("未设置参考文献数据库文件: ") + self.bib_file
+                        print_bib = _("未设置参考文献数据库文件: ") + self.bib_file
                     else:
                         self.bib_file = match_bibtex_bib.group(1)  # 获取bib文件名
                         bib_engine = 'bibtex'  # 设置参考文献编译引擎为bibtex
-                        Latex_compilation_times = 2  # LaTeX 额外编译次数 
+                        Latex_compilation_times = 2  # LaTeX 额外编译次数
 
                 print_bib = bib_engine + _("编译参考文献")
                 name_target = bib_engine
@@ -390,14 +384,14 @@ class CompileLaTeX(object):
                 if not bib_file_path.exists():  # 检查bib文件是否存在
                     print_bib = _("未找到参考文献数据库文件: ") + self.bib_file
                     Latex_compilation_times = 2
-                
+
                 new_cite_counter = self._generate_citation_counter()  # 获取新的引用数目
                 if old_cite_counter == new_cite_counter:  # 如果引用数量没有发生变化
                     print_bib = _("参考文献引用数量没有变化")
                     Latex_compilation_times = 0
 
                 if (re.search(f'No file {self.project_name}.bbl.', self.out) or  # 检查LaTeX输出中是否有bbl文件缺失的提示
-                    re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查LaTeX输出中是否有引用未定义的提示
+                        re.search('LaTeX Warning: Citation .* undefined', self.out)):  # 检查LaTeX输出中是否有引用未定义的提示
                     print_bib = _("LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示")
                     Latex_compilation_times = 2
 
@@ -410,7 +404,7 @@ class CompileLaTeX(object):
         else:
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
         return bib_engine, Latex_compilation_times, print_bib, name_target  # 返回参考文献编译引擎、LaTeX编译次数、打印信息和目标名称
-    
+
     # --------------------------------------------------------------------------------
     # 定义参考文献编译函数
     # --------------------------------------------------------------------------------
@@ -432,8 +426,8 @@ class CompileLaTeX(object):
         options = [bib_engine, self.project_name]
 
         if not self.non_quiet and bib_engine == 'biber':
-            options.insert(1, "-quiet") # 静默编译
-                
+            options.insert(1, "-quiet")  # 静默编译
+
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
@@ -484,11 +478,11 @@ class CompileLaTeX(object):
             make_index = True
             print_index = _("重新编译索引,因以下索引辅助文件之一存在缺失: ") + f'{index_aux_infile}, {index_aux_outfile}'
         return print_index, make_index
-    
+
     # --------------------------------------------------------------------------------
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
-    def index_judgment(self, index_aux_content_dict_old): 
+    def index_judgment(self, index_aux_content_dict_old):
         """
         判断并生成需要运行索引的命令列表.
         
@@ -508,8 +502,8 @@ class CompileLaTeX(object):
         6. 如果以上宏包都不存在,则提示用户采用其他宏包制作索引.
         7. 返回打印的索引信息和需要运行的索引命令列表.
         """
-        file_name = Path(f'{self.project_name}.aux') # 构造主aux文件的文件名,格式为项目名加上.aux后缀
-        run_index_list_cmd = [] # 初始化需要运行 index 的命令列表
+        file_name = Path(f'{self.project_name}.aux')  # 构造主aux文件的文件名,格式为项目名加上.aux后缀
+        run_index_list_cmd = []  # 初始化需要运行 index 的命令列表
         # 判断并获取 glossaries 宏包的辅助文件名称
         if any(Path(f"{self.project_name}{ext}").exists() for ext in [".glo", ".acn", ".slo"]):
             with open(file_name, 'r', encoding='utf-8') as fobj:
@@ -538,7 +532,7 @@ class CompileLaTeX(object):
     # --------------------------------------------------------------------------------
     # 定义索引编译函数
     # --------------------------------------------------------------------------------
-    def compile_index(self, cmd): 
+    def compile_index(self, cmd):
         """
         运行 makeindex 命令以生成索引文件.
 
@@ -559,7 +553,7 @@ class CompileLaTeX(object):
         name_target = f"{cmd[0]}"
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{cmd[1]}\n")
         try:
-            subprocess.run(cmd[1], check=True, text=True, capture_output=False, shell=True) # 使用shell=True:告诉subprocess.run使用shell来执行命令,这样可以利用shell的功能来搜索PATH中的命令.
+            subprocess.run(cmd[1], check=True, text=True, capture_output=False, shell=True)  # 使用shell=True:告诉subprocess.run使用shell来执行命令,这样可以利用shell的功能来搜索PATH中的命令.
             return name_target
         except Exception as e:
             self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': cmd[0]} + f"{self.auxdir}{self.project_name}.log\n{e}")
@@ -583,7 +577,7 @@ class CompileLaTeX(object):
         """
         options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if not self.non_quiet:
-            options.insert(1, "-q") # 静默编译
+            options.insert(1, "-q")  # 静默编译
         console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
         try:
             subprocess.run(options, check=True, text=True, capture_output=False)
@@ -614,7 +608,7 @@ def _count_citations(file_name):
     4. 返回包含所有citation计数的字典.
     """
     # 创建一个默认值为int的字典,用于存储每个citation出现的次数
-    counter = defaultdict(int) # 使用 int 作为工厂函数,默认值为 0
+    counter = defaultdict(int)  # 使用 int 作为工厂函数,默认值为 0
 
     # 打开aux文件并读取其内容
     with open(file_name, 'r', encoding='utf-8') as aux_file:
@@ -626,7 +620,7 @@ def _count_citations(file_name):
             # 获取匹配到的citation名称
             name = match.groups()[0]
             # 增加该citation在字典中的计数, 如果 citation 出现多次,则计数会累加
-            counter[name] += 1 # counter[name] = counter[name] + 1
+            counter[name] += 1  # counter[name] = counter[name] + 1
     match = BIBTEX_CITE_PATTERN.search(aux_content)
     if match:
         # 使用正则表达式模式 BIBTEX_CITE_PATTERN 查找所有的 \citation

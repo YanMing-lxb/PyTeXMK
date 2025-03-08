@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2025-01-29 22:00:42 +0800
+LastEditTime : 2025-03-08 21:35:49 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/check_version_module.py
+FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -131,7 +131,7 @@ class UpdateChecker():
     # --------------------------------------------------------------------------------
     # 定义 网络获取版本信息函数
     # --------------------------------------------------------------------------------
-    def _get_latest_version(self, package_name): # TODO 将该函数放到线程中执行,获取线程信息,保存,并且在下次运行时检查这个显示是否已经执行结束,如果结束则不再执行,否则执行
+    def _get_latest_version(self, package_name):  # TODO 将该函数放到线程中执行,获取线程信息,保存,并且在下次运行时检查这个显示是否已经执行结束,如果结束则不再执行,否则执行
         """
         获取指定包的最新版本号.
 
@@ -163,7 +163,7 @@ class UpdateChecker():
 
             for ver in matches:  # 遍历匹配到的版本号
                 self.versions.append(ver)  # 将版本号添加到版本列表中
-            
+
             if self.versions:  # 如果版本列表不为空
                 # 使用列表推导式和parse函数将字符串转换为版本对象
                 version_objects = [version.parse(ver) for ver in self.versions]
@@ -200,7 +200,7 @@ class UpdateChecker():
         5. 如果当前版本是最新的,则提示当前版本信息.
         """
         latest_version = self._load_cached_version()  # 从缓存中加载最新版本信息
-        
+
         if latest_version:
             latest_version = version.parse(latest_version)  # 将字符串转换为版本对象
         else:

@@ -33,13 +33,14 @@ from rich.console import Console
 
 from pytexmk.language import set_language
 
-console = Console() # 创建控制台对象
-logger = logging.getLogger(__name__) # 创建日志对象
+console = Console()  # 创建控制台对象
+logger = logging.getLogger(__name__)  # 创建日志对象
 
 _ = set_language('info_print')  # 设置语言
 
 # 总字符串长度
 total_len = 78
+
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
@@ -132,18 +133,18 @@ def print_message(message, state):
         padding_size = total_len - get_text_len(message) - 4  # 计算需要填充的空格数量
         left_padding = padding_size // 2  # 计算左侧填充的X数量
         right_padding = padding_size - left_padding  # 计算右侧填充的X数量
-        
+
         left_banner = in_dec_chars * left_padding
         right_banner = in_dec_chars * right_padding
 
         banner = f"[{in_dec_chars_style}]{left_banner}[/{in_dec_chars_style}]" + f"[{message_style}]| {message} |[/{message_style}]" + f"[{in_dec_chars_style}]{right_banner}[/{in_dec_chars_style}]"
-        
+
         console.print("\n" + out_dec_chars * total_len, style=f"{out_dec_chars_style}")
         console.print(banner)
         console.print(out_dec_chars * total_len + "\n", style=f"{out_dec_chars_style}")
     except Exception as e:
         logger.error(_('打印模块信息时出错: ') + str(e))  # 记录错误日志
-    
+
 
 # --------------------------------------------------------------------------------
 # 定义统计时间打印函数
@@ -186,14 +187,14 @@ def time_print(start_time, runtime_dict):
             runtime_dict.update({_('LaTeX 编译时长'): time_LaTeX, _('Python 运行时长'): time_python, _('PyTeXMK 运行时长'): time_pytexmk})
         else:  # 如果不存在LaTeX编译时长列表
             time_python = total_seconds  # 计算Python运行时长
-            runtime_dict.update({_('Python 运行时长'): time_python, _('PyTeXMK 运行时长'): time_pytexmk}) # 添加统计信息到字典
+            runtime_dict.update({_('Python 运行时长'): time_python, _('PyTeXMK 运行时长'): time_pytexmk})  # 添加统计信息到字典
 
         # 格式化所有时间
         max_whole_digits = max(len(str(int(value))) for value in runtime_dict.values())  # 获取所有时间中小数点前的最大位数
         formatted_times = {key: f"{value:0{max_whole_digits+5}.4f} s" for key, value in runtime_dict.items()}  # 格式化所有时间位数相同
         runtime_dict.update(formatted_times)  # 更新字典中的时间格式
 
-        number_programmes_run = len(time_LaTeX_list) # 计算运行函数数量(辅助函数除外)
+        number_programmes_run = len(time_LaTeX_list)  # 计算运行函数数量(辅助函数除外)
 
         # 创建表格对象
         table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=_("PyTeXMK 运行时长统计表"))
@@ -230,7 +231,7 @@ def time_print(start_time, runtime_dict):
                 row_data.extend([
                     f"{i + 1 + row_num:02d}",  # 序号
                     name_target_list[i + row_num],  # 运行项目名称
-                    runtime_dict[name_target_list[i + row_num]] # 运行时长
+                    runtime_dict[name_target_list[i + row_num]]  # 运行时长
                 ])
             else:
                 row_data.extend(["", "", ""])
@@ -270,7 +271,7 @@ def magic_comment_desc_table():
         '% !TEX root = main.tex': _("指定待编译主文件名，仅支持根目录下的文件"),
         '% !TEX outdir = out_folder': _("指定编译结果存放位置，仅支持文件夹名称"),
         '% !TEX auxdir = aux_folder': _("指定辅助文件存放位置，仅支持文件夹名称")
-        }
+    }
     try:
         # 创建表格对象
         table = Table(show_header=True, header_style="bold dark_orange", box=box.ASCII_DOUBLE_HEAD, title=_("魔法注释说明表"))

@@ -51,26 +51,15 @@ def setup_logger(verbose):
     3. 获取并返回名为'pytexmk.py'的日志记录器实例。
     """
     FORMAT = "%(message)s"
-    
+
     # 如果设置了verbose 选项，则将日志级别设置为INFO，以便输出更多信息
     if verbose:
         print(_("启用 PyTeXMK 详细日志输出..."))
-        logging.basicConfig(
-            level="INFO",
-            format=FORMAT,
-            datefmt="[%X]",
-            handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)]
-        )
+        logging.basicConfig(level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)])
     else:
-        logging.basicConfig(
-            level="WARNING",
-            format=FORMAT,
-            datefmt="[%X]",
-            handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)]
-        )
+        logging.basicConfig(level="WARNING", format=FORMAT, datefmt="[%X]", handlers=[RichHandler(show_level=True, show_time=False, markup=True, show_path=False)])
 
     # 获取名为'pytexmk.py'的日志记录器实例
     logger = logging.getLogger('pytexmk.py')
 
     return logger
-
