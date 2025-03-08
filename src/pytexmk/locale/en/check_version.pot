@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-09 16:11+0800\n"
+"POT-Creation-Date: 2025-03-08 20:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,51 +17,53 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/check_version_module.py:102
+#: src\pytexmk\check_version.py:102
 msgid "读取 PyTeXMK 版本缓存文件中的版本号，缓存有效期: "
-msgstr "Reading version number from PyTeXMK version cache file, cache validity: "
+msgstr ""
+"Reading version number from PyTeXMK version cache file, cache validity: "
 
-#: src/pytexmk/check_version_module.py:103
+#: src\pytexmk\check_version.py:103
 msgid "PyTeXMK 版本缓存文件路径: "
 msgstr "PyTeXMK version cache file path: "
 
-#: src/pytexmk/check_version_module.py:106
+#: src\pytexmk\check_version.py:106
 msgid "加载缓存版本时出错: "
 msgstr "Error loading cached version: "
 
-#: src/pytexmk/check_version_module.py:129
+#: src\pytexmk\check_version.py:129
 msgid "更新版本缓存时出错: "
 msgstr "Error updating version cache: "
 
-#: src/pytexmk/check_version_module.py:174
+#: src\pytexmk\check_version.py:174
 #, python-format
 msgid "获取 %(args)s 最新版本号成功: "
 msgstr "Successfully retrieved latest version number for %(args)s: "
 
-#: src/pytexmk/check_version_module.py:177
+#: src\pytexmk\check_version.py:177
 #, python-format
 msgid "获取 %(args)s 最新版本号失败: 未找到版本号"
-msgstr "Failed to retrieve latest version number for %(args)s: Version number not found"
+msgstr ""
+"Failed to retrieve latest version number for %(args)s: Version number not "
+"found"
 
-#: src/pytexmk/check_version_module.py:181
+#: src\pytexmk\check_version.py:181
 #, python-format
 msgid "获取 %(args)s 最新版本号出错: "
 msgstr "Error retrieving latest version number for %(args)s: "
 
-#: src/pytexmk/check_version_module.py:186
+#: src\pytexmk\check_version.py:186
 msgid "获取最新版本号耗时: "
 msgstr "Time taken to retrieve latest version number: "
 
-#: src/pytexmk/check_version_module.py:217
+#: src\pytexmk\check_version.py:217
 msgid "有新版本可用: "
 msgstr "New version available: "
 
-#: src/pytexmk/check_version_module.py:217
-#: src/pytexmk/check_version_module.py:220
+#: src\pytexmk\check_version.py:217 src\pytexmk\check_version.py:220
 msgid "当前版本: "
 msgstr "Current version: "
 
-#: src/pytexmk/check_version_module.py:218
+#: src\pytexmk\check_version.py:218
 msgid ""
 "请运行 [bold green]'pip install --upgrade pytexmk'[/bold green] 进行更新"
 msgstr ""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 19:35+0800\n"
+"POT-Creation-Date: 2025-03-08 20:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,42 +17,42 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/config_module.py:80
+#: src\pytexmk\config.py:80
 msgid "PyTeXMK 配置模块初始化完成"
 msgstr "PyTeXMK configuration module initialization completed"
 
-#: src/pytexmk/config_module.py:90
+#: src\pytexmk\config.py:90
 msgid "用户主目录: "
 msgstr "User home directory: "
 
-#: src/pytexmk/config_module.py:93
+#: src\pytexmk\config.py:93
 msgid "获取用户主目录失败: "
 msgstr "Failed to get user home directory: "
 
-#: src/pytexmk/config_module.py:105
+#: src\pytexmk\config.py:105
 msgid "配置文件不存在: "
 msgstr "Configuration file does not exist: "
 
-#: src/pytexmk/config_module.py:111
+#: src\pytexmk\config.py:111
 msgid "配置文件加载成功: "
 msgstr "Configuration file loaded successfully: "
 
-#: src/pytexmk/config_module.py:114
+#: src\pytexmk\config.py:114
 msgid "配置文件加载失败: "
 msgstr "Failed to load configuration file: "
 
-#: src/pytexmk/config_module.py:126
+#: src\pytexmk\config.py:126
 msgid "创建默认配置文件: "
 msgstr "Creating default configuration file: "
 
-#: src/pytexmk/config_module.py:131
+#: src\pytexmk\config.py:131
 msgid "创建默认配置文件失败: "
 msgstr "Failed to create default configuration file: "
 
-#: src/pytexmk/config_module.py:151
+#: src\pytexmk\config.py:151
 msgid "未找到本地配置文件, 使用系统配置"
 msgstr "Local configuration file not found, using system configuration"
 
-#: src/pytexmk/config_module.py:153
+#: src\pytexmk\config.py:153
 msgid "配置文件加载完成"
 msgstr "Configuration file loading completed"

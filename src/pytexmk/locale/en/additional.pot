@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 19:35+0800\n"
+"POT-Creation-Date: 2025-03-08 20:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,105 +16,105 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/pytexmk/additional_module.py:72 src/pytexmk/additional_module.py:107
+#: src\pytexmk\additional.py:72 src\pytexmk\additional.py:107
 msgid "删除成功: "
 msgstr "Deletion successful: "
 
-#: src/pytexmk/additional_module.py:74 src/pytexmk/additional_module.py:109
-#: src/pytexmk/additional_module.py:152 src/pytexmk/additional_module.py:212
+#: src\pytexmk\additional.py:74 src\pytexmk\additional.py:109
+#: src\pytexmk\additional.py:152 src\pytexmk\additional.py:212
 msgid "删除失败: "
 msgstr "Deletion failed: "
 
-#: src/pytexmk/additional_module.py:158 src/pytexmk/additional_module.py:217
+#: src\pytexmk\additional.py:158 src\pytexmk\additional.py:217
 msgid "移动成功: "
 msgstr "Move successful: "
 
-#: src/pytexmk/additional_module.py:160 src/pytexmk/additional_module.py:219
+#: src\pytexmk\additional.py:160 src\pytexmk\additional.py:219
 msgid "移动失败: "
 msgstr "Move failed: "
 
-#: src/pytexmk/additional_module.py:274
+#: src\pytexmk\additional.py:274
 msgid "文件名中不能存在路径"
 msgstr "Path cannot exist in filename"
 
-#: src/pytexmk/additional_module.py:286
+#: src\pytexmk\additional.py:286
 #, fuzzy, python-format
 msgid "文件类型非 %(args)s: "
 msgstr "File type is not tex: "
 
-#: src/pytexmk/additional_module.py:334
+#: src\pytexmk\additional.py:334
 msgid "搜索到: "
 msgstr "Found: "
 
-#: src/pytexmk/additional_module.py:337
+#: src\pytexmk\additional.py:337
 msgid "文件数目: "
 msgstr "Number of files: "
 
-#: src/pytexmk/additional_module.py:339
+#: src\pytexmk\additional.py:339
 msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
 msgstr ""
 "File does not exist in current path, please check if the terminal display "
 "path is the project path"
 
-#: src/pytexmk/additional_module.py:340 src/pytexmk/additional_module.py:412
+#: src\pytexmk\additional.py:340 src\pytexmk\additional.py:412
 msgid "当前终端路径: "
 msgstr "Current terminal path: "
 
-#: src/pytexmk/additional_module.py:343
+#: src\pytexmk\additional.py:343
 msgid "文件搜索失败: "
 msgstr "File search failed: "
 
-#: src/pytexmk/additional_module.py:401
+#: src\pytexmk\additional.py:401
 msgid "通过特征命令检索到主文件: "
 msgstr "Retrieved main file via feature command: "
 
-#: src/pytexmk/additional_module.py:404 src/pytexmk/additional_module.py:468
-#: src/pytexmk/additional_module.py:711
+#: src\pytexmk\additional.py:404 src\pytexmk\additional.py:468
+#: src\pytexmk\additional.py:711
 msgid "打开文件失败: "
 msgstr "Failed to open file: "
 
-#: src/pytexmk/additional_module.py:408
+#: src\pytexmk\additional.py:408
 msgid "发现主文件数量: "
 msgstr "Number of main files found: "
 
-#: src/pytexmk/additional_module.py:411
+#: src\pytexmk\additional.py:411
 msgid "终端路径下不存在主文件!请检查终端显示路径是否是项目路径!"
 msgstr ""
 "Main file does not exist under terminal path! Please check if the terminal "
 "display path is the project path!"
 
-#: src/pytexmk/additional_module.py:526
+#: src\pytexmk\additional.py:526
 msgid "通过命令行命令指定待编译主文件为: "
 msgstr "The main file to be compiled is specified via command line command: "
 
-#: src/pytexmk/additional_module.py:531
+#: src\pytexmk\additional.py:531
 msgid "通过根目录下唯一主文件指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the unique main file in the "
 "root directory: "
 
-#: src/pytexmk/additional_module.py:535
+#: src\pytexmk\additional.py:535
 msgid "魔法注释 % !TEX root 在当前根目录下主文件中有被定义"
 msgstr ""
 "The magic comment % !TEX root is defined in the main file in the current "
 "root directory"
 
-#: src/pytexmk/additional_module.py:538
+#: src\pytexmk\additional.py:538
 msgid "魔法注释 % !TEX root 只存在于: "
 msgstr "The magic comment % !TEX root only exists in: "
 
-#: src/pytexmk/additional_module.py:542
+#: src\pytexmk\additional.py:542
 msgid "通过魔法注释 % !TEX root 指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the magic comment % !TEX root: "
 
-#: src/pytexmk/additional_module.py:545
+#: src\pytexmk\additional.py:545
 msgid "魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: "
 msgstr ""
 "The file name specified by the magic comment % !TEX root is different from "
 "the current file name, the main file cannot be determined: "
 
-#: src/pytexmk/additional_module.py:547
+#: src\pytexmk\additional.py:547
 msgid ""
 "魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释"
 "确定待编译主文件"
@@ -123,7 +123,7 @@ msgstr ""
 "current root directory, the main file to be compiled cannot be determined "
 "based on the magic comment"
 
-#: src/pytexmk/additional_module.py:550
+#: src\pytexmk\additional.py:550
 msgid ""
 "无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"
 msgstr ""
@@ -131,26 +131,26 @@ msgstr ""
 "comment, attempting to specify the main file to be compiled based on the "
 "default main file name"
 
-#: src/pytexmk/additional_module.py:554
+#: src\pytexmk\additional.py:554
 #, python-format
 msgid "通过默认文件名 \"%(args)s.tex\" 指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the default file name "
 "\"%(args)s.tex\": "
 
-#: src/pytexmk/additional_module.py:557
+#: src\pytexmk\additional.py:557
 #, python-format
 msgid "当前根目录下不存在名为 \"%(args)s.tex\" 的文件"
 msgstr ""
 "The file named \"%(args)s.tex\" does not exist in the current root directory"
 
-#: src/pytexmk/additional_module.py:560
+#: src\pytexmk\additional.py:560
 msgid "无法进行编译, 当前根目录下存在多个主文件: "
 msgstr ""
 "Compilation cannot proceed, there are multiple main files in the current "
 "root directory: "
 
-#: src/pytexmk/additional_module.py:561
+#: src\pytexmk\additional.py:561
 msgid ""
 "请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 "
 "\"% !TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" "
@@ -162,75 +162,75 @@ msgstr ""
 "compiled]\" in the terminal, or delete the extra tex files in the current "
 "root directory"
 
-#: src/pytexmk/additional_module.py:562
+#: src\pytexmk\additional.py:562
 msgid "当前根目录是: "
 msgstr "The current root directory is: "
 
-#: src/pytexmk/additional_module.py:595
+#: src\pytexmk\additional.py:595
 msgid "草稿模式未启用, 跳过处理."
 msgstr "Draft mode not enabled, skipping processing."
 
-#: src/pytexmk/additional_module.py:624
+#: src\pytexmk\additional.py:624
 msgid "启用草稿模式"
 msgstr "Draft mode enabled"
 
-#: src/pytexmk/additional_module.py:624
+#: src\pytexmk\additional.py:624
 msgid "关闭草稿模式"
 msgstr "Draft mode disabled"
 
-#: src/pytexmk/additional_module.py:627
+#: src\pytexmk\additional.py:627
 #, fuzzy, python-format
 msgid "处理文件: %(args)s, 文件大小: %(size).3f MB"
 msgstr "Processing file: %(args)s, file size: "
 
-#: src/pytexmk/additional_module.py:629
+#: src\pytexmk\additional.py:629
 msgid "未匹配到内容, 文件未修改."
 msgstr "No content matched, file not modified."
 
-#: src/pytexmk/additional_module.py:632
+#: src\pytexmk\additional.py:632
 msgid "文件未找到: "
 msgstr "File not found: "
 
-#: src/pytexmk/additional_module.py:634
+#: src\pytexmk\additional.py:634
 msgid "权限错误: 无法读取或写入文件: "
 msgstr "Permission error: Unable to read or write file: "
 
-#: src/pytexmk/additional_module.py:636
+#: src\pytexmk\additional.py:636
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
 
-#: src/pytexmk/additional_module.py:669
+#: src\pytexmk\additional.py:669
 msgid "未设置 PDF 查看器,使用默认 PDF 查看器"
 msgstr "No PDF viewer set, default PDF viewer used"
 
-#: src/pytexmk/additional_module.py:672
+#: src\pytexmk\additional.py:672
 msgid "设置 PDF 查看器: "
 msgstr "Setting up the PDF viewer: "
 
-#: src/pytexmk/additional_module.py:706
+#: src\pytexmk\additional.py:706
 msgid "文件路径: "
 msgstr "File path: "
 
-#: src/pytexmk/additional_module.py:764
+#: src\pytexmk\additional.py:764
 msgid "当前路径下没有 PDF 文件"
 msgstr "No PDF files found in current path: "
 
-#: src/pytexmk/additional_module.py:767
+#: src\pytexmk\additional.py:767
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "
 
-#: src/pytexmk/additional_module.py:781
+#: src\pytexmk\additional.py:781
 msgid "修复成功: "
 msgstr "Fix successful: "
 
-#: src/pytexmk/additional_module.py:783
+#: src\pytexmk\additional.py:783
 msgid "修复失败: "
 msgstr "Fix failed: "
 
-#: src/pytexmk/additional_module.py:784
+#: src\pytexmk\additional.py:784
 msgid "[bold green]修复 PDF 结束[/bold green]"
 msgstr "[bold green]PDF fix complete[/bold green]"
 
-#: src/pytexmk/additional_module.py:792
+#: src\pytexmk\additional.py:792
 msgid "[bold red]正在退出 PyTeXMK..."
 msgstr "[bold red]Exiting PyTeXMK..."
