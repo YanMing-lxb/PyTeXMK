@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-03-08 18:26:58 +0800
+LastEditTime : 2025-03-08 19:56:06 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -56,7 +56,7 @@ from pytexmk.check_version_module import UpdateChecker
 from pytexmk.config_module import ConfigParser
 
 UC = UpdateChecker(1, 6) # 访问超时, 单位: 秒;缓存时长, 单位: 小时
-_ = set_language('main')
+_ = set_language('__main__')
 
 
 
