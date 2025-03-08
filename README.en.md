@@ -115,6 +115,12 @@ Options:
 - Examples for the `-d` and `-dc` commands: `pytexmk -d old_tex_file new_tex_file` and `pytexmk -dc old_tex_file new_tex_file`. The generated comparison file is named `LaTeXDiff.tex`.
 - The function of the `-pv` parameter is: Attempt to call a Web browser or local PDF reader to preview the generated PDF file after compilation. It only supports PDF files in the output directory. If you need to specify the main file to be compiled in the command line, the `-pv` command should be placed after `document`, `-pv` command does not need to specify parameters, example: `pytexmk main -pv`; if you do not need to specify the main file in the command line, simply enter `-pv`, example: `pytexmk -pv`.
 
+
+The `-dc` and `-d` commands have a new style option to support displaying traces of changes in reference and symbol indexes, with a compilation prompt to enter option 1 or 2
+
+- 1 - Show changes in reference/symbol descriptions
+- 2 - Do not show changes in references/symbol descriptions
+
 ### Magic Comments
 
 PyTeXMK supports using magic comments to define the main file to be compiled, compilation program, location to store compilation results, etc. (only supports searching the first 50 lines of the document).
