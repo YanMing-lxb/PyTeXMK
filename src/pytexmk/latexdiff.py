@@ -31,7 +31,8 @@ from pathlib import Path
 from rich import console
 
 from pytexmk.language import set_language
-from pytexmk.additional import MoveRemoveOperation, exit_pytexmk
+from pytexmk.auxiliary_fun import exit_pytexmk
+from pytexmk.additional import MoveRemoveOperation
 
 _ = set_language('latexdiff')
 

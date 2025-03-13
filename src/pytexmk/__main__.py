@@ -46,10 +46,13 @@ from pytexmk.info_print import (time_count, time_print, print_message, magic_com
 
 # 主要功能模块
 from pytexmk.run import RUN, LaTeXDiffRUN
-from pytexmk.additional import (MoveRemoveOperation, MainFileOperation, PdfFileOperation, exit_pytexmk)
+from pytexmk.additional import (MoveRemoveOperation, MainFileOperation, PdfFileOperation)
 from pytexmk.latexdiff import LaTeXDiff_Aux
 from pytexmk.check_version import UpdateChecker
 from pytexmk.config import ConfigParser
+
+# 辅助功能
+from pytexmk.auxiliary_fun import (get_app_path, exit_pytexmk)
 
 UC = UpdateChecker(1, 6)  # 访问超时, 单位: 秒;缓存时长, 单位: 小时
 _ = set_language('__main__')
@@ -221,16 +224,10 @@ def main():
     # --------------------------------------------------------------------------------
     if args.readme:  # 如果存在 readme 参数
         try:
-            # Nuitka 打包后的路径处理
-            if getattr(sys, 'frozen', True):  # 判断程序是否被打包冻结
-                # Nuitka 打包后资源路径
-                base_path = Path(sys.executable).parent
-            else:  # 程序未被打包冻结
-                import importlib.resources  # 用于访问打包资源
-                base_path = Path(importlib.resources.files('pytexmk'))  # 使用 pathlib 获取包数据路径
+            app_path = get_app_path # 获取应用程序路径
 
             # 使用 pathlib 拼接 README.html 文件路径
-            readme_path = base_path / "data" / "README.html"
+            readme_path = app_path / "data" / "README.html"
 
             if readme_path.exists():
                 print(_("[bold green]正在打开 README 文件..."))
