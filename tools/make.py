@@ -10,24 +10,23 @@ from rich.console import Console
 
 console = Console()
 
+def _remove_paths(paths):
+    for path in paths:
+        if path.exists():
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink()
+            console.log(f"已删除: {path}")
+
 def clean():
     dirs_to_remove = ['build', 'dist', Path('src') / 'pytexmk.egg-info']
-    for d in dirs_to_remove:
-        path = Path(d)
-        if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
-            console.log(f"已删除目录: {path}")
+    pycache_dirs = Path('.').rglob('__pycache__')
+    pyc_files = Path('.').rglob('*.pyc')
     
-    for pycache_dir in Path('.').rglob('__pycache__'):
-        shutil.rmtree(pycache_dir, ignore_errors=True)
-        console.log(f"已删除目录: {pycache_dir}")
-    
-    for pyc_file in Path('.').rglob('*.pyc'):
-        try:
-            pyc_file.unlink()
-            console.log(f"已删除文件: {pyc_file}")
-        except Exception as e:
-            console.log(f"删除文件 {pyc_file} 时出错: {e}")
+    _remove_paths([Path(d) for d in dirs_to_remove])
+    _remove_paths(pycache_dirs)
+    _remove_paths(pyc_files)
     
     console.log("清理完成")
 
@@ -112,9 +111,12 @@ def upload():
     clean()
     console.log("上传完成")
 
+def get_modules():
+    return [f.stem for f in Path('src/pytexmk').glob('*.py')]
+
 def pot():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
+    modules = get_modules()
     for module in modules:
         pot_file = locale_dir / f'{module}.pot'
         py_file = Path(f'src/pytexmk/{module}.py')
@@ -124,7 +126,7 @@ def pot():
 
 def mo():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
+    modules = get_modules()
     for module in modules:
         pot_file = locale_dir / f'{module}.pot'
         mo_dir = locale_dir / 'LC_MESSAGES'
@@ -136,7 +138,7 @@ def mo():
 
 def poup():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
+    modules = get_modules()
     for module in modules:
         py_file = Path(f'src/pytexmk/{module}.py')
         temp_pot = locale_dir / f'{module}-temp.pot'
@@ -184,3 +186,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
