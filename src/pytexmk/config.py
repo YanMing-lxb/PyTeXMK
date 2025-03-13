@@ -2,106 +2,56 @@ import toml
 import logging
 from pathlib import Path
 from collections import defaultdict
+from typing import Optional, Dict, Any
 
 from pytexmk.language import set_language
+from pytexmk.auxiliary_fun import get_app_path
 
 _ = set_language('config')
-# TODO : 创建三套配置文件模板，分别为用户配置、本地配置、默认配置
-# 用户配置：一般为系统管理员配置，存放位置为：用户主目录下。
-# 本地配置：一般为项目专用配置，存放位置为：当前工作目录下。
-# 默认配置：将 __main__.py 中的默认配置移至此处，方便用户修改, 存放位置为：pytexmk目录下。
-# 默认配置文件
-default_system_config = """
-default_file = "main" # 主文件名
-compiled_program = "XeLaTeX" # 编译器
-non_quiet = false # 非静默模式
-local_config_auto_init = true # 是否自动创建本地配置文件
-
-[pdf]
-pdf_preview_status = true # PDF预览, 指编译结束后是否打开PDF文件
-pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
-
-[folder]
-auxdir = "./Auxiliary/" # 辅助文件夹
-outdir = "./Build/" # 输出文件夹
-
-# 索引配置
-[index]
-index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
-input_suffix = ".nlo"  # 输入文件后缀
-output_suffix = ".nls"  # 输出文件后缀
-# glossaries 宏包和 nomencl 宏包无需配置 [index]
-
-# LaTeX差异配置
-[latexdiff]
-old_tex_file = "old_file"  # 旧TeX文件
-new_tex_file = "new_file"  # 新TeX文件
-diff_tex_file = "LaTeXDiff"  # 差异TeX文件
-"""
-
-default_local_config = """
-default_file = "main" # 主文件名
-compiled_program = "XeLaTeX" # 编译器
-quiet_mode = true # 静默模式
-
-[pdf]
-pdf_preview_status = false # PDF预览, 指编译结束后是否打开PDF文件
-pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
-
-[folder]
-auxdir = "./Auxiliary/" # 辅助文件夹
-outdir = "./Build/" # 输出文件夹
-
-# 索引配置
-[index]
-index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
-input_suffix = ".nlo"  # 输入文件后缀
-output_suffix = ".nls"  # 输出文件后缀
-# glossaries 宏包和 nomencl 宏包无需配置 [index]
-
-# LaTeX差异配置
-[latexdiff]
-old_tex_file = "old_file"  # 旧TeX文件
-new_tex_file = "new_file"  # 新TeX文件
-diff_tex_file = "LaTeXDiff"  # 差异TeX文件
-"""
-
 
 class ConfigParser:
     """
-    配置解析器类, 用于处理系统配置和本地配置文件的加载和生成。
+    配置解析器类, 用于处理用户配置和项目配置文件的加载和生成。
     """
 
     def __init__(self):
         """
-        初始化配置解析器, 设置日志记录器, 获取系统配置文件路径和本地配置文件路径。
+        初始化配置解析器, 设置日志记录器, 获取用户配置文件和项目配置文件路径。
         """
-        self.logger = logging.getLogger(__name__)  # 加载日志记录器
-        self.system_config_path = self._get_system_config_path()  # 获取系统配置文件路径
-        self.local_config_path = Path.cwd() / '.pytexmkrc'  # 获取本地配置文件路径
-        self.logger.info(_("PyTeXMK 配置模块初始化完成"))
+        self.logger = logging.getLogger(__name__)  # 初始化日志记录器
+        self.user_config_path = self._get_user_config_path()  # 获取用户配置文件路径
+        self.project_config_path = Path.cwd() / '.pytexmkrc'  # 获取项目配置文件路径
+        self.data_dir = get_app_path / 'data'  # 获取data文件夹路径
+        self.logger.info(_("PyTeXMK 配置模块已初始化"))
 
-    def _get_system_config_path(self):
-        """
-        获取系统配置文件路径。
-        返回:
-            Path: 系统配置文件路径。
+    def _get_user_config_path(self) -> Optional[Path]:
+        """获取用户配置文件路径。
+
+        Returns
+        -------
+        Optional[Path]
+            用户配置文件路径，如果获取失败则返回 None。
         """
         try:
-            home_path = Path.home()  # 获取用户主目录
-            self.logger.info(_("用户主目录: ") + str(home_path))
-            return home_path / '.pytexmkrc'
+            user_home_path = Path.home()  # 获取用户主目录
+            self.logger.info(_("用户主目录路径: ") + str(user_home_path))
+            return user_home_path / '.pytexmkrc'
         except Exception as e:
-            self.logger.error(_("获取用户主目录失败: ") + str(e))
+            self.logger.error(_("获取用户主目录路径失败: ") + str(e))
             return None
 
-    def _load_toml(self, path):
-        """
-        加载指定路径的 TOML 配置文件。
-        参数:
-            path (Path): 配置文件路径。
-        返回:
-            dict: 配置字典。
+    def _load_toml(self, path: Path) -> Optional[Dict[str, Any]]:
+        """加载指定路径的 TOML 配置文件。
+
+        Parameters
+        ----------
+        path : Path
+            配置文件路径。
+
+        Returns
+        -------
+        Optional[Dict[str, Any]]
+            配置字典。
         """
         if not path.exists():
             self.logger.warning(_("配置文件不存在: ") + str(path))
@@ -110,54 +60,125 @@ class ConfigParser:
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 config = toml.load(f)
-            self.logger.info(_("配置文件加载成功: ") + str(path))
+            self.logger.info(_("成功加载配置文件: ") + str(path))
             return config
         except Exception as e:
-            self.logger.error(_("配置文件加载失败: ") + f"{path} --> {e}")
+            self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return None
 
-    def init_default_config(self, path, config):
-        """
-        生成默认配置文件。
-        参数:
-            path (Path): 配置文件路径。
-            config (str): 配置内容。
+    def _init_default_config(self, path: Path, config_file: str):
+        """生成默认配置文件。
+
+        Parameters
+        ----------
+        path : Path
+            配置文件路径。
+        config_file : str
+            默认配置文件名。
         """
         if not path.exists():
             try:
-                self.logger.info(_("创建默认配置文件: ") + str(path))
+                self.logger.info(_("正在创建默认配置文件: ") + str(path))
                 path.parent.mkdir(parents=True, exist_ok=True)  # 创建父目录
+                with open(self.data_dir / config_file, 'r', encoding='utf-8') as f:
+                    default_config = f.read()
                 with open(path, 'w', encoding='utf-8') as f:
-                    f.write(config)
+                    f.write(default_config)
             except Exception as e:
                 self.logger.error(_("创建默认配置文件失败: ") + f"{path} --> {e}")
-
-    def init_config_file(self):
-        """
-        初始化配置文件。
-        加载系统配置和本地配置文件, 优先使用本地配置。
-        返回:
-            dict: 最终的配置字典。
-        """
-        self.init_default_config(self.system_config_path, default_system_config)
-        system_config = defaultdict(lambda: None, self._load_toml(self.system_config_path))  # 加载系统配置文件
-        if system_config["local_config_auto_init"]:
-            self.init_default_config(self.local_config_path, default_local_config)
-            local_config = self._load_toml(self.local_config_path)  # 加载本地配置文件
-
-        final_config = system_config if system_config else {}
-
-        if local_config:
-            final_config.update(local_config)
         else:
-            self.logger.info(_("未找到本地配置文件, 使用系统配置"))
+            self._check_and_correct_config(path, config_file)
+
+    def _check_and_correct_config(self, path: Path, config_file: str):
+        """检查并修正配置文件。
+
+        Parameters
+        ----------
+        path : Path
+            配置文件路径。
+        config_file : str
+            默认配置文件名。
+        """
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                existing_config = toml.load(f)
+        except Exception as e:
+            self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
+            return
+
+        # 加载默认配置文件
+        with open(self.data_dir / config_file, 'r', encoding='utf-8') as f:
+            default_config_dict = toml.load(f)
+
+        # 获取所有key的集合
+        existing_keys = set(existing_config.keys())
+        default_keys = set(default_config_dict.keys())
+
+        # 找出多余和缺少的key
+        extra_keys = existing_keys - default_keys
+        missing_keys = default_keys - existing_keys
+
+        if extra_keys or missing_keys:
+            self.logger.warning(_("配置文件存在以下问题:"))
+            if extra_keys:
+                self.logger.warning(_("多余配置项: "))
+                for key in extra_keys:
+                    self.logger.warning(f"  {key}: {existing_config[key]}")
+            if missing_keys:
+                self.logger.warning(_("缺少配置项: "))
+                for key in missing_keys:
+                    self.logger.warning(f"  {key}: {default_config_dict[key]}")
+
+            choice = input(_("是否要补全缺少的配置项并删除多余的配置项？(y/n): ")).strip().lower()
+            if choice in ['yes', 'y']:
+                # 补全缺少的key
+                for key in missing_keys:
+                    existing_config[key] = default_config_dict[key]
+                    self.logger.info(_("已补全配置项: ") + f"{key}: {default_config_dict[key]}")
+
+                # 删除多余的key
+                for key in extra_keys:
+                    del existing_config[key]
+                    self.logger.info(_("已删除配置项: ") + f"{key}: {existing_config[key]}")
+
+                # 写回配置文件，保持默认配置的顺序
+                ordered_config = {k: existing_config[k] for k in default_config_dict}
+                try:
+                    with open(path, 'w', encoding='utf-8') as f:
+                        toml.dump(ordered_config, f)
+                    self.logger.info(_("配置文件更新成功: ") + str(path))
+                except Exception as e:
+                    self.logger.error(_("配置文件更新失败: ") + f"{path} --> {e}")
+            elif choice in ['no', 'n']:
+                self.logger.info(_("请稍后手动修改配置文件"))
+            else:
+                self.logger.error(_("无效输入，请输入如下选项: yes/no 或 y/n"))
+
+    def init_config_file(self) -> Dict[str, Any]:
+        """初始化配置文件。
+        加载用户配置和项目配置文件, 优先使用项目配置。
+
+        Returns
+        -------
+        Dict[str, Any]
+            最终的配置字典。
+        """
+        self._init_default_config(self.user_config_path, 'default_user_config.toml')
+        user_config = defaultdict(lambda: None, self._load_toml(self.user_config_path))  # 加载用户配置文件
+        if user_config["local_config_auto_init"]:
+            self._init_default_config(self.project_config_path, 'default_project_config.toml')
+            project_config = self._load_toml(self.project_config_path)  # 加载项目配置文件
+
+        final_config = user_config if user_config else {}
+
+        if project_config:
+            final_config.update(project_config)
+        else:
+            self.logger.info(_("未找到项目配置文件, 使用用户配置"))
 
         self.logger.info(_("配置文件加载完成"))
 
         # 转换为 defaultdict 来避免KeyError，默认值为None
         final_config = defaultdict(lambda: None, final_config)
-
-        # TODO: 校验配置项中default_file是否正确
-        # default_file = self.check_project_name(main_files_in_root, default_file, '.tex') # 检查 default_file 是否正确，主要是检查配置文件中的默认文件名是否正确
 
         return final_config
