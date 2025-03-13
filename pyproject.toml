@@ -38,5 +38,5 @@ pytexmk = "pytexmk:main"
 version = {attr = "pytexmk.version.__version__"}
 
 [tool.setuptools.package-data]
-"pytexmk.data" = ["README.html"]
+"pytexmk.data" = ["README.html","*.toml"]
 pytexmk = ["locale/en/LC_MESSAGES/*.mo"]
