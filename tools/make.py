@@ -92,7 +92,7 @@ def inswhl():
     console.log("安装 pytexmk*.whl 成功")
 
 
-def get_version():
+def _get_version():
     version_file = Path('src/pytexmk/version.py')
     if not version_file.exists():
         raise FileNotFoundError(f"文件 {version_file} 不存在")
@@ -108,7 +108,7 @@ def get_version():
 
 
 def upload():
-    version = get_version()
+    version = _get_version()
     tag_name = f"v{version}"
     
     # 创建标签
@@ -120,7 +120,7 @@ def upload():
     console.log(f"推送标签: {tag_name}")
     
     clean()
-    console.log("上传完成")
+    console.log("成功上传标签和推送到远程仓库，发布到 github")
 
 
 def _contains_uncommented_set_language(file_path):
@@ -135,7 +135,7 @@ def _contains_uncommented_set_language(file_path):
             return True
     return False
 
-def get_modules():
+def _get_modules():
     modules = []
     for f in Path('src/pytexmk').glob('*.py'):
         if _contains_uncommented_set_language(f):
@@ -189,21 +189,21 @@ def _cleanup_temp_pot_files(locale_dir, modules):
 
 def pot():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = get_modules()
+    modules = _get_modules()
     _generate_pot_files(locale_dir, modules)
     console.log("生成 .pot 文件完成")
 
 
 def mo():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = get_modules()
+    modules = _get_modules()
     _generate_mo_files(locale_dir, modules)
     console.log("生成 .mo 文件完成")
 
 
 def poup():
     locale_dir = Path('src/pytexmk/locale/en')
-    modules = get_modules()
+    modules = _get_modules()
     _generate_pot_files(locale_dir, modules)
     _update_pot_files(locale_dir, modules)
     _generate_mo_files(locale_dir, modules)
