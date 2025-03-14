@@ -139,8 +139,12 @@ def _update_pot_files(locale_dir, modules):
         temp_pot = locale_dir / f'{module}-temp.pot'
         original_pot = locale_dir / f'{module}.pot'
         
-        if not temp_pot.exists():
-            console.log(f"警告: 临时 .pot 文件 {temp_pot} 不存在，跳过更新")
+        if not original_pot.exists():
+            if temp_pot.exists():
+                temp_pot.rename(original_pot)
+                console.log(f"原始 .pot 文件 {original_pot} 不存在，将临时 .pot 文件 {temp_pot} 重命名为 {original_pot}")
+            else:
+                console.log(f"警告: 临时 .pot 文件 {temp_pot} 不存在，跳过更新")
             continue
         
         _run_command(['msgmerge', '--update', str(original_pot), str(temp_pot)])
@@ -152,6 +156,11 @@ def _generate_mo_files(locale_dir, modules):
         mo_dir = locale_dir / 'LC_MESSAGES'
         mo_dir.mkdir(exist_ok=True, parents=True)
         mo_file = mo_dir / f'{module}.mo'
+
+        if not mo_file.exists():
+            console.log(f"警告: {mo_file} 不存在，跳过更新")
+            continue
+
         _run_command(['msgfmt', '-o', str(mo_file), str(pot_file)])
         console.log(f"生成 .mo 文件: {mo_file}")
 
