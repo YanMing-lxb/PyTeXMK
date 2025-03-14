@@ -173,8 +173,8 @@ def _generate_mo_files(locale_dir, modules):
         mo_dir.mkdir(exist_ok=True, parents=True)
         mo_file = mo_dir / f'{module}.mo'
 
-        if not mo_file.exists():
-            console.log(f"警告: {mo_file} 不存在，跳过更新")
+        if not pot_file.exists():
+            console.log(f"警告: {pot_file} 不存在，跳过更新")
             continue
 
         _run_command(['msgfmt', '-o', str(mo_file), str(pot_file)])

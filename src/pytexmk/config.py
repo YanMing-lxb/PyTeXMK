@@ -129,7 +129,7 @@ class ConfigParser:
                 for key in missing_keys:
                     self.logger.warning(f"  {key}: {default_config_dict[key]}")
 
-            choice = input(_("是否要补全缺少的配置项并删除多余的配置项？(y/n): ")).strip().lower()
+            choice = input(_("是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): ")).strip().lower()
             if choice in ['yes', 'y']:
                 # 补全缺少的key
                 for key in missing_keys:

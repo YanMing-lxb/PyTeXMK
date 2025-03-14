@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 20:41+0800\n"
+"POT-Creation-Date: 2025-03-14 08:44+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,98 +16,98 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\compile.py:121
+#: src\pytexmk\compile.py:119
 msgid "编译过程发生错误: "
 msgstr "Error occurred during compilation: "
 
-#: src\pytexmk\compile.py:128
+#: src\pytexmk\compile.py:123
 msgid "请查看日志文件以获取详细信息: "
 msgstr "Please check the log file for detailed information: "
 
-#: src\pytexmk\compile.py:208
+#: src\pytexmk\compile.py:203
 #, fuzzy, python-format
 msgid "文件不存在或无法读取,跳过文件: %(args)s"
 msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 
-#: src\pytexmk\compile.py:264 src\pytexmk\compile.py:411
+#: src\pytexmk\compile.py:259 src\pytexmk\compile.py:406
 msgid "未找到辅助文件: "
 msgstr "Auxiliary file not found: "
 
-#: src\pytexmk\compile.py:317 src\pytexmk\compile.py:437
-#: src\pytexmk\compile.py:560 src\pytexmk\compile.py:587
+#: src\pytexmk\compile.py:312 src\pytexmk\compile.py:432
+#: src\pytexmk\compile.py:555 src\pytexmk\compile.py:582
 msgid "[bold]运行命令: [/bold]"
 msgstr "[bold]Running command: [/bold]"
 
-#: src\pytexmk\compile.py:322 src\pytexmk\compile.py:441
-#: src\pytexmk\compile.py:565
+#: src\pytexmk\compile.py:317 src\pytexmk\compile.py:436
+#: src\pytexmk\compile.py:560
 #, fuzzy, python-format
 msgid "%(args)s 编译失败,请查看日志文件以获取详细信息: "
 msgstr ""
 "%(args)s compilation failed, please check the log file for detailed "
 "information: "
 
-#: src\pytexmk\compile.py:371 src\pytexmk\compile.py:380
+#: src\pytexmk\compile.py:366 src\pytexmk\compile.py:375
 msgid "未设置参考文献数据库文件: "
 msgstr "Bibliography database file not set: "
 
-#: src\pytexmk\compile.py:386
+#: src\pytexmk\compile.py:381
 msgid "编译参考文献"
 msgstr "Compiling bibliography"
 
-#: src\pytexmk\compile.py:391
+#: src\pytexmk\compile.py:386
 msgid "未找到参考文献数据库文件: "
 msgstr "Bibliography database file not found: "
 
-#: src\pytexmk\compile.py:396
+#: src\pytexmk\compile.py:391
 msgid "参考文献引用数量没有变化"
 msgstr "Number of bibliography references has not changed"
 
-#: src\pytexmk\compile.py:401
+#: src\pytexmk\compile.py:396
 msgid "LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示"
 msgstr ""
 "LaTeX compilation log contains hints of missing bbl file or undefined "
 "references"
 
-#: src\pytexmk\compile.py:405
+#: src\pytexmk\compile.py:400
 msgid "thebibliography 环境实现排版"
 msgstr "thebibliography environment for typesetting"
 
-#: src\pytexmk\compile.py:409
+#: src\pytexmk\compile.py:404
 msgid "没有引用参考文献或编译工具不属于 bibtex 或 biber"
 msgstr ""
 "No bibliography references or the compilation tool is not bibtex or biber"
 
-#: src\pytexmk\compile.py:470
+#: src\pytexmk\compile.py:465
 msgid "重新编译索引,因日志文件提示没有输入文件"
 msgstr "Recompiling index because the log file indicates no input file"
 
-#: src\pytexmk\compile.py:477
+#: src\pytexmk\compile.py:472
 msgid "重新编译索引,因词汇表文件内容发生变化"
 msgstr "Recompiling index because the glossary file content has changed"
 
-#: src\pytexmk\compile.py:480
+#: src\pytexmk\compile.py:475
 msgid "无需编译索引,因词汇表文件内容没有变化"
 msgstr ""
 "No need to compile the index because the glossary file content has not "
 "changed"
 
-#: src\pytexmk\compile.py:482
+#: src\pytexmk\compile.py:477
 msgid "无需编译索引,因没有索引内容"
 msgstr "No need to compile the index because there is no index content"
 
-#: src\pytexmk\compile.py:485
+#: src\pytexmk\compile.py:480
 msgid "重新编译索引,因以下索引辅助文件之一存在缺失: "
 msgstr ""
 "Recompiling index because one of the following index auxiliary files is "
 "missing: "
 
-#: src\pytexmk\compile.py:535
+#: src\pytexmk\compile.py:530
 msgid "使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引,因此不编译索引"
 msgstr ""
 "Index not compiled because a package other than glossaries, nomencl, or "
 "makeidx is used or the index is not set up."
 
-#: src\pytexmk\compile.py:591
+#: src\pytexmk\compile.py:586
 msgid "DVIPDFMX 编译失败,请查看日志文件以获取详细信息: "
 msgstr ""
 "DVIPDFMX compilation failed, please check the log file for detailed "
