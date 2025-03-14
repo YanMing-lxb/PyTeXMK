@@ -21,7 +21,7 @@ class ConfigParser:
         self.logger = logging.getLogger(__name__)  # 初始化日志记录器
         self.user_config_path = self._get_user_config_path()  # 获取用户配置文件路径
         self.project_config_path = Path.cwd() / '.pytexmkrc'  # 获取项目配置文件路径
-        self.data_dir = get_app_path / 'data'  # 获取data文件夹路径
+        self.data_dir = get_app_path() / 'data'  # 获取data文件夹路径
         self.logger.info(_("PyTeXMK 配置模块已初始化"))
 
     def _get_user_config_path(self) -> Optional[Path]:
@@ -138,8 +138,9 @@ class ConfigParser:
 
                 # 删除多余的key
                 for key in extra_keys:
+                    value = existing_config[key]
                     del existing_config[key]
-                    self.logger.info(_("已删除配置项: ") + f"{key}: {existing_config[key]}")
+                    self.logger.info(_("已删除配置项: ") + f"{key}: {value}")
 
                 # 写回配置文件，保持默认配置的顺序
                 ordered_config = {k: existing_config[k] for k in default_config_dict}
@@ -165,7 +166,8 @@ class ConfigParser:
         """
         self._init_default_config(self.user_config_path, 'default_user_config.toml')
         user_config = defaultdict(lambda: None, self._load_toml(self.user_config_path))  # 加载用户配置文件
-        if user_config["local_config_auto_init"]:
+        project_config = None  # 初始化 project_config
+        if user_config["project_config_auto_init"]:
             self._init_default_config(self.project_config_path, 'default_project_config.toml')
             project_config = self._load_toml(self.project_config_path)  # 加载项目配置文件
 

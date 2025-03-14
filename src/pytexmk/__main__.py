@@ -224,7 +224,7 @@ def main():
     # --------------------------------------------------------------------------------
     if args.readme:  # 如果存在 readme 参数
         try:
-            app_path = get_app_path # 获取应用程序路径
+            app_path = get_app_path() # 获取应用程序路径
 
             # 使用 pathlib 拼接 README.html 文件路径
             readme_path = app_path / "data" / "README.html"
