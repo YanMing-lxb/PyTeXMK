@@ -123,8 +123,24 @@ def upload():
     console.log("上传完成")
 
 
+def _contains_uncommented_set_language(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.readlines()
+    
+    for line in content:
+        # 去除行首和行尾的空白字符
+        stripped_line = line.strip()
+        # 检查是否包含未注释的 _ = set_language('config')
+        if re.match(r"^\s*_\s*=\s*set_language\(.+\)\s*$", stripped_line):
+            return True
+    return False
+
 def get_modules():
-    return [f.stem for f in Path('src/pytexmk').glob('*.py')]
+    modules = []
+    for f in Path('src/pytexmk').glob('*.py'):
+        if _contains_uncommented_set_language(f):
+            modules.append(f.stem)
+    return modules
 
 def _generate_pot_files(locale_dir, modules):
     for module in modules:
@@ -142,7 +158,7 @@ def _update_pot_files(locale_dir, modules):
         if not original_pot.exists():
             if temp_pot.exists():
                 temp_pot.rename(original_pot)
-                console.log(f"原始 .pot 文件 {original_pot} 不存在，将临时 .pot 文件 {temp_pot} 重命名为 {original_pot}")
+                console.log(f"原始 .pot 文件 {original_pot} 不存在：\n将临时 .pot 文件 {temp_pot} 重命名为 {original_pot}")
             else:
                 console.log(f"警告: 临时 .pot 文件 {temp_pot} 不存在，跳过更新")
             continue
