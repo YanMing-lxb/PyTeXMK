@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-08 20:41+0800\n"
+"POT-Creation-Date: 2025-03-14 09:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,42 +17,84 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\config.py:80
-msgid "PyTeXMK 配置模块初始化完成"
+#: src\pytexmk\config.py:25
+msgid "PyTeXMK 配置模块已初始化"
 msgstr "PyTeXMK configuration module initialization completed"
 
-#: src\pytexmk\config.py:90
-msgid "用户主目录: "
+#: src\pytexmk\config.py:37
+msgid "用户主目录路径: "
 msgstr "User home directory: "
 
-#: src\pytexmk\config.py:93
-msgid "获取用户主目录失败: "
+#: src\pytexmk\config.py:40
+msgid "获取用户主目录路径失败: "
 msgstr "Failed to get user home directory: "
 
-#: src\pytexmk\config.py:105
+#: src\pytexmk\config.py:57
 msgid "配置文件不存在: "
 msgstr "Configuration file does not exist: "
 
-#: src\pytexmk\config.py:111
-msgid "配置文件加载成功: "
-msgstr "Configuration file loaded successfully: "
-
-#: src\pytexmk\config.py:114
-msgid "配置文件加载失败: "
-msgstr "Failed to load configuration file: "
-
-#: src\pytexmk\config.py:126
-msgid "创建默认配置文件: "
+#: src\pytexmk\config.py:63
+msgid "成功加载配置文件: "
 msgstr "Creating default configuration file: "
 
-#: src\pytexmk\config.py:131
+#: src\pytexmk\config.py:66 src\pytexmk\config.py:106
+msgid "加载配置文件失败: "
+msgstr "Failed to load configuration file: "
+
+#: src\pytexmk\config.py:81
+msgid "正在创建默认配置文件: "
+msgstr "Creating default configuration file: "
+
+#: src\pytexmk\config.py:88
 msgid "创建默认配置文件失败: "
 msgstr "Failed to create default configuration file: "
 
-#: src\pytexmk\config.py:151
-msgid "未找到本地配置文件, 使用系统配置"
+#: src\pytexmk\config.py:122
+msgid "配置文件存在以下问题:"
+msgstr "Configuration file does not exist: "
+
+#: src\pytexmk\config.py:124
+msgid "多余配置项: "
+msgstr "redundant configuration item"
+
+#: src\pytexmk\config.py:128
+msgid "缺少配置项: "
+msgstr "Missing configuration items"
+
+#: src\pytexmk\config.py:132
+msgid "是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "
+msgstr ""
+"Do you want to fill in missing configuration items and remove redundant "
+"ones? (yes/no or y/n): "
+
+#: src\pytexmk\config.py:137
+msgid "已补全配置项: "
+msgstr "Completed configuration items"
+
+#: src\pytexmk\config.py:143
+msgid "已删除配置项: "
+msgstr "Deleted configuration items"
+
+#: src\pytexmk\config.py:150
+msgid "配置文件更新成功: "
+msgstr "Configuration file loaded successfully: "
+
+#: src\pytexmk\config.py:152
+msgid "配置文件更新失败: "
+msgstr "Failed to load configuration file: "
+
+#: src\pytexmk\config.py:154
+msgid "请稍后手动修改配置文件"
+msgstr "Please change the configuration file manually later"
+
+#: src\pytexmk\config.py:156
+msgid "无效输入，请输入如下选项: yes/no 或 y/n"
+msgstr "Invalid input, please enter the following options: yes/no or y/n"
+
+#: src\pytexmk\config.py:179
+msgid "未找到项目配置文件, 使用用户配置"
 msgstr "Local configuration file not found, using system configuration"
 
-#: src\pytexmk\config.py:153
+#: src\pytexmk\config.py:181
 msgid "配置文件加载完成"
 msgstr "Configuration file loading completed"

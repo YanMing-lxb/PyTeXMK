@@ -1,0 +1,25 @@
+default_file = "main" # 主文件名
+compiled_program = "XeLaTeX" # 编译器
+non_quiet = false # 非静默模式
+project_config_auto_init = true # 是否自动创建项目配置文件
+
+[pdf]
+pdf_preview_status = true # PDF预览, 指编译结束后是否打开PDF文件
+pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
+
+[folder]
+auxdir = "./Auxiliary/" # 辅助文件夹
+outdir = "./Build/" # 输出文件夹
+
+# 索引配置
+[index]
+index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
+input_suffix = ".nlo"  # 输入文件后缀
+output_suffix = ".nls"  # 输出文件后缀
+# glossaries 宏包和 nomencl 宏包无需配置 [index]
+
+# LaTeX差异配置
+[latexdiff]
+old_tex_file = "old_file"  # 旧TeX文件
+new_tex_file = "new_file"  # 新TeX文件
+diff_tex_file = "LaTeXDiff"  # 差异TeX文件

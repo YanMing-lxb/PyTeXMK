@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2025-01-29 22:03:15 +0800
+LastEditTime : 2025-03-13 21:15:42 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/compile_module.py
+FilePath     : /PyTeXMK/src/pytexmk/compile.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -32,7 +32,8 @@ from itertools import chain  # 导入chain,用于将多个迭代器连接成一�
 from collections import defaultdict  # 导入defaultdict,用于创建带有默认值的字典
 
 from pytexmk.language import set_language
-from pytexmk.additional import MoveRemoveOperation, exit_pytexmk
+from pytexmk.auxiliary_fun import exit_pytexmk
+from pytexmk.additional import MoveRemoveOperation
 
 console = console.Console()
 

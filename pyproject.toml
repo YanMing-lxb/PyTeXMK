@@ -13,6 +13,7 @@ keywords = ["LaTeX", "build", "latexmk"]
 dependencies = ["rich", "rich_argparse", "pypdf", "toml", "packaging"]
 readme = "README.md"
 requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
 classifiers = [
     "Environment :: Console",
     "Intended Audience :: Developers",
@@ -23,7 +24,6 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
 
@@ -38,5 +38,5 @@ pytexmk = "pytexmk:main"
 version = {attr = "pytexmk.version.__version__"}
 
 [tool.setuptools.package-data]
-"pytexmk.data" = ["README.html"]
+"pytexmk.data" = ["README.html","*.toml"]
 pytexmk = ["locale/en/LC_MESSAGES/*.mo"]

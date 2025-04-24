@@ -2,7 +2,7 @@ name: Publish pytexmk 🐍  # 定义工作流的名称，当推送匹配的标�
 on:
   push:
     tags:
-      - v*  # 当推送以v开头的标签时触发此工作流
+      - v*.*.*.*  # 当推送以v开头的标签时触发此工作流
 
 jobs:
   build:
@@ -100,7 +100,7 @@ jobs:
         echo "$version_content" > ${{ github.workspace }}-CHANGELOG.txt
 
     - name: Publish to GitHub Release  # 发布到GitHub Release的步骤
-      uses: softprops/action-gh-release@v2.0.8  # 使用softprops/action-gh-release动作来发布到GitHub Release
+      uses: softprops/action-gh-release@v2  # 使用softprops/action-gh-release动作来发布到GitHub Release
       with:
         body_path: ${{ github.workspace }}-CHANGELOG.txt
         token: ${{ secrets.PUBLISH_PYTEXMK }}  # 替换为实际的GitHub Token

@@ -16,15 +16,14 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-02-07 13:37:16 +0800
+LastEditTime : 2025-03-13 21:28:02 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/additional_module.py
+FilePath     : /PyTeXMK/src/pytexmk/additional.py
 Description  : 
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
 import re
-import sys
 import logging
 import webbrowser
 from rich import print
@@ -34,6 +33,7 @@ from collections import defaultdict
 from pypdf import PdfReader, PdfWriter
 
 from pytexmk.language import set_language
+from pytexmk.auxiliary_fun import exit_pytexmk
 
 _ = set_language('additional')
 
@@ -767,10 +767,3 @@ class PdfFileOperation(object):
                 self.logger.error(_("修复失败: ") + f"{pdf_file} --> {e}")
         print(_("[bold green]修复 PDF 结束[/bold green]"))
 
-
-# --------------------------------------------------------------------------------
-# 定义 PyTeXMK 退出函数
-# --------------------------------------------------------------------------------
-def exit_pytexmk():
-    print(_("[bold red]正在退出 PyTeXMK..."))
-    sys.exit()  # 退出程序

@@ -5,42 +5,48 @@ import sys
 from pathlib import Path
 from rich.console import Console
 
-
-
-
 console = Console()
+
+
+def _remove_paths(paths):
+    for path in paths:
+        if path.exists():
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink()
+            console.log(f"已删除: {path}")
+
+def _run_command(command, check=True):
+    try:
+        subprocess.run(command, check=check)
+    except subprocess.CalledProcessError as e:
+        console.log(f"执行命令时出错: {e}")
+        sys.exit(1)
 
 def clean():
     dirs_to_remove = ['build', 'dist', Path('src') / 'pytexmk.egg-info']
-    for d in dirs_to_remove:
-        path = Path(d)
-        if path.exists():
-            shutil.rmtree(path, ignore_errors=True)
-            console.log(f"已删除目录: {path}")
-    
-    for pycache_dir in Path('.').rglob('__pycache__'):
-        shutil.rmtree(pycache_dir, ignore_errors=True)
-        console.log(f"已删除目录: {pycache_dir}")
-    
-    for pyc_file in Path('.').rglob('*.pyc'):
-        try:
-            pyc_file.unlink()
-            console.log(f"已删除文件: {pyc_file}")
-        except Exception as e:
-            console.log(f"删除文件 {pyc_file} 时出错: {e}")
-    
+    pycache_dirs = Path('.').rglob('__pycache__')
+    pyc_files = Path('.').rglob('*.pyc')
+
+    _remove_paths([Path(d) for d in dirs_to_remove])
+    _remove_paths(pycache_dirs)
+    _remove_paths(pyc_files)
+
     console.log("清理完成")
 
+
 def build_all():
-    subprocess.run(['python', '-m', 'build'], check=True)
+    _run_command(['python', '-m', 'build'])
     console.log("构建完成")
+
 
 def html():
     readme_md = Path('README.md')
     readme_html = Path('README.html')
     target_dir = Path('src/pytexmk/data')
     
-    subprocess.run(['pandoc', str(readme_md), '-o', str(readme_html)], check=True)
+    _run_command(['pandoc', str(readme_md), '-o', str(readme_html)])
     
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
@@ -50,40 +56,43 @@ def html():
     shutil.move(str(readme_html), str(target_html))
     console.log(f"生成 HTML 并移动到 {target_html}")
 
+
 def rst():
     readme_md = Path('README.md')
     readme_rst = Path('README.rst')
-    subprocess.run(['pandoc', '-s', '-t', 'rst', str(readme_md), '-o', str(readme_rst)], check=True)
+    _run_command(['pandoc', '-s', '-t', 'rst', str(readme_md), '-o', str(readme_rst)])
     console.log("生成 RST 文件")
 
 def run_tests():
-    subprocess.run(['python', 'tests/test.py'], check=True)
+    _run_command(['python', 'tests/test.py'])
     console.log("测试完成")
 
 def testwhl():
     clean()
     build_all()
-    subprocess.run(['pip', 'uninstall', '-y', 'pytexmk'], check=True)
+    _run_command(['pip', 'uninstall', '-y', 'pytexmk'])
     whl_files = list(Path('dist').glob('*.whl'))
     if not whl_files:
         raise FileNotFoundError("dist 目录中没有找到 .whl 文件")
-    subprocess.run(['pip', 'install', str(whl_files[0])], check=True)
-    subprocess.run(['python', 'tests/test.py', '-w'], check=True)
-    subprocess.run(['pip', 'uninstall', '-y', 'pytexmk'], check=True)
+    _run_command(['pip', 'install', str(whl_files[0])])
+    _run_command(['python', 'tests/test.py', '-w'])
+    _run_command(['pip', 'uninstall', '-y', 'pytexmk'])
     clean()
     console.log("测试 .whl 文件完成")
+
 
 def inswhl():
     clean()
     build_all()
-    subprocess.run(['pip', 'uninstall', '-y', 'pytexmk'], check=True)
+    _run_command(['pip', 'uninstall', '-y', 'pytexmk'])
     whl_files = list(Path('dist').glob('*.whl'))
     if not whl_files:
         raise FileNotFoundError("dist 目录中没有找到 .whl 文件")
-    subprocess.run(['pip', 'install', str(whl_files[0])], check=True)
+    _run_command(['pip', 'install', str(whl_files[0])])
     console.log("安装 pytexmk*.whl 成功")
 
-def get_version():
+
+def _get_version():
     version_file = Path('src/pytexmk/version.py')
     if not version_file.exists():
         raise FileNotFoundError(f"文件 {version_file} 不存在")
@@ -97,62 +106,108 @@ def get_version():
     
     return version_match.group(1)
 
+
 def upload():
-    version = get_version()
+    version = _get_version()
     tag_name = f"v{version}"
     
     # 创建标签
-    subprocess.run(['git', 'tag', tag_name], check=True)
+    _run_command(['git', 'tag', tag_name])
     console.log(f"创建标签: {tag_name}")
     
     # 推送标签
-    subprocess.run(['git', 'push', 'origin', tag_name], check=True)
+    _run_command(['git', 'push', 'origin', tag_name])
     console.log(f"推送标签: {tag_name}")
     
     clean()
-    console.log("上传完成")
+    console.log("成功上传标签和推送到远程仓库，发布到 github")
 
-def pot():
-    locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
+
+def _contains_uncommented_set_language(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.readlines()
+    
+    for line in content:
+        # 去除行首和行尾的空白字符
+        stripped_line = line.strip()
+        # 检查是否包含未注释的 _ = set_language('config')
+        if re.match(r"^\s*_\s*=\s*set_language\(.+\)\s*$", stripped_line):
+            return True
+    return False
+
+def _get_modules():
+    modules = []
+    for f in Path('src/pytexmk').glob('*.py'):
+        if _contains_uncommented_set_language(f):
+            modules.append(f.stem)
+    return modules
+
+def _generate_pot_files(locale_dir, modules):
     for module in modules:
-        pot_file = locale_dir / f'{module}.pot'
         py_file = Path(f'src/pytexmk/{module}.py')
-        subprocess.run(['xgettext', '--output', str(pot_file), str(py_file)], check=True)
-        console.log(f"生成 .pot 文件: {pot_file}")
-    console.log("生成 .pot 文件完成")
+        temp_pot = locale_dir / f'{module}-temp.pot'
+        _run_command(['xgettext', '--output', str(temp_pot), str(py_file)])
+        console.log(f"生成临时 .pot 文件: {temp_pot}")
 
-def mo():
-    locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
+
+def _update_pot_files(locale_dir, modules):
+    for module in modules:
+        temp_pot = locale_dir / f'{module}-temp.pot'
+        original_pot = locale_dir / f'{module}.pot'
+        
+        if not original_pot.exists():
+            if temp_pot.exists():
+                temp_pot.rename(original_pot)
+                console.log(f"原始 .pot 文件 {original_pot} 不存在：\n将临时 .pot 文件 {temp_pot} 重命名为 {original_pot}")
+            else:
+                console.log(f"警告: 临时 .pot 文件 {temp_pot} 不存在，跳过更新")
+            continue
+        
+        _run_command(['msgmerge', '--update', str(original_pot), str(temp_pot)])
+        console.log(f"更新 .pot 文件: {original_pot}")
+
+def _generate_mo_files(locale_dir, modules):
     for module in modules:
         pot_file = locale_dir / f'{module}.pot'
         mo_dir = locale_dir / 'LC_MESSAGES'
         mo_dir.mkdir(exist_ok=True, parents=True)
         mo_file = mo_dir / f'{module}.mo'
-        subprocess.run(['msgfmt', '-o', str(mo_file), str(pot_file)], check=True)
-        console.log(f"生成 .mo 文件: {mo_file}")
-    console.log("生成 .mo 文件完成")
 
-def poup():
-    locale_dir = Path('src/pytexmk/locale/en')
-    modules = ['__main__', 'additional', 'check_version', 'compile', 'config', 'info_print', 'latexdiff', 'logger_config', 'run']
-    for module in modules:
-        py_file = Path(f'src/pytexmk/{module}.py')
-        temp_pot = locale_dir / f'{module}-temp.pot'
-        subprocess.run(['xgettext', '--output', str(temp_pot), str(py_file)], check=True)
-        console.log(f"生成临时 .pot 文件: {temp_pot}")
-    for module in modules:
-        temp_pot = locale_dir / f'{module}-temp.pot'
-        original_pot = locale_dir / f'{module}.pot'
-        subprocess.run(['msgmerge', '--update', str(original_pot), str(temp_pot)], check=True)
-        console.log(f"更新 .pot 文件: {original_pot}")
-    mo()
+        if not pot_file.exists():
+            console.log(f"警告: {pot_file} 不存在，跳过更新")
+            continue
+
+        _run_command(['msgfmt', '-o', str(mo_file), str(pot_file)])
+        console.log(f"生成 .mo 文件: {mo_file}")
+
+def _cleanup_temp_pot_files(locale_dir, modules):
     for module in modules:
         temp_pot = locale_dir / f'{module}-temp.pot'
         if temp_pot.exists():
             temp_pot.unlink()
             console.log(f"删除临时 .pot 文件: {temp_pot}")
+
+def pot():
+    locale_dir = Path('src/pytexmk/locale/en')
+    modules = _get_modules()
+    _generate_pot_files(locale_dir, modules)
+    console.log("生成 .pot 文件完成")
+
+
+def mo():
+    locale_dir = Path('src/pytexmk/locale/en')
+    modules = _get_modules()
+    _generate_mo_files(locale_dir, modules)
+    console.log("生成 .mo 文件完成")
+
+
+def poup():
+    locale_dir = Path('src/pytexmk/locale/en')
+    modules = _get_modules()
+    _generate_pot_files(locale_dir, modules)
+    _update_pot_files(locale_dir, modules)
+    _generate_mo_files(locale_dir, modules)
+    _cleanup_temp_pot_files(locale_dir, modules)
     console.log("更新 .pot 和 .mo 文件完成")
 
 def main():
@@ -181,6 +236,7 @@ def main():
     except subprocess.CalledProcessError as e:
         console.log(f"执行命令时出错: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
