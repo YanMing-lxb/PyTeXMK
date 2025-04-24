@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2025-04-24 22:36:02 +0800
+LastEditTime : 2025-04-24 22:39:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
@@ -30,7 +30,6 @@ import urllib.request
 from rich import print
 from pathlib import Path
 import importlib.metadata
-import importlib.resources
 from packaging import version
 from datetime import timedelta
 
