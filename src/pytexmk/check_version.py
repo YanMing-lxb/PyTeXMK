@@ -16,29 +16,30 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-07-26 20:22:15 +0800
-LastEditTime : 2025-04-24 22:39:13 +0800
+LastEditTime : 2025-04-25 11:15:26 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/check_version.py
 Description  : 
  -----------------------------------------------------------------------
 '''
-import re
 import time
 import toml
+import json
 import logging
 import urllib.request
 from rich import print
 from pathlib import Path
-import importlib.metadata
 from packaging import version
 from datetime import timedelta
+from platformdirs import user_cache_dir
 
 from pytexmk.language import set_language
+from pytexmk.version import script_name, __version__
 
 _ = set_language('check_version')
 
-
 PROGRAM_NAME = 'pytexmk'
+API_URL = f"https://api.github.com/repos/YanMing-lxb/{script_name}/releases/latest"
 
 class UpdateChecker():
 
@@ -55,7 +56,7 @@ class UpdateChecker():
         2. 初始化版本列表。
         3. 将缓存时间转换为秒并存储。
         4. 存储超时时间。
-        5. 获取 egasp 安装路径并拼接 data 子路径，创建 data 目录（如果已存在则不报错）。
+        5. 获取安装路径并拼接 data 子路径，创建 data 目录（如果已存在则不报错）。
         6. 创建缓存文件路径。
         """
         self.logger = logging.getLogger(__name__)  # 创建日志对象
@@ -65,8 +66,7 @@ class UpdateChecker():
         self.cache_time = cache_time * 3600  # 将缓存时间转换为秒并存储
         self.time_out = time_out  # 存储超时时间
 
-        cache_path = Path(user_cache_dir(PROGRAM_NAME))
-        cache_path.mkdir(parents=True, exist_ok=True)
+        cache_path = Path(user_cache_dir(PROGRAM_NAME, ensure_exists=True))
         self.cache_file = cache_path / f"{PROGRAM_NAME}_version_cache.toml"
 
     # --------------------------------------------------------------------------------
@@ -134,58 +134,48 @@ class UpdateChecker():
     # 定义 网络获取版本信息函数
     # --------------------------------------------------------------------------------
     def _get_latest_version(self, package_name):  # TODO 将该函数放到线程中执行,获取线程信息,保存,并且在下次运行时检查这个显示是否已经执行结束,如果结束则不再执行,否则执行
-        """
-        获取指定包的最新版本号.
 
-        参数:
-        package_name (str): 包的名称.
-
-        返回:
-        str: 最新版本号,如果获取失败则返回 None.
-
-        行为逻辑:
-        1. 记录开始时间.
-        2. 构建包的镜像URL.
-        3. 尝试打开URL并读取HTML内容.
-        4. 使用正则表达式匹配HTML内容中的版本号.
-        5. 将匹配到的版本号添加到版本列表中.
-        6. 如果版本列表不为空,返回最大版本号;否则记录错误并返回 None.
-        7. 捕获所有异常并记录错误信息,返回 None.
-        8. 记录获取版本号的耗时.
-        """
-        start_time = time.time()  # 记录开始时间
-        mirror_url = "https://mirrors.aliyun.com/pypi/simple/"  # 设置镜像URL #TODO 添加多个镜像源,进行循环尝试
-        url = f"{mirror_url}{package_name}"  # 构建包的URL
-
+        start_time = time.time()
+        
         try:
-            response = urllib.request.urlopen(url)  # 尝试打开URL
-            html_content = response.read().decode('utf-8')  # 读取并解码HTML内容
-            pattern = re.compile(rf'<a\s+href="[^"]+/{PROGRAM_NAME}-([\d\.]+)-py3-none-any\.whl[^"]*"\s+data-requires-python="[^"]+">.*?</a>', re.DOTALL)  # 定义正则表达式模式
-            matches = pattern.findall(html_content)  # 使用正则表达式匹配版本号
-
-            for ver in matches:  # 遍历匹配到的版本号
-                self.versions.append(ver)  # 将版本号添加到版本列表中
-
-            if self.versions:  # 如果版本列表不为空
-                # 使用列表推导式和parse函数将字符串转换为版本对象
-                version_objects = [version.parse(ver) for ver in self.versions]
-
-                # 使用max函数和key参数找到最新版本
-                latest_version = max(version_objects)
-
-                self.logger.info(_("获取 %(args)s 最新版本号成功: ") % {"args": package_name} + f"[bold green]{latest_version}[/bold green]")  # 记录成功信息
-                return latest_version  # 返回最新版本号
+            headers = {
+                'User-Agent': f'{script_name} Update Checker',  # GitHub要求明确User-Agent
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            req = urllib.request.Request(API_URL, headers=headers)
+            
+            with urllib.request.urlopen(req, timeout=self.time_out) as response:
+                # 添加编码处理
+                data = json.loads(response.read().decode('utf-8'))
+                
+                # 增加版本号格式校验
+                if 'tag_name' not in data:
+                    raise ValueError("Invalid GitHub API response")
+                    
+                latest_version = data['tag_name'].lstrip('v')  # 去除可能存在的v前缀
+                parsed_version = version.parse(latest_version)
+                
+                self.logger.info(_("通过 GitHub API 获取最新版本成功"))
+                return parsed_version
+                
+        except urllib.error.HTTPError as e:
+            # 处理API速率限制
+            if e.code == 403 and 'X-RateLimit-Remaining' in e.headers:
+                reset_time = time.strftime("%Y-%m-%d %H:%M:%S", 
+                    time.localtime(int(e.headers['X-RateLimit-Reset'])))
+                self.logger.error(_("API速率限制，重置时间：%s") % reset_time)
             else:
-                self.logger.error(_("获取 %(args)s 最新版本号失败: 未找到版本号") % {"args": package_name})  # 记录错误信息
-                return None  # 返回 None
-
-        except Exception as e:  # 捕获所有异常
-            self.logger.error(_("获取 %(args)s 最新版本号出错: ") % {"args": package_name} + str(e))  # 记录错误信息
-            return None  # 返回 None
+                self.logger.error(_("请求失败，状态码：%d") % e.code)
+        except json.JSONDecodeError:
+            self.logger.error(_("响应数据解析失败"))
+        except KeyError:
+            self.logger.error(_("响应中缺少版本信息"))
+        except Exception as e:
+            self.logger.error(_("获取GitHub版本失败：") + str(e))
         finally:
-            end_time = time.time()  # 记录结束时间
-            elapsed_time = round(end_time - start_time, 4)  # 计算耗时
-            self.logger.info(_("获取最新版本号耗时: ") + f"{elapsed_time} s")  # 记录耗时信息
+            self.logger.info(_("请求耗时：%.2f秒") % (time.time()-start_time))
+        
+        return None   
 
     # --------------------------------------------------------------------------------
     # 定义 更新检查主函数
@@ -213,7 +203,7 @@ class UpdateChecker():
                 return
 
         # 获取当前安装的版本信息
-        current_version = version.parse(importlib.metadata.version(PROGRAM_NAME))
+        current_version = version.parse(__version__)
 
         if current_version < latest_version:
             print(_("有新版本可用: ") + f"[bold green]{latest_version}[/bold green] " + _("当前版本: ") + f"[bold red]{current_version}[/bold red]")
