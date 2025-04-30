@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2025-03-13 21:15:42 +0800
+LastEditTime : 2025-04-30 19:30:58 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile.py
 Description  : 
@@ -24,18 +24,16 @@ Description  :
 '''
 # -*- coding: utf-8 -*-
 import re
+import shlex
 import logging
-import subprocess
 from pathlib import Path  # 导入Path模块
-from rich import console  # 导入rich库的console模块
 from itertools import chain  # 导入chain,用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict,用于创建带有默认值的字典
 
 from pytexmk.language import set_language
 from pytexmk.auxiliary_fun import exit_pytexmk
-from pytexmk.additional import MoveRemoveOperation
+from pytexmk.additional import MoveRemoveOperation, MySubProcess
 
-console = console.Console()
 
 _ = set_language('compile')
 
@@ -92,6 +90,7 @@ class CompileLaTeX(object):
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
+        self.MSP = MySubProcess()
 
     # --------------------------------------------------------------------------------
     # 定义日志检查函数
@@ -298,7 +297,7 @@ class CompileLaTeX(object):
         2. 如果编译引擎是 'XeLaTeX',则添加 '-no-pdf' 选项.
         3. 根据是否静默编译,添加 '-interaction=batchmode' 或 '-interaction=nonstopmode' 选项.
         4. 打印将要运行的命令.
-        5. 使用 subprocess.run 执行编译命令.
+        5. 使用 run_command 执行编译命令.
         6. 如果编译失败,记录错误信息,移动辅助文件和输出文件到指定目录,并退出程序.
         """
 
@@ -309,15 +308,9 @@ class CompileLaTeX(object):
             options.insert(4, "-interaction=nonstopmode")  # 非静默编译
         else:
             options.insert(4, "-interaction=batchmode")  # 静默编译
-        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
 
-        try:
-            subprocess.run(options, check=True, text=True, capture_output=False)
-        except Exception as e:
-            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
-            exit_pytexmk()
+        self.MSP.run_command(options, self.compiled_program)
+            
 
     # --------------------------------------------------------------------------------
     # 定义参考文献判断函数
@@ -429,14 +422,7 @@ class CompileLaTeX(object):
         if not self.non_quiet and bib_engine == 'biber':
             options.insert(1, "-quiet")  # 静默编译
 
-        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
-        try:
-            subprocess.run(options, check=True, text=True, capture_output=False)
-        except Exception as e:
-            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': bib_engine} + f"{self.auxdir}{self.project_name}.log\n{e}")
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
-            exit_pytexmk()
+        self.MSP.run_command(options, bib_engine)
 
     # --------------------------------------------------------------------------------
     # 定义索引更新判断函数
@@ -552,15 +538,9 @@ class CompileLaTeX(object):
         """
         # 运行 makeindex 命令
         name_target = f"{cmd[0]}"
-        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{cmd[1]}\n")
-        try:
-            subprocess.run(cmd[1], check=True, text=True, capture_output=False, shell=True)  # 使用shell=True:告诉subprocess.run使用shell来执行命令,这样可以利用shell的功能来搜索PATH中的命令.
-            return name_target
-        except Exception as e:
-            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': cmd[0]} + f"{self.auxdir}{self.project_name}.log\n{e}")
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
-            exit_pytexmk()
+        options = shlex.split(cmd[1])
+        self.MSP.run_command(options, cmd[0])
+        return name_target
 
     # --------------------------------------------------------------------------------
     # 定义 xdv 编译函数
@@ -579,15 +559,7 @@ class CompileLaTeX(object):
         options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if not self.non_quiet:
             options.insert(1, "-q")  # 静默编译
-        console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(options)}\n")
-        try:
-            subprocess.run(options, check=True, text=True, capture_output=False)
-        except Exception as e:
-            self.logger.error(_("DVIPDFMX 编译失败,请查看日志文件以获取详细信息: ") + f"{self.auxdir}{self.project_name}.log\n{e}")
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
-            exit_pytexmk()
-
+        self.MSP.run_command(options, 'dvipdfmx')
 
 # --------------------------------------------------------------------------------
 # 定义 统计参考文献次数的函数

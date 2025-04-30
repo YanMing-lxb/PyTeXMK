@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-06 22:17:51 +0800
-LastEditTime : 2025-01-29 22:01:43 +0800
+LastEditTime : 2025-04-30 17:49:55 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/run_module.py
+FilePath     : /PyTeXMK/src/pytexmk/run.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -57,9 +57,9 @@ def RUN(runtime_dict, project_name, compiled_program, out_files, aux_files, outd
     runtime_dict[f'{compiled_program} {abbreviations_num[0]}'] = runtime_Latex
 
     # 读取日志文件
-    with open(f'{project_name}.log', 'r', encoding='utf-8', errors='ignore') as fobj:
-        log_content = fobj.read()
-    compile_model.check_errors(log_content)
+    # with open(f'{project_name}.log', 'r', encoding='utf-8', errors='ignore') as fobj:
+    #     log_content = fobj.read()
+    # compile_model.check_errors(log_content)
 
     # 编译参考文献
     runtime_bib_judgment, return_bib_judgment = time_count(compile_model.bib_judgment, cite_counter)  # 判断是否需要编译参考文献

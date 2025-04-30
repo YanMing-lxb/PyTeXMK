@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-03-13 21:28:02 +0800
+LastEditTime : 2025-04-30 19:32:34 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional.py
 Description  : 
@@ -24,11 +24,15 @@ Description  :
 '''
 # -*- coding: utf-8 -*-
 import re
+import time
 import logging
 import webbrowser
+import subprocess
 from rich import print
 from pathlib import Path
+from rich.theme import Theme
 from typing import List, Dict
+from rich.console import Console
 from collections import defaultdict
 from pypdf import PdfReader, PdfWriter
 
@@ -36,6 +40,73 @@ from pytexmk.language import set_language
 from pytexmk.auxiliary_fun import exit_pytexmk
 
 _ = set_language('additional')
+
+custom_theme = Theme({
+    "success": "bold green",
+    "warning": "bold yellow",
+    "error": "bold red",
+    "info": "bold blue",
+    "status": "bold cyan",
+    "time": "bold magenta"
+})
+console = Console(theme=custom_theme, legacy_windows=False)
+
+class MySubProcess(object):
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+    def _format_duration(self, seconds: float) -> str:
+        """格式化时间显示"""
+        if seconds > 60:
+            return f"{seconds // 60:.0f}m {seconds % 60:.2f}s"
+        return f"{seconds:.4f}s"
+    def run_command(self, command: list, program_name: str = "执行命令") -> bool:
+        """
+        通用命令执行函数
+        :param command: 要执行的命令列表
+        :param success_msg: 成功时显示的消息（支持富文本样式）
+        :param error_msg: 失败时的错误提示前缀
+        :param process_name: 正在进行的操作名称（用于状态提示）
+        :return: 执行是否成功
+        """
+        try:
+            console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(command)}")
+            start_time = time.time()
+            
+            process = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                encoding='utf-8',
+            )
+            
+            with console.status(f"[status]正在{program_name}..."):  # 动态状态提示
+                while True:
+                    output = process.stdout.readline()
+                    if not output and process.poll() is not None:
+                        break
+                    if output:
+                        console.print(f"[dim]{output.strip()}[/]")
+
+            if process.returncode == 0:
+                console.print(
+                    f"✓ 运行 {program_name} 成功 "
+                    f"[time](耗时: {self._format_duration(time.time()-start_time)})[/]",
+                    style="success"
+                )
+
+            else: 
+                raise subprocess.CalledProcessError(
+                    process.returncode, 
+                    ' '.join(command), 
+                )
+            
+        except subprocess.CalledProcessError as e:
+            self.logger.error(_("%(args)s 运行失败,请查看日志文件以获取详细信息: ") % {'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
+            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
+            exit_pytexmk()
 
 
 class MoveRemoveOperation(object):

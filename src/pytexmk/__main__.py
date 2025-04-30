@@ -23,11 +23,9 @@ Description  :
  -----------------------------------------------------------------------
 '''
 # -*- coding: utf-8 -*-
-import sys
 import argparse
 import datetime
 import webbrowser
-from pathlib import Path
 
 # rich 库（美化 CLI 输出）
 from rich import print

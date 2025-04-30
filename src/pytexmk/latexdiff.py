@@ -16,9 +16,9 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2025-02-07 13:44:10 +0800
+LastEditTime : 2025-04-30 19:21:37 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/latexdiff_module.py
+FilePath     : /PyTeXMK/src/pytexmk/latexdiff.py
 Description  : 
  -----------------------------------------------------------------------
 '''
@@ -32,7 +32,7 @@ from rich import console
 
 from pytexmk.language import set_language
 from pytexmk.auxiliary_fun import exit_pytexmk
-from pytexmk.additional import MoveRemoveOperation
+from pytexmk.additional import MoveRemoveOperation, MySubProcess
 
 _ = set_language('latexdiff')
 
@@ -48,6 +48,7 @@ class LaTeXDiff_Aux:
         self.auxdir = Path(auxdir)
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
+        self.MSP = MySubProcess()
 
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX辅助文件存在检查函数
@@ -168,11 +169,5 @@ class LaTeXDiff_Aux:
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
-        options = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix]
-        command = f"{' '.join(options)} > {diff_tex_file}{suffix} --encoding=utf8"
-        console.print(_("[bold]运行命令: ") + f"[/bold][cyan]{command}\n")
-        result = subprocess.run(command, shell=True, check=True, text=True, capture_output=False, encoding='utf-8')
-
-        if result.stderr:
-            self.logger.error(_("LaTeXDiff 运行出错: ") + str(result.stderr))
-            exit_pytexmk()
+        options = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix, ">", diff_tex_file + suffix, "--encoding=utf8"]
+        self.MSP.run_command(options, "latexdiff")
