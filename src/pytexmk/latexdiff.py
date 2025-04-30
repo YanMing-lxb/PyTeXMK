@@ -26,7 +26,6 @@ Description  :
 import re
 import sys
 import logging
-import subprocess
 from pathlib import Path
 from rich import console
 

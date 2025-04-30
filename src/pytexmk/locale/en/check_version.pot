@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-25 11:28+0800\n"
+"POT-Creation-Date: 2025-04-30 20:02+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,63 +17,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\check_version.py:104
+#: src\pytexmk\check_version.py:103
 msgid "读取版本缓存文件中的版本号，缓存有效期: "
 msgstr ""
 "Reading version number from PyTeXMK version cache file, cache validity: "
 
-#: src\pytexmk\check_version.py:105
+#: src\pytexmk\check_version.py:104
 msgid "版本缓存文件路径: "
 msgstr "PyTeXMK version cache file path: "
 
-#: src\pytexmk\check_version.py:108
+#: src\pytexmk\check_version.py:107
 msgid "加载缓存版本时出错: "
 msgstr "Error loading cached version: "
 
-#: src\pytexmk\check_version.py:131
+#: src\pytexmk\check_version.py:130
 msgid "更新版本缓存时出错: "
 msgstr "Error updating version cache: "
 
-#: src\pytexmk\check_version.py:158
+#: src\pytexmk\check_version.py:157
 msgid "通过 GitHub API 获取最新版本成功"
 msgstr "Getting the latest version via the GitHub API worked!"
 
-#: src\pytexmk\check_version.py:166
+#: src\pytexmk\check_version.py:165
 #, python-format
 msgid "API速率限制，重置时间：%s"
 msgstr "API rate limiting, reset time: %s"
 
-#: src\pytexmk\check_version.py:168
+#: src\pytexmk\check_version.py:167
 #, python-format
 msgid "请求失败，状态码：%d"
 msgstr "Request failed, status code: %d"
 
-#: src\pytexmk\check_version.py:170
+#: src\pytexmk\check_version.py:169
 msgid "响应数据解析失败"
 msgstr "Response data parsing failure"
 
-#: src\pytexmk\check_version.py:172
+#: src\pytexmk\check_version.py:171
 msgid "响应中缺少版本信息"
 msgstr "Version information is missing from the response"
 
-#: src\pytexmk\check_version.py:174
+#: src\pytexmk\check_version.py:173
 msgid "获取GitHub版本失败："
 msgstr "Failed to get GitHub version:"
 
-#: src\pytexmk\check_version.py:176
+#: src\pytexmk\check_version.py:175
 #, python-format
 msgid "请求耗时：%.2f秒"
 msgstr "Request time: %.2f seconds"
 
-#: src\pytexmk\check_version.py:209
+#: src\pytexmk\check_version.py:208
 msgid "有新版本可用: "
 msgstr "New version available: "
 
-#: src\pytexmk\check_version.py:209 src\pytexmk\check_version.py:212
+#: src\pytexmk\check_version.py:208 src\pytexmk\check_version.py:211
 msgid "当前版本: "
 msgstr "Current version: "
 
-#: src\pytexmk\check_version.py:210
+#: src\pytexmk\check_version.py:209
 #, fuzzy, python-format
 msgid ""
 "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
