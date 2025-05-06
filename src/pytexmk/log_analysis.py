@@ -16,8 +16,10 @@ from pathlib import Path
 from typing import List, Dict, Optional, Union, Any
 from enum import Enum
 
-logger = logging.getLogger(__name__)
+from pytexmk.language import set_language
 
+logger = logging.getLogger(__name__)
+_ = set_language('log_analysis')
 
 # ========================
 # 日志类型枚举
@@ -120,7 +122,7 @@ class LatexLogParser:
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
-            logger.warning("根文件未指定，无法继续解析日志")
+            logger.warning(_("根文件未指定，无法继续解析日志"))
             return []
 
         self.file_stack = [self.root_file]
@@ -135,7 +137,7 @@ class LatexLogParser:
         if self.current_result and not re.match(bib_empty_re, self.current_result['text']):
             self.build_log.append(self.current_result)
 
-        logger.info(f"共解析 {len(self.build_log)} 条日志消息")
+        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
         return self.build_log
 
     def reset_state(self):
@@ -370,7 +372,7 @@ class LatexLogParser:
             logger.info(msg) if use_logger else print(msg)
 
         if not (errors or warnings or typesets or fonts or graphics or pages or (show_info and infos)):
-            success_msg = "未发现错误或警告"
+            success_msg = _("未发现错误或警告")
             logger.info(success_msg) if use_logger else print(success_msg)
 
     def show_editor_jump_format(self):
