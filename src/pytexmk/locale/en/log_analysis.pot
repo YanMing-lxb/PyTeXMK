@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 22:34+0800\n"
+"POT-Creation-Date: 2025-05-06 23:00+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,6 +26,6 @@ msgstr "Root file not specified, unable to continue parsing logs"
 msgid "共解析 %(args)s 条日志消息"
 msgstr "Parses %(args)s of log messages."
 
-#: src\pytexmk\log_analysis.py:375
+#: src\pytexmk\log_analysis.py:378
 msgid "未发现错误或警告"
 msgstr "No errors or warnings found"

@@ -207,8 +207,11 @@ class LatexLogParser:
             line_num = warn_match.group(4)
             suffix = warn_match.group(5) or ''
             full_message = f"{category} {level}: {message}{('.' + suffix) if suffix else ''}"
+
+            log_type = LogType.WARNING if level == "Warning" else LogType.INFO
+
             self.current_result = {
-                "type": LogType.WARNING,
+                "type": log_type,
                 "file": self.get_current_file(),
                 "line": int(line_num) if line_num else 1,
                 "text": full_message
