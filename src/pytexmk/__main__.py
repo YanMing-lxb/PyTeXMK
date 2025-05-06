@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-03-08 21:33:47 +0800
+LastEditTime : 2025-05-06 21:41:01 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -26,7 +26,8 @@ Description  :
 import argparse
 import datetime
 import webbrowser
-
+from pathlib import Path
+from pytexmk.log_analysis import LatexLogParser
 # rich 库（美化 CLI 输出）
 from rich import print
 from rich.console import Console
@@ -536,6 +537,34 @@ def main():
             runtime_move_aux_auxdir = time_count(MRO.move_specific_files, aux_files, ".", auxdir)  # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
+            
+
+            print_message(_("日志分析器"), "additional")
+            # 构建日志文件路径
+            log_path = Path(auxdir) / f"{project_name}.log"
+
+            # 读取日志文件内容
+            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                log_content = f.read()
+
+            # 设置根文件（含 .tex 后缀）
+            root_file = project_name + ".tex"
+
+            # 初始化日志解析器
+            log_parser = LatexLogParser(root_file=root_file)
+
+            # 解析日志
+            log_entries = log_parser.parse(log_content)
+
+            # 显示日志（使用 logging 输出）
+            log_parser.show_log(use_logger=True, show_info=True)
+
+            # 可选：显示编辑器可识别的跳转格式
+            # log_parser.show_editor_jump_format()
+            # print(log_entries)
+
+
+
     # --------------------------------------------------------------------------------
     # 编译结束后 PDF 预览
     # --------------------------------------------------------------------------------
@@ -551,6 +580,7 @@ def main():
     # --------------------------------------------------------------------------------
     # 检查更新
     # --------------------------------------------------------------------------------
+    
     UC.check_for_updates()
 
 
