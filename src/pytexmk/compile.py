@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2025-04-30 19:30:58 +0800
+LastEditTime : 2025-05-06 22:27:29 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile.py
 Description  : 
@@ -46,14 +46,6 @@ BIBTEX_BIB_PATTERN = re.compile(r'\\bibdata\{(.*)\}')  # 匹配\bibdata{}命令
 
 BIBER_CITE_PATTERN = re.compile(r'\\abx@aux@cite{.*?}\{(.*)\}')  # 匹配\abx@aux@cite{任意字符}{}命令
 BIBTEX_CITE_PATTERN = re.compile(r'\\citation\{(.*)\}')  # 匹配\citation{}命令
-
-BIBCITE_PATTERN = re.compile(r'\\bibcite\{(.*)\}\{(.*)\}')  # 匹配\bibcite{}命令
-BIBENTRY_PATTERN = re.compile(r'@.*\{(.*),\s')  # 匹配@entry{}命令
-
-ERROR_PATTTERN = re.compile(r'(?:^! (.*\nl\..*)$)|(?:^! (.*)$)|'
-                            '(No pages of output.)', re.M)  # 匹配错误信息
-LATEX_RERUN_PATTERNS = [re.compile(pattr) for pattr in [r'LaTeX Warning: Reference .* undefined', r'LaTeX Warning: There were undefined references\.', r'LaTeX Warning: Label\(s\) may have changed\.', r'No file .*(\.toc|\.lof)\.']
-                       ]  # 匹配需要重新运行的LaTeX警告
 
 
 class CompileLaTeX(object):
@@ -91,38 +83,6 @@ class CompileLaTeX(object):
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
         self.MSP = MySubProcess()
-
-    # --------------------------------------------------------------------------------
-    # 定义日志检查函数
-    # --------------------------------------------------------------------------------
-    def check_errors(self, log_content):
-        """
-        检查编译日志中的错误.
-
-        参数:
-        - log_content (str): 包含编译日志内容的字符串.
-
-        行为:
-        1. 使用正则表达式模式查找所有错误.
-        2. 如果有错误,记录错误信息并提示查看日志文件以获取详细信息.
-        3. 移动辅助文件和输出文件到指定目录.
-        4. 打印退出信息并退出程序.
-
-        错误处理:
-        - 如果发现错误,程序将记录错误信息并退出.
-        """
-        self.out = log_content
-        errors = ERROR_PATTTERN.findall(self.out)  # 使用正则表达式模式查找所有错误
-        # "errors"是一个元组列表
-        if errors:  # 如果有错误
-            self.logger.error(_('编译过程发生错误: '))  # 记录错误信息
-
-            self.logger.error('\n'.join([error.replace('\r', '').strip() for error in chain(*errors) if error.strip()]))  # 将错误信息逐行记录,去除多余的空格和换行符
-
-            self.logger.error(_("请查看日志文件以获取详细信息: ") + f'{self.auxdir}{self.project_name}.log')  # 提示查看日志文件以获取详细信息
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
-            exit_pytexmk()
 
     # --------------------------------------------------------------------------------
     # 定义信息获取函数
