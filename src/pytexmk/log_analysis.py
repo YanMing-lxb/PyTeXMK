@@ -310,11 +310,17 @@ class LatexLogParser:
 
     def get_current_file(self) -> str:
         current_path = self.file_stack[-1]
+        if current_path in self._resolved_paths:
+            return self._resolved_paths[current_path]
+
         root_dir = Path(self.root_file).parent
         try:
-            return str((root_dir / current_path).resolve())
+            resolved = str((root_dir / current_path).resolve())
         except Exception:
-            return current_path
+            resolved = current_path
+
+        self._resolved_paths[current_path] = resolved
+        return resolved
 
     def show_log(self, use_logger=True, show_info=False):
         """
