@@ -389,3 +389,16 @@ class LatexLogParser:
             file_path = Path(entry['file']).name
             msg = f"{file_path}:{entry['line']}: {entry['text']}"
             logger.info(msg)
+    
+    def logparser_cli(self, auxdir, project_name):
+        # 构建日志文件路径
+        log_path = Path(auxdir) / f"{project_name}.log"
+        with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            log_content = f.read()
+        self.root_file = project_name + ".tex"
+        log_entries = self.parse(log_content)
+        self.show_log(use_logger=True, show_info=True)
+        
+        # 可选：显示编辑器可识别的跳转格式
+        # self.show_editor_jump_format()
+        # print(log_entries)

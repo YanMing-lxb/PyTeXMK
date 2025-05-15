@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 16:02:37 +0800
-LastEditTime : 2025-04-30 19:32:34 +0800
+LastEditTime : 2025-05-15 19:22:11 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/additional.py
 Description  : 
@@ -38,6 +38,7 @@ from pypdf import PdfReader, PdfWriter
 
 from pytexmk.language import set_language
 from pytexmk.auxiliary_fun import exit_pytexmk
+from pytexmk.log_parser import LatexLogParser
 
 _ = set_language('additional')
 
@@ -52,14 +53,19 @@ custom_theme = Theme({
 console = Console(theme=custom_theme, legacy_windows=False)
 
 class MySubProcess(object):
-    def __init__(self):
+    def __init__(self, outdir, auxdir, project_name: str = None, latexdiff: bool = False):
         self.logger = logging.getLogger(__name__)
+        self.project_name = project_name
+        self.latexdiff = latexdiff
+        self.outdir = outdir
+        self.auxdir = auxdir
+        self.MRO = MoveRemoveOperation()
     def _format_duration(self, seconds: float) -> str:
         """格式化时间显示"""
         if seconds > 60:
             return f"{seconds // 60:.0f}m {seconds % 60:.2f}s"
         return f"{seconds:.4f}s"
-    def run_command(self, command: list, program_name: str = "执行命令") -> bool:
+    def run_command(self, command: list, out_files:str, aux_files:str, program_name: str = "执行命令") -> bool:
         """
         通用命令执行函数
         :param command: 要执行的命令列表
@@ -96,16 +102,18 @@ class MySubProcess(object):
                     style="success"
                 )
 
-            else: 
-                raise subprocess.CalledProcessError(
-                    process.returncode, 
-                    ' '.join(command), 
-                )
-            
+            else:
+                raise subprocess.CalledProcessError(process.returncode, command)
+
         except subprocess.CalledProcessError as e:
-            self.logger.error(_("%(args)s 运行失败,请查看日志文件以获取详细信息: ") % {'args': self.compiled_program} + f"{self.auxdir}{self.project_name}.log\n{e}")
-            self.MRO.move_specific_files(self.aux_files, '.', self.auxdir)
-            self.MRO.move_specific_files(self.out_files, '.', self.outdir)
+            self.logger.error(_("%(args)s 编译失败,请查看日志文件以获取详细信息: ") % {'args': program_name} + f"{self.auxdir}{self.project_name+'.log' if not self.latexdiff else '/'}")
+
+            self.MRO.move_specific_files(aux_files, '.', self.auxdir)
+            self.MRO.move_specific_files(out_files, '.', self.outdir)
+
+            if not self.latexdiff:
+                log_parser = LatexLogParser()
+                log_parser.logparser_cli(self.auxdir, self.project_name)
             exit_pytexmk()
 
 

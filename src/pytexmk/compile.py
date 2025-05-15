@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-29 15:43:26 +0800
-LastEditTime : 2025-05-06 22:27:29 +0800
+LastEditTime : 2025-05-15 18:37:17 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/compile.py
 Description  : 
@@ -27,11 +27,9 @@ import re
 import shlex
 import logging
 from pathlib import Path  # 导入Path模块
-from itertools import chain  # 导入chain,用于将多个迭代器连接成一个迭代器
 from collections import defaultdict  # 导入defaultdict,用于创建带有默认值的字典
 
 from pytexmk.language import set_language
-from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.additional import MoveRemoveOperation, MySubProcess
 
 
@@ -82,7 +80,7 @@ class CompileLaTeX(object):
         self.bib_file = ''  # 初始化参考文献文件路径为空字符串
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
-        self.MSP = MySubProcess()
+        self.MSP = MySubProcess(outdir, auxdir, project_name)
 
     # --------------------------------------------------------------------------------
     # 定义信息获取函数
@@ -261,15 +259,15 @@ class CompileLaTeX(object):
         6. 如果编译失败,记录错误信息,移动辅助文件和输出文件到指定目录,并退出程序.
         """
 
-        options = [self.compiled_program.lower(), "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
+        command = [self.compiled_program.lower(), "-shell-escape", "-file-line-error", "-halt-on-error", "-synctex=1", f'{self.project_name}.tex']
         if self.compiled_program == 'XeLaTeX':
-            options.insert(5, "-no-pdf")
+            command.insert(5, "-no-pdf")
         if self.non_quiet:
-            options.insert(4, "-interaction=nonstopmode")  # 非静默编译
+            command.insert(4, "-interaction=nonstopmode")  # 非静默编译
         else:
-            options.insert(4, "-interaction=batchmode")  # 静默编译
+            command.insert(4, "-interaction=batchmode")  # 静默编译
 
-        self.MSP.run_command(options, self.compiled_program)
+        self.MSP.run_command(command, self.out_files, self.aux_files, self.compiled_program)
             
 
     # --------------------------------------------------------------------------------
@@ -377,12 +375,12 @@ class CompileLaTeX(object):
         5. 如果命令运行失败,记录错误信息,移动辅助文件和输出文件到指定目录,并退出程序.
         """
         # self.logger.info('Running bibtex...')  # 记录日志,显示正在运行bibtex
-        options = [bib_engine, self.project_name]
+        command = [bib_engine, self.project_name]
 
         if not self.non_quiet and bib_engine == 'biber':
-            options.insert(1, "-quiet")  # 静默编译
+            command.insert(1, "-quiet")  # 静默编译
 
-        self.MSP.run_command(options, bib_engine)
+        self.MSP.run_command(command, self.out_files, self.aux_files, bib_engine)
 
     # --------------------------------------------------------------------------------
     # 定义索引更新判断函数
@@ -498,8 +496,8 @@ class CompileLaTeX(object):
         """
         # 运行 makeindex 命令
         name_target = f"{cmd[0]}"
-        options = shlex.split(cmd[1])
-        self.MSP.run_command(options, cmd[0])
+        command = shlex.split(cmd[1])
+        self.MSP.run_command(command, self.out_files, self.aux_files, cmd[0])
         return name_target
 
     # --------------------------------------------------------------------------------
@@ -516,10 +514,10 @@ class CompileLaTeX(object):
         4. 尝试运行编译命令.
         5. 如果编译失败,记录错误信息,移动辅助文件和输出文件到指定目录,并退出程序.
         """
-        options = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
+        command = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
         if not self.non_quiet:
-            options.insert(1, "-q")  # 静默编译
-        self.MSP.run_command(options, 'dvipdfmx')
+            command.insert(1, "-q")  # 静默编译
+        self.MSP.run_command(command, self.out_files, self.aux_files, 'dvipdfmx')
 
 # --------------------------------------------------------------------------------
 # 定义 统计参考文献次数的函数

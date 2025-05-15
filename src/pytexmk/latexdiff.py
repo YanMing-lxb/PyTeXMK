@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2025-04-30 19:21:37 +0800
+LastEditTime : 2025-05-15 19:02:46 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff.py
 Description  : 
@@ -40,14 +40,16 @@ console = console.Console()
 
 class LaTeXDiff_Aux:
 
-    def __init__(self, suffixes_aux, auxdir):
+    def __init__(self, outdir, suffixes_out, suffixes_aux, auxdir):
 
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
+        self.suffixes_out = suffixes_out
         self.suffixes_aux = suffixes_aux
+        self.outdir = Path(outdir)
         self.auxdir = Path(auxdir)
 
         self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
-        self.MSP = MySubProcess()
+        self.MSP = MySubProcess(outdir, auxdir, latexdiff=True)
 
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX辅助文件存在检查函数
@@ -168,5 +170,14 @@ class LaTeXDiff_Aux:
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
-        options = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix, ">", diff_tex_file + suffix, "--encoding=utf8"]
-        self.MSP.run_command(options, "latexdiff")
+        command = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix, ">", diff_tex_file + suffix, "--encoding=utf8"]
+        
+        old_out_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_out]
+        new_out_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_out]
+        diff_out_files = [f"{diff_tex_file}{suffix}" for suffix in self.suffixes_out]
+        out_files = old_out_files + new_out_files + diff_out_files
+        old_aux_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_aux]
+        new_aux_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_aux]
+        aux_files = old_aux_files + new_aux_files
+        
+        self.MSP.run_command(command, out_files, aux_files, "latexdiff")

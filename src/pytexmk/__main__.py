@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-02-28 23:11:52 +0800
-LastEditTime : 2025-05-06 21:41:01 +0800
+LastEditTime : 2025-05-15 18:54:18 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
 Description  : 
@@ -27,7 +27,7 @@ import argparse
 import datetime
 import webbrowser
 from pathlib import Path
-from pytexmk.log_analysis import LatexLogParser
+
 # rich 库（美化 CLI 输出）
 from rich import print
 from rich.console import Console
@@ -45,12 +45,13 @@ from pytexmk.info_print import (time_count, time_print, print_message, magic_com
 
 # 主要功能模块
 from pytexmk.run import RUN, LaTeXDiffRUN
-from pytexmk.additional import (MoveRemoveOperation, MainFileOperation, PdfFileOperation)
 from pytexmk.latexdiff import LaTeXDiff_Aux
-from pytexmk.check_version import UpdateChecker
-from pytexmk.config import ConfigParser
+from pytexmk.log_parser import LatexLogParser
+from pytexmk.additional import (MoveRemoveOperation, MainFileOperation, PdfFileOperation)
 
 # 辅助功能
+from pytexmk.config import ConfigParser
+from pytexmk.check_version import UpdateChecker
 from pytexmk.auxiliary_fun import (get_app_path, exit_pytexmk)
 
 UC = UpdateChecker(1, 6)  # 访问超时, 单位: 秒;缓存时长, 单位: 小时
@@ -432,7 +433,7 @@ def main():
         print_message(_("LaTeXDiff 预处理"), "additional")
 
         # 检查辅助文件是否存在 TODO 要求辅助文件不存在时要自动进行编译
-        LDA = LaTeXDiff_Aux(suffixes_aux, auxdir)
+        LDA = LaTeXDiff_Aux(outdir, suffixes_out, suffixes_aux, auxdir)
         if LDA.check_aux_files(old_tex_file):
             logger.info(_("%(args)s 的辅助文件存在") % {"args": old_tex_file})
         else:  # 如果辅助文件不存在
@@ -537,31 +538,13 @@ def main():
             runtime_move_aux_auxdir = time_count(MRO.move_specific_files, aux_files, ".", auxdir)  # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-            
 
-            print_message(_("日志分析器"), "additional")
-            # 构建日志文件路径
-            log_path = Path(auxdir) / f"{project_name}.log"
-
-            # 读取日志文件内容
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-                log_content = f.read()
-
-            # 设置根文件（含 .tex 后缀）
-            root_file = project_name + ".tex"
 
             # 初始化日志解析器
-            log_parser = LatexLogParser(root_file=root_file)
+            log_parser = LatexLogParser()
 
             # 解析日志
-            log_entries = log_parser.parse(log_content)
-
-            # 显示日志（使用 logging 输出）
-            log_parser.show_log(use_logger=True, show_info=True)
-
-            # 可选：显示编辑器可识别的跳转格式
-            # log_parser.show_editor_jump_format()
-            # print(log_entries)
+            log_parser.logparser_cli(auxdir, project_name)
 
 
 
