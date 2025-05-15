@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 22:28+0800\n"
+"POT-Creation-Date: 2025-05-15 19:26+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,71 +16,71 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\compile.py:162
+#: src\pytexmk\compile.py:160
 #, fuzzy, python-format
 msgid "文件不存在或无法读取,跳过文件: %(args)s"
 msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 
-#: src\pytexmk\compile.py:218 src\pytexmk\compile.py:359
+#: src\pytexmk\compile.py:216 src\pytexmk\compile.py:357
 msgid "未找到辅助文件: "
 msgstr "Auxiliary file not found: "
 
-#: src\pytexmk\compile.py:319 src\pytexmk\compile.py:328
+#: src\pytexmk\compile.py:317 src\pytexmk\compile.py:326
 msgid "未设置参考文献数据库文件: "
 msgstr "Bibliography database file not set: "
 
-#: src\pytexmk\compile.py:334
+#: src\pytexmk\compile.py:332
 msgid "编译参考文献"
 msgstr "Compiling bibliography"
 
-#: src\pytexmk\compile.py:339
+#: src\pytexmk\compile.py:337
 msgid "未找到参考文献数据库文件: "
 msgstr "Bibliography database file not found: "
 
-#: src\pytexmk\compile.py:344
+#: src\pytexmk\compile.py:342
 msgid "参考文献引用数量没有变化"
 msgstr "Number of bibliography references has not changed"
 
-#: src\pytexmk\compile.py:349
+#: src\pytexmk\compile.py:347
 msgid "LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示"
 msgstr ""
 "LaTeX compilation log contains hints of missing bbl file or undefined "
 "references"
 
-#: src\pytexmk\compile.py:353
+#: src\pytexmk\compile.py:351
 msgid "thebibliography 环境实现排版"
 msgstr "thebibliography environment for typesetting"
 
-#: src\pytexmk\compile.py:357
+#: src\pytexmk\compile.py:355
 msgid "没有引用参考文献或编译工具不属于 bibtex 或 biber"
 msgstr ""
 "No bibliography references or the compilation tool is not bibtex or biber"
 
-#: src\pytexmk\compile.py:411
+#: src\pytexmk\compile.py:409
 msgid "重新编译索引,因日志文件提示没有输入文件"
 msgstr "Recompiling index because the log file indicates no input file"
 
-#: src\pytexmk\compile.py:418
+#: src\pytexmk\compile.py:416
 msgid "重新编译索引,因词汇表文件内容发生变化"
 msgstr "Recompiling index because the glossary file content has changed"
 
-#: src\pytexmk\compile.py:421
+#: src\pytexmk\compile.py:419
 msgid "无需编译索引,因词汇表文件内容没有变化"
 msgstr ""
 "No need to compile the index because the glossary file content has not "
 "changed"
 
-#: src\pytexmk\compile.py:423
+#: src\pytexmk\compile.py:421
 msgid "无需编译索引,因没有索引内容"
 msgstr "No need to compile the index because there is no index content"
 
-#: src\pytexmk\compile.py:426
+#: src\pytexmk\compile.py:424
 msgid "重新编译索引,因以下索引辅助文件之一存在缺失: "
 msgstr ""
 "Recompiling index because one of the following index auxiliary files is "
 "missing: "
 
-#: src\pytexmk\compile.py:476
+#: src\pytexmk\compile.py:474
 msgid "使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引,因此不编译索引"
 msgstr ""
 "Index not compiled because a package other than glossaries, nomencl, or "

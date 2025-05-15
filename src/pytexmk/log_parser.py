@@ -19,7 +19,7 @@ from enum import Enum
 from pytexmk.language import set_language
 
 logger = logging.getLogger(__name__)
-_ = set_language('log_analysis')
+_ = set_language('log_parser')
 
 # ========================
 # 日志类型枚举

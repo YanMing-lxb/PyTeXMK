@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-06 23:00+0800\n"
+"POT-Creation-Date: 2025-05-15 19:26+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\log_analysis.py:125
+#: src\pytexmk\log_parser.py:125
 msgid "根文件未指定，无法继续解析日志"
 msgstr "Root file not specified, unable to continue parsing logs"
 
-#: src\pytexmk\log_analysis.py:140
+#: src\pytexmk\log_parser.py:140
 #, python-format
 msgid "共解析 %(args)s 条日志消息"
-msgstr "Parses %(args)s of log messages."
+msgstr "Parses %(args)s of log messages"
 
-#: src\pytexmk\log_analysis.py:378
+#: src\pytexmk\log_parser.py:384
 msgid "未发现错误或警告"
 msgstr "No errors or warnings found"

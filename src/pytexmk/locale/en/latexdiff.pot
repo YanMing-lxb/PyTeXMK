@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-30 20:02+0800\n"
+"POT-Creation-Date: 2025-05-15 19:26+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,18 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\latexdiff.py:107
+#: src\pytexmk\latexdiff.py:109
 msgid "文件不存在: "
 msgstr "File does not exist: "
 
-#: src\pytexmk\latexdiff.py:138
+#: src\pytexmk\latexdiff.py:140
 msgid "已压平文件: "
 msgstr "File flattened: "
 
-#: src\pytexmk\latexdiff.py:140
+#: src\pytexmk\latexdiff.py:142
 msgid "压平出错: "
 msgstr "Flattening error: "
 
-#: src\pytexmk\latexdiff.py:164
+#: src\pytexmk\latexdiff.py:166
 msgid "新旧辅助文件同时存在: "
 msgstr "Old and new auxiliary files exist at the same time."
