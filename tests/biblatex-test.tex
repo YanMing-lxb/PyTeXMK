@@ -16,9 +16,9 @@
 %  -----------------------------------------------------------------------
 % Author       : 焱铭
 % Date         : 2024-03-09 00:48:30 +0800
-% LastEditTime : 2024-06-16 20:00:49 +0800
+% LastEditTime : 2025-05-30 20:58:47 +0800
 % Github       : https://github.com/YanMing-lxb/
-% FilePath     : \PyTeXMK\tests\biblatex-test.tex
+% FilePath     : /PyTeXMK/tests/biblatex-test.tex
 % Description  : 
 %  -----------------------------------------------------------------------
 %
@@ -44,5 +44,25 @@ This is a test document to demonstrate BibTeX.
 
 We can cite Lamport's work \cite{lamport1986latex} as well as Knuth's \TeX~book \cite{knuth1986texbook}.
 
+\section{Introduction}
+This is a test document to demonstrate multiple citations using BibLaTeX.
+
+In this section, we will cite several references at once. For example, we can cite both Leslie Lamport's \LaTeX~book \cite{lamport1986latex} and Donald Knuth's \TeX~book \cite{knuth1986texbook}. 
+
+We can also cite multiple references in one command. Here are some examples:
+
+% 引用多本书籍和文章
+Here is a citation of multiple works: \cite{lamport1986latex, knuth1986texbook, latexcompanion}.
+
+% 在不同的上下文中引用不同类型的文献
+Another example with various types of sources: \cite{article1, phdthesis1, techreport1, website1}.
+
+\subsection{Further Reading}
+For further reading on advanced topics, see \cite{phdthesis1} for detailed research or \cite{techreport1} for technical insights.
+
+If you want to explore online resources, check out \cite{website1}.
+
+\section{Conclusion}
+To summarize, multiple citations can be used in various ways throughout your document. You can mix and match books, articles, theses, and online sources freely depending on your needs.
 \printbibliography
 \end{document} 
