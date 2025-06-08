@@ -12,6 +12,7 @@ log_analysis.py - LaTeX 编译日志分析模块
 
 import re
 import logging
+import toml
 from pathlib import Path
 from typing import List, Dict, Optional, Union, Any
 from enum import Enum
@@ -20,6 +21,7 @@ from pytexmk.language import set_language
 
 logger = logging.getLogger(__name__)
 _ = set_language('log_parser')
+
 
 # ========================
 # 日志类型枚举
@@ -141,6 +143,7 @@ class LatexLogParser:
         return self.build_log
 
     def reset_state(self):
+        """重置解析状态"""
         self.current_result = {
             "type": "",
             "file": "",
@@ -389,16 +392,458 @@ class LatexLogParser:
             file_path = Path(entry['file']).name
             msg = f"{file_path}:{entry['line']}: {entry['text']}"
             logger.info(msg)
-    
+
     def logparser_cli(self, auxdir, project_name):
+        """
+        命令行接口：解析编译日志并输出结果
+        
+        :param auxdir: 辅助文件所在目录
+        :param project_name: LaTeX 项目的主文件名（不带扩展名）
+        """
         # 构建日志文件路径
         log_path = Path(auxdir) / f"{project_name}.log"
-        with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
-            log_content = f.read()
+        
+        try:
+            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                log_content = f.read()
+        except FileNotFoundError:
+            logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
+            return
+
         self.root_file = project_name + ".tex"
         log_entries = self.parse(log_content)
         self.show_log(use_logger=True, show_info=True)
+
+
+# ========================
+# BibTeX 日志相关
+# ========================
+
+# BibTeX 警告
+single_line_bibtex_warning_re = re.compile(r'^Warning--(.+) in ([^\s]+)\s*$')
+multi_line_bibtex_warning_re = re.compile(r'(?m)^Warning--(.+)\n--line (\d+) of file (.+)$')
+multi_line_bibtex_error_re = re.compile(
+    r'^(.*)---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this entry$', re.MULTILINE)
+bad_cross_ref_bibtex_re = re.compile(
+    r'^(A bad cross reference---entry ".+?"\nrefers to entry.+?, which doesn\'t exist)$', re.MULTILINE)
+multi_line_macro_bibtex_error_re = re.compile(
+    r'^(.*)\n?---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this command$', re.MULTILINE)
+error_aux_file_re = re.compile(r'^(.*)---while reading file (.*)$', re.MULTILINE)
+
+
+# ========================
+# BibTeX 日志解析类
+# ========================
+
+class BibTeXLogParser:
+    def __init__(self, root_file: str = None):
+        self.build_log: List[LogEntry] = []
+        self.root_file: str = root_file or ""
+        self.bib_file_stack: List[str] = [self.root_file]
+        self.current_result: Optional[LogEntry] = None
+        self._resolved_paths = {}  # 缓存已解析的文件路径
+
+    def parse(self, log: str, root_file: str = None) -> List[LogEntry]:
+        if root_file:
+            self.root_file = root_file
+        elif not self.root_file:
+            logger.warning(_("根文件未指定，无法继续解析日志"))
+            return []
+
+        configuration = {'exclude': []}
+        exclude_regexp = configuration['exclude']
+
+        self.build_log.clear()
+        self.reset_state()
+
+        lines = log.split('\n')
+        for line in lines:
+            self.parse_line(line, exclude_regexp)
+
+        # 如果当前结果存在且非空，则加入日志
+        if self.current_result and self.current_result['text']:
+            self.build_log.append(self.current_result)
+
+        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
+        return self.build_log
+
+    def reset_state(self):
+        """重置解析状态"""
+        self.current_result = {
+            "type": LogType.INFO,
+            "file": "",
+            "line": 1,
+            "text": "",
+        }
+
+    def parse_line(self, line: str, exclude_regexp: list):
+        line = line.strip('\x00')  # 去除多余空字符
+
+        # 单行警告
+        match = single_line_bibtex_warning_re.match(line)
+        if match:
+            key_location = self.find_key_location(match.group(2))
+            if key_location:
+                self.add_log_entry(LogType.WARNING, key_location.file, key_location.line,
+                                   match.group(1), exclude_regexp)
+            return
+
+        # 多行警告
+        match = multi_line_bibtex_warning_re.match(line)
+        if match:
+            filename = self.resolve_bib_file(match.group(3))
+            self.add_log_entry(LogType.WARNING, filename, int(match.group(2)),
+                               match.group(1), exclude_regexp)
+            return
+
+        # 多行错误
+        match = multi_line_bibtex_error_re.match(line)
+        if match:
+            filename = self.resolve_bib_file(match.group(3))
+            self.add_log_entry(LogType.ERROR, filename, int(match.group(2)),
+                               match.group(1), exclude_regexp)
+            return
+
+        # 跨文档引用错误
+        match = bad_cross_ref_bibtex_re.match(line)
+        if match:
+            self.add_log_entry(LogType.ERROR, self.root_file, 1,
+                               match.group(1), exclude_regexp)
+            return
+
+        # 宏定义错误
+        match = multi_line_macro_bibtex_error_re.match(line)
+        if match:
+            filename = self.resolve_bib_file(match.group(3))
+            self.add_log_entry(LogType.ERROR, filename, int(match.group(2)),
+                               match.group(1), exclude_regexp)
+            return
+
+        # 辅助文件读取错误
+        match = error_aux_file_re.match(line)
+        if match:
+            filename = self.resolve_aux_file(match.group(2))
+            self.add_log_entry(LogType.ERROR, filename, 1,
+                               match.group(1), exclude_regexp)
+            return
+
+        # Biber 警告
+        match = biber_warn_re.match(line)
+        if match:
+            filename = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            self.add_log_entry(LogType.WARNING, filename, 1,
+                               f"No bib entry found for '{match.group(1)}'", exclude_regexp)
+            return
+
+    def resolve_bib_file(self, filename: str) -> str:
+        """解析相对路径为绝对路径"""
+        if not filename:
+            return self.root_file
+
+        if filename in self._resolved_paths:
+            return self._resolved_paths[filename]
+
+        root_dir = Path(self.root_file).parent
+        try:
+            resolved = str((root_dir / filename).resolve())
+        except Exception:
+            resolved = filename
+
+        self._resolved_paths[filename] = resolved
+        return resolved
+
+    def resolve_aux_file(self, filename: str) -> str:
+        """解析 aux 文件对应 tex 文件"""
+        filename = filename.replace('.aux', '.tex')
+        # 这里应该实现更复杂的查找逻辑
+        return filename
+
+    def add_log_entry(self, log_type: LogType, file: str, line: int, message: str, exclude_patterns: list):
+        """添加一条日志条目，若匹配排除规则则忽略"""
+        if self._should_exclude(message, exclude_patterns):
+            return
+
+        entry = {
+            "type": log_type,
+            "file": file,
+            "line": line,
+            "text": message
+        }
+        self.build_log.append(entry)
+
+    def _should_exclude(self, text: str, exclude_patterns: list) -> bool:
+        """检查是否应该忽略该日志条目"""
+        return any(pattern.search(text) for pattern in exclude_patterns)
+
+    def show_log(self, use_logger=True):
+        sorted_logs = sorted(self.build_log, key=lambda x: x["type"])
+        errors = [e for e in sorted_logs if e["type"] == LogType.ERROR]
+        warnings = [e for e in sorted_logs if e["type"] == LogType.WARNING]
+
+        def format_message(e: dict):
+            file_path = Path(e['file'])
+            return f"{file_path.name}:{e['line']} --> {e['text']}"
+
+        for entry in errors:
+            logger.error(format_message(entry)) if use_logger else print(format_message(entry))
+        for entry in warnings:
+            logger.warning(format_message(entry)) if use_logger else print(format_message(entry))
+
+        if not (errors or warnings):
+            logger.info(_("未发现错误或警告"))
+
+    def bibtex_logparser_cli(self, auxdir: str, project_name: str):
+        """
+        命令行接口：解析 BibTeX/Biber 编译日志并输出结果
         
-        # 可选：显示编辑器可识别的跳转格式
-        # self.show_editor_jump_format()
-        # print(log_entries)
+        :param auxdir: 辅助文件所在目录
+        :param project_name: LaTeX 项目的主文件名（不带扩展名）
+        """
+        # 构建日志文件路径
+        log_path = Path(auxdir) / f"{project_name}.blg"
+        
+        try:
+            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+                log_content = f.read()
+        except FileNotFoundError:
+            logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
+            return
+
+        self.root_file = project_name + ".tex"
+        log_entries = self.parse(log_content)
+        self.show_log(use_logger=True)
+
+# ========================
+# Biber 日志解析类
+# ========================
+
+# Biber 相关正则表达式
+biber_info_re = re.compile(r'^INFO - Found BibTeX data source \'(.*)\'$')
+biber_error_re = re.compile(r'^ERROR - BibTeX subsystem.*, line (\d+), (.*)$')
+biber_missing_entry_re = re.compile(r'^WARN - (I didn\'t find a database entry for \'.*?\'.*)$')
+biber_line_warning_re = re.compile(r'^WARN - (.*? entry `(.+?)\' .*)$')
+
+# TODO 添加一种触发机制，当检测到参考文献相关错误时启动key的检索功能，用来确定位置
+class BiberLogParser(BibTeXLogParser):
+    def __init__(self, root_file: str = None):
+        super().__init__(root_file)
+        self.build_log: List[LogEntry] = []
+        self.root_file: str = root_file or ""
+        self.bib_file_stack: List[str] = [self.root_file]
+        self._resolved_paths = {}  # 缓存已解析的文件路径
+
+    def parse(self, log: str, root_file: str = None) -> List[LogEntry]:
+        if root_file:
+            self.root_file = root_file
+        elif not self.root_file:
+            logger.warning(_("根文件未指定，无法继续解析日志"))
+            return []
+
+        configuration = {'exclude': []}
+        exclude_regexp = configuration['exclude']
+
+        self.build_log.clear()
+        self.reset_state()
+
+        lines = log.split('\n')
+        for line in lines:
+            self.parse_line(line, exclude_regexp)
+
+        # 如果当前结果存在且非空，则加入日志
+        if self.current_result and self.current_result['text']:
+            self.build_log.append(self.current_result)
+
+        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
+        return self.build_log
+    
+    def reset_state(self):
+        """重置解析状态"""
+        self.current_result = {
+            "type": LogType.INFO,
+            "file": "",
+            "line": 1,
+            "text": "",
+        }
+
+    def parse_line(self, line: str, exclude_regexp: list):
+        line = line.strip('\x00')  # 去除多余空字符
+        
+        # 解析 BibTeX 数据源
+        info_match = biber_info_re.match(line)
+        if info_match:
+            filename = info_match.group(1)
+            resolved_file = self.resolve_bib_file(filename, self.root_file)
+            self.bib_file_stack.append(resolved_file)
+            logger.debug(f"找到 BibTeX 文件 {resolved_file}")
+            return
+
+        # 解析错误
+        error_match = biber_error_re.match(line)
+        if error_match:
+            line_number = int(error_match.group(1))
+            file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            self.add_log_entry(LogType.ERROR, file, line_number, error_match.group(2), exclude_regexp)
+            return
+
+        # 解析缺失条目警告
+        missing_match = biber_missing_entry_re.match(line)
+        if missing_match:
+            file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            self.add_log_entry(LogType.WARNING, file, 1, missing_match.group(1), exclude_regexp)
+            return
+
+        # 解析其他警告
+        warning_match = biber_line_warning_re.match(line)
+        if warning_match:
+            key = warning_match.group(2)
+            location = self.find_key_location(key)
+            if location:
+                self.add_log_entry(LogType.WARNING, location['file'], location['line'], warning_match.group(1), exclude_regexp)
+            return
+
+    def resolve_bib_file(self, filename: str, root_file: str) -> str:
+        """解析相对路径为绝对路径"""
+        if not filename:
+            return self.root_file
+
+        if filename in self._resolved_paths:
+            return self._resolved_paths[filename]
+
+        root_dir = Path(root_file).parent
+        try:
+            resolved = str((root_dir / filename).resolve())
+        except Exception:
+            resolved = filename
+
+        self._resolved_paths[filename] = resolved
+        return resolved
+    
+
+
+    def load_citation_cache(self, auxdir):
+        """从缓存文件加载引用位置信息"""
+        cache_file = Path(auxdir) / 'citation_cache.aux'
+        if not cache_file.exists():
+            return
+        with open(cache_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                parts = line.strip().split(':', 1)
+                if len(parts) == 2:
+                    key, location = parts
+                    self.citation_cache[key] = location
+
+    def find_key_location(self, key: str) -> Optional[Dict[str, Union[str, int]]]:
+        """从缓存中查找引用键的位置"""
+        location = self.citation_cache.get(key)
+        if location:
+            try:
+                file_part, line_part = location.rsplit(' line ', 1)
+                return {"file": file_part, "line": int(line_part)}
+            except ValueError:
+                pass
+        return None
+
+
+
+class CitationCacheManager:
+    def __init__(self, project_name: str, auxdir: Union[str, Path]):
+        self.main_file_path = Path(f'{project_name}.tex')
+        self.auxdir = Path(auxdir)
+        self.cache_file = self.auxdir / f"{project_name}.citecache"  # 新的缓存文件后缀
+        self.citation_cache = {}
+
+        # 编译正则表达式
+        self.input_re = re.compile(r'\\(?:input|include)\{(.+?)\}')
+        self.citation_command_re = re.compile(
+            r'\\(?:cite|upcite|citet|citep|parencite|textcite|footcite|smartcite|autocite)\{([^}]+)\}',
+            re.IGNORECASE
+        )
+
+    def build_cache(self):
+        """构建引用缓存并写入 TOML 文件"""
+        self.auxdir.mkdir(exist_ok=True)
+        self.citation_cache.clear()
+
+        self._parse_tex_file(self.main_file_path, self.citation_cache)
+
+        # 构建 TOML 数据
+        toml_data = {
+            key: {"file": info["file"], "line": info["line"]}
+            for key, info in self.citation_cache.items()
+        }
+
+        with open(self.cache_file, 'w', encoding='utf-8') as f:
+            toml.dump(toml_data, f)
+        logger.info(_("引用缓存已生成：%(args)s") % {"args": str(self.cache_file)})
+
+    def _parse_tex_file(self, file_path: Path, citation_cache: dict):
+        """
+        解析 TeX 文件中的引用命令和子文件。
+        支持多 key 引用（如 cite{key1,key2}）和递归解析子文件。
+        """
+        # 使用当前文件的父目录作为基准目录
+        root_dir = file_path.parent
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+        except Exception as e:
+            logger.warning(_("无法读取文件 %(args)s: %(error)s") % {"args": str(file_path), "error": str(e)})
+            return
+
+        for i, line in enumerate(lines):
+            # 查找所有引用命令
+            cites = self.citation_command_re.findall(line)
+            for key in cites:
+                keys = [k.strip() for k in key.split(',')]
+                for k in keys:
+                    if k:
+                        relative_path = file_path.relative_to(root_dir)
+                        citation_cache[k] = {
+                            "file": str(relative_path),
+                            "line": i + 1
+                        }
+
+            # 查找子文件
+            match = self.input_re.search(line)
+            if match:
+                sub_file_name = match.group(1)
+                if not sub_file_name.endswith('.tex'):
+                    sub_file_name += '.tex'
+                sub_file_path = file_path.parent / sub_file_name
+                if sub_file_path.exists():
+                    self._parse_tex_file(sub_file_path, citation_cache, root_dir)
+
+    def load_cache(self):
+        """从 TOML 文件加载引用缓存"""
+        if not self.cache_file.exists():
+            return False
+
+        try:
+            with open(self.cache_file, 'r', encoding='utf-8') as f:
+                toml_data = toml.load(f)
+            self.citation_cache = {
+                key: f"{value['file']} line {value['line']}"
+                for key, value in toml_data.items()
+            }
+            logger.info(_("引用缓存已加载：%(args)s") % {"args": str(self.cache_file)})
+            return True
+        except Exception as e:
+            logger.error(_("加载缓存失败：%(args)s") % {"args": str(e)})
+            return False
+
+    def get_location(self, key: str) -> Optional[Dict[str, Union[str, int]]]:
+        """查找指定 key 的引用位置"""
+        location = self.citation_cache.get(key)
+        if location:
+            try:
+                file_part, line_part = location.rsplit(' line ', 1)
+                return {"file": file_part, "line": int(line_part)}
+            except ValueError:
+                pass
+        return None
+
+if __name__ == "__main__":
+    ccm = CitationCacheManager('biblatex-test', 'Auxiliary')
+    ccm.build_cache()
+    ccm.load_cache()
+    print(ccm.get_location('knuth1986texbook'))
