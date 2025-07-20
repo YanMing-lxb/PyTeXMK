@@ -10,7 +10,14 @@ authors = [
 ]
 description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Command Line Tool"
 keywords = ["LaTeX", "build", "latexmk"]
-dependencies = ["rich", "rich_argparse", "pypdf", "toml", "packaging"]
+dependencies = [
+    "packaging>=25.0",
+    "platformdirs>=4.3.8",
+    "pypdf>=5.8.0",
+    "rich>=14.0.0",
+    "rich-argparse>=1.7.1",
+    "toml>=0.10.2",
+]
 readme = "README.md"
 requires-python = ">=3.9"
 license = "GPL-3.0-or-later"
