@@ -10,31 +10,33 @@ log_analysis.py - LaTeX 编译日志分析模块
 5. 结构化输出用于 UI 显示或命令行提示。
 """
 
-import re
 import logging
-import toml
-from pathlib import Path
-from typing import List, Dict, Optional, Union, Any
+import re
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+import toml
 
 from pytexmk.language import set_language
 
 logger = logging.getLogger(__name__)
-_ = set_language('log_parser')
+_ = set_language("log_parser")
 
 
 # ========================
 # 日志类型枚举
 # ========================
 
+
 class LogType(Enum):
-    ERROR = 'error'
-    WARNING = 'warning'
-    TYPESET = 'typesetting'
-    INFO = 'info'
-    FONT = 'font'
-    GRAPHIC = 'graphic'
-    PAGE = 'page'
+    ERROR = "error"
+    WARNING = "warning"
+    TYPESET = "typesetting"
+    INFO = "info"
+    FONT = "font"
+    GRAPHIC = "graphic"
+    PAGE = "page"
 
     def __lt__(self, other):
         """支持按优先级排序"""
@@ -45,7 +47,7 @@ class LogType(Enum):
             LogType.FONT: 3,
             LogType.GRAPHIC: 4,
             LogType.PAGE: 5,
-            LogType.INFO: 6
+            LogType.INFO: 6,
         }
         return order[self] < order.get(other, 7)
 
@@ -62,51 +64,68 @@ LogEntry = Dict[str, Union[str, int, LogType]]
 # ========================
 
 # 错误相关
-latex_error_re1 = re.compile(r'^(?:(.*):(\d+):|!)(?: (.+) Error:)? (.+?)$')
-latex_error_re2 = re.compile(r'^!(?: (.+) Error:)? (.+?)$')
+latex_error_re1 = re.compile(r"^(?:(.*):(\d+):|!)(?: (.+) Error:)? (.+?)$")
+latex_error_re2 = re.compile(r"^!(?: (.+) Error:)? (.+?)$")
 
 # 排版警告（Bad Boxes）
-overfull_box_re = re.compile(r'^(Overfull \$[vh]box $[^)]+\$) in paragraph at lines (\d+)--(\d+)$')
-overfull_box_alt_re = re.compile(r'^(Overfull \$[vh]box $[^)]+\$) detected at line (\d+)$')
-overfull_box_output_re = re.compile(r'^(Overfull \$[vh]box $[^)]+\$) has occurred while \\output is active(?: \$(\d+)\$)?$')
+overfull_box_re = re.compile(
+    r"^(Overfull \$[vh]box $[^)]+\$) in paragraph at lines (\d+)--(\d+)$"
+)
+overfull_box_alt_re = re.compile(
+    r"^(Overfull \$[vh]box $[^)]+\$) detected at line (\d+)$"
+)
+overfull_box_output_re = re.compile(
+    r"^(Overfull \$[vh]box $[^)]+\$) has occurred while \\output is active(?: \$(\d+)\$)?$"
+)
 
-underfull_box_re = re.compile(r'^(Underfull \$[vh]box $[^)]+\$) in paragraph at lines (\d+)--(\d+)$')
-underfull_box_alt_re = re.compile(r'^(Underfull \$[vh]box $[^)]+\$) detected at line (\d+)$')
-underfull_box_output_re = re.compile(r'^(Underfull \$[vh]box $[^)]+\$) has occurred while \\output is active(?: \$(\d+)\$)?$')
+underfull_box_re = re.compile(
+    r"^(Underfull \$[vh]box $[^)]+\$) in paragraph at lines (\d+)--(\d+)$"
+)
+underfull_box_alt_re = re.compile(
+    r"^(Underfull \$[vh]box $[^)]+\$) detected at line (\d+)$"
+)
+underfull_box_output_re = re.compile(
+    r"^(Underfull \$[vh]box $[^)]+\$) has occurred while \\output is active(?: \$(\d+)\$)?$"
+)
 
 # 警告信息
 latex_warn_re = re.compile(
-    r'^((?:(?:Class|Package|Module) \S)|LaTeX(?: \S*)?|LaTeX3) (Warning|Info):\s+(.*?)(?: on(?: input)? line (\d+))?(\.|\?)?$'
+    r"^((?:(?:Class|Package|Module) \S)|LaTeX(?: \S*)?|LaTeX3) (Warning|Info):\s+(.*?)(?: on(?: input)? line (\d+))?(\.|\?)?$"
 )
 
 # 包警告后续行
-package_warning_extra_lines_re = re.compile(r'^$\.$([a-zA-Z]+)\s+(.+?)(?: +on input line (\d+))?$')
+package_warning_extra_lines_re = re.compile(
+    r"^$\.$([a-zA-Z]+)\s+(.+?)(?: +on input line (\d+))?$"
+)
 
 # 缺失字符
-missing_char_re = re.compile(r'^\s(Missing character:.+?!)$')
+missing_char_re = re.compile(r"^\s(Missing character:.+?!)$")
 
 # 空参考文献
-bib_empty_re = re.compile(r'^Empty `thebibliography\' environment$')
+bib_empty_re = re.compile(r"^Empty `thebibliography\' environment$")
 
 # Biber 警告
-biber_warn_re = re.compile(r'^Biber warning:.*WARN - I didn\'t find a database entry for \'([^\']+)\'$')
+biber_warn_re = re.compile(
+    r"^Biber warning:.*WARN - I didn\'t find a database entry for \'([^\']+)\'$"
+)
 
 # 未定义引用
 undefined_reference_re = re.compile(
-    r'^LaTeX Warning: (Reference|Citation) `(.*?)\' on page \d+ undefined on input line (\d+)\.$'
+    r"^LaTeX Warning: (Reference|Citation) `(.*?)\' on page \d+ undefined on input line (\d+)\.$"
 )
 
 # 消息行（带代码位置）
-message_line_re = re.compile(r'^l\.\d+\s(...)?(.*)$')
+message_line_re = re.compile(r"^l\.\d+\s(...)?(.*)$")
 
 # 文件栈开始与结束
-file_stack_open_re = re.compile(r'$([^$]*)')
-file_stack_close_re = re.compile(r'$')
+file_stack_open_re = re.compile(r"$([^$]*)")
+file_stack_close_re = re.compile(r"$")
 
 
 # ========================
 # 日志分析器类
 # ========================
+
 
 class LatexLogParser:
     def __init__(self, root_file: str = None):
@@ -131,12 +150,14 @@ class LatexLogParser:
         self.build_log.clear()
         self.reset_state()
 
-        lines = log.split('\n')
+        lines = log.split("\n")
         for line in lines:
             self.parse_line(line)
 
         # 最后一条日志入栈
-        if self.current_result and not re.match(bib_empty_re, self.current_result['text']):
+        if self.current_result and not re.match(
+            bib_empty_re, self.current_result["text"]
+        ):
             self.build_log.append(self.current_result)
 
         logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
@@ -149,7 +170,7 @@ class LatexLogParser:
             "file": "",
             "line": 1,
             "text": "",
-            "error_pos_text": ""
+            "error_pos_text": "",
         }
         self.search_empty_line = False
         self.inside_box_warn = False
@@ -157,22 +178,26 @@ class LatexLogParser:
         self.nested = 0
 
     def parse_line(self, line: str):
-        line = line.strip('\x00')  # 去除多余空字符
+        line = line.strip("\x00")  # 去除多余空字符
 
         # 忽略空行
         if self.search_empty_line:
-            if not line or (self.inside_error and line.startswith(' ')):
-                self.current_result['text'] += '\n' + line
+            if not line or (self.inside_error and line.startswith(" ")):
+                self.current_result["text"] += "\n" + line
                 self.search_empty_line = False
                 self.inside_error = False
                 return
             else:
                 package_match = package_warning_extra_lines_re.match(line)
                 if package_match:
-                    self.current_result['text'] += f'\n({package_match.group(1)})\t{package_match.group(2)}'
-                    self.current_result['line'] = int(package_match.group(3)) if package_match.group(3) else 1
+                    self.current_result["text"] += (
+                        f"\n({package_match.group(1)})\t{package_match.group(2)}"
+                    )
+                    self.current_result["line"] = (
+                        int(package_match.group(3)) if package_match.group(3) else 1
+                    )
                 else:
-                    self.current_result['text'] += '\n' + line
+                    self.current_result["text"] += "\n" + line
                 self.search_empty_line = False
                 return
 
@@ -183,17 +208,17 @@ class LatexLogParser:
             if error_match:
                 break
         if error_match:
-            if self.current_result and self.current_result['type']:
+            if self.current_result and self.current_result["type"]:
                 self.build_log.append(self.current_result)
             file = error_match.group(1) or self.get_current_file()
             line_num = int(error_match.group(2)) if error_match.group(2) else 1
-            msg = (error_match.group(3) or '') + ': ' + (error_match.group(4) or '')
+            msg = (error_match.group(3) or "") + ": " + (error_match.group(4) or "")
             self.current_result = {
                 "type": LogType.ERROR,
                 "file": file,
                 "line": line_num,
                 "text": msg,
-                "error_pos_text": ""
+                "error_pos_text": "",
             }
             self.search_empty_line = True
             self.inside_error = True
@@ -202,14 +227,16 @@ class LatexLogParser:
         # 解析警告
         warn_match = latex_warn_re.match(line)
         if warn_match:
-            if self.current_result and self.current_result['type']:
+            if self.current_result and self.current_result["type"]:
                 self.build_log.append(self.current_result)
             category = warn_match.group(1)
             level = warn_match.group(2)
-            message = warn_match.group(3) or ''
+            message = warn_match.group(3) or ""
             line_num = warn_match.group(4)
-            suffix = warn_match.group(5) or ''
-            full_message = f"{category} {level}: {message}{('.' + suffix) if suffix else ''}"
+            suffix = warn_match.group(5) or ""
+            full_message = (
+                f"{category} {level}: {message}{('.' + suffix) if suffix else ''}"
+            )
 
             log_type = LogType.WARNING if level == "Warning" else LogType.INFO
 
@@ -217,7 +244,7 @@ class LatexLogParser:
                 "type": log_type,
                 "file": self.get_current_file(),
                 "line": int(line_num) if line_num else 1,
-                "text": full_message
+                "text": full_message,
             }
             self.search_empty_line = True
             return
@@ -227,14 +254,14 @@ class LatexLogParser:
             match = undefined_reference_re.match(line)
             if match:
                 ref_type, label, line_num = match.groups()
-                if self.current_result and self.current_result['type']:
+                if self.current_result and self.current_result["type"]:
                     self.build_log.append(self.current_result)
                 self.current_result = {
                     "type": LogType.WARNING,
                     "file": self.get_current_file(),
                     "line": int(line_num),
                     "text": f"找不到 {ref_type.lower()} `{label}`",
-                    "error_pos_text": label
+                    "error_pos_text": label,
                 }
                 self.search_empty_line = False
                 return
@@ -246,13 +273,13 @@ class LatexLogParser:
         # 解析缺失字符
         miss_match = missing_char_re.match(line)
         if miss_match:
-            if self.current_result and self.current_result['type']:
+            if self.current_result and self.current_result["type"]:
                 self.build_log.append(self.current_result)
             self.current_result = {
                 "type": LogType.WARNING,
                 "file": self.get_current_file(),
                 "line": 1,
-                "text": miss_match.group(1)
+                "text": miss_match.group(1),
             }
             self.search_empty_line = False
             return
@@ -272,22 +299,28 @@ class LatexLogParser:
 
     def parse_bad_box(self, line: str) -> bool:
         bad_box_patterns = [
-            overfull_box_re, overfull_box_alt_re, overfull_box_output_re,
-            underfull_box_re, underfull_box_alt_re, underfull_box_output_re
+            overfull_box_re,
+            overfull_box_alt_re,
+            overfull_box_output_re,
+            underfull_box_re,
+            underfull_box_alt_re,
+            underfull_box_output_re,
         ]
         for pattern in bad_box_patterns:
             match = pattern.match(line)
             if match:
-                if self.current_result and self.current_result['type']:
+                if self.current_result and self.current_result["type"]:
                     self.build_log.append(self.current_result)
                 file = self.get_current_file()
                 text = match.group(1)
-                line_num = int(match.group(2)) if match.groups() >= 3 and match.group(2) else 1
+                line_num = (
+                    int(match.group(2)) if match.groups() >= 3 and match.group(2) else 1
+                )
                 self.current_result = {
                     "type": LogType.TYPESET,
                     "file": file,
                     "line": line_num,
-                    "text": text
+                    "text": text,
                 }
                 self.inside_box_warn = True
                 self.search_empty_line = False
@@ -336,22 +369,22 @@ class LatexLogParser:
         sorted_logs = sorted(self.build_log, key=lambda x: x["type"])
 
         # 分类提取
-        errors = [entry for entry in sorted_logs if entry['type'] == LogType.ERROR]
-        warnings = [entry for entry in sorted_logs if entry['type'] == LogType.WARNING]
-        typesets = [entry for entry in sorted_logs if entry['type'] == LogType.TYPESET]
-        fonts = [entry for entry in sorted_logs if entry['type'] == LogType.FONT]
-        graphics = [entry for entry in sorted_logs if entry['type'] == LogType.GRAPHIC]
-        pages = [entry for entry in sorted_logs if entry['type'] == LogType.PAGE]
-        infos = [entry for entry in sorted_logs if entry['type'] == LogType.INFO]
+        errors = [entry for entry in sorted_logs if entry["type"] == LogType.ERROR]
+        warnings = [entry for entry in sorted_logs if entry["type"] == LogType.WARNING]
+        typesets = [entry for entry in sorted_logs if entry["type"] == LogType.TYPESET]
+        fonts = [entry for entry in sorted_logs if entry["type"] == LogType.FONT]
+        graphics = [entry for entry in sorted_logs if entry["type"] == LogType.GRAPHIC]
+        pages = [entry for entry in sorted_logs if entry["type"] == LogType.PAGE]
+        infos = [entry for entry in sorted_logs if entry["type"] == LogType.INFO]
 
         def format_message(entry: Dict[str, Any]) -> str:
-            file_path = Path(entry['file'])
+            file_path = Path(entry["file"])
             try:
                 rel_path = file_path.relative_to(Path.cwd()).as_posix()
             except ValueError:
                 rel_path = file_path.name  # 只显示文件名
-            level = entry['type'].value.upper()
-            text = entry['text']
+            level = entry["type"].value.upper()
+            text = entry["text"]
             return f"{rel_path}:{entry['line']} --> {text}"
 
         # 输出各类消息
@@ -383,28 +416,36 @@ class LatexLogParser:
             msg = format_message(entry)
             logger.info(msg) if use_logger else print(msg)
 
-        if not (errors or warnings or typesets or fonts or graphics or pages or (show_info and infos)):
+        if not (
+            errors
+            or warnings
+            or typesets
+            or fonts
+            or graphics
+            or pages
+            or (show_info and infos)
+        ):
             success_msg = _("未发现错误或警告")
             logger.info(success_msg) if use_logger else print(success_msg)
 
     def show_editor_jump_format(self):
         for entry in sorted(self.build_log, key=lambda x: x["type"]):
-            file_path = Path(entry['file']).name
+            file_path = Path(entry["file"]).name
             msg = f"{file_path}:{entry['line']}: {entry['text']}"
             logger.info(msg)
 
     def logparser_cli(self, auxdir, project_name):
         """
         命令行接口：解析编译日志并输出结果
-        
+
         :param auxdir: 辅助文件所在目录
         :param project_name: LaTeX 项目的主文件名（不带扩展名）
         """
         # 构建日志文件路径
         log_path = Path(auxdir) / f"{project_name}.log"
-        
+
         try:
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
                 log_content = f.read()
         except FileNotFoundError:
             logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
@@ -420,20 +461,29 @@ class LatexLogParser:
 # ========================
 
 # BibTeX 警告
-single_line_bibtex_warning_re = re.compile(r'^Warning--(.+) in ([^\s]+)\s*$')
-multi_line_bibtex_warning_re = re.compile(r'(?m)^Warning--(.+)\n--line (\d+) of file (.+)$')
+single_line_bibtex_warning_re = re.compile(r"^Warning--(.+) in ([^\s]+)\s*$")
+multi_line_bibtex_warning_re = re.compile(
+    r"(?m)^Warning--(.+)\n--line (\d+) of file (.+)$"
+)
 multi_line_bibtex_error_re = re.compile(
-    r'^(.*)---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this entry$', re.MULTILINE)
+    r"^(.*)---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this entry$",
+    re.MULTILINE,
+)
 bad_cross_ref_bibtex_re = re.compile(
-    r'^(A bad cross reference---entry ".+?"\nrefers to entry.+?, which doesn\'t exist)$', re.MULTILINE)
+    r'^(A bad cross reference---entry ".+?"\nrefers to entry.+?, which doesn\'t exist)$',
+    re.MULTILINE,
+)
 multi_line_macro_bibtex_error_re = re.compile(
-    r'^(.*)\n?---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this command$', re.MULTILINE)
-error_aux_file_re = re.compile(r'^(.*)---while reading file (.*)$', re.MULTILINE)
+    r"^(.*)\n?---line (\d+) of file (.*)\n([\s\S]*?)\nI\'m skipping whatever remains of this command$",
+    re.MULTILINE,
+)
+error_aux_file_re = re.compile(r"^(.*)---while reading file (.*)$", re.MULTILINE)
 
 
 # ========================
 # BibTeX 日志解析类
 # ========================
+
 
 class BibTeXLogParser:
     def __init__(self, root_file: str = None):
@@ -450,18 +500,18 @@ class BibTeXLogParser:
             logger.warning(_("根文件未指定，无法继续解析日志"))
             return []
 
-        configuration = {'exclude': []}
-        exclude_regexp = configuration['exclude']
+        configuration = {"exclude": []}
+        exclude_regexp = configuration["exclude"]
 
         self.build_log.clear()
         self.reset_state()
 
-        lines = log.split('\n')
+        lines = log.split("\n")
         for line in lines:
             self.parse_line(line, exclude_regexp)
 
         # 如果当前结果存在且非空，则加入日志
-        if self.current_result and self.current_result['text']:
+        if self.current_result and self.current_result["text"]:
             self.build_log.append(self.current_result)
 
         logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
@@ -477,62 +527,91 @@ class BibTeXLogParser:
         }
 
     def parse_line(self, line: str, exclude_regexp: list):
-        line = line.strip('\x00')  # 去除多余空字符
+        line = line.strip("\x00")  # 去除多余空字符
 
         # 单行警告
         match = single_line_bibtex_warning_re.match(line)
         if match:
             key_location = self.find_key_location(match.group(2))
             if key_location:
-                self.add_log_entry(LogType.WARNING, key_location.file, key_location.line,
-                                   match.group(1), exclude_regexp)
+                self.add_log_entry(
+                    LogType.WARNING,
+                    key_location.file,
+                    key_location.line,
+                    match.group(1),
+                    exclude_regexp,
+                )
             return
 
         # 多行警告
         match = multi_line_bibtex_warning_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(LogType.WARNING, filename, int(match.group(2)),
-                               match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.WARNING,
+                filename,
+                int(match.group(2)),
+                match.group(1),
+                exclude_regexp,
+            )
             return
 
         # 多行错误
         match = multi_line_bibtex_error_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(LogType.ERROR, filename, int(match.group(2)),
-                               match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.ERROR,
+                filename,
+                int(match.group(2)),
+                match.group(1),
+                exclude_regexp,
+            )
             return
 
         # 跨文档引用错误
         match = bad_cross_ref_bibtex_re.match(line)
         if match:
-            self.add_log_entry(LogType.ERROR, self.root_file, 1,
-                               match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.ERROR, self.root_file, 1, match.group(1), exclude_regexp
+            )
             return
 
         # 宏定义错误
         match = multi_line_macro_bibtex_error_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(LogType.ERROR, filename, int(match.group(2)),
-                               match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.ERROR,
+                filename,
+                int(match.group(2)),
+                match.group(1),
+                exclude_regexp,
+            )
             return
 
         # 辅助文件读取错误
         match = error_aux_file_re.match(line)
         if match:
             filename = self.resolve_aux_file(match.group(2))
-            self.add_log_entry(LogType.ERROR, filename, 1,
-                               match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.ERROR, filename, 1, match.group(1), exclude_regexp
+            )
             return
 
         # Biber 警告
         match = biber_warn_re.match(line)
         if match:
-            filename = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
-            self.add_log_entry(LogType.WARNING, filename, 1,
-                               f"No bib entry found for '{match.group(1)}'", exclude_regexp)
+            filename = (
+                self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            )
+            self.add_log_entry(
+                LogType.WARNING,
+                filename,
+                1,
+                f"No bib entry found for '{match.group(1)}'",
+                exclude_regexp,
+            )
             return
 
     def resolve_bib_file(self, filename: str) -> str:
@@ -554,21 +633,23 @@ class BibTeXLogParser:
 
     def resolve_aux_file(self, filename: str) -> str:
         """解析 aux 文件对应 tex 文件"""
-        filename = filename.replace('.aux', '.tex')
+        filename = filename.replace(".aux", ".tex")
         # 这里应该实现更复杂的查找逻辑
         return filename
 
-    def add_log_entry(self, log_type: LogType, file: str, line: int, message: str, exclude_patterns: list):
+    def add_log_entry(
+        self,
+        log_type: LogType,
+        file: str,
+        line: int,
+        message: str,
+        exclude_patterns: list,
+    ):
         """添加一条日志条目，若匹配排除规则则忽略"""
         if self._should_exclude(message, exclude_patterns):
             return
 
-        entry = {
-            "type": log_type,
-            "file": file,
-            "line": line,
-            "text": message
-        }
+        entry = {"type": log_type, "file": file, "line": line, "text": message}
         self.build_log.append(entry)
 
     def _should_exclude(self, text: str, exclude_patterns: list) -> bool:
@@ -581,13 +662,17 @@ class BibTeXLogParser:
         warnings = [e for e in sorted_logs if e["type"] == LogType.WARNING]
 
         def format_message(e: dict):
-            file_path = Path(e['file'])
+            file_path = Path(e["file"])
             return f"{file_path.name}:{e['line']} --> {e['text']}"
 
         for entry in errors:
-            logger.error(format_message(entry)) if use_logger else print(format_message(entry))
+            logger.error(format_message(entry)) if use_logger else print(
+                format_message(entry)
+            )
         for entry in warnings:
-            logger.warning(format_message(entry)) if use_logger else print(format_message(entry))
+            logger.warning(format_message(entry)) if use_logger else print(
+                format_message(entry)
+            )
 
         if not (errors or warnings):
             logger.info(_("未发现错误或警告"))
@@ -595,15 +680,15 @@ class BibTeXLogParser:
     def bibtex_logparser_cli(self, auxdir: str, project_name: str):
         """
         命令行接口：解析 BibTeX/Biber 编译日志并输出结果
-        
+
         :param auxdir: 辅助文件所在目录
         :param project_name: LaTeX 项目的主文件名（不带扩展名）
         """
         # 构建日志文件路径
         log_path = Path(auxdir) / f"{project_name}.blg"
-        
+
         try:
-            with open(log_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
                 log_content = f.read()
         except FileNotFoundError:
             logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
@@ -613,15 +698,19 @@ class BibTeXLogParser:
         log_entries = self.parse(log_content)
         self.show_log(use_logger=True)
 
+
 # ========================
 # Biber 日志解析类
 # ========================
 
 # Biber 相关正则表达式
-biber_info_re = re.compile(r'^INFO - Found BibTeX data source \'(.*)\'$')
-biber_error_re = re.compile(r'^ERROR - BibTeX subsystem.*, line (\d+), (.*)$')
-biber_missing_entry_re = re.compile(r'^WARN - (I didn\'t find a database entry for \'.*?\'.*)$')
-biber_line_warning_re = re.compile(r'^WARN - (.*? entry `(.+?)\' .*)$')
+biber_info_re = re.compile(r"^INFO - Found BibTeX data source \'(.*)\'$")
+biber_error_re = re.compile(r"^ERROR - BibTeX subsystem.*, line (\d+), (.*)$")
+biber_missing_entry_re = re.compile(
+    r"^WARN - (I didn\'t find a database entry for \'.*?\'.*)$"
+)
+biber_line_warning_re = re.compile(r"^WARN - (.*? entry `(.+?)\' .*)$")
+
 
 # TODO 添加一种触发机制，当检测到参考文献相关错误时启动key的检索功能，用来确定位置
 class BiberLogParser(BibTeXLogParser):
@@ -639,23 +728,23 @@ class BiberLogParser(BibTeXLogParser):
             logger.warning(_("根文件未指定，无法继续解析日志"))
             return []
 
-        configuration = {'exclude': []}
-        exclude_regexp = configuration['exclude']
+        configuration = {"exclude": []}
+        exclude_regexp = configuration["exclude"]
 
         self.build_log.clear()
         self.reset_state()
 
-        lines = log.split('\n')
+        lines = log.split("\n")
         for line in lines:
             self.parse_line(line, exclude_regexp)
 
         # 如果当前结果存在且非空，则加入日志
-        if self.current_result and self.current_result['text']:
+        if self.current_result and self.current_result["text"]:
             self.build_log.append(self.current_result)
 
         logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
         return self.build_log
-    
+
     def reset_state(self):
         """重置解析状态"""
         self.current_result = {
@@ -666,8 +755,8 @@ class BiberLogParser(BibTeXLogParser):
         }
 
     def parse_line(self, line: str, exclude_regexp: list):
-        line = line.strip('\x00')  # 去除多余空字符
-        
+        line = line.strip("\x00")  # 去除多余空字符
+
         # 解析 BibTeX 数据源
         info_match = biber_info_re.match(line)
         if info_match:
@@ -682,14 +771,18 @@ class BiberLogParser(BibTeXLogParser):
         if error_match:
             line_number = int(error_match.group(1))
             file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
-            self.add_log_entry(LogType.ERROR, file, line_number, error_match.group(2), exclude_regexp)
+            self.add_log_entry(
+                LogType.ERROR, file, line_number, error_match.group(2), exclude_regexp
+            )
             return
 
         # 解析缺失条目警告
         missing_match = biber_missing_entry_re.match(line)
         if missing_match:
             file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
-            self.add_log_entry(LogType.WARNING, file, 1, missing_match.group(1), exclude_regexp)
+            self.add_log_entry(
+                LogType.WARNING, file, 1, missing_match.group(1), exclude_regexp
+            )
             return
 
         # 解析其他警告
@@ -698,7 +791,13 @@ class BiberLogParser(BibTeXLogParser):
             key = warning_match.group(2)
             location = self.find_key_location(key)
             if location:
-                self.add_log_entry(LogType.WARNING, location['file'], location['line'], warning_match.group(1), exclude_regexp)
+                self.add_log_entry(
+                    LogType.WARNING,
+                    location["file"],
+                    location["line"],
+                    warning_match.group(1),
+                    exclude_regexp,
+                )
             return
 
     def resolve_bib_file(self, filename: str, root_file: str) -> str:
@@ -717,17 +816,15 @@ class BiberLogParser(BibTeXLogParser):
 
         self._resolved_paths[filename] = resolved
         return resolved
-    
-
 
     def load_citation_cache(self, auxdir):
         """从缓存文件加载引用位置信息"""
-        cache_file = Path(auxdir) / 'citation_cache.aux'
+        cache_file = Path(auxdir) / "citation_cache.aux"
         if not cache_file.exists():
             return
-        with open(cache_file, 'r', encoding='utf-8') as f:
+        with open(cache_file, "r", encoding="utf-8") as f:
             for line in f:
-                parts = line.strip().split(':', 1)
+                parts = line.strip().split(":", 1)
                 if len(parts) == 2:
                     key, location = parts
                     self.citation_cache[key] = location
@@ -737,26 +834,25 @@ class BiberLogParser(BibTeXLogParser):
         location = self.citation_cache.get(key)
         if location:
             try:
-                file_part, line_part = location.rsplit(' line ', 1)
+                file_part, line_part = location.rsplit(" line ", 1)
                 return {"file": file_part, "line": int(line_part)}
             except ValueError:
                 pass
         return None
 
 
-
 class CitationCacheManager:
     def __init__(self, project_name: str, auxdir: Union[str, Path]):
-        self.main_file_path = Path(f'{project_name}.tex')
+        self.main_file_path = Path(f"{project_name}.tex")
         self.auxdir = Path(auxdir)
         self.cache_file = self.auxdir / f"{project_name}.citecache"  # 新的缓存文件后缀
         self.citation_cache = {}
 
         # 编译正则表达式
-        self.input_re = re.compile(r'\\(?:input|include)\{(.+?)\}')
+        self.input_re = re.compile(r"\\(?:input|include)\{(.+?)\}")
         self.citation_command_re = re.compile(
-            r'\\(?:cite|upcite|citet|citep|parencite|textcite|footcite|smartcite|autocite)\{([^}]+)\}',
-            re.IGNORECASE
+            r"\\(?:cite|upcite|citet|citep|parencite|textcite|footcite|smartcite|autocite)\{([^}]+)\}",
+            re.IGNORECASE,
         )
 
     def build_cache(self):
@@ -772,7 +868,7 @@ class CitationCacheManager:
             for key, info in self.citation_cache.items()
         }
 
-        with open(self.cache_file, 'w', encoding='utf-8') as f:
+        with open(self.cache_file, "w", encoding="utf-8") as f:
             toml.dump(toml_data, f)
         logger.info(_("引用缓存已生成：%(args)s") % {"args": str(self.cache_file)})
 
@@ -784,31 +880,31 @@ class CitationCacheManager:
         # 使用当前文件的父目录作为基准目录
         root_dir = file_path.parent
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
         except Exception as e:
-            logger.warning(_("无法读取文件 %(args)s: %(error)s") % {"args": str(file_path), "error": str(e)})
+            logger.warning(
+                _("无法读取文件 %(args)s: %(error)s")
+                % {"args": str(file_path), "error": str(e)}
+            )
             return
 
         for i, line in enumerate(lines):
             # 查找所有引用命令
             cites = self.citation_command_re.findall(line)
             for key in cites:
-                keys = [k.strip() for k in key.split(',')]
+                keys = [k.strip() for k in key.split(",")]
                 for k in keys:
                     if k:
                         relative_path = file_path.relative_to(root_dir)
-                        citation_cache[k] = {
-                            "file": str(relative_path),
-                            "line": i + 1
-                        }
+                        citation_cache[k] = {"file": str(relative_path), "line": i + 1}
 
             # 查找子文件
             match = self.input_re.search(line)
             if match:
                 sub_file_name = match.group(1)
-                if not sub_file_name.endswith('.tex'):
-                    sub_file_name += '.tex'
+                if not sub_file_name.endswith(".tex"):
+                    sub_file_name += ".tex"
                 sub_file_path = file_path.parent / sub_file_name
                 if sub_file_path.exists():
                     self._parse_tex_file(sub_file_path, citation_cache, root_dir)
@@ -819,7 +915,7 @@ class CitationCacheManager:
             return False
 
         try:
-            with open(self.cache_file, 'r', encoding='utf-8') as f:
+            with open(self.cache_file, "r", encoding="utf-8") as f:
                 toml_data = toml.load(f)
             self.citation_cache = {
                 key: f"{value['file']} line {value['line']}"
@@ -836,14 +932,15 @@ class CitationCacheManager:
         location = self.citation_cache.get(key)
         if location:
             try:
-                file_part, line_part = location.rsplit(' line ', 1)
+                file_part, line_part = location.rsplit(" line ", 1)
                 return {"file": file_part, "line": int(line_part)}
             except ValueError:
                 pass
         return None
 
+
 if __name__ == "__main__":
-    ccm = CitationCacheManager('biblatex-test', 'Auxiliary')
+    ccm = CitationCacheManager("biblatex-test", "Auxiliary")
     ccm.build_cache()
     ccm.load_cache()
-    print(ccm.get_location('knuth1986texbook'))
+    print(ccm.get_location("knuth1986texbook"))
