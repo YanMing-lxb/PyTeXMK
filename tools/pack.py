@@ -28,81 +28,6 @@ if sys.stdout.encoding != "UTF-8":
 # -----------------------------------------------------------------------
 
 
-def check_pandoc_installed() -> bool:
-    """
-    检查系统是否已经安装了 pandoc。
-
-    Returns
-    -------
-    bool
-        - `True` 表示 pandoc 已安装；
-        - `False` 表示未安装。
-    """
-
-    # 使用 run_command 执行 where pandoc 命令检查 pandoc 是否安装
-    success = run_command(
-        command=["where", "pandoc"],
-        success_msg="pandoc 已安装",
-        error_msg="pandoc 未安装或不在系统 PATH 中",
-        process_name="检查 pandoc 安装",
-    )
-
-    return success
-
-
-def check_venv_exists(venv_name: str = VENV_NAME) -> bool:
-    """
-    检查虚拟环境是否存在
-
-    Parameters
-    ----------
-    venv_name : str, optional
-        虚拟环境目录名称，默认使用全局配置的 [VENV_NAME]
-
-    Returns
-    -------
-    bool
-        - `True` 表示虚拟环境存在；
-        - `False` 表示虚拟环境不存在。
-    """
-    venv_path = Path(venv_name)
-    if not venv_path.exists():
-        console.print(f"⚠️ 虚拟环境不存在：{venv_name}", style="warning")
-        return False
-    console.print(f"✓ 虚拟环境 [bold]{venv_name}[/] 已存在", style="success")
-    return True
-
-
-def create_virtual_environment() -> bool:
-    """
-    创建隔离的Python虚拟环境
-
-    Returns
-    -------
-    bool
-        - `True` 表示创建成功；
-        - `False` 表示创建失败。
-    """
-    console.print("🌱 开始创建虚拟环境", style="status")
-
-    command = ["uv", "sync"]
-
-    success = run_command(
-        command=command,
-        success_msg="虚拟环境创建成功",
-        error_msg="虚拟环境创建失败",
-        process_name="创建虚拟环境",
-    )
-
-    if not success:
-        console.print(
-            "⚠️ 建议检查：\n1. Python环境是否正常\n2. 磁盘空间是否充足\n3. 权限是否足够",
-            style="warning",
-        )
-
-    return success
-
-
 def run_pyinstaller(venv_name: str = VENV_NAME) -> bool:
     """
     使用 PyInstaller 将 Python 项目打包为可执行应用程序
@@ -229,48 +154,6 @@ def delete_dist_project_folder():
 
 
 # ==========================================================
-#                         PyPi 发布
-# ==========================================================
-
-
-def build_whl():
-    console.print("📦 开始构建 PyTeXMK 轮子", style="status")
-
-    whl_success = run_command(
-        command=["uv", "build"],
-        success_msg="PyTeXMK 轮子构建完成",
-        error_msg="PyTeXMK 轮子构建失败",
-        process_name="构建 PyTeXMK 轮子",
-    )
-
-    return whl_success
-
-
-def inswhl(venv_name):
-    pip_path = get_venv_path("pip", venv_name)
-
-    console.print("📦 开始安装依赖", style="status")
-
-    uninstall_success = run_command(
-        command=[str(pip_path), "pip", "uninstall", "-y", "pytexmk"],
-        success_msg="旧版 PyTeXMK 卸载完成",
-        error_msg="旧版 PyTeXMK 卸载失败",
-        process_name="卸载旧版 PyTeXMK",
-    )
-
-    whl_files = list(Path("dist").glob("*.whl"))
-    if not whl_files:
-        raise FileNotFoundError("dist 目录中没有找到 .whl 文件")
-    install_success = run_command(
-        command=[str(pip_path), "pip", "install", str(whl_files[0])],
-        success_msg="测试 PyTeXMK 安装完成",
-        error_msg="测试 PyTeXMK 安装失败",
-        process_name="安装测试版 PyTeXMK",
-    )
-    return uninstall_success and install_success
-
-
-# ==========================================================
 #                          辅助程序
 # ==========================================================
 def build_html():
@@ -303,7 +186,7 @@ def main():
     parser = argparse.ArgumentParser(description="Python 项目打包工具")
     parser.add_argument(
         "mode",
-        choices=["pack", "setup", "pydmk", "whl"],
+        choices=["pack", "setup", "pydmk"],
         help="打包模式: pack (打包程序), setup (构建安装包), pydmk (生成pyd文件)",
     )
     parser.add_argument(
@@ -325,7 +208,6 @@ def main():
 
         steps = []
         if not args.clean and args.mode != "setup":
-            # PACK 模式：需要虚拟环境 + 依赖 + 打包 + 验证
             # 删除 dist 下的项目文件夹
             delete_result, delete_performance_data = tracker.execute_with_timing(
                 delete_dist_project_folder, "删除旧打包"
@@ -345,7 +227,7 @@ def main():
                 )
                 sys.exit(1)
 
-                # ✨ 添加打包与验证步骤
+                # 打包
                 pack_result, pack_performance_data = tracker.execute_with_timing(
                     run_pyinstaller, "PyInstaller 打包"
                 )
@@ -391,6 +273,11 @@ def main():
                 )
             elif args.mode == "pydmk":
                 console.rule("[bold green]✅ pyd 文件生成完成！[/]")
+            elif args.mode == "whl":
+                console.rule("[bold green]✅ 构建 PyTeXMK PyPi 轮子成功！[/]")
+                console.print(
+                    f"生成的 PyTeXMK PyPi 轮子位于：[bold underline]dist/{PROJECT_NAME}-{__version__}-py3-none-any.whl[/]"
+                )
         else:
             console.rule("[bold red]❌ 构建失败！[/]")
             console.print("部分步骤未完成，请查看上方详细错误信息。")

@@ -1,14 +1,9 @@
-import os
 import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent  # 项目根目录
-sys.path.append(str(BASE_DIR))  # 关键路径设置
-
-from config import VENV_NAME
 from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
@@ -146,29 +141,6 @@ class PerformanceTracker:
 # ======================
 
 
-def get_venv_path(tool_name: str, venv_name: str = VENV_NAME) -> Path:
-    """
-    获取虚拟环境中指定工具的可执行文件路径
-
-    Parameters
-    ----------
-    venv_name : str
-        虚拟环境目录名称
-    tool_name : str
-        工具名称（如 pip, flet 等）
-
-    Returns
-    -------
-    Path
-        工具可执行文件的完整路径
-    """
-    bin_dir = (
-        "Scripts" if os.name == "nt" else "bin"
-    )  # Windows下使用Scripts目录，其他系统使用bin
-    ext = ".exe" if os.name == "nt" else ""  # Windows下可执行文件有.exe扩展名
-    return Path(venv_name) / bin_dir / f"{tool_name}{ext}"  # 返回工具的完整路径
-
-
 def run_command(
     command: list,
     success_msg: str,
@@ -277,3 +249,10 @@ def delete_folder(folder_path):
     except Exception as e:
         print(f"✗ 删除失败：{e}")
         return False
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        command = sys.argv[1]
+        if command == "clean":
+            delete_folder("dist")

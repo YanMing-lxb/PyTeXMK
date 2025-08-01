@@ -1,4 +1,5 @@
 import re
+import subprocess
 import sys
 
 from config import LANG_EN_DIR, SRC_DIR
@@ -95,3 +96,27 @@ def poup():
     _generate_mo_files(LANG_EN_DIR, _get_modules())
     _cleanup_temp_pot_files(LANG_EN_DIR, _get_modules())
     console.log("更新 .pot 和 .mo 文件完成")
+
+
+def main():
+    targets = {
+        "pot": pot,
+        "mo": mo,
+        "poup": poup,
+    }
+
+    if len(sys.argv) < 2 or sys.argv[1] not in targets:
+        console.log(f"用法: {sys.argv[0]} <目标>")
+        console.log("可用目标:", ", ".join(targets.keys()))
+        sys.exit(1)
+
+    target = sys.argv[1]
+    try:
+        targets[target]()
+    except subprocess.CalledProcessError as e:
+        console.log(f"执行命令时出错: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
