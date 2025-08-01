@@ -11,7 +11,6 @@ from config import (
     ENTRY_POINT,
     ICON_FILE,
     PROJECT_NAME,
-    REQUIREMENTS,
     SRCPYD_DIR,
     VENV_NAME,
     __team__,
@@ -27,34 +26,6 @@ if sys.stdout.encoding != "UTF-8":
 # -----------------------------------------------------------------------
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<| 核心功能 |>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # -----------------------------------------------------------------------
-
-
-def pre_check() -> bool:
-    """
-    打包前的环境检查，验证必要条件是否满足
-
-    Returns
-    -------
-    bool
-        所有检查项是否通过，`True` 表示环境符合要求，`False` 表示存在不满足条件的情况
-    """
-    # 定义需要检查的项目及其判断条件和失败提示信息
-    check_items = {
-        "Python版本": (sys.version_info >= (3, 8), "需要Python 3.8+"),
-        "依赖文件": (Path(REQUIREMENTS).exists(), f"缺失依赖文件 {REQUIREMENTS}"),
-    }
-
-    console.print("🔍 开始环境检查", style="status")  # 提示开始检查
-    all_ok = True  # 初始化检查结果状态
-
-    # 遍历所有检查项
-    for name, (condition, msg) in check_items.items():
-        if not condition:
-            # 如果某一项检查未通过，打印错误信息并将整体结果标记为失败
-            console.print(f"✗ {name}检查失败: {msg}", style="error")
-            all_ok = False
-
-    return all_ok  # 返回检查总体结果
 
 
 def check_pandoc_installed() -> bool:
@@ -102,14 +73,9 @@ def check_venv_exists(venv_name: str = VENV_NAME) -> bool:
     return True
 
 
-def create_virtual_environment(venv_name: str = VENV_NAME) -> bool:
+def create_virtual_environment() -> bool:
     """
     创建隔离的Python虚拟环境
-
-    Parameters
-    ----------
-    venv_name : str, optional
-        虚拟环境目录名称，默认使用全局配置的 [VENV_NAME]
 
     Returns
     -------
@@ -119,11 +85,11 @@ def create_virtual_environment(venv_name: str = VENV_NAME) -> bool:
     """
     console.print("🌱 开始创建虚拟环境", style="status")
 
-    command = [sys.executable, "-m", "venv", venv_name]
+    command = ["uv", "sync"]
 
     success = run_command(
         command=command,
-        success_msg=f"虚拟环境 [bold]{venv_name}[/] 创建成功",
+        success_msg="虚拟环境创建成功",
         error_msg="虚拟环境创建失败",
         process_name="创建虚拟环境",
     )
@@ -135,49 +101,6 @@ def create_virtual_environment(venv_name: str = VENV_NAME) -> bool:
         )
 
     return success
-
-
-def install_dependencies(venv_name: str = VENV_NAME) -> bool:
-    """
-    在指定的虚拟环境中安装项目依赖
-
-    Parameters
-    ----------
-    venv_name : str, optional
-        虚拟环境目录名称，默认使用全局配置的 [VENV_NAME]
-
-    Returns
-    -------
-    bool
-        - `True` 表示安装成功；
-        - `False` 表示安装失败。
-    """
-    pip_path = get_venv_path("pip", venv_name)
-
-    console.print("📦 开始安装依赖", style="status")
-
-    dep_success = run_command(
-        command=[str(pip_path), "install", "--no-cache-dir", "-r", REQUIREMENTS],
-        success_msg="项目依赖安装完成",
-        error_msg="项目依赖安装失败",
-        process_name="安装项目依赖",
-    )
-
-    run_command(
-        command=[str(pip_path), "install", "--no-cache-dir", "pyinstaller"],
-        success_msg="PyInstaller 安装完成",
-        error_msg="PyInstaller 安装失败",
-        process_name="安装 PyInstaller",
-    )
-
-    run_command(
-        command=[str(pip_path), "install", "--no-cache-dir", "cython"],
-        success_msg="Cython 安装完成",
-        error_msg="Cython 安装失败",
-        process_name="安装 Cython",
-    )
-
-    return dep_success
 
 
 def run_pyinstaller(venv_name: str = VENV_NAME) -> bool:
@@ -310,13 +233,11 @@ def delete_dist_project_folder():
 # ==========================================================
 
 
-def build_whl(venv_name):
-    pip_path = get_venv_path("pip", venv_name)
-
+def build_whl():
     console.print("📦 开始构建 PyTeXMK 轮子", style="status")
 
     whl_success = run_command(
-        command=[str(pip_path), "python", "-m", "build"],
+        command=["uv", "build"],
         success_msg="PyTeXMK 轮子构建完成",
         error_msg="PyTeXMK 轮子构建失败",
         process_name="构建 PyTeXMK 轮子",
@@ -382,7 +303,7 @@ def main():
     parser = argparse.ArgumentParser(description="Python 项目打包工具")
     parser.add_argument(
         "mode",
-        choices=["pack", "pydmk", "whl"],
+        choices=["pack", "setup", "pydmk", "whl"],
         help="打包模式: pack (打包程序), setup (构建安装包), pydmk (生成pyd文件)",
     )
     parser.add_argument(
@@ -401,16 +322,6 @@ def main():
 
     try:
         console.rule(f"[bold]🚀 {PROJECT_NAME} 打包系统[/]")
-
-        # 预检查步骤
-        pre_check_result, pre_check_performance_data = tracker.execute_with_timing(
-            pre_check, "预检查"
-        )
-        tracker.add_record(pre_check_performance_data)
-
-        if not pre_check_result:
-            console.rule("[bold red]❌ 预检查失败，打包终止！[/]")
-            sys.exit(1)
 
         steps = []
         if not args.clean and args.mode != "setup":

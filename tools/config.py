@@ -42,7 +42,6 @@ ENTRY_POINT = SRCPYD_DIR / "__main__.py"
 CONFIG_DIR = SRCPYD_DIR / "config"
 DATA_DIR = SRCPYD_DIR / "data"
 ICON_FILE = DATA_DIR / "logo.ico"
-REQUIREMENTS = "requirements.txt"
-VENV_NAME = "venv"
+VENV_NAME = ".venv"
 LANG_EN_DIR = SRC_DIR / "locale" / "en"
 sys.path.append(str(ROOT_DIR))  # 关键路径设置
