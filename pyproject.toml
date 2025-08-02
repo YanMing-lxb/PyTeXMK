@@ -43,7 +43,9 @@ classifiers = [
 pytexmk = "pytexmk:main"
 
 [[tool.uv.index]]
+name = "pypi"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
+publish-url = "https://pypi.org/project/pytexmk"
 default = true
 
 [dependency-groups]
