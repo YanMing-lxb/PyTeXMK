@@ -10,6 +10,9 @@ html:
 rst:
 	@python ./tools/make.py rst
 
+pydmk:
+	@python ./tools/pydmk.py
+
 whl: clean
 	uv build
 
