@@ -5,7 +5,7 @@ from pathlib import Path
 from config import ROOT_DIR, SRC_DIR, SRCPYD_DIR
 
 # 导入工具函数和配置
-from utils import PerformanceTracker, console, get_venv_path, run_command
+from utils import PerformanceTracker, console, run_command
 
 # 获取当前 Python 版本号
 python_version = f"{sys.version_info.major}{sys.version_info.minor}"
@@ -42,9 +42,8 @@ def should_exclude(file_path: Path, exclude_files: list) -> bool:
 def encrypt_py_to_pyd(py_file: Path) -> bool:
     """使用 Cython 加密单个 .py 文件为 .pyd"""
     try:
-        cythonize_path = str(get_venv_path("cythonize"))
         # 使用 cythonize 命令编译 py 文件为 pyd
-        command = [cythonize_path, "-3", "-i", "-j", "8", str(py_file)]
+        command = ["cythonize", "-3", "-i", "-j", "8", str(py_file)]
         success = run_command(
             command=command,
             success_msg=f"加密成功: {py_file.name}",
