@@ -74,11 +74,21 @@ def upload():
     tag_name = f"v{version}"
 
     # 创建标签
-    run_command(["git", "tag", tag_name])
+    run_command(
+        command=["git", "tag", tag_name],
+        success_msg=f"标签 {tag_name} 创建成功",
+        error_msg=f"标签 {tag_name} 创建失败",
+        process_name="创建标签",
+    )
     console.log(f"创建标签: {tag_name}")
 
     # 推送标签
-    run_command(["git", "push", "origin", tag_name])
+    run_command(
+        command=["git", "push", "origin", tag_name],
+        success_msg=f"标签 {tag_name} 推送成功",
+        error_msg=f"标签 {tag_name} 推送失败",
+        process_name="推送标签",
+    )
     console.log(f"推送标签: {tag_name}")
 
     console.log("成功上传标签和推送到远程仓库，发布到 github")
@@ -89,7 +99,12 @@ def html():
     readme_html = Path("README.html")
     target_dir = Path("src/pytexmk/data")
 
-    run_command(["pandoc", str(readme_md), "-o", str(readme_html)])
+    run_command(
+        command=["pandoc", str(readme_md), "-o", str(readme_html)],
+        success_msg="README.html 生成成功",
+        error_msg="README.html 生成失败",
+        process_name="生成 README.html",
+    )
 
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
