@@ -12,16 +12,20 @@ jobs:
     steps:
     - name: Checkout source  # 检出源代码的步骤
       uses: actions/checkout@v4  # 使用actions/checkout动作来检出代码
-
-    - name: Set up 🐍 Python  # 设置Python环境的步骤
-      uses: actions/setup-python@v5  # 使用actions/setup-python动作来设置Python环境
+    
+    - name: 安装 uv
+      uses: astral-sh/setup-uv@v5
+    
+    - name: "安装 Python"
+      uses: actions/setup-python@v5
       with:
-        python-version: "3.x"  # 指定Python版本为3.x
+        python-version-file: "pyproject.toml"
+    
+    - name: 安装项目
+      run: uv sync --locked --all-extras --dev
 
     - name: Build 📦 source and wheel  # 构建源代码和wheel包的步骤
-      run: |
-        python3 -m pip install --upgrade build twine rich  # 安装构建和上传所需的工具
-        python3 -m build  # 构建源代码和wheel包
+      run: uv build
 
     - name: Store the distribution packages  # 存储构建好的分发包的步骤
       uses: actions/upload-artifact@v4  # 使用actions/upload-artifact动作来上传构建好的包
@@ -30,7 +34,6 @@ jobs:
         path: |
           dist/
           CHANGELOG.md
-
 
   publish-to-pypi:
     name: Publish 🐍 PyTeXMK 📦 to PyPI  # 定义发布到PyPI作业的名称
@@ -49,15 +52,14 @@ jobs:
       uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
-        path: dist/  # 指定下载到的路径
     - name: List dist directory contents  # 列出dist目录内容的调试步骤
-      run: ls -R dist/
+      run: ls -R
 
     - name: Publish 📦 to PyPI  # 发布分发包到PyPI的步骤
       uses: pypa/gh-action-pypi-publish@release/v1  # 使用pypa/gh-action-pypi-publish动作来发布包
       with:
         repository-url: https://upload.pypi.org/legacy/  # 确保使用正确的PyPI上传URL
-        packages-dir: dist/dist/
+        packages-dir: dist/
   
   publish-to-github-release:
     name: Publish 🐍 PyTeXMK 📦 to GitHub Release  # 定义发布到GitHub Release作业的名称
