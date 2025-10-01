@@ -789,7 +789,7 @@ class MainFileOperation(object):
         draft_run : bool
             是否启用草稿模式。如果为 `True`，则启用草稿模式；否则跳过处理。
         draft_judgement : bool
-            是否在 `\documentclass` 命令中添加或移除 "draft" 选项。如果为 `True`，则添加 "draft"；否则移除 "draft".
+            是否在 `\\documentclass` 命令中添加或移除 "draft" 选项。如果为 `True`，则添加 "draft"；否则移除 "draft".
 
         """
         if not draft_run:
