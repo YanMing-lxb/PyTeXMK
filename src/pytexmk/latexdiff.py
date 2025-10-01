@@ -16,7 +16,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2024-08-02 10:44:16 +0800
-LastEditTime : 2025-05-15 19:02:46 +0800
+LastEditTime : 2025-10-01 11:17:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff.py
 Description  : 
@@ -85,7 +85,7 @@ class LaTeXDiff_Aux:
         str: 压平后的文件名称.
          
         行为逻辑:
-        1. 定义两个正则表达式来匹配 \input 和 \include 命令.
+        1. 定义两个正则表达式来匹配 \\input 和 \\include 命令.
         2. 打开输出文件并将 sys.stdout 重定向到该文件.
         3. 递归地读取主 LaTeX 文件及其引用的所有子文件,并将内容写入输出文件.
         4. 恢复 sys.stdout 并返回压平后的文件名称.
@@ -100,7 +100,7 @@ class LaTeXDiff_Aux:
              
             行为逻辑:
             1. 检查文件是否存在.
-            2. 读取文件内容,匹配 \input 和 \include 命令.
+            2. 读取文件内容,匹配 \\input 和 \\include 命令.
             3. 对于匹配到的命令,递归调用自身处理引用的子文件.
             4. 将未匹配到的行写入 sys.stdout.
             """

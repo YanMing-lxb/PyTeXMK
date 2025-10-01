@@ -470,13 +470,13 @@ class MainFileOperation(object):
     # 定义 tex 文件 \documentclass 和 \begin{document} 检索函数
     # --------------------------------------------------------------------------------
     def find_tex_commands(self, tex_files_in_root: list) -> list:
-        """给定的 tex 文件列表中查找包含特定命令（\documentclass 和 \begin{document}）的主 tex 文件
+        """给定的 tex 文件列表中查找包含特定命令（\\documentclass 和 \\begin{document}）的主 tex 文件
 
         行为逻辑说明:
         - **初始化主文件列表**：创建一个空列表 `main_tex_files` 用于存储找到的主 tex 文件名。
         - **遍历文件名列表**：对于传入的每个文件名，执行以下操作：
             - **打开文件**：尝试使用 `Path` 对象打开文件（文件名后缀为 `.tex`），并设置编码为 `utf-8`。
-            - **检查主文件特征命令**：读取文件的前 200 行，跳过以 `%` 开头的注释行和空行。如果在这些行中找到 `\documentclass` 或 `\begin{document}` 命令，则认为该文件是主文件，并将其文件名添加到 `main_tex_files` 列表中，同时记录日志信息。
+            - **检查主文件特征命令**：读取文件的前 200 行，跳过以 `%` 开头的注释行和空行。如果在这些行中找到 `\\documentclass` 或 `\\begin{document}` 命令，则认为该文件是主文件，并将其文件名添加到 `main_tex_files` 列表中，同时记录日志信息。
         - **异常处理**：如果文件打开或读取过程中发生异常，捕获异常并记录错误信息，包括文件名和错误描述。
         - **记录主文件数量**：遍历完成后，检查 `main_tex_files` 列表是否为空。
             - 如果不为空，记录找到的主文件数量。
@@ -773,10 +773,10 @@ class MainFileOperation(object):
         """更新 LaTeX 文档的草稿模式
 
         - 构建 LaTeX 文件的完整路径。
-        - 定义正则表达式模式以匹配 `\documentclass[args1, args2, ...]{class}` 命令。
-        - 根据 `draft_judgement` 的值，决定是在匹配到的 `\documentclass` 命令中添加还是移除 "draft" 选项。
+        - 定义正则表达式模式以匹配 `\\documentclass[args1, args2, ...]{class}` 命令。
+        - 根据 `draft_judgement` 的值，决定是在匹配到的 `\\documentclass` 命令中添加还是移除 "draft" 选项。
         - 读取 LaTeX 文件的内容，如果文件不存在则记录错误信息。
-        - 使用定义的正则表达式模式替换文件内容中的 `\documentclass` 命令，根据 `draft_judgement` 的值判断是否添加或移除 "draft" 选项。
+        - 使用定义的正则表达式模式替换文件内容中的 `\\documentclass` 命令，根据 `draft_judgement` 的值判断是否添加或移除 "draft" 选项。
         - 如果文件内容被成功修改，则记录相关信息，并在启用草稿模式时记录文件大小。
         - 如果没有匹配到内容，则记录文件未修改的信息。
         - 如果在读取或写入文件时出现权限错误，则记录错误信息。
