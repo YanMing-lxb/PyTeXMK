@@ -486,14 +486,43 @@ error_aux_file_re = re.compile(r"^(.*)---while reading file (.*)$", re.MULTILINE
 
 
 class BibTeXLogParser:
-    def __init__(self, root_file: str = None):
+    """
+    BibTeX 日志解析器类
+
+    用于解析 BibTeX 编译器生成的日志文件（.blg 文件），提取其中的错误和警告信息。
+    """
+
+    def __init__(self, root_file: Optional[str] = None) -> None:
+        """
+        初始化 BibTeX 日志解析器
+
+        Parameters
+        ----------
+        root_file : Optional[str], optional
+            根 TeX 文件路径，默认为 None
+        """
         self.build_log: List[LogEntry] = []
         self.root_file: str = root_file or ""
         self.bib_file_stack: List[str] = [self.root_file]
         self.current_result: Optional[LogEntry] = None
-        self._resolved_paths = {}  # 缓存已解析的文件路径
+        self._resolved_paths: Dict[str, str] = {}  # 缓存已解析的文件路径
 
-    def parse(self, log: str, root_file: str = None) -> List[LogEntry]:
+    def parse(self, log: str, root_file: Optional[str] = None) -> List[LogEntry]:
+        """
+        解析 BibTeX 日志内容
+
+        Parameters
+        ----------
+        log : str
+            BibTeX 日志内容
+        root_file : Optional[str], optional
+            根 TeX 文件路径，默认为 None
+
+        Returns
+        -------
+        List[LogEntry]
+            解析后的日志条目列表
+        """
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -517,8 +546,10 @@ class BibTeXLogParser:
         logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
         return self.build_log
 
-    def reset_state(self):
-        """重置解析状态"""
+    def reset_state(self) -> None:
+        """
+        重置解析状态
+        """
         self.current_result = {
             "type": LogType.INFO,
             "file": "",
@@ -526,7 +557,17 @@ class BibTeXLogParser:
             "text": "",
         }
 
-    def parse_line(self, line: str, exclude_regexp: list):
+    def parse_line(self, line: str, exclude_regexp: List[Any]) -> None:
+        """
+        解析单行日志内容
+
+        Parameters
+        ----------
+        line : str
+            日志行内容
+        exclude_regexp : List[Any]
+            需要排除的日志条目的正则表达式列表
+        """
         line = line.strip("\x00")  # 去除多余空字符
 
         # 单行警告
@@ -534,7 +575,7 @@ class BibTeXLogParser:
         if match:
             key_location = self.find_key_location(match.group(2))
             if key_location:
-                self.add_log_entry(
+                self._add_log_entry(
                     LogType.WARNING,
                     key_location.file,
                     key_location.line,
@@ -547,7 +588,7 @@ class BibTeXLogParser:
         match = multi_line_bibtex_warning_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.WARNING,
                 filename,
                 int(match.group(2)),
@@ -560,7 +601,7 @@ class BibTeXLogParser:
         match = multi_line_bibtex_error_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.ERROR,
                 filename,
                 int(match.group(2)),
@@ -572,7 +613,7 @@ class BibTeXLogParser:
         # 跨文档引用错误
         match = bad_cross_ref_bibtex_re.match(line)
         if match:
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.ERROR, self.root_file, 1, match.group(1), exclude_regexp
             )
             return
@@ -581,7 +622,7 @@ class BibTeXLogParser:
         match = multi_line_macro_bibtex_error_re.match(line)
         if match:
             filename = self.resolve_bib_file(match.group(3))
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.ERROR,
                 filename,
                 int(match.group(2)),
@@ -594,7 +635,7 @@ class BibTeXLogParser:
         match = error_aux_file_re.match(line)
         if match:
             filename = self.resolve_aux_file(match.group(2))
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.ERROR, filename, 1, match.group(1), exclude_regexp
             )
             return
@@ -605,7 +646,7 @@ class BibTeXLogParser:
             filename = (
                 self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
             )
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.WARNING,
                 filename,
                 1,
@@ -615,7 +656,19 @@ class BibTeXLogParser:
             return
 
     def resolve_bib_file(self, filename: str) -> str:
-        """解析相对路径为绝对路径"""
+        """
+        解析相对路径为绝对路径
+
+        Parameters
+        ----------
+        filename : str
+            相对路径的文件名
+
+        Returns
+        -------
+        str
+            解析后的绝对路径
+        """
         if not filename:
             return self.root_file
 
@@ -632,36 +685,98 @@ class BibTeXLogParser:
         return resolved
 
     def resolve_aux_file(self, filename: str) -> str:
-        """解析 aux 文件对应 tex 文件"""
+        """
+        解析 aux 文件对应 tex 文件
+
+        Parameters
+        ----------
+        filename : str
+            aux 文件名
+
+        Returns
+        -------
+        str
+            对应的 tex 文件名
+        """
         filename = filename.replace(".aux", ".tex")
         # 这里应该实现更复杂的查找逻辑
         return filename
 
-    def add_log_entry(
+    def _add_log_entry(
         self,
         log_type: LogType,
         file: str,
         line: int,
         message: str,
-        exclude_patterns: list,
-    ):
-        """添加一条日志条目，若匹配排除规则则忽略"""
+        exclude_patterns: List[Any],
+    ) -> None:
+        """
+        添加一条日志条目，若匹配排除规则则忽略
+
+        Parameters
+        ----------
+        log_type : LogType
+            日志类型（错误或警告）
+        file : str
+            文件路径
+        line : int
+            行号
+        message : str
+            日志消息内容
+        exclude_patterns : List[Any]
+            需要排除的日志条目的正则表达式列表
+        """
         if self._should_exclude(message, exclude_patterns):
             return
 
         entry = {"type": log_type, "file": file, "line": line, "text": message}
         self.build_log.append(entry)
 
-    def _should_exclude(self, text: str, exclude_patterns: list) -> bool:
-        """检查是否应该忽略该日志条目"""
+    def _should_exclude(self, text: str, exclude_patterns: List[Any]) -> bool:
+        """
+        检查是否应该忽略该日志条目
+
+        Parameters
+        ----------
+        text : str
+            日志消息文本
+        exclude_patterns : List[Any]
+            需要排除的日志条目的正则表达式列表
+
+        Returns
+        -------
+        bool
+            如果应该排除返回 True，否则返回 False
+        """
         return any(pattern.search(text) for pattern in exclude_patterns)
 
-    def show_log(self, use_logger=True):
+    def show_log(self, use_logger: bool = True) -> None:
+        """
+        显示解析后的日志
+
+        Parameters
+        ----------
+        use_logger : bool, optional
+            是否使用 logger 输出，默认为 True
+        """
         sorted_logs = sorted(self.build_log, key=lambda x: x["type"])
         errors = [e for e in sorted_logs if e["type"] == LogType.ERROR]
         warnings = [e for e in sorted_logs if e["type"] == LogType.WARNING]
 
-        def format_message(e: dict):
+        def format_message(e: Dict[str, Any]) -> str:
+            """
+            格式化日志消息
+
+            Parameters
+            ----------
+            e : Dict[str, Any]
+                日志条目
+
+            Returns
+            -------
+            str
+                格式化后的日志消息
+            """
             file_path = Path(e["file"])
             return f"{file_path.name}:{e['line']} --> {e['text']}"
 
@@ -677,12 +792,16 @@ class BibTeXLogParser:
         if not (errors or warnings):
             logger.info(_("未发现错误或警告"))
 
-    def bibtex_logparser_cli(self, auxdir: str, project_name: str):
+    def bibtex_logparser_cli(self, auxdir: str, project_name: str) -> None:
         """
         命令行接口：解析 BibTeX/Biber 编译日志并输出结果
 
-        :param auxdir: 辅助文件所在目录
-        :param project_name: LaTeX 项目的主文件名（不带扩展名）
+        Parameters
+        ----------
+        auxdir : str
+            辅助文件所在目录
+        project_name : str
+            LaTeX 项目的主文件名（不带扩展名）
         """
         # 构建日志文件路径
         log_path = Path(auxdir) / f"{project_name}.blg"
@@ -771,7 +890,7 @@ class BiberLogParser(BibTeXLogParser):
         if error_match:
             line_number = int(error_match.group(1))
             file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.ERROR, file, line_number, error_match.group(2), exclude_regexp
             )
             return
@@ -780,7 +899,7 @@ class BiberLogParser(BibTeXLogParser):
         missing_match = biber_missing_entry_re.match(line)
         if missing_match:
             file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
-            self.add_log_entry(
+            self._add_log_entry(
                 LogType.WARNING, file, 1, missing_match.group(1), exclude_regexp
             )
             return
@@ -791,7 +910,7 @@ class BiberLogParser(BibTeXLogParser):
             key = warning_match.group(2)
             location = self.find_key_location(key)
             if location:
-                self.add_log_entry(
+                self._add_log_entry(
                     LogType.WARNING,
                     location["file"],
                     location["line"],
