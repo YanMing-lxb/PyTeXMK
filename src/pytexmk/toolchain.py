@@ -80,7 +80,9 @@ class ToolchainBase(ABC):
         self.available = available
         self.version = version
         if available:
-            logger.debug(_("检测到工具 %(name)s: %(version)s") % {"name": self.name, "version": version or _("未知版本")})
+            logger.debug(
+                _("检测到工具 %(name)s: %(version)s") % {"name": self.name, "version": version or _("未知版本")}
+            )
         else:
             logger.debug(_("未检测到工具 %(name)s") % {"name": self.name})
         return available
@@ -486,7 +488,9 @@ class ToolchainManager:
             engine = self.engines[eng_name]
             if engine.available:
                 if not first_choice:
-                    console.print(_("[yellow]警告: 首选引擎不可用，降级使用 %(engine)s[/yellow]") % {"engine": eng_name})
+                    console.print(
+                        _("[yellow]警告: 首选引擎不可用，降级使用 %(engine)s[/yellow]") % {"engine": eng_name}
+                    )
                 return engine
             first_choice = False
 

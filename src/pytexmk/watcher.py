@@ -256,7 +256,10 @@ class PvcMode:
             bool: 编译是否成功
         """
         if changed_file:
-            console.print(_("[bold cyan]检测到文件变更: %(filename)s，开始重新编译...[/bold cyan]") % {"filename": changed_file.name})
+            console.print(
+                _("[bold cyan]检测到文件变更: %(filename)s，开始重新编译...[/bold cyan]")
+                % {"filename": changed_file.name}
+            )
         else:
             console.print(_("[bold cyan]开始首次编译...[/bold cyan]"))
 
@@ -359,7 +362,9 @@ class PvcMode:
         setup_signal_handlers()
 
         console.print("\n" + "=" * 78, style="blue bold")
-        console.print(_("[bold blue on white]| PyTeXMK PVC 模式（预览持续模式） |[/bold blue on white]"), justify="center")
+        console.print(
+            _("[bold blue on white]| PyTeXMK PVC 模式（预览持续模式） |[/bold blue on white]"), justify="center"
+        )
         console.print("=" * 78 + "\n", style="blue bold")
 
         callback = self.compile_callback or self._default_compile_callback

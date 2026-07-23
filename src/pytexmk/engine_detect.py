@@ -396,7 +396,10 @@ def select_engine(
                         fallback_order = ["xelatex", "lualatex"]
                 for fb in fallback_order:
                     if fb != selected and toolchain_manager.engines[fb].available:
-                        logger.warning(_("首选引擎 %(selected)s 不可用，降级使用 %(fallback)s") % {"selected": selected, "fallback": fb})
+                        logger.warning(
+                            _("首选引擎 %(selected)s 不可用，降级使用 %(fallback)s")
+                            % {"selected": selected, "fallback": fb}
+                        )
                         reason_parts.append(f"（首选 {selected} 不可用，降级为 {fb}）")
                         final_engine = fb
                         break
@@ -463,7 +466,9 @@ def select_bib_tool(
                 if not toolchain_manager.bib_tools[selected].available:
                     other = "biber" if selected == "bibtex" else "bibtex"
                     if toolchain_manager.bib_tools[other].available:
-                        logger.warning(_("%(selected)s 不可用，尝试使用 %(other)s") % {"selected": selected, "other": other})
+                        logger.warning(
+                            _("%(selected)s 不可用，尝试使用 %(other)s") % {"selected": selected, "other": other}
+                        )
                         reason_parts.append(f"（{selected} 不可用，回退为 {other}）")
                         selected = other
         except Exception as e:
