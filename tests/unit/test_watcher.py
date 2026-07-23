@@ -236,13 +236,22 @@ class TestFileChangeHandler:
 
 class TestOpenPdfPreview:
     @patch("pytexmk.watcher.sys.platform", "win32")
-    @patch("pytexmk.watcher.os.startfile")
-    def test_windows_open_pdf(self, mock_startfile, tmp_path):
-        pdf_file = tmp_path / "test.pdf"
-        pdf_file.write_text("%PDF-1.4", encoding="utf-8")
+    def test_windows_open_pdf(self, tmp_path):
+        import pytexmk.watcher as watcher_mod
 
-        open_pdf_preview(pdf_file)
-        mock_startfile.assert_called_once_with(str(pdf_file))
+        mock_startfile = MagicMock()
+        original_startfile = getattr(watcher_mod.os, "startfile", None)
+        watcher_mod.os.startfile = mock_startfile
+        try:
+            pdf_file = tmp_path / "test.pdf"
+            pdf_file.write_text("%PDF-1.4", encoding="utf-8")
+            open_pdf_preview(pdf_file)
+            mock_startfile.assert_called_once_with(str(pdf_file))
+        finally:
+            if original_startfile is not None:
+                watcher_mod.os.startfile = original_startfile
+            else:
+                delattr(watcher_mod.os, "startfile")
 
     @patch("pytexmk.watcher.sys.platform", "darwin")
     @patch("pytexmk.watcher.subprocess.Popen")
