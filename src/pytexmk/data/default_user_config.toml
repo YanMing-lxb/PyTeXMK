@@ -1,6 +1,7 @@
 default_file = "main" # 主文件名
 compiled_program = "XeLaTeX" # 编译器
 non_quiet = false # 非静默模式
+quiet_mode = true # 静默模式（与 non_quiet 相反，保留向后兼容）
 project_config_auto_init = true # 是否自动创建项目配置文件
 
 [pdf]
@@ -13,13 +14,52 @@ outdir = "./Build/" # 输出文件夹
 
 # 索引配置
 [index]
+default_tool = "auto"         # auto/makeindex/xindy
 index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
 input_suffix = ".nlo"  # 输入文件后缀
 output_suffix = ".nls"  # 输出文件后缀
 # glossaries 宏包和 nomencl 宏包无需配置 [index]
 
-# LaTeX差异配置
+# LaTeX差异配置（旧版，保留向后兼容）
 [latexdiff]
 old_tex_file = "old_file"  # 旧TeX文件
 new_tex_file = "new_file"  # 新TeX文件
 diff_tex_file = "LaTeXDiff"  # 差异TeX文件
+
+# 编译引擎配置
+[engine]
+default = "xelatex"           # 默认引擎: xelatex/lualatex/pdflatex
+auto_detect = true            # 是否启用智能引擎自动判定
+fallback_order = ["xelatex", "lualatex", "pdflatex"]  # 降级优先级
+timeout = 300                 # 编译超时秒数
+
+# 参考文献配置
+[bib]
+default_tool = "auto"         # auto/bibtex/biber
+
+# PVC 模式配置
+[pvc]
+enabled = false               # 是否默认开启 PVC 模式
+debounce = 1.0                # 文件变更防抖秒数
+auto_open_preview = false     # 编译成功后自动打开预览
+watch_extensions = [".tex", ".bib", ".bst", ".cls", ".sty", ".bst", ".idx", ".ist", ".png", ".jpg", ".pdf", ".eps"]
+exclude_dirs = ["build", ".git", "__pycache__", ".venv", "node_modules"]
+
+# 智能补编配置
+[compilation]
+default_run_count = 2         # 默认固定编译次数
+max_extra_passes = 2          # 智能补编最大次数
+shell_escape = true           # 是否启用 -shell-escape
+synctex = true                # 是否启用 SyncTeX
+quiet = true                  # 是否静默编译（batchmode）
+
+# 输出配置（新版，推荐使用）
+[output]
+outdir = "build"              # PDF 输出目录
+auxdir = "build"              # 辅助文件目录
+
+# LaTeXDiff 配置（新版）
+[diff]
+flatten = false               # 是否默认压平子文件
+fast = false                  # 是否使用 latexdiff --fast 模式
+auto_compile = true           # 生成 diff 后是否自动编译
