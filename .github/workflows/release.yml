@@ -6,8 +6,9 @@
 #   2. 手动触发（workflow_dispatch）- 默认 dry-run 模式
 #
 # 执行内容：
-#   - 多平台构建 wheel + PyInstaller 可执行文件
 #   - 代码规范检查 + 单元测试
+#   - 单平台构建 wheel/sdist（纯 Python 包，跨平台通用）
+#   - 多平台构建 PyInstaller 可执行文件（Linux / Windows / macOS）
 #   - Dry-run 模式（默认）：仅验证构建，不发布
 #   - 正式发布模式：推送到 PyPI + 创建 GitHub Release
 #
@@ -39,10 +40,77 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Job 1: 多平台构建与测试
+  # Job 1: 代码规范检查 + 单元测试（单平台，快速反馈）
   # ---------------------------------------------------------------------------
-  build-packages:
-    name: Build & Test (${{ matrix.os }})
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Ruff format check
+        run: uv run ruff format --check src/ tests/
+
+      - name: Ruff lint check
+        run: uv run ruff check src/ tests/
+
+      - name: Run unit tests
+        run: uv run pytest tests/ -v --tb=short -m "not slow and not requires_latex"
+
+  # ---------------------------------------------------------------------------
+  # Job 2: 构建 wheel & sdist（单平台，纯 Python 包跨平台通用）
+  # ---------------------------------------------------------------------------
+  build-wheel:
+    name: Build Wheel & Sdist
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Build wheel & sdist
+        run: uv build
+
+      - name: Upload wheel & sdist artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: wheel-sdist
+          path: |
+            dist/*.whl
+            dist/*.tar.gz
+          compression-level: 6
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Job 3: 多平台构建 PyInstaller 可执行文件
+  # 每个平台生成 onedir + onefile 两种格式，打包为 zip
+  # ---------------------------------------------------------------------------
+  build-executables:
+    name: Build Executables (${{ matrix.os }})
+    needs: lint-and-test
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -63,20 +131,6 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      # ---- 完整测试链路 ----
-      - name: Ruff format check
-        run: uv run ruff format --check src/ tests/
-
-      - name: Ruff lint check
-        run: uv run ruff check src/ tests/
-
-      - name: Run unit tests
-        run: uv run pytest tests/ -v --tb=short -m "not slow and not requires_latex"
-
-      # ---- 构建 wheel 和 sdist ----
-      - name: Build wheel & sdist
-        run: uv build
-
       # ---- 构建 PyInstaller 可执行文件（onedir + onefile 两种模式）----
       - name: Build PyInstaller binary
         shell: bash
@@ -95,7 +149,7 @@ jobs:
         shell: bash
         run: echo "version=$(uv run python tools/make.py version)" >> $GITHUB_OUTPUT
 
-      # ---- 平台特定：重命名产物 ----
+      # ---- 平台特定：重命名产物并打包 ----
       - name: Rename outputs (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -133,14 +187,12 @@ jobs:
             Compress-Archive -Path PyTeXMK -DestinationPath "PyTeXMK_v${{ steps.version.outputs.version }}_win_amd64.zip"
           }
 
-      # ---- 上传构建产物 ----
-      - name: Upload all artifacts
+      # ---- 上传可执行文件产物 ----
+      - name: Upload executable artifacts
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: release-artifacts-${{ matrix.os }}
+          name: exe-${{ matrix.os }}
           path: |
-            dist/*.whl
-            dist/*.tar.gz
             dist/*.zip
             dist/PyTeXMK_v*/
             dist/PyTeXMK_v*.*
@@ -148,13 +200,13 @@ jobs:
           retention-days: 30
 
   # ---------------------------------------------------------------------------
-  # Job 2: 发布到 PyPI（仅在正式发布时执行）
+  # Job 4: 发布到 PyPI（仅在正式发布时执行）
   # 触发条件：!dry_run AND 是 v* tag 推送
   # 需要在 GitHub Settings 中配置 PyPI trusted publishing
   # ---------------------------------------------------------------------------
   publish-pypi:
     name: Publish to PyPI
-    needs: build-packages
+    needs: [build-wheel, build-executables]
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run && startsWith(github.ref, 'refs/tags/') }}
     environment:
@@ -162,11 +214,11 @@ jobs:
       url: https://pypi.org/p/pytexmk
 
     steps:
-      - name: Download all artifacts
+      - name: Download wheel & sdist artifacts
         uses: actions/download-artifact@v8
         with:
-          path: dist
-          merge-multiple: true
+          name: wheel-sdist
+          path: dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -174,12 +226,13 @@ jobs:
           packages-dir: dist/
 
   # ---------------------------------------------------------------------------
-  # Job 3: 创建 GitHub Release（仅在正式发布时执行）
+  # Job 5: 创建 GitHub Release（仅在正式发布时执行）
   # 触发条件：!dry_run AND 是 v* tag 推送
+  # 包含：wheel + sdist + 所有平台可执行文件
   # ---------------------------------------------------------------------------
   publish-github-release:
     name: Create GitHub Release
-    needs: build-packages
+    needs: [build-wheel, build-executables]
     runs-on: ubuntu-latest
     if: ${{ !inputs.dry_run && startsWith(github.ref, 'refs/tags/') }}
 
@@ -221,13 +274,13 @@ jobs:
           prerelease: false
 
   # ---------------------------------------------------------------------------
-  # Job 4: Dry-run 总结（默认执行）
+  # Job 6: Dry-run 总结（默认执行）
   # 触发条件：dry_run=true OR 不是 tag 推送
   # 仅列出构建产物，不执行任何发布操作
   # ---------------------------------------------------------------------------
   dry-run-summary:
     name: Dry Run Summary
-    needs: build-packages
+    needs: [build-wheel, build-executables]
     runs-on: ubuntu-latest
     if: ${{ inputs.dry_run || !startsWith(github.ref, 'refs/tags/') }}
 
@@ -246,7 +299,7 @@ jobs:
           echo "=== Wheel files ==="
           ls -la test-assets/*.whl || echo "No wheel files found"
           echo ""
-          echo "=== Zip archives ==="
+          echo "=== Zip archives (executables) ==="
           ls -la test-assets/*.zip || echo "No zip archives found"
           echo ""
           echo "=== Source distributions ==="

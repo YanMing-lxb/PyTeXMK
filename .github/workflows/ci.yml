@@ -21,16 +21,11 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Job 1: 多平台代码规范检查 + 单元测试 + 覆盖率
+  # Job 1: 代码规范检查 + 单元测试 + 覆盖率（单平台，快速反馈）
   # ---------------------------------------------------------------------------
   lint-test-coverage:
-    name: Lint, Test & Coverage (${{ matrix.os }}, Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.13']
+    name: Lint, Test & Coverage
+    runs-on: ubuntu-latest
 
     steps:
       # ---- 检出代码 ----
@@ -41,7 +36,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v9.0.0
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.13'
           enable-cache: true
           cache-dependency-glob: "**/uv.lock"
 
@@ -64,19 +59,40 @@ jobs:
         run: uv run ruff check src/ tests/
 
       # ---- 单元测试 + 覆盖率报告 ----
-      # 运行全部单元测试，生成覆盖率报告（测试使用真实环境，无 mock 跳过）
+      # 运行全部的单元测试，生成覆盖率报告（测试使用真实环境，无 mock 跳过）
       - name: Run unit tests with coverage
         run: uv run pytest tests/ -v --tb=short --cov=pytexmk --cov-report=term-missing --cov-report=xml -m "not slow and not requires_latex"
 
       # ---- 上传覆盖率报告到 Codecov（如配置了 token）----
       - name: Upload coverage to Codecov
-        if: runner.os == 'Linux'
         uses: codecov/codecov-action@v5.5.5
         with:
           files: ./coverage.xml
           flags: unittests
           fail_ci_if_error: false
         continue-on-error: true
+
+  # ---------------------------------------------------------------------------
+  # Job 2: 构建 wheel 包验证（单平台，纯 Python 包跨平台通用）
+  # ---------------------------------------------------------------------------
+  build-wheel:
+    name: Build & Verify Wheel
+    needs: lint-test-coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: '3.13'
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
 
       # ---- 构建 wheel 包验证 ----
       # 验证包可以正常构建，产物结构完整
@@ -95,13 +111,13 @@ jobs:
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: wheel-${{ matrix.os }}
+          name: wheel
           path: dist/*.whl
           compression-level: 6
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Job 2: PyInstaller 可执行文件构建验证（干跑模式）
+  # Job 3: PyInstaller 可执行文件构建验证（多平台，干跑模式）
   # ---------------------------------------------------------------------------
   build-exe-verify:
     name: Build Executable Verify (${{ matrix.os }})
@@ -163,7 +179,7 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Job 3: 安全漏洞扫描
+  # Job 4: 安全漏洞扫描
   # ---------------------------------------------------------------------------
   security-scan:
     name: Security Scan
