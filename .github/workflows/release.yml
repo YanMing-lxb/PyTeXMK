@@ -37,6 +37,10 @@ permissions:
   contents: write
   id-token: write
 
+# 强制使用 Node.js 24 以避免 Node 20 弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ---------------------------------------------------------------------------
   # Job 1: 多平台构建与测试
@@ -58,19 +62,20 @@ jobs:
         with:
           python-version: '3.13'
           enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
 
       # ---- 完整测试链路 ----
       - name: Ruff format check
-        run: uv run python tools/make.py format-check
+        run: uv run ruff format --check src/ tests/
 
       - name: Ruff lint check
-        run: uv run python tools/make.py lint
+        run: uv run ruff check src/ tests/
 
       - name: Run unit tests
-        run: uv run python tools/make.py test
+        run: uv run pytest tests/ -v --tb=short -m "not slow and not requires_latex"
 
       # ---- 构建 wheel 和 sdist ----
       - name: Build wheel & sdist

@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+# 强制使用 Node.js 24 以避免 Node 20 弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   # ---------------------------------------------------------------------------
   # Job 1: 多平台代码规范检查 + 单元测试 + 覆盖率
@@ -43,28 +47,35 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
 
       # ---- 安装项目依赖（含开发依赖）----
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
+
+      # ---- 验证开发依赖已安装 ----
+      - name: Verify dev dependencies
+        run: |
+          uv run ruff --version
+          uv run pytest --version
 
       # ---- 代码格式化检查（Ruff）----
       - name: Ruff format check
-        run: uv run python tools/make.py format-check
+        run: uv run ruff format --check src/ tests/
 
       # ---- 代码规范检查（Ruff lint）----
       - name: Ruff lint check
-        run: uv run python tools/make.py lint
+        run: uv run ruff check src/ tests/
 
       # ---- 单元测试 + 覆盖率报告 ----
       # 运行全部单元测试，生成覆盖率报告（测试使用真实环境，无 mock 跳过）
       - name: Run unit tests with coverage
-        run: uv run python tools/make.py test-cov
+        run: uv run pytest tests/ -v --tb=short --cov=pytexmk --cov-report=term-missing --cov-report=xml -m "not slow and not requires_latex"
 
       # ---- 上传覆盖率报告到 Codecov（如配置了 token）----
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
           flags: unittests
@@ -74,7 +85,7 @@ jobs:
       # ---- 构建 wheel 包验证 ----
       # 验证包可以正常构建，产物结构完整
       - name: Build wheel
-        run: uv run python tools/make.py build
+        run: uv build
 
       # ---- 验证 wheel 包可安装 ----
       - name: Verify wheel installation
@@ -114,9 +125,10 @@ jobs:
         with:
           python-version: '3.13'
           enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
 
       # ---- PyInstaller 构建（仅验证构建流程，不发布）----
       - name: Build PyInstaller binary (dry-run verification)
@@ -171,9 +183,10 @@ jobs:
         with:
           python-version: '3.13'
           enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
 
       # ---- 使用 pip-audit 扫描依赖漏洞 ----
       - name: Scan dependencies for vulnerabilities
