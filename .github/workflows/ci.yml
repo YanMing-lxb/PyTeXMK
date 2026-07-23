@@ -144,27 +144,18 @@ jobs:
 
       # ---- PyInstaller 构建（仅验证构建流程，不发布）----
       - name: Build PyInstaller binary (dry-run verification)
-        shell: bash
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            uv run python tools/build.py --onedir --no-rename
-            uv run python tools/build.py --onefile --no-rename --no-clean
-          else
-            uv run python tools/build.py --onedir --no-rename
-            uv run python tools/build.py --onefile --no-rename --no-clean
-          fi
+        run: uv run python tools/build.py --onedir --no-rename
 
       # ---- 验证可执行文件存在 ----
       - name: Verify executables exist
         shell: bash
         run: |
           ls -la dist/
+          test -d dist/PyTeXMK || (echo "ERROR: PyTeXMK directory not found" && exit 1)
           if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            test -f dist/pytexmk.exe || (echo "ERROR: pytexmk.exe not found" && exit 1)
-            test -d dist/PyTeXMK || (echo "ERROR: PyTeXMK directory not found" && exit 1)
+            test -f dist/PyTeXMK/pytexmk.exe || (echo "ERROR: pytexmk.exe not found inside PyTeXMK/" && exit 1)
           else
-            test -f dist/pytexmk || (echo "ERROR: pytexmk not found" && exit 1)
-            test -d dist/PyTeXMK || (echo "ERROR: PyTeXMK directory not found" && exit 1)
+            test -f dist/PyTeXMK/pytexmk || (echo "ERROR: pytexmk not found inside PyTeXMK/" && exit 1)
           fi
           echo "✅ Executable build verification passed"
 
@@ -172,9 +163,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: exe-verify-${{ matrix.os }}
-          path: |
-            dist/pytexmk*
-            dist/PyTeXMK/
+          path: dist/PyTeXMK/
           compression-level: 6
           retention-days: 7
 

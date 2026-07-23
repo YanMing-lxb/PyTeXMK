@@ -131,17 +131,9 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      # ---- 构建 PyInstaller 可执行文件（onedir + onefile 两种模式）----
+      # ---- 构建 PyInstaller 可执行文件（onedir 模式）----
       - name: Build PyInstaller binary
-        shell: bash
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            uv run python tools/make.py build-exe
-            uv run python tools/make.py build-exe-onefile
-          else
-            uv run python tools/build.py --onedir --no-rename
-            uv run python tools/build.py --onefile --no-rename --no-clean
-          fi
+        run: uv run python tools/build.py --onedir --no-rename
 
       # ---- 获取版本号 ----
       - name: Get version
@@ -154,14 +146,10 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           cd dist
-          chmod +x pytexmk || true
           if [ -d PyTeXMK ]; then
             mv PyTeXMK "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64"
+            zip -r "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64.zip" "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64"
           fi
-          if [ -f pytexmk ]; then
-            mv pytexmk "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64.bin"
-          fi
-          zip -r "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64.zip" "PyTeXMK_v${{ steps.version.outputs.version }}_linux_amd64"
 
       - name: Rename outputs (macOS)
         if: runner.os == 'macOS'
@@ -169,14 +157,10 @@ jobs:
         run: |
           cd dist
           ARCH=$(uname -m)
-          chmod +x pytexmk || true
           if [ -d PyTeXMK ]; then
             mv PyTeXMK "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}"
+            zip -r "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}.zip" "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}"
           fi
-          if [ -f pytexmk ]; then
-            mv pytexmk "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}.bin"
-          fi
-          zip -r "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}.zip" "PyTeXMK_v${{ steps.version.outputs.version }}_macos_${ARCH}"
 
       - name: Rename outputs (Windows)
         if: runner.os == 'Windows'
