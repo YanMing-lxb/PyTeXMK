@@ -201,7 +201,9 @@ class FileChangeHandler(FileSystemEventHandler):
                     self._pending_compile = False
                     self._timer_id += 1
                     current_timer_id = self._timer_id
-                    self._timer = threading.Timer(self.debounce_seconds, self._trigger_compile, args=(current_timer_id,))
+                    self._timer = threading.Timer(
+                        self.debounce_seconds, self._trigger_compile, args=(current_timer_id,)
+                    )
                     self._timer.daemon = True
                     self._timer.start()
 
