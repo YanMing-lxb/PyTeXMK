@@ -17,6 +17,7 @@ dependencies = [
   "toml>=0.10.2",
   "packaging>=24.0",
   "watchdog>=4.0.0",
+  "platformdirs>=3.0.0",
 ]
 readme = "README.md"
 requires-python = ">=3.13"
