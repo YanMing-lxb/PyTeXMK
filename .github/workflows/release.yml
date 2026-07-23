@@ -37,10 +37,6 @@ permissions:
   contents: write
   id-token: write
 
-# 强制使用 Node.js 24 以避免 Node 20 弃用警告
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   # ---------------------------------------------------------------------------
   # Job 1: 多平台构建与测试
@@ -55,10 +51,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v9.0.1
         with:
           python-version: '3.13'
           enable-cache: true
@@ -139,7 +135,7 @@ jobs:
 
       # ---- 上传构建产物 ----
       - name: Upload all artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: release-artifacts-${{ matrix.os }}
           path: |
@@ -167,7 +163,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true
@@ -188,8 +184,11 @@ jobs:
     if: ${{ !inputs.dry_run && startsWith(github.ref, 'refs/tags/') }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-assets
           merge-multiple: true
@@ -212,7 +211,7 @@ jobs:
           cat release_notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3.0.0
         with:
           name: PyTeXMK ${{ steps.changelog.outputs.tag }}
           body_path: release_notes.md
@@ -234,7 +233,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: test-assets
           merge-multiple: true

@@ -19,10 +19,6 @@ on:
 permissions:
   contents: read
 
-# 强制使用 Node.js 24 以避免 Node 20 弃用警告
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   # ---------------------------------------------------------------------------
   # Job 1: 多平台代码规范检查 + 单元测试 + 覆盖率
@@ -39,11 +35,11 @@ jobs:
     steps:
       # ---- 检出代码 ----
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # ---- 安装 uv 包管理器 ----
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v9.0.1
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -75,7 +71,7 @@ jobs:
       # ---- 上传覆盖率报告到 Codecov（如配置了 token）----
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux'
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v5.5.5
         with:
           files: ./coverage.xml
           flags: unittests
@@ -97,7 +93,7 @@ jobs:
 
       # ---- 上传构建产物（保留7天供调试）----
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: wheel-${{ matrix.os }}
           path: dist/*.whl
@@ -118,10 +114,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v9.0.1
         with:
           python-version: '3.13'
           enable-cache: true
@@ -157,7 +153,7 @@ jobs:
           echo "✅ Executable build verification passed"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: exe-verify-${{ matrix.os }}
           path: |
@@ -176,10 +172,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v9.0.1
         with:
           python-version: '3.13'
           enable-cache: true
