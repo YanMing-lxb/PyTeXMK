@@ -1,0 +1,183 @@
+# =============================================================================
+# PyTeXMK CI Workflow
+# =============================================================================
+# 触发条件：push 到 main/master 分支、PR 提交、手动触发
+# 执行内容：代码规范检查 → 单元测试 → 覆盖率报告 → 构建验证
+# 安全策略：本工作流仅执行测试和构建验证，永不触发任何发布/部署行为
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+# 最小权限原则：CI 只需要代码读取权限
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: 多平台代码规范检查 + 单元测试 + 覆盖率
+  # ---------------------------------------------------------------------------
+  lint-test-coverage:
+    name: Lint, Test & Coverage (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.13']
+
+    steps:
+      # ---- 检出代码 ----
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---- 安装 uv 包管理器 ----
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      # ---- 安装项目依赖（含开发依赖）----
+      - name: Install dependencies
+        run: uv sync --dev
+
+      # ---- 代码格式化检查（Ruff）----
+      - name: Ruff format check
+        run: uv run python tools/make.py format-check
+
+      # ---- 代码规范检查（Ruff lint）----
+      - name: Ruff lint check
+        run: uv run python tools/make.py lint
+
+      # ---- 单元测试 + 覆盖率报告 ----
+      # 运行全部单元测试，生成覆盖率报告（测试使用真实环境，无 mock 跳过）
+      - name: Run unit tests with coverage
+        run: uv run python tools/make.py test-cov
+
+      # ---- 上传覆盖率报告到 Codecov（如配置了 token）----
+      - name: Upload coverage to Codecov
+        if: runner.os == 'Linux'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      # ---- 构建 wheel 包验证 ----
+      # 验证包可以正常构建，产物结构完整
+      - name: Build wheel
+        run: uv run python tools/make.py build
+
+      # ---- 验证 wheel 包可安装 ----
+      - name: Verify wheel installation
+        shell: bash
+        run: |
+          uv pip install --force-reinstall dist/pytexmk-*.whl
+          uv run pytexmk --version
+          uv run pytexmk --help
+
+      # ---- 上传构建产物（保留7天供调试）----
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.os }}
+          path: dist/*.whl
+          compression-level: 6
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Job 2: PyInstaller 可执行文件构建验证（干跑模式）
+  # ---------------------------------------------------------------------------
+  build-exe-verify:
+    name: Build Executable Verify (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: lint-test-coverage
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: '3.13'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      # ---- PyInstaller 构建（仅验证构建流程，不发布）----
+      - name: Build PyInstaller binary (dry-run verification)
+        shell: bash
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            uv run python tools/build.py --onedir --no-rename
+            uv run python tools/build.py --onefile --no-rename --no-clean
+          else
+            uv run python tools/build.py --onedir --no-rename
+            uv run python tools/build.py --onefile --no-rename --no-clean
+          fi
+
+      # ---- 验证可执行文件存在 ----
+      - name: Verify executables exist
+        shell: bash
+        run: |
+          ls -la dist/
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            test -f dist/pytexmk.exe || (echo "ERROR: pytexmk.exe not found" && exit 1)
+            test -d dist/PyTeXMK || (echo "ERROR: PyTeXMK directory not found" && exit 1)
+          else
+            test -f dist/pytexmk || (echo "ERROR: pytexmk not found" && exit 1)
+            test -d dist/PyTeXMK || (echo "ERROR: PyTeXMK directory not found" && exit 1)
+          fi
+          echo "✅ Executable build verification passed"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: exe-verify-${{ matrix.os }}
+          path: |
+            dist/pytexmk*
+            dist/PyTeXMK/
+          compression-level: 6
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Job 3: 安全漏洞扫描
+  # ---------------------------------------------------------------------------
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint-test-coverage
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          python-version: '3.13'
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --dev
+
+      # ---- 使用 pip-audit 扫描依赖漏洞 ----
+      - name: Scan dependencies for vulnerabilities
+        run: |
+          uv pip install pip-audit
+          uv run pip-audit
+        continue-on-error: true

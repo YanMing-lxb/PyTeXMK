@@ -1,0 +1,78 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        感谢您提交 Bug 报告！
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? / 问题描述
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what happened!
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior / 预期行为
+      description: What did you expect to happen?
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce / 复现步骤
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Run command '....'
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System / 操作系统
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: tex-distro
+    attributes:
+      label: TeX Distribution / TeX发行版
+      options:
+        - TeX Live
+        - MiKTeX
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: pytexmk-version
+    attributes:
+      label: PyTeXMK Version / 版本号
+      description: Run `pytexmk -v` to get the version
+      placeholder: e.g. 1.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output / 相关日志
+      description: Please copy and paste any relevant log output.
+      render: shell
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist / 检查清单
+      options:
+        - label: I have searched existing issues to make sure this is not a duplicate / 我已搜索现有issue确认这不是重复问题
+          required: true
+        - label: I have updated to the latest version / 我已更新到最新版本
+          required: true
