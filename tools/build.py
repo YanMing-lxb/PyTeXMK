@@ -44,7 +44,7 @@ def get_exe_suffix() -> str:
     return ".exe" if platform.system() == "Windows" else ""
 
 
-def generate_spec(name: str = "pytexmk") -> Path:
+def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
     hiddenimports = [
         "rich_argparse",
         "watchdog.observers.polling",
@@ -68,6 +68,18 @@ def generate_spec(name: str = "pytexmk") -> Path:
         (str(SRC_PATH / "locale" / "*"), "pytexmk/locale"),
         (str(SRC_PATH / "version.py"), "pytexmk"),
     ]
+
+    collect_block = ""
+    if mode == "onedir":
+        exe_third_arg = "[]"
+        collect_block = """
+coll = COLLECT(
+    exe, a.binaries, a.zipfiles, a.datas,
+    strip=False, upx=True, upx_exclude=[], name='PyTeXMK'
+)
+"""
+    else:
+        exe_third_arg = "a.binaries, a.zipfiles, a.datas,"
 
     spec_content = f"""# -*- mode: python ; coding: utf-8 -*-
 import sys
@@ -101,16 +113,13 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
-    pyz, a.scripts, [],
+    pyz, a.scripts, {exe_third_arg}
     name='{name}', debug=False, bootloader_ignore_signals=False,
     strip=False, upx=True, upx_exclude=[], runtime_tmpdir=None,
     console=True, disable_windowed_traceback=False, argv_emulation=False,
     target_arch=None, codesign_identity=None, entitlements_file=None,
 )
-coll = COLLECT(
-    exe, a.binaries, a.zipfiles, a.datas,
-    strip=False, upx=True, upx_exclude=[], name='PyTeXMK'
-)
+{collect_block}
 """
     spec_path = BUILD_DIR / "temp.spec"
     BUILD_DIR.mkdir(parents=True, exist_ok=True)
@@ -146,9 +155,12 @@ def run_pyinstaller(spec_path: Path) -> bool:
     return result.returncode == 0
 
 
-def copy_additional_files(dist_dir: Path):
+def copy_additional_files(dist_dir: Path, mode: str = "onedir"):
     files_to_copy = ["README.md", "README.en.md", "LICENSE", "CHANGELOG.md"]
-    target_dir = dist_dir / "PyTeXMK"
+    if mode == "onedir":
+        target_dir = dist_dir / "PyTeXMK"
+    else:
+        target_dir = dist_dir
     target_dir.mkdir(parents=True, exist_ok=True)
     for filename in files_to_copy:
         src = PROJECT_ROOT / filename
@@ -157,17 +169,29 @@ def copy_additional_files(dist_dir: Path):
             print(f"Copied: {filename}")
 
 
-def rename_output(version: str) -> Path:
+def rename_output(version: str, mode: str = "onedir") -> Path:
     plat = get_platform_suffix()
-    orig_dir = DIST_DIR / "PyTeXMK"
-    new_name = f"PyTeXMK_v{version}_{plat}"
-    new_dir = DIST_DIR / new_name
-    if orig_dir.exists():
-        if new_dir.exists():
-            shutil.rmtree(new_dir)
-        orig_dir.rename(new_dir)
-        return new_dir
-    return orig_dir
+    exe_suffix = get_exe_suffix()
+    if mode == "onedir":
+        orig_dir = DIST_DIR / "PyTeXMK"
+        new_name = f"PyTeXMK_v{version}_{plat}"
+        new_dir = DIST_DIR / new_name
+        if orig_dir.exists():
+            if new_dir.exists():
+                shutil.rmtree(new_dir)
+            orig_dir.rename(new_dir)
+            return new_dir
+        return orig_dir
+    else:
+        orig_exe = DIST_DIR / f"pytexmk{exe_suffix}"
+        new_name = f"PyTeXMK_v{version}_{plat}{exe_suffix}"
+        new_exe = DIST_DIR / new_name
+        if orig_exe.exists():
+            if new_exe.exists():
+                new_exe.unlink()
+            orig_exe.rename(new_exe)
+            return new_exe
+        return orig_exe
 
 
 def get_dir_size(path: Path) -> int:
@@ -190,10 +214,14 @@ def format_size(size: int) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="PyTeXMK Build Script (PyInstaller)")
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument("--onedir", action="store_true", default=True, help="Build as onedir (directory, default)")
+    mode_group.add_argument("--onefile", action="store_true", help="Build as onefile (single executable)")
     parser.add_argument("--no-rename", action="store_true", help="Don't rename output with version")
     parser.add_argument("--version", action="version", version=f"PyTeXMK Build {get_version()}")
     args = parser.parse_args()
 
+    mode = "onefile" if args.onefile else "onedir"
     version = get_version()
 
     print("=" * 60)
@@ -201,7 +229,7 @@ def main():
     print("=" * 60)
     print(f"Version: {version}")
     print(f"Platform: {platform.system()} {platform.machine()}")
-    print("Mode: onedir")
+    print(f"Mode: {mode}")
     print(f"Python: {sys.executable}")
     print()
 
@@ -211,7 +239,7 @@ def main():
     print()
 
     print("Generating PyInstaller spec...")
-    spec_path = generate_spec()
+    spec_path = generate_spec(mode=mode)
     print(f"Spec generated: {spec_path.relative_to(PROJECT_ROOT)}")
     print()
 
@@ -228,15 +256,18 @@ def main():
 
     print()
     print("Copying additional files...")
-    copy_additional_files(DIST_DIR)
+    copy_additional_files(DIST_DIR, mode=mode)
 
     output_path = None
     if not args.no_rename:
         print()
         print("Renaming output...")
-        output_path = rename_output(version)
+        output_path = rename_output(version, mode=mode)
     else:
-        output_path = DIST_DIR / "PyTeXMK"
+        if mode == "onedir":
+            output_path = DIST_DIR / "PyTeXMK"
+        else:
+            output_path = DIST_DIR / f"pytexmk{get_exe_suffix()}"
 
     print()
     print("=" * 60)
@@ -247,9 +278,12 @@ def main():
     if output_path and output_path.exists():
         size = get_dir_size(output_path)
         rel = output_path.relative_to(PROJECT_ROOT)
-        print(f"Output directory: {rel}/")
-        exe_name = f"pytexmk{get_exe_suffix()}"
-        print(f"Executable: {rel / exe_name}")
+        if mode == "onedir":
+            print(f"Output directory: {rel}/")
+            exe_name = f"pytexmk{get_exe_suffix()}"
+            print(f"Executable: {rel / exe_name}")
+        else:
+            print(f"Executable: {rel}")
         print(f"Size: {format_size(size)}")
     print()
 
