@@ -71,7 +71,7 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
 
     collect_block = ""
     if mode == "onedir":
-        exe_third_arg = "[]"
+        exe_third_arg = "[],"
         collect_block = """
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,
