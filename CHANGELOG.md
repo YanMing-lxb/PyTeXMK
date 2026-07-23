@@ -16,7 +16,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2024-09-01 19:38:56 +0800
- * LastEditTime : 2025-05-15 19:26:13 +0800
+ * LastEditTime : 2025-05-07 10:53:05 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -25,45 +25,48 @@
 
 # CHANGELOG
 
-<!-- ### 新增功能
-- 添加了对新文件格式的支持。
-- 增加了自动保存功能，防止数据丢失。
+## v1.1.0
 
-### 改进
-- 优化了代码结构，提升了运行效率。
-- 改进了用户界面，使其更加直观易用。
+### 🚀 新增功能
 
-### 修复
-- 修复了在特定情况下程序崩溃的问题。
-- 修正了若干已知的bug。
+- **PVC 实时监听模式**：支持 `-pvc` 参数，类似 `latexmk -pvc`，文件变更自动触发重新编译（使用 watchdog）
+- **xindy 索引工具支持**：新增 xindy 工具链适配，当 makeindex 不可用时自动回退到 xindy
+- **智能引擎降级**：引擎选择优先级 XeLaTeX → LuaLaTeX → PdfLaTeX，自动探测可用引擎
+- **LaTeXDiff 增强**：支持非交互模式、`--flatten`、自定义风格参数、参考文献和索引变更追踪
+- **国际化改进**：新增 `PYTEXMK_LANG` 环境变量支持语言强制切换，改进语言检测逻辑
+- **完善的工程化体系**：统一的 Makefile/task runner，使用 uv 管理所有依赖和构建流程
 
-### 其他
-- 新增 CHANGELOG.md 文件，用于记录版本更新日志。
- -->
+### 🔧 工程化改进
 
-## v1.0.4.251001
-
-### 🐛 修复
-
-- 修改转义错误
-
-## v1.0.3.251001
+- **统一任务入口**：`tools/make.py` 提供 clean/install/test/lint/format/build/build-exe/i18n/dist 等全套命令
+- **跨平台构建**：tools/build.py 支持 Windows/Linux/macOS 的 PyInstaller 打包，自动识别平台和架构
+- **GitHub Actions CI/CD**：
+  - `ci.yml`: 多平台（Linux/macOS/Windows）自动化测试和代码检查
+  - `release.yml`: 标签触发的多平台 wheel 和可执行文件构建，支持 PyPI 和 GitHub Releases 发布
+  - 支持 dry-run 模式，workflow_dispatch 手动触发测试
+- **Python 3.13 目标版本**：全面适配 Python 3.13，使用最新语言特性
+- **代码质量**：ruff lint + format 配置完善，327+ 单元测试覆盖
 
 ### 🐛 修复
 
-- 依赖更正
+- 修复 XeLaTeX + dvipdfmx 编译流程中 `-output-directory` 参数传递错误
+- 修复日志分析在文件移动后找不到日志文件的执行顺序问题
+- 修复 watcher.py 中 PVC 模式的文件预处理和后处理逻辑
+- 修复跨平台路径处理和编码兼容问题
+- 修复子进程资源管理和异常退出处理
 
-## v1.0.2.250515
+### 📁 项目结构
+
+- 构建脚本统一移至 `tools/` 目录
+- 删除冗余的 build.bat、build.ps1、旧 spec 文件
+- 清理 .gitignore，更精确的忽略规则
+- README 中英文档全面更新
+
+## v1.0.2.25
 
 ### 🚀 改进
 
 - 日志分析器中的优化路径处理
-- 优化了日志分析器中的路径处理，使其更通用。
-- 编译失败后，启用日志解析器
-
-### 🐛 修复
-
-- 修复 LaTeX 编译器运行错误不及时终止程序的问题
 
 ## v1.0.1.250506
 
