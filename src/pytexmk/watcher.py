@@ -121,6 +121,7 @@ class FileChangeHandler(FileSystemEventHandler):
         self._last_event_time: float = 0.0
         self._pending_compile: bool = False
         self._timer: Optional[threading.Timer] = None
+        self._timer_id: int = 0
         self._lock = threading.Lock()
         self._compiling: bool = False
         self._last_changed_file: Optional[Path] = None
@@ -151,7 +152,9 @@ class FileChangeHandler(FileSystemEventHandler):
                 self._timer = None
 
             self._last_changed_file = event_path
-            self._timer = threading.Timer(self.debounce_seconds, self._trigger_compile)
+            self._timer_id += 1
+            current_timer_id = self._timer_id
+            self._timer = threading.Timer(self.debounce_seconds, self._trigger_compile, args=(current_timer_id,))
             self._timer.daemon = True
             self._timer.start()
 
@@ -177,9 +180,11 @@ class FileChangeHandler(FileSystemEventHandler):
         suffix = file_path.suffix.lower()
         return suffix in self.watched_extensions
 
-    def _trigger_compile(self) -> None:
+    def _trigger_compile(self, timer_id: int = 0) -> None:
         """触发编译回调（防抖到期后执行）"""
         with self._lock:
+            if timer_id != self._timer_id:
+                return
             self._timer = None
             self._compiling = True
             changed_file = self._last_changed_file
@@ -194,7 +199,9 @@ class FileChangeHandler(FileSystemEventHandler):
                 self._compiling = False
                 if self._pending_compile:
                     self._pending_compile = False
-                    self._timer = threading.Timer(self.debounce_seconds, self._trigger_compile)
+                    self._timer_id += 1
+                    current_timer_id = self._timer_id
+                    self._timer = threading.Timer(self.debounce_seconds, self._trigger_compile, args=(current_timer_id,))
                     self._timer.daemon = True
                     self._timer.start()
 
