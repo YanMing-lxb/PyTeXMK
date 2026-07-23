@@ -34,7 +34,7 @@ jobs:
 
       # ---- 安装 uv 包管理器 ----
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v9
         with:
           python-version: '3.13'
           enable-cache: true
@@ -65,7 +65,7 @@ jobs:
 
       # ---- 上传覆盖率报告到 Codecov（如配置了 token）----
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.5.5
+        uses: codecov/codecov-action@v5
         with:
           files: ./coverage.xml
           flags: unittests
@@ -85,7 +85,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v9
         with:
           python-version: '3.13'
           enable-cache: true
@@ -109,7 +109,7 @@ jobs:
 
       # ---- 上传构建产物（保留7天供调试）----
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: wheel
           path: dist/*.whl
@@ -133,7 +133,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v9
         with:
           python-version: '3.13'
           enable-cache: true
@@ -169,7 +169,7 @@ jobs:
           echo "✅ Executable build verification passed"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: exe-verify-${{ matrix.os }}
           path: |
@@ -191,7 +191,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v9
         with:
           python-version: '3.13'
           enable-cache: true
