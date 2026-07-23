@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.table import Table
 from pathlib import Path  # 导入pathlib库
 
+
 def copy(source_folder, destination_folder):
     source_folder = Path(source_folder)  # 将字符串路径转换为Path对象
     destination_folder = Path(destination_folder)  # 将字符串路径转换为Path对象
@@ -20,20 +21,22 @@ def copy(source_folder, destination_folder):
         # 判断源文件是否是文件
         if source_file.is_file():
             # 复制文件到目标文件夹
-            
+
             shutil.copy(source_file, destination_file)
+
 
 # 修改函数为可运行函数
 def file_modify(destination_folder):
     destination_folder = Path(destination_folder)  # 将字符串路径转换为Path对象
 
     # 读取原始文件内容
-    for file_path in destination_folder.rglob('*.py'):
-        with file_path.open('r', encoding='utf-8') as file:
+    for file_path in destination_folder.rglob("*.py"):
+        with file_path.open("r", encoding="utf-8") as file:
             content = file.read()
-        content = content.replace('from .', 'from ')  # 替换 from . 为 from
-        with file_path.open('w', encoding='utf-8') as file:
+        content = content.replace("from .", "from ")  # 替换 from . 为 from
+        with file_path.open("w", encoding="utf-8") as file:
             file.write(content)  # 写入更新后的内容到同一文件
+
 
 # --------------------------------------------------------------------------------
 # 测试函数
@@ -54,23 +57,33 @@ def test(test_files, test_file_type, command, run_command, destination_folder):
                 print_output.append([test_file_type[i], time_run, "[green]通过"])  # 绿色
             else:
                 print_output.append([test_file_type[i], time_run, "[red]未通过"])  # 红色
-        except Exception as e:
+        except Exception:
             print_output.append([test_file_type[i], 0, "[red]未通过"])  # 红色
     # 测试 pytexmk 参数
     for i in range(len(command)):
         try:
             if command[i] == "-nq":
                 time_start = datetime.datetime.now()
-                result = subprocess.run(run_command + ['-nq', 'main'], cwd=destination_folder)
+                result = subprocess.run(run_command + ["-nq", "main"], cwd=destination_folder)
                 time_end = datetime.datetime.now()
                 time_run = round((time_end - time_start).total_seconds(), 4)
                 if result.returncode == 0:
                     print_output.append([command[i], time_run, "[green]通过"])  # 绿色
                 else:
-                    print_output.append([command[i], time_run, "[red]未通过"])  
+                    print_output.append([command[i], time_run, "[red]未通过"])
             elif command[i] == "-c" and "-C":
                 time_start = datetime.datetime.now()
-                subprocess.run(['xelatex', "-shell-escape", "-file-line-error", "-halt-on-error", "-interaction=batchmode", 'main'], cwd=destination_folder)
+                subprocess.run(
+                    [
+                        "xelatex",
+                        "-shell-escape",
+                        "-file-line-error",
+                        "-halt-on-error",
+                        "-interaction=batchmode",
+                        "main",
+                    ],
+                    cwd=destination_folder,
+                )
                 result = subprocess.run(run_command + [command[i]], cwd=destination_folder)
                 time_end = datetime.datetime.now()
                 time_run = round((time_end - time_start).total_seconds(), 4)
@@ -87,9 +100,10 @@ def test(test_files, test_file_type, command, run_command, destination_folder):
                     print_output.append([command[i], time_run, "[green]通过"])  # 绿色
                 else:
                     print_output.append([command[i], time_run, "[red]未通过"])  # 红色
-        except Exception as e:
+        except Exception:
             print_output.append([i, 0, "[red]未通过"])  # 红色
     return print_output
+
 
 # --------------------------------------------------------------------------------
 # 清除临时测试文件夹函数
@@ -100,14 +114,14 @@ def remove(path):
         shutil.rmtree(path)  # 删除整个文件夹
         print("删除临时测试文件夹\n")
 
+
 # --------------------------------------------------------------------------------
 # 测试统计表打印函数
 # --------------------------------------------------------------------------------
 def print_table(data):
     console = Console()  # 创建Console对象
 
-    table = Table(show_header=True, header_style="bold magenta", 
-                title="PyTeXMK 测试统计表")
+    table = Table(show_header=True, header_style="bold magenta", title="PyTeXMK 测试统计表")
 
     # 定义列名
     table.add_column("序号", style="yellow", justify="center", no_wrap=True)
@@ -120,7 +134,7 @@ def print_table(data):
     table.add_column("状态", justify="center", no_wrap=True)
 
     # 判断统计项目列数是否是偶数
-    length = len(data)/2  # 计算打印表格列数
+    length = len(data) / 2  # 计算打印表格列数
     row_num = ""
     # 判断统计项目列数是否是偶数
     if length - int(length) < 0.5:
@@ -131,24 +145,25 @@ def print_table(data):
     # 添加数据到表格
     for i in range(row_num):
         table.add_row(
-            str(i+1),
+            str(i + 1),
             data[i][0],
             "{:.4f} s".format(data[i][1]),
             data[i][2],
-            str(i+1+row_num) if i+row_num <= len(data) else "",
-            data[i+row_num][0] if i+row_num < len(data) else "",
-            "{:.4f} s".format(data[i+row_num][1]) if i+row_num < len(data) else "",
-            data[i+row_num][2] if i+row_num < len(data) else ""
+            str(i + 1 + row_num) if i + row_num <= len(data) else "",
+            data[i + row_num][0] if i + row_num < len(data) else "",
+            "{:.4f} s".format(data[i + row_num][1]) if i + row_num < len(data) else "",
+            data[i + row_num][2] if i + row_num < len(data) else "",
         )
 
     console.print(table)  # 打印表格
+
 
 # --------------------------------------------------------------------------------
 # 测试目标
 # --------------------------------------------------------------------------------
 parser = argparse.ArgumentParser(description="辅助测试文件.")
-parser.add_argument('-v', '--version', action='version', version='test: v 0.1')
-parser.add_argument('-w', '--whl', action='store_true', help="测试 whl 文件")
+parser.add_argument("-v", "--version", action="version", version="test: v 0.1")
+parser.add_argument("-w", "--whl", action="store_true", help="测试 whl 文件")
 args = parser.parse_args()
 
 test_files = [
@@ -159,14 +174,14 @@ test_files = [
     "contents-test",
     "glossaries-test",
     "nomencl-test",
-    "makeidx-test"
+    "makeidx-test",
 ]
-test_file_type = ['biblatex', 'bibtex', 'thebibliography', '图表目录', '目录', 'glossaries', 'nomencl', "makeidx"]
-command = ['-v', '-h', '-nq', '-c', '-C']
+test_file_type = ["biblatex", "bibtex", "thebibliography", "图表目录", "目录", "glossaries", "nomencl", "makeidx"]
+command = ["-v", "-h", "-nq", "-c", "-C"]
 
-source_folder = 'src/pytexmk'  # 将字符串路径转换为Path对象
-tests_folder = 'tests'  # 将字符串路径转换为Path对象
-destination_folder = 'test-temp'  # 将字符串路径转换为Path对象
+source_folder = "src/pytexmk"  # 将字符串路径转换为Path对象
+tests_folder = "tests"  # 将字符串路径转换为Path对象
+destination_folder = "test-temp"  # 将字符串路径转换为Path对象
 run_file = "__main__.py"
 run_command = ["python", "__main__.py"]
 if args.whl:
