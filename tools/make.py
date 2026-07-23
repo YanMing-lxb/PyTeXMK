@@ -19,7 +19,6 @@ Targets:
     format-check      Check formatting without modifying files
     build             Build wheel + sdist with uv build
     build-exe         Build PyInstaller onedir distribution
-    build-exe-onefile Build PyInstaller single-file executable
     install-pkg       Install built wheel locally
     uninstall-pkg     Uninstall pytexmk
     pot               Generate .pot translation templates
@@ -230,12 +229,7 @@ def cmd_build():
 
 def cmd_build_exe():
     _get_console().rule("[info]Building PyInstaller onedir distribution...[/info]")
-    _py(str(TOOLS_DIR / "build.py"), "--onedir", "--no-rename")
-
-
-def cmd_build_exe_onefile():
-    _get_console().rule("[info]Building PyInstaller onefile executable...[/info]")
-    _py(str(TOOLS_DIR / "build.py"), "--onefile", "--no-rename")
+    _py(str(TOOLS_DIR / "build.py"), "--no-rename")
 
 
 def cmd_install_pkg():
@@ -297,7 +291,6 @@ def cmd_pot():
                 return
             if pot_file.exists():
                 try:
-                    merged_path = pot_file.with_suffix(".merged.pot")
                     _run(["msgmerge", "--update", "--backup=none", str(pot_file), str(tmp_path)], check=False)
                 except FileNotFoundError:
                     c.print("[warning]msgmerge not found, overwriting .pot file[/warning]")
@@ -345,14 +338,7 @@ def cmd_dist():
     c = _get_console()
     c.rule("[info]Building full distribution (wheel + exe)...[/info]")
     cmd_build()
-    if platform.system() == "Windows":
-        cmd_build_exe()
-        cmd_build_exe_onefile()
-    else:
-        c.print(
-            "[dim]PyInstaller exe build is Windows-only in this config; "
-            "see GitHub Actions for multi-platform builds.[/dim]"
-        )
+    cmd_build_exe()
 
 
 def cmd_ci_test():
@@ -401,7 +387,6 @@ TARGETS = {
     "format-check": cmd_format_check,
     "build": cmd_build,
     "build-exe": cmd_build_exe,
-    "build-exe-onefile": cmd_build_exe_onefile,
     "install-pkg": cmd_install_pkg,
     "uninstall-pkg": cmd_uninstall_pkg,
     "pot": cmd_pot,

@@ -44,7 +44,7 @@ def get_exe_suffix() -> str:
     return ".exe" if platform.system() == "Windows" else ""
 
 
-def generate_spec(onefile: bool = False, name: str = "pytexmk") -> Path:
+def generate_spec(name: str = "pytexmk") -> Path:
     hiddenimports = [
         "rich_argparse",
         "watchdog.observers.polling",
@@ -99,19 +99,7 @@ a = Analysis(
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-"""
-    if onefile:
-        spec_content += f"""
-exe = EXE(
-    pyz, a.scripts, a.binaries, a.zipfiles, a.datas, [],
-    name='{name}', debug=False, bootloader_ignore_signals=False,
-    strip=False, upx=True, upx_exclude=[], runtime_tmpdir=None,
-    console=True, disable_windowed_traceback=False, argv_emulation=False,
-    target_arch=None, codesign_identity=None, entitlements_file=None,
-)
-"""
-    else:
-        spec_content += f"""
+
 exe = EXE(
     pyz, a.scripts, [],
     name='{name}', debug=False, bootloader_ignore_signals=False,
@@ -130,30 +118,16 @@ coll = COLLECT(
     return spec_path
 
 
-def clean_build(no_clean: bool = False):
-    """Clean build artifacts.
-
-    The ``build/`` directory (PyInstaller's intermediate cache) is always
-    removed because stale cache entries from a previous mode (e.g. onedir)
-    will conflict with the current build (e.g. onefile), causing errors like
-    ``ValueError: Resource '.../dist/pytexmk' is not a valid file!``.
-
-    When *no_clean* is ``True`` the ``dist/`` directory is preserved so that
-    callers can chain multiple builds (onedir + onefile) and collect all
-    outputs in the same folder.
-    """
-    # Always clean PyInstaller's working / cache directory
-    if BUILD_DIR.exists():
-        print(f"Cleaning {BUILD_DIR.relative_to(PROJECT_ROOT)}/...")
-        shutil.rmtree(BUILD_DIR)
-
-    # Only clean dist/ when a full clean is requested
-    if not no_clean and DIST_DIR.exists():
-        print(f"Cleaning {DIST_DIR.relative_to(PROJECT_ROOT)}/...")
-        shutil.rmtree(DIST_DIR)
+def clean_build():
+    """Clean build artifacts."""
+    for dir_path in [BUILD_DIR, DIST_DIR]:
+        if dir_path.exists():
+            print(f"Cleaning {dir_path.relative_to(PROJECT_ROOT)}/...")
+            shutil.rmtree(dir_path)
 
 
 def run_pyinstaller(spec_path: Path) -> bool:
+    """Run PyInstaller and return True on success."""
     cmd = [
         sys.executable,
         "-m",
@@ -172,9 +146,9 @@ def run_pyinstaller(spec_path: Path) -> bool:
     return result.returncode == 0
 
 
-def copy_additional_files(dist_dir: Path, onefile: bool):
+def copy_additional_files(dist_dir: Path):
     files_to_copy = ["README.md", "README.en.md", "LICENSE", "CHANGELOG.md"]
-    target_dir = dist_dir if onefile else dist_dir / "PyTeXMK"
+    target_dir = dist_dir / "PyTeXMK"
     target_dir.mkdir(parents=True, exist_ok=True)
     for filename in files_to_copy:
         src = PROJECT_ROOT / filename
@@ -183,29 +157,17 @@ def copy_additional_files(dist_dir: Path, onefile: bool):
             print(f"Copied: {filename}")
 
 
-def rename_output(version: str, onefile: bool) -> Path:
+def rename_output(version: str) -> Path:
     plat = get_platform_suffix()
-    exe_suffix = get_exe_suffix()
-    if onefile:
-        orig_exe = DIST_DIR / f"pytexmk{exe_suffix}"
-        new_name = f"PyTeXMK_v{version}_{plat}{exe_suffix}"
-        new_path = DIST_DIR / new_name
-        if orig_exe.exists():
-            if new_path.exists():
-                new_path.unlink()
-            orig_exe.rename(new_path)
-            return new_path
-        return orig_exe
-    else:
-        orig_dir = DIST_DIR / "PyTeXMK"
-        new_name = f"PyTeXMK_v{version}_{plat}"
-        new_dir = DIST_DIR / new_name
-        if orig_dir.exists():
-            if new_dir.exists():
-                shutil.rmtree(new_dir)
-            orig_dir.rename(new_dir)
-            return new_dir
-        return orig_dir
+    orig_dir = DIST_DIR / "PyTeXMK"
+    new_name = f"PyTeXMK_v{version}_{plat}"
+    new_dir = DIST_DIR / new_name
+    if orig_dir.exists():
+        if new_dir.exists():
+            shutil.rmtree(new_dir)
+        orig_dir.rename(new_dir)
+        return new_dir
+    return orig_dir
 
 
 def get_dir_size(path: Path) -> int:
@@ -228,14 +190,10 @@ def format_size(size: int) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="PyTeXMK Build Script (PyInstaller)")
-    parser.add_argument("--onefile", action="store_true", help="Build single executable")
-    parser.add_argument("--onedir", action="store_true", default=True, help="Build directory distribution (default)")
-    parser.add_argument("--no-clean", action="store_true", help="Skip cleaning previous builds")
     parser.add_argument("--no-rename", action="store_true", help="Don't rename output with version")
     parser.add_argument("--version", action="version", version=f"PyTeXMK Build {get_version()}")
     args = parser.parse_args()
 
-    onefile = args.onefile
     version = get_version()
 
     print("=" * 60)
@@ -243,17 +201,17 @@ def main():
     print("=" * 60)
     print(f"Version: {version}")
     print(f"Platform: {platform.system()} {platform.machine()}")
-    print(f"Mode: {'onefile' if onefile else 'onedir'}")
+    print("Mode: onedir")
     print(f"Python: {sys.executable}")
     print()
 
     print("Cleaning previous builds...")
-    clean_build(no_clean=args.no_clean)
+    clean_build()
     print("Clean complete.")
     print()
 
     print("Generating PyInstaller spec...")
-    spec_path = generate_spec(onefile=onefile)
+    spec_path = generate_spec()
     print(f"Spec generated: {spec_path.relative_to(PROJECT_ROOT)}")
     print()
 
@@ -270,19 +228,15 @@ def main():
 
     print()
     print("Copying additional files...")
-    copy_additional_files(DIST_DIR, onefile)
+    copy_additional_files(DIST_DIR)
 
     output_path = None
     if not args.no_rename:
         print()
         print("Renaming output...")
-        output_path = rename_output(version, onefile)
+        output_path = rename_output(version)
     else:
-        exe_suffix = get_exe_suffix()
-        if onefile:
-            output_path = DIST_DIR / f"pytexmk{exe_suffix}"
-        else:
-            output_path = DIST_DIR / "PyTeXMK"
+        output_path = DIST_DIR / "PyTeXMK"
 
     print()
     print("=" * 60)
@@ -293,12 +247,9 @@ def main():
     if output_path and output_path.exists():
         size = get_dir_size(output_path)
         rel = output_path.relative_to(PROJECT_ROOT)
-        if onefile:
-            print(f"Output: {rel}")
-        else:
-            print(f"Output directory: {rel}/")
-            exe_name = f"pytexmk{get_exe_suffix()}"
-            print(f"Executable: {rel / exe_name}")
+        print(f"Output directory: {rel}/")
+        exe_name = f"pytexmk{get_exe_suffix()}"
+        print(f"Executable: {rel / exe_name}")
         print(f"Size: {format_size(size)}")
     print()
 
