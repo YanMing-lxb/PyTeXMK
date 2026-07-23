@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 08:44+0800\n"
+"POT-Creation-Date: 2026-07-23 18:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,65 +17,72 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\run.py:49
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:49
 msgid "检测识别已有辅助文件..."
 msgstr "Detecting existing auxiliary files..."
 
-#: src\pytexmk\run.py:52
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:54
 msgid "检测辅助文件"
 msgstr "Detect AUX files"
 
-#: src\pytexmk\run.py:55 src\pytexmk\run.py:136
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:57
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:155
 #, python-format
 msgid "1 次 %(args)s 编译"
 msgstr "1 time %(args)s compile"
 
-#: src\pytexmk\run.py:66
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:72
 msgid "编译文献判定"
 msgstr "Compile bib judgment"
 
-#: src\pytexmk\run.py:71
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:79
 #, python-format
 msgid "%(args)s 编译文献"
 msgstr "%(args)s compile bibliography"
 
-#: src\pytexmk\run.py:73 src\pytexmk\run.py:82 src\pytexmk\run.py:86
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:81
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:92
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:96
 #, python-format
 msgid "%(args)s 编译"
 msgstr "%(args)s compile"
 
-#: src\pytexmk\run.py:78
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:88
 msgid "编译索引判定"
 msgstr "Compile index judgment"
 
-#: src\pytexmk\run.py:101
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:113
 #, python-format
 msgid "%(args1)s 次 %(args2)s 编译"
 msgstr "%(args1)s times %(args2)s compile"
 
-#: src\pytexmk\run.py:107 src\pytexmk\run.py:109 src\pytexmk\run.py:146
-#: src\pytexmk\run.py:148
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:121
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:125
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:169
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:173
 msgid "DVIPDFMX 编译"
 msgstr "DVIPDFMX compile"
 
-#: src\pytexmk\run.py:112 src\pytexmk\run.py:151
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:128
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:176
 msgid "完成所有编译"
 msgstr "Complete all compilations"
 
-#: src\pytexmk\run.py:114 src\pytexmk\run.py:153
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:131
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:178
 #, python-format
 msgid "文档整体: %(args1)s 编译 %(args2)s 次"
 msgstr "Overall document: %(args1)s compile %(args2)s times"
 
-#: src\pytexmk\run.py:115
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:134
 msgid "参考文献: "
 msgstr "Bibliography: "
 
-#: src\pytexmk\run.py:116
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:135
 msgid "目录索引: "
 msgstr "Table of contents: "
 
-#: src\pytexmk\run.py:140
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:161
 #, fuzzy, python-format
 msgid "2 次 %(args1)s 编译"
 msgstr "2 time %(args)s compile"

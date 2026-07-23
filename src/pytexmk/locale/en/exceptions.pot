@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 18:38+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:16
+msgid "PyTeXMK 发生错误"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:28
+#, python-format
+msgid "找不到工具链: %(tool)s，请确认已安装并添加到系统 PATH"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:30
+msgid "找不到所需的工具链，请确认已安装并添加到系统 PATH"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:42
+msgid "编译失败，请查看日志文件以获取详细信息"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:54
+#, python-format
+msgid "编译超时（%(timeout)s 秒），进程已被强制终止"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:56
+msgid "编译超时，进程已被强制终止"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:67
+#, python-format
+msgid "文件操作失败: %(path)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:69
+msgid "文件操作失败"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:80
+#, python-format
+msgid "配置错误: %(key)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:82
+msgid "配置错误"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:93
+#, python-format
+msgid "无效的 TeX 引擎: %(engine)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:95
+msgid "无效的 TeX 引擎"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\exceptions.py⁩:105
+msgid "LaTeXDiff 操作失败"
+msgstr ""

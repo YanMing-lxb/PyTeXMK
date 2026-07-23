@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 08:44+0800\n"
+"POT-Creation-Date: 2026-07-23 18:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,20 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\auxiliary_fun.py:26
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:51
+msgid ""
+"\n"
+"[bold yellow]收到中断信号，正在优雅退出...[/bold yellow]"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:55
+msgid "用户中断操作"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:89
 msgid "[bold red]正在退出 PyTeXMK..."
 msgstr "[bold red]Exiting PyTeXMK..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:90
+msgid "程序正常退出"
+msgstr ""

@@ -1,0 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-23 18:36+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:83
+#, python-format
+msgid "检测到工具 %(name)s: %(version)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:83
+msgid "未知版本"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:85
+#, python-format
+msgid "未检测到工具 %(name)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:442
+#, python-format
+msgid "工具检测结果: %(result)s"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:489
+#, python-format
+msgid "[yellow]警告: 首选引擎不可用，降级使用 %(engine)s[/yellow]"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:493
+msgid "未找到任何可用的 TeX 引擎（pdflatex/xelatex/lualatex）"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\toolchain.py⁩:533
+msgid "[yellow]警告: xindy 不可用，回退使用 makeindex[/yellow]"
+msgstr ""

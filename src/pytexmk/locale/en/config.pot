@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-14 09:43+0800\n"
+"POT-Creation-Date: 2026-07-23 18:04+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,84 +17,129 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src\pytexmk\config.py:25
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:41
 msgid "PyTeXMK 配置模块已初始化"
 msgstr "PyTeXMK configuration module initialization completed"
 
-#: src\pytexmk\config.py:37
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:71
 msgid "用户主目录路径: "
 msgstr "User home directory: "
 
-#: src\pytexmk\config.py:40
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:74
 msgid "获取用户主目录路径失败: "
 msgstr "Failed to get user home directory: "
 
-#: src\pytexmk\config.py:57
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:91
 msgid "配置文件不存在: "
 msgstr "Configuration file does not exist: "
 
-#: src\pytexmk\config.py:63
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:97
 msgid "成功加载配置文件: "
 msgstr "Creating default configuration file: "
 
-#: src\pytexmk\config.py:66 src\pytexmk\config.py:106
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:100
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:229
 msgid "加载配置文件失败: "
 msgstr "Failed to load configuration file: "
 
-#: src\pytexmk\config.py:81
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:115
 msgid "正在创建默认配置文件: "
 msgstr "Creating default configuration file: "
 
-#: src\pytexmk\config.py:88
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:122
 msgid "创建默认配置文件失败: "
 msgstr "Failed to create default configuration file: "
 
-#: src\pytexmk\config.py:122
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:240
 msgid "配置文件存在以下问题:"
 msgstr "Configuration file does not exist: "
 
-#: src\pytexmk\config.py:124
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:242
 msgid "多余配置项: "
 msgstr "redundant configuration item"
 
-#: src\pytexmk\config.py:128
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:246
 msgid "缺少配置项: "
 msgstr "Missing configuration items"
 
-#: src\pytexmk\config.py:132
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:253
 msgid "是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "
 msgstr ""
 "Do you want to fill in missing configuration items and remove redundant "
 "ones? (yes/no or y/n): "
 
-#: src\pytexmk\config.py:137
-msgid "已补全配置项: "
-msgstr "Completed configuration items"
-
-#: src\pytexmk\config.py:143
-msgid "已删除配置项: "
-msgstr "Deleted configuration items"
-
-#: src\pytexmk\config.py:150
-msgid "配置文件更新成功: "
-msgstr "Configuration file loaded successfully: "
-
-#: src\pytexmk\config.py:152
-msgid "配置文件更新失败: "
-msgstr "Failed to load configuration file: "
-
-#: src\pytexmk\config.py:154
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:257
 msgid "请稍后手动修改配置文件"
 msgstr "Please change the configuration file manually later"
 
-#: src\pytexmk\config.py:156
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:260
 msgid "无效输入，请输入如下选项: yes/no 或 y/n"
 msgstr "Invalid input, please enter the following options: yes/no or y/n"
 
-#: src\pytexmk\config.py:179
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:263
+msgid "无法读取用户输入，将自动修复配置"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:266
+msgid "非交互模式，自动补全/清理配置项"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:271
+msgid "已补全配置项: "
+msgstr "Completed configuration items"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:273
+msgid "已删除配置项: "
+msgstr "Deleted configuration items"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:279
+msgid "配置文件更新成功: "
+msgstr "Configuration file loaded successfully: "
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:281
+msgid "配置文件更新失败: "
+msgstr "Failed to load configuration file: "
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:326
+msgid "配置值类型转换失败: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:378
+msgid "未知的默认引擎: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:383
+msgid "降级顺序中包含未知引擎: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:387
+msgid "编译超时必须是正数: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:392
+msgid "未知的参考文献工具: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:397
+msgid "未知的索引工具: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:402
+msgid "智能补编最大次数必须是非负整数: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:406
+msgid "默认编译次数必须是正整数: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:411
+msgid "防抖时间必须是非负数: "
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:542
 msgid "未找到项目配置文件, 使用用户配置"
 msgstr "Local configuration file not found, using system configuration"
 
-#: src\pytexmk\config.py:181
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\config.py⁩:557
 msgid "配置文件加载完成"
 msgstr "Configuration file loading completed"

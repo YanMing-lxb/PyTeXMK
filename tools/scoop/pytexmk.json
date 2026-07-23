@@ -1,0 +1,26 @@
+{
+    "version": "1.1.0",
+    "description": "LaTeX auxiliary compilation tool - an enhanced alternative to latexmk",
+    "homepage": "https://github.com/YanMing-lxb/PyTeXMK",
+    "license": "GPL-3.0-or-later",
+    "notes": "PyTeXMK is a LaTeX build automation tool similar to latexmk. Run 'pytexmk --help' for usage.",
+    "suggest": {
+        "TeX Live": "extras/texlive",
+        "MiKTeX": "extras/miktex"
+    },
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/YanMing-lxb/PyTeXMK/releases/download/v1.1.0/PyTeXMK_v1.1.0_win_amd64.zip",
+            "hash": ""
+        }
+    },
+    "bin": "pytexmk.exe",
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/YanMing-lxb/PyTeXMK/releases/download/v$version/PyTeXMK_v$version_win_amd64.zip"
+            }
+        }
+    }
+}
