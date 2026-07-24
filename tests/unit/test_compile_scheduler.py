@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Unit tests for CompileLaTeX scheduler with fixed passes and smart recompilation
 """
@@ -169,7 +168,7 @@ class TestCompileLaTeXScheduling:
 
         analyze_call = [0]
 
-        def mock_analyze():
+        def mock_analyze(update_state=False):
             analyze_call[0] += 1
             mock_log = MagicMock()
             mock_log.has_fatal_errors.return_value = False
@@ -233,7 +232,7 @@ class TestCompileLaTeXScheduling:
 
         analyze_call = [0]
 
-        def mock_analyze():
+        def mock_analyze(update_state=False):
             analyze_call[0] += 1
             mock_log = MagicMock()
             mock_log.has_fatal_errors.return_value = False
@@ -276,7 +275,7 @@ class TestCompileLaTeXScheduling:
 
         analyze_call = [0]
 
-        def mock_analyze():
+        def mock_analyze(update_state=False):
             analyze_call[0] += 1
             mock_log = MagicMock()
             mock_log.has_fatal_errors.return_value = False
@@ -308,7 +307,7 @@ class TestCompileLaTeXScheduling:
         """Test: extra passes do not exceed max_extra_passes (2)"""
         cl, mock_msp, mock_engine, _, _ = self._make_compiler(run_count=2, program="xelatex")
 
-        def mock_analyze():
+        def mock_analyze(update_state=False):
             mock_log = MagicMock()
             mock_log.has_fatal_errors.return_value = False
             mock_log.needs_recompile_bib.return_value = False
@@ -337,7 +336,7 @@ class TestCompileLaTeXScheduling:
 
         analyze_call = [0]
 
-        def mock_analyze():
+        def mock_analyze(update_state=False):
             analyze_call[0] += 1
             mock_log = MagicMock()
             if analyze_call[0] <= 1:
@@ -506,16 +505,16 @@ class TestCompileLaTeXBackwardCompat:
         cl.compile_index(["makeidx", "makeindex main.idx"])
         mock_msp.run_command.assert_called_once()
 
-    def test_set_methods_exist(self):
-        """Test: setters exist and update attributes"""
-        cl, _, _ = self._make_simple_compiler()
-
-        cl.set_outdir("my_out")
-        cl.set_auxdir("my_aux")
-        cl.set_non_quiet(True)
-        cl.set_run_count(4)
-        cl.set_timeout(120)
-
+    def test_kwargs_init_sets_attributes(self):
+        """Test: kwargs-based init sets all attributes correctly (replaces deprecated setters)"""
+        cl = CompileLaTeX(
+            project_name="test",
+            outdir="my_out",
+            auxdir="my_aux",
+            non_quiet=True,
+            run_count=4,
+            timeout=120,
+        )
         assert cl.outdir == "my_out"
         assert cl.auxdir == "my_aux"
         assert cl.non_quiet is True

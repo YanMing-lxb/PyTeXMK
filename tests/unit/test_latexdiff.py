@@ -1,20 +1,19 @@
-# -*- coding: utf-8 -*-
 """latexdiff 模块单元测试"""
 
-import sys
-from unittest.mock import patch, MagicMock
 import subprocess
+import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pytexmk.exceptions import CompilationError, LaTeXDiffError
 from pytexmk.latexdiff import (
-    LaTeXDiffTool,
     LaTeXDiff_Aux,
+    LaTeXDiffTool,
+    get_version,
     parse_diff_args,
     run_diff_from_cli,
-    get_version,
 )
-from pytexmk.exceptions import LaTeXDiffError, CompilationError
 
 
 def _write_tex(tmp_path, content, name="test"):

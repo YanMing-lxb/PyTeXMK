@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
-import sys
 import signal
-import warnings
+import sys
 import threading
-from rich import print
+import warnings
 from pathlib import Path
 
-from pytexmk.language import set_language
+from rich import print
+
 from pytexmk.exceptions import PyTeXMKError
+from pytexmk.language import set_language
 
 _ = set_language("auxiliary_fun")
 

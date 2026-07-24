@@ -1,0 +1,131 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-24 19:51+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:44
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:48
+msgid "清除所有的辅助文件"
+msgstr "Clean all auxiliary files"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:45
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令"
+msgstr "[bold green]Completed the instruction to clean all files with auxiliary file extensions"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:50
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:64
+msgid "清除文件夹内输出文件"
+msgstr "Clean output files in the folder"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:51
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令"
+msgstr "[bold green]Completed the instruction to clean all files with auxiliary file extensions and main file output files"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:54
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:60
+msgid "清除文件夹内辅助文件"
+msgstr "Clean auxiliary files in the folder"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:56
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:62
+msgid "清除根目录内辅助文件"
+msgstr "Clean auxiliary files in the root directory"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:57
+msgid "[bold green]已完成清除所有主文件的辅助文件的指令"
+msgstr "[bold green]Completed the instruction to clean auxiliary files of all main files"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:65
+msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令"
+msgstr "[bold green]Completed the instruction to clean auxiliary files and output files of all main files"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:123
+msgid "[bold red]错误: LaTeXDiff 需要指定 0 或 2 个文件参数[/bold red]"
+msgstr "[bold red]Error: LaTeXDiff requires 0 or 2 file arguments[/bold red]"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:127
+msgid ""
+"[bold red]错误: 请在命令行或配置文件中指定 LaTeXDiff 的新旧 TeX 文件[/bold "
+"red]"
+msgstr ""
+"[bold red]Error: please specify the old and new TeX files for LaTeXDiff on "
+"the command line or in the configuration file[/bold red]"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:131
+msgid "[bold red]错误: 不能对同一个文件进行比较[/bold red]"
+msgstr "[bold red]Error: cannot compare the same file[/bold red]"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:137
+msgid "LaTeXDiff 预处理"
+msgstr "LaTeXDiff preprocessing"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:153
+msgid ""
+"请输入 LaTeXDiff 的显示风格：\n"
+"  1 - 显示参考文献/符号说明的修改\n"
+"  2 - 不显示参考文献/符号说明的修改\n"
+"请选择 (1 或者 2): "
+msgstr ""
+"Please enter the LaTeXDiff display style:\n"
+"  1 - Show changes in bibliography/list of symbols\n"
+"  2 - Do not show changes in bibliography/list of symbols\n"
+"Please choose (1 or 2): "
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:166
+msgid "[bold red]错误: 未检测到 latexdiff 命令，请先安装 LaTeXDiff[/bold red]"
+msgstr "[bold red]Error: latexdiff command not detected, please install LaTeXDiff first[/bold red]"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:170
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:196
+msgid "LaTeXDiff 运行"
+msgstr "LaTeXDiff execution"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:202
+msgid "开始预处理命令"
+msgstr "Starting preprocessing command"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:203
+msgid "检测并移动辅助文件到根目录..."
+msgstr "Detecting and moving auxiliary files to the root directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:205
+msgid "辅助文件->根目录"
+msgstr "Auxiliary files -> root directory"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:235
+msgid "开始后处理"
+msgstr "Starting postprocessing"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:236
+msgid "移动结果文件到输出目录..."
+msgstr "Moving result files to the output directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:238
+msgid "结果文件->输出目录"
+msgstr "Result files -> output directory"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:239
+msgid "移动辅助文件到辅助目录..."
+msgstr "Moving auxiliary files to the auxiliary directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:241
+msgid "辅助文件->辅助目录"
+msgstr "Auxiliary files -> auxiliary directory"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\workflow.py⁩:247
+msgid "[bold red]LaTeXDiff 编译出错: "
+msgstr "[bold red]LaTeXDiff compilation error: "

@@ -36,7 +36,7 @@ msgstr "Error updating version cache: "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\check_version.py⁩:165
 msgid "通过 GitHub API 获取最新版本成功"
-msgstr "Getting the latest version via the GitHub API worked!"
+msgstr "Successfully retrieved the latest version via GitHub API"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\check_version.py⁩:172
 #, python-format
@@ -75,8 +75,8 @@ msgid "当前版本: "
 msgstr "Current version: "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\check_version.py⁩:222
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
 msgstr ""
-"Please run [bold green]'pip install --upgrade pytexmk'[/bold green] to update"
+"Please run [bold green]'pip install --upgrade %(args)s'[/bold green] to update"

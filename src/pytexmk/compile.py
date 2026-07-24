@@ -24,38 +24,38 @@ Description  :
 """
 
 # -*- coding: utf-8 -*-
-import re
-import time
-import shlex
-import logging
 import datetime
-from pathlib import Path
+import logging
+import re
+import shlex
+import time
+import warnings
 from collections import defaultdict
-from typing import Optional, List, Dict, Any
+from pathlib import Path
+from typing import Any
 
-from rich.console import Console
-
-from pytexmk.language import set_language
-from pytexmk.additional import MoveRemoveOperation, MySubProcess, MainFileOperation
-from pytexmk.toolchain import ToolchainManager
-from pytexmk.log_analysis import LogAnalysis
+from pytexmk.additional import MainFileOperation, MoveRemoveOperation, MySubProcess
+from pytexmk.auxiliary_fun import setup_signal_handlers
+from pytexmk.console import get_console
+from pytexmk.constants import (
+    DEFAULT_AUX_DIR,
+    DEFAULT_COMPILE_TIMES,
+    DEFAULT_OUTPUT_DIR,
+    DEFAULT_TIMEOUT,
+)
 from pytexmk.exceptions import (
     CompilationError,
     CompilationTimeoutError,
-    ToolchainNotFoundError,
     FileOperationError,
+    ToolchainNotFoundError,
 )
-from pytexmk.auxiliary_fun import setup_signal_handlers
-from pytexmk.constants import (
-    DEFAULT_OUTPUT_DIR,
-    DEFAULT_AUX_DIR,
-    DEFAULT_COMPILE_TIMES,
-    DEFAULT_TIMEOUT,
-)
+from pytexmk.language import set_language
+from pytexmk.log_analysis import LogAnalysis
+from pytexmk.toolchain import ToolchainManager
 
 _ = set_language("compile")
 
-console = Console(legacy_windows=False)
+console = get_console(legacy_windows=False)
 
 BIBER_PATTERN = re.compile(r"\\abx@aux@refcontext")
 BIBTEX_PATTERN = re.compile(r"\\bibdata")
@@ -67,7 +67,7 @@ BIBER_CITE_PATTERN = re.compile(r"\\abx@aux@cite{.*?}\{(.*)\}")
 BIBTEX_CITE_PATTERN = re.compile(r"\\citation\{(.*)\}")
 
 
-class CompileLaTeX(object):
+class CompileLaTeX:
     def __init__(self, *args, **kwargs):
         self.out = ""
         self.err = ""
@@ -76,8 +76,8 @@ class CompileLaTeX(object):
         self._compat_mode = False
         self.project_name = ""
         self.compiled_program = "xelatex"
-        self.out_files: List[str] = []
-        self.aux_files: List[str] = []
+        self.out_files: list[str] = []
+        self.aux_files: list[str] = []
         self.auxdir = DEFAULT_AUX_DIR
         self.outdir = DEFAULT_OUTPUT_DIR
         self.non_quiet = False
@@ -85,8 +85,8 @@ class CompileLaTeX(object):
         self.runs = DEFAULT_COMPILE_TIMES
 
         self.program = "xelatex"
-        self.bibtex_tool: Optional[str] = None
-        self.index_tool: Optional[str] = None
+        self.bibtex_tool: str | None = None
+        self.index_tool: str | None = None
         self.run_count = DEFAULT_COMPILE_TIMES
         self.draft = False
         self.quiet = False
@@ -105,7 +105,7 @@ class CompileLaTeX(object):
         self.index_tool_instance = None
         self.dvipdfmx_tool = None
 
-        self.compilation_errors: List[str] = []
+        self.compilation_errors: list[str] = []
         self.bib_needed = False
         self.index_needed = False
         self.glsmacros_needed = False
@@ -115,10 +115,10 @@ class CompileLaTeX(object):
         self.bib_judgment = False
         self.index_judgment = False
 
-        self.start_time: Optional[datetime.datetime] = None
-        self.end_time: Optional[datetime.datetime] = None
-        self.start_doing: Optional[float] = None
-        self.end_doing: Optional[float] = None
+        self.start_time: datetime.datetime | None = None
+        self.end_time: datetime.datetime | None = None
+        self.start_doing: float | None = None
+        self.end_doing: float | None = None
 
         self._parse_init_args(args, kwargs)
 
@@ -146,6 +146,7 @@ class CompileLaTeX(object):
             engine_names = ["xelatex", "pdflatex", "lualatex", "latex", "pdftex", "xetex", "luatex"]
             if first_arg not in engine_names and len(args) >= 2:
                 self._compat_mode = True
+                warnings.warn("_parse_init_args _compat_mode is deprecated", DeprecationWarning, stacklevel=2)
                 self.project_name = args[0]
                 if len(args) >= 2:
                     self.compiled_program = args[1]
@@ -212,14 +213,14 @@ class CompileLaTeX(object):
 
         return True
 
-    def _run_tex(self, no_pdf: bool = False, run_num: Optional[int] = None) -> bool:
+    def _run_tex(self, no_pdf: bool = False, run_num: int | None = None) -> bool:
         if run_num is not None:
             console.print(
                 f"\n[bold cyan]>>> {_('第')} {run_num} {_('次')} {self.engine.name} {_('编译')} <<<[/bold cyan]"
             )
 
         is_xelatex = self.engine.name == "xelatex"
-        build_kwargs: Dict[str, Any] = {
+        build_kwargs: dict[str, Any] = {
             "project_name": self.project_name,
             "non_quiet": self.non_quiet,
             "shell_escape": self.shell_escape,
@@ -285,7 +286,7 @@ class CompileLaTeX(object):
         if not index_tool:
             index_tool = self.toolchain.get_index_tool("makeindex")
 
-        build_kwargs: Dict[str, Any] = {
+        build_kwargs: dict[str, Any] = {
             "project_name": self.project_name,
         }
 
@@ -370,23 +371,21 @@ class CompileLaTeX(object):
             console.print(f"[bold red]{_('dvipdfmx 失败')}: {e.message}[/bold red]")
             return False
 
-    def _analyze_logs(self) -> LogAnalysis:
+    def _analyze_logs(self, update_state: bool = False) -> LogAnalysis:
         log_analysis = LogAnalysis(self.project_name)
         log_analysis.parse_all()
 
-        self.bib_needed = log_analysis.needs_recompile_bib()
-        self.index_needed = log_analysis.needs_recompile_index()
-        self.nomencl_needed = any(Path(f"{self.project_name}{ext}").exists() for ext in [".nlo"])
-        self.glsmacros_needed = any(Path(f"{self.project_name}{ext}").exists() for ext in [".glo", ".acn", ".slo"])
+        if update_state:
+            self.bib_needed = log_analysis.needs_recompile_bib()
+            self.index_needed = log_analysis.needs_recompile_index()
+            self.nomencl_needed = any(Path(f"{self.project_name}{ext}").exists() for ext in [".nlo"])
+            self.glsmacros_needed = any(Path(f"{self.project_name}{ext}").exists() for ext in [".glo", ".acn", ".slo"])
 
         return log_analysis
 
     def _analyze_logs_update_state(self):
         try:
-            log_analysis = LogAnalysis(self.project_name)
-            log_analysis.parse_all()
-            self.bib_needed = log_analysis.needs_recompile_bib()
-            self.index_needed = log_analysis.needs_recompile_index()
+            self._analyze_logs(update_state=True)
         except Exception as e:
             self.logger.debug(_("日志分析失败: ") + str(e))
 
@@ -429,7 +428,8 @@ class CompileLaTeX(object):
         return self._compile_tex_full()
 
     def _compile_tex_single_compat(self):
-        build_kwargs: Dict[str, Any] = {
+        warnings.warn("_compile_tex_single_compat is deprecated", DeprecationWarning, stacklevel=2)
+        build_kwargs: dict[str, Any] = {
             "project_name": self.project_name,
             "non_quiet": self.non_quiet,
         }
@@ -480,7 +480,7 @@ class CompileLaTeX(object):
             self._finalize()
             return
 
-        self._analyze_logs()
+        self._analyze_logs(update_state=True)
 
         need_bib = self.bib_needed
         need_index = self.index_needed or self.nomencl_needed or self.glsmacros_needed
@@ -508,7 +508,7 @@ class CompileLaTeX(object):
 
         extra_pass_count = 0
         while extra_pass_count < self.max_extra_passes:
-            log_analysis = self._analyze_logs()
+            log_analysis = self._analyze_logs(update_state=True)
 
             if log_analysis.has_fatal_errors():
                 console.print(f"[bold red]{_('检测到致命错误，停止智能补编')}[/bold red]")
@@ -550,6 +550,11 @@ class CompileLaTeX(object):
             if not did_action:
                 break
 
+        if extra_pass_count >= self.max_extra_passes:
+            console.print(
+                f"\n[bold yellow]{_('已达到最大额外编译次数')} ({self.max_extra_passes}){_('，可能存在未解决的交叉引用或引用问题')}[/bold yellow]"
+            )
+
         if is_xelatex:
             self._run_dvipdfmx()
 
@@ -568,6 +573,7 @@ class CompileLaTeX(object):
         console.print("=" * 78 + "\n", style="green bold")
 
     def prepare_LaTeX_output_files(self):
+        warnings.warn("prepare_LaTeX_output_files is deprecated", DeprecationWarning, stacklevel=2)
         aux_file_path = Path(f"{self.project_name}.aux")
         if aux_file_path.exists():
             cite_counter = self._generate_citation_counter()
@@ -596,9 +602,8 @@ class CompileLaTeX(object):
             file_name = match.groups()[0]
             try:
                 counter = _count_citations(file_name)
-            except IOError:
+            except OSError:
                 self.logger.info(_("文件不存在或无法读取,跳过文件: %(args)s") % {"args": file_name})
-                pass
             else:
                 cite_counter[file_name] = counter
 
@@ -637,6 +642,7 @@ class CompileLaTeX(object):
         return index_aux_content_dict_old
 
     def toc_changed_judgment(self, toc_file):
+        warnings.warn("toc_changed_judgment is deprecated", DeprecationWarning, stacklevel=2)
         file_name = Path(self.project_name).with_suffix(".toc")
         if file_name.exists():
             with open(file_name, "r", encoding="utf-8") as fobj:
@@ -644,6 +650,7 @@ class CompileLaTeX(object):
                     return True
 
     def bib_judgment(self, old_cite_counter):
+        warnings.warn("bib_judgment is deprecated", DeprecationWarning, stacklevel=2)
         bib_engine = None
         name_target = None
         Latex_compilation_times = 0
@@ -707,6 +714,7 @@ class CompileLaTeX(object):
         return bib_engine, Latex_compilation_times, print_bib, name_target
 
     def compile_bib(self, bib_engine):
+        warnings.warn("compile_bib is deprecated", DeprecationWarning, stacklevel=2)
         if not self.bib_tool or self.bib_tool.name != bib_engine:
             self.bib_tool = self.toolchain.get_bib_tool(bib_engine)
         quiet = not self.non_quiet
@@ -722,6 +730,7 @@ class CompileLaTeX(object):
         )
 
     def _index_changed_judgment(self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile):
+        warnings.warn("_index_changed_judgment is deprecated", DeprecationWarning, stacklevel=2)
         make_index = False
         if re.search(f"No file {index_aux_infile}.", self.out):
             print_index = _("重新编译索引,因日志文件提示没有输入文件")
@@ -745,6 +754,7 @@ class CompileLaTeX(object):
         return print_index, make_index
 
     def index_judgment(self, index_aux_content_dict_old):
+        warnings.warn("index_judgment is deprecated", DeprecationWarning, stacklevel=2)
         file_name = Path(f"{self.project_name}.aux")
         run_index_list_cmd = []
         print_index = ""
@@ -789,6 +799,7 @@ class CompileLaTeX(object):
         return print_index, run_index_list_cmd
 
     def compile_index(self, cmd):
+        warnings.warn("compile_index is deprecated", DeprecationWarning, stacklevel=2)
         name_target = f"{cmd[0]}"
         options = shlex.split(cmd[1])
         success, output = self.MSP.run_command(
@@ -799,6 +810,7 @@ class CompileLaTeX(object):
         return name_target
 
     def compile_xdv(self):
+        warnings.warn("compile_xdv is deprecated", DeprecationWarning, stacklevel=2)
         quiet = not self.non_quiet
         options = self.toolchain.dvipdfmx.build_command(
             project_name=self.project_name,
@@ -810,43 +822,6 @@ class CompileLaTeX(object):
             "dvipdfmx",
             error_callback=self._error_callback,
         )
-
-    def move_file(self):
-        self._move_files()
-
-    def clean(self):
-        if self.auxdir and Path(self.auxdir).exists():
-            import shutil
-
-            shutil.rmtree(self.auxdir, ignore_errors=True)
-        if self.outdir and Path(self.outdir).exists():
-            import shutil
-
-            shutil.rmtree(self.outdir, ignore_errors=True)
-
-    def set_outdir(self, outdir):
-        self.outdir = outdir
-
-    def set_auxdir(self, auxdir):
-        self.auxdir = auxdir
-
-    def set_non_quiet(self, non_quiet):
-        self.non_quiet = non_quiet
-
-    def set_run_count(self, run_count):
-        self.run_count = run_count
-        self.runs = run_count
-
-    def set_timeout(self, timeout):
-        self.timeout = timeout
-
-    def set_engine(self, program):
-        self.program = program
-        self.compiled_program = program
-        self.engine = self.toolchain.get_engine(preference=program.lower())
-
-    def view_log(self):
-        self._view_log_current()
 
 
 def _count_citations(file_name):

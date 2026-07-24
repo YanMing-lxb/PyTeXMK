@@ -1,26 +1,21 @@
-# -*- coding: utf-8 -*-
 """
 智能引擎自动判定模块
 根据文档特征、魔法注释、CLI 参数和配置文件自动选择合适的编译引擎和工具链
 """
 
-import re
 import logging
+import re
 from pathlib import Path
-from typing import Dict, Tuple, Optional, Any, List
+from typing import Any
 
-from rich.console import Console
-
-from pytexmk.toolchain import ToolchainManager
-from pytexmk.additional import MainFileOperation
+from pytexmk.console import get_console
 from pytexmk.language import set_language
+from pytexmk.toolchain import ToolchainManager
 
 _ = set_language("engine_detect")
 
 logger = logging.getLogger(__name__)
-console = Console(legacy_windows=False)
-
-MFO = MainFileOperation()
+console = get_console(legacy_windows=False)
 
 MAX_LINES_TO_SCAN = 500
 
@@ -105,7 +100,7 @@ def _is_comment_line(line: str) -> bool:
     return stripped.startswith("%")
 
 
-def detect_document_features(tex_file_path: str | Path) -> Dict[str, Any]:
+def detect_document_features(tex_file_path: str | Path) -> dict[str, Any]:
     """
     检测 .tex 文件的文档特征
 
@@ -132,11 +127,11 @@ def detect_document_features(tex_file_path: str | Path) -> Dict[str, Any]:
     detected_packages_set: set[str] = set()
     needs_unicode = False
     has_chinese = False
-    bib_engine: Optional[str] = None
-    index_engine: Optional[str] = None
+    bib_engine: str | None = None
+    index_engine: str | None = None
     has_glossaries = False
     has_nomencl = False
-    detected_documentclass: Optional[str] = None
+    detected_documentclass: str | None = None
 
     try:
         with open(tex_path, "r", encoding="utf-8", errors="ignore") as f:
@@ -182,13 +177,7 @@ def detect_document_features(tex_file_path: str | Path) -> Dict[str, Any]:
 
                 if IMAKEIDX_XINDY_PATTERN.search(line):
                     index_engine = "xindy"
-                elif IMAKEIDX_PATTERN.search(line):
-                    if index_engine is None:
-                        index_engine = "makeindex"
-                elif MAKEIDX_PATTERN.search(line):
-                    if index_engine is None:
-                        index_engine = "makeindex"
-                elif MAKEINDEX_CMD_PATTERN.search(line):
+                elif IMAKEIDX_PATTERN.search(line) or MAKEIDX_PATTERN.search(line) or MAKEINDEX_CMD_PATTERN.search(line):
                     if index_engine is None:
                         index_engine = "makeindex"
 
@@ -228,7 +217,7 @@ def detect_document_features(tex_file_path: str | Path) -> Dict[str, Any]:
     return features
 
 
-def _empty_features() -> Dict[str, Any]:
+def _empty_features() -> dict[str, Any]:
     """返回空的特征字典"""
     return {
         "has_chinese": False,
@@ -242,7 +231,7 @@ def _empty_features() -> Dict[str, Any]:
     }
 
 
-def parse_magic_comments(file_path: str | Path) -> Dict[str, str]:
+def parse_magic_comments(file_path: str | Path) -> dict[str, str]:
     """
     解析指定 .tex 文件的魔法注释
 
@@ -260,7 +249,7 @@ def parse_magic_comments(file_path: str | Path) -> Dict[str, str]:
         logger.warning(_("魔法注释解析: 文件不存在 %(path)s") % {"path": p})
         return {}
 
-    result: Dict[str, str] = {}
+    result: dict[str, str] = {}
 
     try:
         with p.open("r", encoding="utf-8", errors="replace") as f:
@@ -304,12 +293,12 @@ def _normalize_engine_name(name: str) -> str:
 
 
 def select_engine(
-    cli_engine: Optional[str] = None,
-    magic_comment_engine: Optional[str] = None,
-    config_default: Optional[str] = None,
-    doc_features: Optional[Dict[str, Any]] = None,
-    toolchain_manager: Optional[ToolchainManager] = None,
-) -> Tuple[str, str]:
+    cli_engine: str | None = None,
+    magic_comment_engine: str | None = None,
+    config_default: str | None = None,
+    doc_features: dict[str, Any] | None = None,
+    toolchain_manager: ToolchainManager | None = None,
+) -> tuple[str, str]:
     """
     根据优先级选择 TeX 引擎
 
@@ -325,27 +314,27 @@ def select_engine(
     返回:
         (selected_engine_lowercase, reason_string)
     """
-    selected: Optional[str] = None
-    reason_parts: List[str] = []
+    selected: str | None = None
+    reason_parts: list[str] = []
 
     if cli_engine:
         norm = _normalize_engine_name(cli_engine)
         if norm in ("xelatex", "pdflatex", "lualatex"):
             selected = norm
-            reason_parts.append(f"CLI 指定使用 {norm}")
+            reason_parts.append(_("CLI 指定使用 %(norm)s") % {"norm": norm})
     if selected is None and magic_comment_engine:
         norm = _normalize_engine_name(magic_comment_engine)
         if norm in ("xelatex", "pdflatex", "lualatex"):
             selected = norm
-            reason_parts.append(f"魔法注释指定使用 {norm}")
+            reason_parts.append(_("魔法注释指定使用 %(norm)s") % {"norm": norm})
     if selected is None and config_default:
         norm = _normalize_engine_name(config_default)
         if norm in ("xelatex", "pdflatex", "lualatex"):
             selected = norm
-            reason_parts.append(f"配置文件默认使用 {norm}")
+            reason_parts.append(_("配置文件默认使用 %(norm)s") % {"norm": norm})
 
-    auto_preference: Optional[str] = None
-    auto_reason: Optional[str] = None
+    auto_preference: str | None = None
+    auto_reason: str | None = None
     if selected is None:
         features = doc_features or {}
         needs_unicode = features.get("needs_unicode", False)
@@ -355,27 +344,27 @@ def select_engine(
         if needs_unicode:
             if "luatexja" in pkgs:
                 auto_preference = "lualatex"
-                auto_reason = "自动选择 LuaLaTeX（检测到 luatexja 宏包）"
+                auto_reason = _("自动选择 LuaLaTeX（检测到 luatexja 宏包）")
             elif has_chinese or "ctex" in pkgs or "xeCJK" in pkgs:
                 auto_preference = "xelatex"
                 pkg_desc = "ctex" if "ctex" in pkgs else ("xeCJK" if "xeCJK" in pkgs else "中文/Unicode")
-                auto_reason = f"自动选择 XeLaTeX（检测到 {pkg_desc} 宏包）"
+                auto_reason = _("自动选择 XeLaTeX（检测到 %(pkg)s 宏包）") % {"pkg": pkg_desc}
             elif "fontspec" in pkgs:
                 auto_preference = "xelatex"
-                auto_reason = "自动选择 XeLaTeX（检测到 fontspec 宏包）"
+                auto_reason = _("自动选择 XeLaTeX（检测到 fontspec 宏包）")
             else:
                 auto_preference = "xelatex"
-                auto_reason = "自动选择 XeLaTeX（检测到 Unicode 需求）"
+                auto_reason = _("自动选择 XeLaTeX（检测到 Unicode 需求）")
         else:
             auto_preference = "xelatex"
-            auto_reason = "自动选择 XeLaTeX（默认引擎，纯英文文档）"
+            auto_reason = _("自动选择 XeLaTeX（默认引擎，纯英文文档）")
 
         selected = auto_preference
         reason_parts.append(auto_reason)
 
     if selected is None:
         selected = "xelatex"
-        reason_parts.append("使用默认引擎 xelatex")
+        reason_parts.append(_("使用默认引擎 xelatex"))
 
     final_engine = selected
     features_for_fallback = doc_features or {}
@@ -400,7 +389,7 @@ def select_engine(
                             _("首选引擎 %(selected)s 不可用，降级使用 %(fallback)s")
                             % {"selected": selected, "fallback": fb}
                         )
-                        reason_parts.append(f"（首选 {selected} 不可用，降级为 {fb}）")
+                        reason_parts.append(_("（首选 %(selected)s 不可用，降级为 %(fb)s）") % {"selected": selected, "fb": fb})
                         final_engine = fb
                         break
         except Exception as e:
@@ -411,11 +400,11 @@ def select_engine(
 
 
 def select_bib_tool(
-    cli_bib: Optional[str] = None,
-    magic_bib: Optional[str] = None,
-    doc_features: Optional[Dict[str, Any]] = None,
-    toolchain_manager: Optional[ToolchainManager] = None,
-) -> Tuple[Optional[str], str]:
+    cli_bib: str | None = None,
+    magic_bib: str | None = None,
+    doc_features: dict[str, Any] | None = None,
+    toolchain_manager: ToolchainManager | None = None,
+) -> tuple[str | None, str]:
     """
     选择参考文献工具
 
@@ -430,10 +419,10 @@ def select_bib_tool(
     返回:
         (selected_bib_or_None, reason)
     """
-    selected: Optional[str] = None
-    reason_parts: List[str] = []
+    selected: str | None = None
+    reason_parts: list[str] = []
 
-    def _norm_bib(name: str) -> Optional[str]:
+    def _norm_bib(name: str) -> str | None:
         n = name.strip().lower()
         if n in ("bibtex", "biber"):
             return n
@@ -443,20 +432,20 @@ def select_bib_tool(
         norm = _norm_bib(cli_bib)
         if norm:
             selected = norm
-            reason_parts.append(f"CLI 指定使用 {norm}")
+            reason_parts.append(_("CLI 指定使用 %(norm)s") % {"norm": norm})
     if selected is None and magic_bib:
         norm = _norm_bib(magic_bib)
         if norm:
             selected = norm
-            reason_parts.append(f"魔法注释指定使用 {norm}")
+            reason_parts.append(_("魔法注释指定使用 %(norm)s") % {"norm": norm})
     if selected is None and doc_features:
         detected = doc_features.get("bib_engine")
         if detected:
             selected = detected
-            reason_parts.append(f"根据文档特征自动选择 {detected}")
+            reason_parts.append(_("根据文档特征自动选择 %(detected)s") % {"detected": detected})
 
     if selected is None:
-        reason_parts.append("未检测到参考文献需求")
+        reason_parts.append(_("未检测到参考文献需求"))
         return None, "；".join(reason_parts)
 
     if toolchain_manager is not None:
@@ -469,7 +458,7 @@ def select_bib_tool(
                         logger.warning(
                             _("%(selected)s 不可用，尝试使用 %(other)s") % {"selected": selected, "other": other}
                         )
-                        reason_parts.append(f"（{selected} 不可用，回退为 {other}）")
+                        reason_parts.append(_("（%(selected)s 不可用，回退为 %(other)s）") % {"selected": selected, "other": other})
                         selected = other
         except Exception as e:
             logger.debug(_("Bib 工具可用性检查失败: %(error)s") % {"error": e})
@@ -479,11 +468,11 @@ def select_bib_tool(
 
 
 def select_index_tool(
-    cli_index: Optional[str] = None,
-    magic_index: Optional[str] = None,
-    doc_features: Optional[Dict[str, Any]] = None,
-    toolchain_manager: Optional[ToolchainManager] = None,
-) -> Tuple[str, str]:
+    cli_index: str | None = None,
+    magic_index: str | None = None,
+    doc_features: dict[str, Any] | None = None,
+    toolchain_manager: ToolchainManager | None = None,
+) -> tuple[str, str]:
     """
     选择索引工具
 
@@ -498,10 +487,10 @@ def select_index_tool(
     返回:
         (selected_index, reason)
     """
-    selected: Optional[str] = None
-    reason_parts: List[str] = []
+    selected: str | None = None
+    reason_parts: list[str] = []
 
-    def _norm_idx(name: str) -> Optional[str]:
+    def _norm_idx(name: str) -> str | None:
         n = name.strip().lower()
         if n in ("makeindex", "xindy"):
             return n
@@ -511,20 +500,20 @@ def select_index_tool(
         norm = _norm_idx(cli_index)
         if norm:
             selected = norm
-            reason_parts.append(f"CLI 指定使用 {norm}")
+            reason_parts.append(_("CLI 指定使用 %(norm)s") % {"norm": norm})
     if selected is None and magic_index:
         norm = _norm_idx(magic_index)
         if norm:
             selected = norm
-            reason_parts.append(f"魔法注释指定使用 {norm}")
+            reason_parts.append(_("魔法注释指定使用 %(norm)s") % {"norm": norm})
     if selected is None and doc_features:
         detected = doc_features.get("index_engine")
         if detected:
             selected = detected
-            reason_parts.append(f"根据文档特征自动选择 {detected}")
+            reason_parts.append(_("根据文档特征自动选择 %(detected)s") % {"detected": detected})
     if selected is None:
         selected = "makeindex"
-        reason_parts.append("使用默认索引工具 makeindex")
+        reason_parts.append(_("使用默认索引工具 makeindex"))
 
     if toolchain_manager is not None:
         try:
@@ -533,7 +522,7 @@ def select_index_tool(
                 if not toolchain_manager.index_tools["xindy"].available:
                     if toolchain_manager.index_tools["makeindex"].available:
                         logger.warning(_("xindy 不可用，回退使用 makeindex"))
-                        reason_parts.append("（xindy 不可用，回退为 makeindex）")
+                        reason_parts.append(_("（xindy 不可用，回退为 makeindex）"))
                         selected = "makeindex"
         except Exception as e:
             logger.debug(_("Index 工具可用性检查失败: %(error)s") % {"error": e})
@@ -542,7 +531,7 @@ def select_index_tool(
     return selected, reason
 
 
-def _extract_cli_engine(args_dict: Dict[str, Any]) -> Optional[str]:
+def _extract_cli_engine(args_dict: dict[str, Any]) -> str | None:
     """从 CLI 参数字典中提取用户指定的引擎"""
     if args_dict.get("XeLaTeX") or args_dict.get("xelatex"):
         return "xelatex"
@@ -568,11 +557,11 @@ def _standardize_display_name(engine_lower: str) -> str:
 
 def auto_configure(
     project_name: str,
-    cli_args: Dict[str, Any],
-    config: Dict[str, Any],
+    cli_args: dict[str, Any],
+    config: dict[str, Any],
     toolchain_manager: ToolchainManager,
-    magic_comments: Optional[Dict[str, str]] = None,
-) -> Dict[str, Any]:
+    magic_comments: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """
     自动配置引擎和工具链
 

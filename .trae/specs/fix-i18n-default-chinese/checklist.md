@@ -1,0 +1,14 @@
+- [x] `language.py` 的 `_detect_language()` 在 locale 名称匹配中同时检查 `"zh"` 前缀和 `"chinese"` 子串
+- [x] `language.py` 包含 Windows 原生 API 检测（`ctypes` + `GetUserDefaultLocaleName`）
+- [x] `language.py` 默认 fallback 为 `"zh_CN"` 而非 `"en"`
+- [x] `engine_detect.py` 中所有 21 个硬编码中文字符串已用 `_()` 包裹
+- [x] `additional.py` 中 2 个硬编码中文字符串已用 `_()` 包裹
+- [x] `engine_detect.pot` 包含新增的翻译条目且有英文翻译
+- [x] `additional.pot` 包含新增的翻译条目且有英文翻译
+- [x] `engine_detect.mo` 已重新编译
+- [x] `additional.mo` 已重新编译
+- [x] `msgfmt --check` 对所有受影响的 .pot 文件无报错
+- [x] `PYTEXMK_LANG=en` 时 `_detect_language()` 返回 `"en"`
+- [x] `PYTEXMK_LANG=zh_CN` 时 `_detect_language()` 返回 `"zh_CN"`
+- [x] 未设置环境变量时 `_detect_language()` 默认返回 `"zh_CN"`
+- [x] 单元测试全部通过（327 passed）

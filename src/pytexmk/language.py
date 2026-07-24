@@ -23,11 +23,11 @@ Description  : Internationalization (i18n) support for PyTeXMK
  -----------------------------------------------------------------------
 """
 
-import locale
 import gettext
+import locale
 import os
+import sys
 from pathlib import Path
-
 
 _LOCALE_DIR = Path(__file__).resolve().parent / "locale"
 
@@ -83,10 +83,24 @@ def _detect_language() -> str:
         except Exception:
             pass
 
-    if lang_code.startswith("zh"):
+    if not lang_code and sys.platform == "win32":
+        try:
+            import ctypes
+            buf = ctypes.create_unicode_buffer(85)
+            if ctypes.windll.kernel32.GetUserDefaultLocaleName(buf, 85):
+                win_lang = buf.value.lower()
+                if win_lang.startswith("zh"):
+                    return "zh_CN"
+                for prefix, full in SUPPORTED_LANGUAGES.items():
+                    if win_lang.startswith(prefix):
+                        return full
+        except Exception:
+            pass
+
+    if lang_code.startswith("zh") or "chinese" in lang_code:
         return "zh_CN"
 
-    return "en"
+    return "zh_CN"
 
 
 def _get_translation(domain: str) -> gettext.NullTranslations:

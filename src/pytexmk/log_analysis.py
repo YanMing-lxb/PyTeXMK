@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 log_analysis.py - LaTeX 编译日志分析模块
 
@@ -9,20 +8,20 @@ log_analysis.py - LaTeX 编译日志分析模块
 4. 使用 rich 表格展示错误信息。
 """
 
-import re
 import logging
+import re
 from pathlib import Path
-from typing import List, Dict, Optional, Set, Any, Union
+from typing import Any
 
-from rich.console import Console
-from rich.table import Table
 from rich import box
+from rich.table import Table
 
+from pytexmk.console import get_console
 from pytexmk.language import set_language
 
 logger = logging.getLogger(__name__)
 _ = set_language("log_analysis")
-console = Console()
+console = get_console()
 
 
 # ========================
@@ -104,9 +103,11 @@ BIBTEX_ERROR_RE = re.compile(r"^I found no|^I was expecting|^Too many|^Warning--
 BIBTEX_FATAL_RE = re.compile(r"^Fatal error|^Aborted", re.IGNORECASE)
 
 # Biber 日志模式
+BIBER_INFO_RE = re.compile(r"^INFO\s*-", re.IGNORECASE)
 BIBER_ERROR_RE = re.compile(r"^ERROR", re.IGNORECASE)
 BIBER_WARN_RE = re.compile(r"^WARN", re.IGNORECASE)
 BIBER_FATAL_RE = re.compile(r"^FATAL", re.IGNORECASE)
+BIBER_SIGNATURE_RE = re.compile(r"^(INFO|WARN|ERROR|FATAL)\s*-", re.IGNORECASE)
 
 # Makeindex 日志模式
 MAKEINDEX_BANG_RE = re.compile(r"^!!")
@@ -146,6 +147,9 @@ missing_char_re = re.compile(r"^\s*(Missing character:.+?!)$")
 bib_empty_re = re.compile(r"^Empty `thebibliography\' environment$")
 
 
+MAX_ERROR_CONTINUATION_LINES = 20
+
+
 class LogAnalysis:
     """
     LaTeX 日志分析器（新版，基于文件名）
@@ -172,18 +176,18 @@ class LogAnalysis:
         self.bbl = base_path.with_suffix(".bbl")
         self.ind = base_path.with_suffix(".ind")
 
-        self.errors: List[Dict[str, Any]] = []
-        self.warnings: List[Dict[str, Any]] = []
-        self.undefined_citations: Set[str] = set()
-        self.undefined_references: Set[str] = set()
-        self.missing_files: Set[str] = set()
+        self.errors: list[dict[str, Any]] = []
+        self.warnings: list[dict[str, Any]] = []
+        self.undefined_citations: set[str] = set()
+        self.undefined_references: set[str] = set()
+        self.missing_files: set[str] = set()
         self.overfull_boxes: int = 0
         self.underfull_boxes: int = 0
-        self.loaded_files: List[str] = []
+        self.loaded_files: list[str] = []
         self.compilation_success: bool = False
-        self.output_file: Optional[str] = None
+        self.output_file: str | None = None
         self.pages: int = 0
-        self.engine_type: Optional[str] = None
+        self.engine_type: str | None = None
 
         self._tex_error_count: int = 0
         self._bib_error_count: int = 0
@@ -192,7 +196,7 @@ class LogAnalysis:
         self._needs_rerun: bool = False
         self._parsed: bool = False
 
-    def parse_all(self) -> "LogAnalysis":
+    def parse_all(self) -> LogAnalysis:
         """
         解析所有日志文件，方便链式调用
 
@@ -225,7 +229,7 @@ class LogAnalysis:
         self._parsed = True
         return self
 
-    def _read_file_safe(self, path: Path) -> List[str]:
+    def _read_file_safe(self, path: Path) -> list[str]:
         """安全读取文件，返回行列表"""
         try:
             if path.exists():
@@ -270,7 +274,7 @@ class LogAnalysis:
         self.warnings.append(entry)
         self._warning_count += 1
 
-    def _extract_line_number(self, line: str, context_lines: List[str] = None) -> int:
+    def _extract_line_number(self, line: str, context_lines: list[str] = None) -> int:
         """从行内容中提取行号"""
         match = LINE_L_DOT_RE.search(line)
         if match:
@@ -288,7 +292,7 @@ class LogAnalysis:
                     return int(match.group(1))
         return 0
 
-    def _extract_filename(self, line: str, context_lines: List[str] = None) -> str:
+    def _extract_filename(self, line: str, context_lines: list[str] = None) -> str:
         """从错误上下文中提取源文件名"""
         match = LINE_FILE_COLON_RE.search(line)
         if match:
@@ -306,11 +310,12 @@ class LogAnalysis:
         if not lines:
             return
 
-        context_buffer: List[str] = []
-        current_error_msg: List[str] = []
+        context_buffer: list[str] = []
+        current_error_msg: list[str] = []
         in_error = False
         error_file = ""
         error_line = 0
+        error_continuation_count = 0
 
         for i, line in enumerate(lines):
             raw_line = line.rstrip("\n\r")
@@ -358,22 +363,13 @@ class LogAnalysis:
             if ERROR_BANG_RE.match(stripped):
                 is_error = True
                 error_msg = stripped[1:].strip()
-            elif ERROR_PDFTEX_RE.match(stripped):
-                is_error = True
-                error_msg = stripped
-            elif ERROR_XETEX_RE.match(stripped):
-                is_error = True
-                error_msg = stripped
-            elif ERROR_LUATEX_RE.match(stripped):
+            elif ERROR_PDFTEX_RE.match(stripped) or ERROR_XETEX_RE.match(stripped) or ERROR_LUATEX_RE.match(stripped):
                 is_error = True
                 error_msg = stripped
             elif ERROR_EMERGENCY_STOP_RE.search(stripped):
                 is_error = True
                 error_msg = "Emergency stop."
-            elif ERROR_FATAL_ARROW_RE.search(stripped) or ERROR_FATAL_RE.search(stripped):
-                is_error = True
-                error_msg = stripped
-            elif ERROR_CANT_USE_RE.match(stripped):
+            elif ERROR_FATAL_ARROW_RE.search(stripped) or ERROR_FATAL_RE.search(stripped) or ERROR_CANT_USE_RE.match(stripped):
                 is_error = True
                 error_msg = stripped
 
@@ -386,6 +382,7 @@ class LogAnalysis:
                     self._tex_error_count += 1
                 in_error = True
                 current_error_msg = [error_msg] if error_msg else [stripped]
+                error_continuation_count = 0
                 ctx_lines = lines[max(0, i - 5) : i] if i > 0 else []
                 error_file = self._extract_filename(raw_line, ctx_lines)
                 error_line = self._extract_line_number(raw_line)
@@ -394,16 +391,23 @@ class LogAnalysis:
 
             if in_error:
                 context_buffer.append(raw_line)
+                error_continuation_count += 1
                 if stripped and not stripped.startswith(" "):
                     l_match = LINE_L_DOT_RE.search(raw_line)
                     if l_match:
                         error_line = int(l_match.group(1))
+                    else:
+                        current_error_msg.append(stripped)
                     if error_line == 0:
                         error_line = self._extract_line_number(raw_line)
                     if not error_file:
                         error_file = self._extract_filename(raw_line, context_buffer)
 
-                if stripped == "" or (stripped.startswith("l.") and len(current_error_msg) > 1):
+                if (
+                    stripped == ""
+                    or (stripped.startswith("l.") and len(current_error_msg) > 1)
+                    or error_continuation_count >= MAX_ERROR_CONTINUATION_LINES
+                ):
                     if current_error_msg:
                         ctx = "\n".join(context_buffer[-15:])
                         self._add_error(
@@ -415,24 +419,19 @@ class LogAnalysis:
                     context_buffer = []
                     error_file = ""
                     error_line = 0
+                    error_continuation_count = 0
                 else:
                     if stripped:
                         current_error_msg.append(stripped)
                 continue
 
             warn_msg = None
-            if WARN_PACKAGE_RE.match(stripped):
-                warn_msg = stripped
-            elif WARN_CLASS_RE.match(stripped):
+            if WARN_PACKAGE_RE.match(stripped) or WARN_CLASS_RE.match(stripped):
                 warn_msg = stripped
             elif WARN_LATEX_RE.match(stripped):
                 if "undefined" not in stripped.lower():
                     warn_msg = stripped
-            elif WARN_PDFTEX_RE.match(stripped):
-                warn_msg = stripped
-            elif WARN_XETEX_RE.match(stripped):
-                warn_msg = stripped
-            elif WARN_LUATEX_RE.match(stripped):
+            elif WARN_PDFTEX_RE.match(stripped) or WARN_XETEX_RE.match(stripped) or WARN_LUATEX_RE.match(stripped):
                 warn_msg = stripped
 
             if warn_msg:
@@ -458,10 +457,23 @@ class LogAnalysis:
             return
 
         is_biber = False
-        if lines:
-            first_lines = "".join(lines[:5])
-            if "Biber" in first_lines or "biber" in first_lines.lower():
+        for line in lines:
+            stripped = line.strip()
+            if BIBER_SIGNATURE_RE.match(stripped):
                 is_biber = True
+                break
+        if not is_biber:
+            for line in lines[:5]:
+                stripped = line.strip()
+                if "biber" in stripped.lower():
+                    is_biber = True
+                    break
+        if not is_biber:
+            for line in lines:
+                stripped = line.strip()
+                if BIBTEX_ERROR_RE.match(stripped) or BIBTEX_FATAL_RE.match(stripped):
+                    is_biber = False
+                    break
 
         for line in lines:
             stripped = line.strip()
@@ -477,6 +489,8 @@ class LogAnalysis:
                     self._bib_error_count += 1
                 elif BIBER_WARN_RE.match(stripped):
                     self._add_warning(stripped, source="biber")
+                elif BIBER_INFO_RE.match(stripped):
+                    pass  # Biber INFO 消息为信息性输出，不视为错误
             else:
                 if BIBTEX_FATAL_RE.match(stripped):
                     self._add_error(stripped, source="bibtex", level="fatal")
@@ -522,7 +536,7 @@ class LogAnalysis:
             elif MAKEINDEX_WARN_RE.search(stripped):
                 self._add_warning(stripped, source="makeindex")
 
-    def _parse_xindy_content(self, lines: List[str]):
+    def _parse_xindy_content(self, lines: list[str]):
         """解析 xindy 日志内容（可能在 .ilg 中）"""
         for line in lines:
             stripped = line.strip()
@@ -703,31 +717,31 @@ class LogAnalysis:
             self.parse_all()
         return self._index_error_count
 
-    def get_errors(self) -> List[Dict[str, Any]]:
+    def get_errors(self) -> list[dict[str, Any]]:
         """返回所有错误列表"""
         if not self._parsed:
             self.parse_all()
         return list(self.errors)
 
-    def get_warnings(self) -> List[Dict[str, Any]]:
+    def get_warnings(self) -> list[dict[str, Any]]:
         """返回所有警告列表"""
         if not self._parsed:
             self.parse_all()
         return list(self.warnings)
 
-    def get_undefined_citations(self) -> Set[str]:
+    def get_undefined_citations(self) -> set[str]:
         """返回未定义的 citation key 集合"""
         if not self._parsed:
             self.parse_all()
         return set(self.undefined_citations)
 
-    def get_undefined_references(self) -> Set[str]:
+    def get_undefined_references(self) -> set[str]:
         """返回未定义的 ref label 集合"""
         if not self._parsed:
             self.parse_all()
         return set(self.undefined_references)
 
-    def get_missing_files(self) -> Set[str]:
+    def get_missing_files(self) -> set[str]:
         """返回缺失的文件名集合"""
         if not self._parsed:
             self.parse_all()
@@ -792,7 +806,7 @@ class LogAnalysis:
             self.parse_all()
         return self.has_reference_errors() or self._needs_rerun or self.has_citation_errors()
 
-    def get_compilation_summary(self) -> Dict[str, Any]:
+    def get_compilation_summary(self) -> dict[str, Any]:
         """
         返回编译结果汇总字典
 
@@ -822,19 +836,20 @@ class LogAnalysis:
 
 
 # ========================
-# 旧 LatexLogParser 类（保持完整向后兼容）
+# 旧 LatexLogParser 类（已弃用，仅保留向后兼容）
+# 新代码请使用 LogAnalysis 类
 # ========================
 
-LogEntry = Dict[str, Union[str, int]]
+LogEntry = dict[str, str | int]
 
 
 class LatexLogParser:
     """旧版日志解析器，兼容现有代码接口"""
 
     def __init__(self, root_file: str = None):
-        self.build_log: List[LogEntry] = []
-        self.current_result: Optional[LogEntry] = None
-        self.file_stack: List[str] = []
+        self.build_log: list[LogEntry] = []
+        self.current_result: LogEntry | None = None
+        self.file_stack: list[str] = []
         self.root_file: str = root_file or ""
         self.search_empty_line = False
         self.inside_box_warn = False
@@ -842,7 +857,7 @@ class LatexLogParser:
         self.nested = 0
         self._resolved_paths = {}
 
-    def parse(self, log: str, root_file: Optional[str] = None) -> List[LogEntry]:
+    def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -1055,7 +1070,7 @@ class LatexLogParser:
         pages = [entry for entry in sorted_logs if entry["type"] == LogType.PAGE]
         infos = [entry for entry in sorted_logs if entry["type"] == LogType.INFO]
 
-        def format_message(entry: Dict[str, Any]) -> str:
+        def format_message(entry: dict[str, Any]) -> str:
             file_path = Path(entry["file"])
             try:
                 rel_path = file_path.relative_to(Path.cwd()).as_posix()

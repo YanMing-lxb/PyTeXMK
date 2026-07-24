@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 21:35+0800\n"
+"POT-Creation-Date: 2026-07-24 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,46 +17,50 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:72
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:73
 #, python-format
 msgid "[yellow]PDF 文件不存在，无法打开预览: %(path)s[/yellow]"
-msgstr ""
+msgstr "[yellow]PDF file does not exist, cannot open preview: %(path)s[/yellow]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:87
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:88
 #, python-format
 msgid "[yellow]打开预览失败: %(error)s[/yellow]"
-msgstr ""
+msgstr "[yellow]Failed to open preview: %(error)s[/yellow]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:196
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:197
 #, python-format
 msgid "[bold red]编译回调异常: %(error)s[/bold red]"
-msgstr ""
+msgstr "[bold red]Compilation callback exception: %(error)s[/bold red]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:269
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:270
 #, python-format
 msgid "[bold cyan]检测到文件变更: %(filename)s，开始重新编译...[/bold cyan]"
-msgstr ""
+msgstr "[bold cyan]File change detected: %(filename)s, starting recompilation...[/bold cyan]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:273
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:274
 msgid "[bold cyan]开始首次编译...[/bold cyan]"
-msgstr ""
+msgstr "[bold cyan]Starting first compilation...[/bold cyan]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:348
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:308
 #, python-format
 msgid "[bold red]编译失败: %(error)s[/bold red]"
-msgstr ""
+msgstr "[bold red]Compilation failed: %(error)s[/bold red]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:375
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:335
 msgid ""
 "[bold blue on white]| PyTeXMK PVC 模式（预览持续模式） |[/bold blue on white]"
 msgstr ""
+"[bold blue on white]| PyTeXMK PVC mode (preview continuous mode) |[/bold blue "
+"on white]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:392
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:352
 msgid ""
 "[bold green]PyTeXMK PVC 模式已启动，正在监听文件变更。按 Ctrl+C 停止...[/"
 "bold green]\n"
 msgstr ""
+"[bold green]PyTeXMK PVC mode has started, listening for file changes. Press "
+"Ctrl+C to stop...[/bold green]\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:415
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:375
 msgid "[bold yellow]PVC 模式已停止[/bold yellow]"
-msgstr ""
+msgstr "[bold yellow]PVC mode has stopped[/bold yellow]"

@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 模块间集成测试（不调用真实 LaTeX，使用 mock）
 """
 
 from unittest import mock
 
-from pytexmk.engine_detect import auto_configure, parse_magic_comments, detect_document_features
-from pytexmk.toolchain import ToolchainManager
 from pytexmk.config import ConfigParser
-from pytexmk.log_analysis import LogAnalysis
+from pytexmk.engine_detect import auto_configure, detect_document_features, parse_magic_comments
 from pytexmk.latexdiff import LaTeXDiffTool
+from pytexmk.log_analysis import LogAnalysis
+from pytexmk.toolchain import ToolchainManager
 
 
 class TestEngineDetectToolchainIntegration:

@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 pytest 基础配置和 fixtures
 """
 
-import sys
 import shutil
+import sys
 from pathlib import Path
 
 import pytest

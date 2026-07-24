@@ -38,7 +38,18 @@ python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-outp
 pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
-import sys  # noqa: E402
+import sys
+
+__all__ = [
+    "CompileLaTeX",
+    "ConfigParser",
+    "LaTeXDiffTool",
+    "LogAnalysis",
+    "PvcMode",
+    "PyTeXMKError",
+    "ToolchainManager",
+    "main",
+]
 
 if sys.version_info[0] == 3:
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Toolchain 工具链模块单元测试"""
 
 from unittest.mock import MagicMock
@@ -7,17 +6,17 @@ import pytest
 
 from pytexmk.exceptions import ToolchainNotFoundError
 from pytexmk.toolchain import (
-    detect_tool_available,
-    ToolchainBase,
-    PdfLaTeXEngine,
-    XeLaTeXEngine,
-    LuaLaTeXEngine,
-    BibTeXTool,
     BiberTool,
-    MakeindexTool,
-    XindyTool,
+    BibTeXTool,
     DvipdfmxTool,
+    LuaLaTeXEngine,
+    MakeindexTool,
+    PdfLaTeXEngine,
+    ToolchainBase,
     ToolchainManager,
+    XeLaTeXEngine,
+    XindyTool,
+    detect_tool_available,
 )
 
 

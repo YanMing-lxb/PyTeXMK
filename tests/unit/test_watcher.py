@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
 """watcher 文件监听模块单元测试"""
 
 import time
 from unittest.mock import MagicMock, patch
 
 from pytexmk.watcher import (
+    DEFAULT_EXCLUDE_DIRS,
+    DEFAULT_WATCHED_EXTENSIONS,
     FileChangeHandler,
     PvcMode,
     open_pdf_preview,
-    DEFAULT_WATCHED_EXTENSIONS,
-    DEFAULT_EXCLUDE_DIRS,
     run_pvc_mode,
 )
 

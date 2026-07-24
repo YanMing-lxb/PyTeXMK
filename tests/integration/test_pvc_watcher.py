@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 """
 PVC 模式集成测试
 """
 
-import time
 import threading
+import time
 from unittest import mock
 
-from pytexmk.watcher import PvcMode, FileChangeHandler
+from pytexmk.watcher import FileChangeHandler, PvcMode
 
 
 class TestFileChangeHandler:

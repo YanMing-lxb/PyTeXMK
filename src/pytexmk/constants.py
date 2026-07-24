@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 PyTeXMK 常量定义模块
 """
@@ -129,6 +128,19 @@ WARNING_MARKERS = [
     "Underfull",
     "Package warning",
     "Class warning",
+]
+
+# 输出文件扩展名列表
+SUFFIXES_OUT = [".pdf", ".synctex.gz"]
+
+# 辅助文件扩展名列表
+SUFFIXES_AUX = [
+    ".log", ".blg", ".ilg", ".xlg", ".aux", ".bbl", ".xml",
+    ".toc", ".lof", ".lot", ".out", ".bcf", ".idx", ".ind",
+    ".nlo", ".nls", ".ist", ".glo", ".gls", ".bak", ".spl",
+    ".ent-x", ".tmp", ".ltx", ".los", ".lol", ".loc", ".listing",
+    ".gz", ".userbak", ".nav", ".snm", ".vrb", ".fls", ".xdv",
+    ".fdb_latexmk", ".run.xml",
 ]
 
 # 退出码

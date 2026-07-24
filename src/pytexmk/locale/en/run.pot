@@ -83,6 +83,6 @@ msgid "目录索引: "
 msgstr "Table of contents: "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\run.py⁩:161
-#, fuzzy, python-format
+#, python-format
 msgid "2 次 %(args1)s 编译"
-msgstr "2 time %(args)s compile"
+msgstr "2 times %(args1)s compilation"

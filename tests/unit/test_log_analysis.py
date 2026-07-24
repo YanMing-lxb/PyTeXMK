@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 test_log_analysis.py - LogAnalysis 类单元测试
 """
 
 from pathlib import Path
 
-from pytexmk.log_analysis import LogAnalysis, LatexLogParser
-
+from pytexmk.log_analysis import LatexLogParser, LogAnalysis
 
 # ========================
 # 辅助函数

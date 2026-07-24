@@ -24,6 +24,7 @@ Description  :
 """
 
 import logging
+
 from rich.logging import RichHandler  # 导入rich库的日志处理模块
 
 from pytexmk.language import set_language

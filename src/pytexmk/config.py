@@ -1,11 +1,13 @@
-import toml
 import copy
 import logging
+import tomllib
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any
 
-from pytexmk.language import set_language
+import tomli_w
+
 from pytexmk.auxiliary_fun import get_app_path
+from pytexmk.language import set_language
 
 _ = set_language("config")
 
@@ -58,12 +60,12 @@ class ConfigParser(dict):
         except KeyError:
             return None
 
-    def _get_user_config_path(self) -> Optional[Path]:
+    def _get_user_config_path(self) -> Path | None:
         """获取用户配置文件路径。
 
         Returns
         -------
-        Optional[Path]
+        Path | None
             用户配置文件路径，如果获取失败则返回 None。
         """
         try:
@@ -74,7 +76,7 @@ class ConfigParser(dict):
             self.logger.error(_("获取用户主目录路径失败: ") + str(e))
             return None
 
-    def _load_toml(self, path: Path) -> Optional[Dict[str, Any]]:
+    def _load_toml(self, path: Path) -> dict[str, Any] | None:
         """加载指定路径的 TOML 配置文件。
 
         Parameters
@@ -84,7 +86,7 @@ class ConfigParser(dict):
 
         Returns
         -------
-        Optional[Dict[str, Any]]
+        dict[str, Any] | None
             配置字典。
         """
         if not path.exists():
@@ -92,11 +94,17 @@ class ConfigParser(dict):
             return None
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                config = toml.load(f)
+            with open(path, "rb") as f:
+                config = tomllib.load(f)
             self.logger.info(_("成功加载配置文件: ") + str(path))
             return config
-        except Exception as e:
+        except tomllib.TOMLDecodeError as e:
+            self.logger.error(
+                _("配置文件 TOML 解析失败: ") + f"{path} --> {e} "
+                + _("(行 {lineno}, 列 {colno})").format(lineno=e.lineno, colno=e.colno)
+            )
+            return None
+        except OSError as e:
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return None
 
@@ -123,7 +131,7 @@ class ConfigParser(dict):
         else:
             self._check_and_correct_config(path, config_file)
 
-    def _deep_update(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+    def _deep_update(self, base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
         """递归更新嵌套字典。
 
         Parameters
@@ -147,8 +155,8 @@ class ConfigParser(dict):
         return result
 
     def _get_missing_and_extra_keys(
-        self, existing: Dict[str, Any], default: Dict[str, Any], prefix: str = ""
-    ) -> tuple[Dict[str, Any], Dict[str, Any]]:
+        self, existing: dict[str, Any], default: dict[str, Any], prefix: str = ""
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """递归查找缺失和多余的配置键。
 
         Parameters
@@ -184,7 +192,7 @@ class ConfigParser(dict):
 
         return missing, extra
 
-    def _apply_config_updates(self, existing: Dict[str, Any], default: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_config_updates(self, existing: dict[str, Any], default: dict[str, Any]) -> dict[str, Any]:
         """递归应用配置更新：补全缺失项，保持默认顺序。
 
         Parameters
@@ -223,14 +231,20 @@ class ConfigParser(dict):
             默认配置文件名。
         """
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                existing_config = toml.load(f)
-        except Exception as e:
+            with open(path, "rb") as f:
+                existing_config = tomllib.load(f)
+        except tomllib.TOMLDecodeError as e:
+            self.logger.error(
+                _("配置文件 TOML 解析失败: ") + f"{path} --> {e} "
+                + _("(行 {lineno}, 列 {colno})").format(lineno=e.lineno, colno=e.colno)
+            )
+            return
+        except OSError as e:
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return
 
-        with open(self.data_dir / config_file, "r", encoding="utf-8") as f:
-            default_config_dict = toml.load(f)
+        with open(self.data_dir / config_file, "rb") as f:
+            default_config_dict = tomllib.load(f)
 
         missing_keys, extra_keys = self._get_missing_and_extra_keys(existing_config, default_config_dict)
 
@@ -274,8 +288,8 @@ class ConfigParser(dict):
 
             ordered_config = self._apply_config_updates(existing_config, default_config_dict)
             try:
-                with open(path, "w", encoding="utf-8") as f:
-                    toml.dump(ordered_config, f)
+                with open(path, "wb") as f:
+                    tomli_w.dump(ordered_config, f)
                 self.logger.info(_("配置文件更新成功: ") + str(path))
             except Exception as e:
                 self.logger.error(_("配置文件更新失败: ") + f"{path} --> {e}")
@@ -327,8 +341,8 @@ class ConfigParser(dict):
             return copy.deepcopy(default_value)
 
     def _convert_config_types(
-        self, config: Dict[str, Any], default: Dict[str, Any], prefix: str = ""
-    ) -> Dict[str, Any]:
+        self, config: dict[str, Any], default: dict[str, Any], prefix: str = ""
+    ) -> dict[str, Any]:
         """递归转换配置值类型。
 
         Parameters
@@ -357,7 +371,7 @@ class ConfigParser(dict):
                 result[key] = copy.deepcopy(default_value)
         return result
 
-    def _validate_config(self, config: Dict[str, Any]) -> List[str]:
+    def _validate_config(self, config: dict[str, Any]) -> list[str]:
         """验证配置值是否合法。
 
         Parameters
@@ -436,7 +450,7 @@ class ConfigParser(dict):
                 return default
         return value
 
-    def get_engine_config(self) -> Dict[str, Any]:
+    def get_engine_config(self) -> dict[str, Any]:
         """返回 engine 配置节的字典。
 
         Returns
@@ -446,7 +460,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("engine", {}))
 
-    def get_pvc_config(self) -> Dict[str, Any]:
+    def get_pvc_config(self) -> dict[str, Any]:
         """返回 pvc 配置节的字典。
 
         Returns
@@ -456,7 +470,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("pvc", {}))
 
-    def get_compilation_config(self) -> Dict[str, Any]:
+    def get_compilation_config(self) -> dict[str, Any]:
         """返回 compilation 配置节的字典。
 
         Returns
@@ -466,7 +480,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("compilation", {}))
 
-    def get_bib_config(self) -> Dict[str, Any]:
+    def get_bib_config(self) -> dict[str, Any]:
         """返回 bib 配置节的字典。
 
         Returns
@@ -476,7 +490,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("bib", {}))
 
-    def get_index_config(self) -> Dict[str, Any]:
+    def get_index_config(self) -> dict[str, Any]:
         """返回 index 配置节的字典。
 
         Returns
@@ -486,7 +500,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("index", {}))
 
-    def get_output_config(self) -> Dict[str, Any]:
+    def get_output_config(self) -> dict[str, Any]:
         """返回 output 配置节的字典。
 
         Returns
@@ -496,7 +510,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("output", {}))
 
-    def get_diff_config(self) -> Dict[str, Any]:
+    def get_diff_config(self) -> dict[str, Any]:
         """返回 diff 配置节的字典。
 
         Returns
@@ -506,7 +520,7 @@ class ConfigParser(dict):
         """
         return dict(self.get("diff", {}))
 
-    def init_config_file(self) -> "ConfigParser":
+    def init_config_file(self) -> ConfigParser:
         """初始化配置文件。
         加载用户配置和项目配置文件, 优先使用项目配置（递归合并）。
 
@@ -518,8 +532,8 @@ class ConfigParser(dict):
         self._init_default_config(self.user_config_path, "default_user_config.toml")
         user_config = self._load_toml(self.user_config_path)
 
-        with open(self.data_dir / "default_user_config.toml", "r", encoding="utf-8") as f:
-            default_user_config = toml.load(f)
+        with open(self.data_dir / "default_user_config.toml", "rb") as f:
+            default_user_config = tomllib.load(f)
 
         if user_config is None:
             user_config = {}
@@ -534,8 +548,8 @@ class ConfigParser(dict):
         final_config = user_config
 
         if project_config:
-            with open(self.data_dir / "default_project_config.toml", "r", encoding="utf-8") as f:
-                default_project_config = toml.load(f)
+            with open(self.data_dir / "default_project_config.toml", "rb") as f:
+                default_project_config = tomllib.load(f)
             project_config = self._convert_config_types(project_config, default_project_config)
             final_config = self._deep_update(final_config, project_config)
         else:

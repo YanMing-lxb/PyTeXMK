@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 """config 配置模块单元测试"""
 
-import toml
-import pytest
+import tomllib
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+import tomli_w
 
 from pytexmk.config import ConfigParser
 
@@ -39,8 +40,8 @@ def isolated_config(temp_dirs):
 def default_user_config():
     """读取默认用户配置内容"""
     data_dir = Path(__file__).parent.parent.parent / "src" / "pytexmk" / "data"
-    with open(data_dir / "default_user_config.toml", "r", encoding="utf-8") as f:
-        return toml.load(f)
+    with open(data_dir / "default_user_config.toml", "rb") as f:
+        return tomllib.load(f)
 
 
 class TestConfigParserInit:
@@ -111,8 +112,8 @@ class TestLoadOldConfig:
             },
         }
 
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(old_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(old_config, f)
 
         config = isolated_config.init_config_file()
 
@@ -137,8 +138,8 @@ class TestNonInteractiveMode:
             "quiet_mode": True,
             "project_config_auto_init": False,
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(incomplete_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(incomplete_config, f)
 
         with patch("builtins.input", side_effect=Exception("input() should not be called")):
             isolated_config.init_config_file()
@@ -154,8 +155,8 @@ class TestTypeConversion:
             "quiet_mode": False,
             "project_config_auto_init": False,
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         config = isolated_config.init_config_file()
 
@@ -171,8 +172,8 @@ class TestTypeConversion:
             "quiet_mode": True,
             "project_config_auto_init": False,
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         config = isolated_config.init_config_file()
 
@@ -193,8 +194,8 @@ class TestTypeConversion:
                 "timeout": "600",
             },
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         config = isolated_config.init_config_file()
 
@@ -217,8 +218,8 @@ class TestTypeConversion:
                 "exclude_dirs": ["build"],
             },
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         config = isolated_config.init_config_file()
 
@@ -244,13 +245,17 @@ class TestConfigValidation:
                 "timeout": 300,
             },
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         with caplog.at_level(logging.WARNING):
             isolated_config.init_config_file()
 
-        assert any("未知的默认引擎" in record.message for record in caplog.records)
+        assert any(
+            "未知的默认引擎" in record.message
+            or "Unknown default engine" in record.message
+            for record in caplog.records
+        )
 
     def test_invalid_timeout_produces_warning(self, isolated_config, caplog):
         """非正数 timeout 应产生警告"""
@@ -269,13 +274,17 @@ class TestConfigValidation:
                 "timeout": -10,
             },
         }
-        with open(isolated_config.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(test_config, f)
+        with open(isolated_config.user_config_path, "wb") as f:
+            tomli_w.dump(test_config, f)
 
         with caplog.at_level(logging.WARNING):
             isolated_config.init_config_file()
 
-        assert any("编译超时必须是正数" in record.message for record in caplog.records)
+        assert any(
+            "编译超时必须是正数" in record.message
+            or "Compilation timeout must be a positive number" in record.message
+            for record in caplog.records
+        )
 
     def test_valid_config_no_warnings(self, isolated_config, caplog):
         """合法配置不应产生验证警告"""
@@ -372,10 +381,10 @@ class TestProjectConfigOverride:
         cp.user_config_path = home_dir / ".pytexmkrc"
         cp.project_config_path = cwd_dir / ".pytexmkrc"
 
-        with open(cp.user_config_path, "w", encoding="utf-8") as f:
-            toml.dump(user_config, f)
-        with open(cp.project_config_path, "w", encoding="utf-8") as f:
-            toml.dump(project_config, f)
+        with open(cp.user_config_path, "wb") as f:
+            tomli_w.dump(user_config, f)
+        with open(cp.project_config_path, "wb") as f:
+            tomli_w.dump(project_config, f)
 
         config = cp.init_config_file()
 

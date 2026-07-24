@@ -24,30 +24,29 @@ Description  : LaTeXDiff 功能增强模块
 """
 
 # -*- coding: utf-8 -*-
-import re
-import sys
-import shutil
 import logging
+import re
+import shutil
 import subprocess
+import sys
 from pathlib import Path
-from typing import Optional, Dict, List, Union, Any
+from typing import Any
 from warnings import warn
 
-from rich.console import Console
-
-from pytexmk.language import set_language
 from pytexmk.additional import MoveRemoveOperation, MySubProcess
 from pytexmk.compile import CompileLaTeX
+from pytexmk.console import get_console
 from pytexmk.exceptions import (
     CompilationError,
     FileOperationError,
     LaTeXDiffError,
     ToolchainNotFoundError,
 )
+from pytexmk.language import set_language
 
 _ = set_language("latexdiff")
 
-console = Console(legacy_windows=False)
+console = get_console(legacy_windows=False)
 
 
 class LaTeXDiffTool:
@@ -55,7 +54,7 @@ class LaTeXDiffTool:
 
     def __init__(
         self,
-        toolchain_manager: Optional[Any] = None,
+        toolchain_manager: Any | None = None,
         timeout: int = 300,
     ):
         """
@@ -69,7 +68,7 @@ class LaTeXDiffTool:
         self.timeout = timeout
         self.MRO = MoveRemoveOperation()
         self.MSP = MySubProcess()
-        self._compiler: Optional[CompileLaTeX] = None
+        self._compiler: CompileLaTeX | None = None
         self._toolchain_manager = toolchain_manager
 
     def detect_available(self) -> bool:
@@ -88,14 +87,14 @@ class LaTeXDiffTool:
 
     def generate_diff(
         self,
-        old_file: Union[str, Path],
-        new_file: Union[str, Path],
-        output_file: Union[str, Path],
+        old_file: str | Path,
+        new_file: str | Path,
+        output_file: str | Path,
         flatten: bool = False,
         fast: bool = False,
         only_changes: bool = False,
         encoding: str = "utf8",
-        extra_args: Optional[List[str]] = None,
+        extra_args: list[str] | None = None,
     ) -> Path:
         """
         生成差异 TeX 文件
@@ -123,19 +122,23 @@ class LaTeXDiffTool:
         new_path = Path(new_file).resolve()
         output_path = Path(output_file).resolve()
 
-        if not old_path.exists() and old_path.suffix != ".tex":
-            old_path = old_path.with_suffix(".tex")
-        if not new_path.exists() and new_path.suffix != ".tex":
-            new_path = new_path.with_suffix(".tex")
+        if not old_path.exists():
+            old_path_tex = old_path.with_suffix(".tex")
+            if old_path_tex.exists():
+                old_path = old_path_tex
+            else:
+                raise FileNotFoundError(f"旧版本文件不存在: {old_path}")
+        if not new_path.exists():
+            new_path_tex = new_path.with_suffix(".tex")
+            if new_path_tex.exists():
+                new_path = new_path_tex
+            else:
+                raise FileNotFoundError(f"新版本文件不存在: {new_path}")
+
         if output_path.suffix != ".tex":
             output_path = output_path.with_suffix(".tex")
 
-        if not old_path.exists():
-            raise FileNotFoundError(f"旧版本文件不存在: {old_path}")
-        if not new_path.exists():
-            raise FileNotFoundError(f"新版本文件不存在: {new_path}")
-
-        cmd: List[str] = ["latexdiff", f"--encoding={encoding}"]
+        cmd: list[str] = ["latexdiff", f"--encoding={encoding}"]
 
         if flatten:
             cmd.append("--flatten")
@@ -186,8 +189,8 @@ class LaTeXDiffTool:
 
     def flatten_tex(
         self,
-        main_file: Union[str, Path],
-        output_file: Union[str, Path],
+        main_file: str | Path,
+        output_file: str | Path,
     ) -> Path:
         """
         将 LaTeX 文件及其所有引用的子文件压平为单一文件（不依赖 latexdiff --flatten）
@@ -236,7 +239,7 @@ class LaTeXDiffTool:
                 return match, match.group(2).strip()
             return None, None
 
-        def _flatten_recursive(tex_file: Path, out_handle, _visited: Optional[set] = None):
+        def _flatten_recursive(tex_file: Path, out_handle, _visited: set | None = None):
             r"""递归展开 \input 和 \include"""
             if _visited is None:
                 _visited = set()
@@ -289,8 +292,8 @@ class LaTeXDiffTool:
 
     def compile_diff(
         self,
-        diff_file: Union[str, Path],
-        engine: Optional[str] = None,
+        diff_file: str | Path,
+        engine: str | None = None,
         run_count: int = 2,
         **compile_kwargs: Any,
     ) -> bool:
@@ -316,13 +319,12 @@ class LaTeXDiffTool:
         if not diff_path.exists():
             raise FileNotFoundError(f"Diff 文件不存在: {diff_path}")
 
-        project_name = diff_path.stem
-        cwd = str(diff_path.parent)
+        project_name = str(diff_path.parent / diff_path.stem)
 
         console.print(f"\n[bold cyan]>>> {_('编译差异文件')}: {diff_path.name} <<<[/bold cyan]")
 
         try:
-            compiler_kwargs: Dict[str, Any] = {
+            compiler_kwargs: dict[str, Any] = {
                 "project_name": project_name,
                 "run_count": run_count,
                 "auto_detect": True,
@@ -331,20 +333,13 @@ class LaTeXDiffTool:
                 compiler_kwargs["program"] = engine
             compiler_kwargs.update(compile_kwargs)
 
-            import os
-
-            original_cwd = os.getcwd()
-            os.chdir(cwd)
-            try:
-                self._compiler = CompileLaTeX(**compiler_kwargs)
-                self._compiler.compile_tex()
-            finally:
-                os.chdir(original_cwd)
+            self._compiler = CompileLaTeX(**compiler_kwargs)
+            self._compiler.compile_tex()
 
             pdf_path = diff_path.with_suffix(".pdf")
-            out_pdf = Path(cwd) / "out" / pdf_path.name
+            out_pdf = diff_path.parent / "out" / pdf_path.name
             if not out_pdf.exists():
-                out_pdf = Path(cwd) / pdf_path.name
+                out_pdf = diff_path.parent / pdf_path.name
 
             if out_pdf.exists() or pdf_path.exists():
                 self.logger.info(f"差异 PDF 编译成功: {out_pdf}")
@@ -360,12 +355,12 @@ class LaTeXDiffTool:
         self,
         old_file: str,
         new_file: str,
-        output_diff: Optional[str] = None,
+        output_diff: str | None = None,
         do_compile: bool = True,
         flatten: bool = False,
-        engine: Optional[str] = None,
+        engine: str | None = None,
         **compile_kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         完整工作流：生成差异文件 → （可选）编译
 
@@ -382,7 +377,7 @@ class LaTeXDiffTool:
             dict: {
                 "diff_file": Path,       # 生成的 diff 文件路径
                 "compiled": bool,        # 是否编译成功
-                "output_pdf": Optional[Path]  # 输出 PDF 路径（如果编译）
+                "output_pdf": Path | None  # 输出 PDF 路径（如果编译）
             }
         """
         new_path = Path(new_file)
@@ -397,7 +392,7 @@ class LaTeXDiffTool:
             flatten=flatten,
         )
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "diff_file": diff_file,
             "compiled": False,
             "output_pdf": None,
@@ -423,7 +418,7 @@ class LaTeXDiffTool:
         return result
 
 
-def get_version(file_path: str) -> Optional[str]:
+def get_version(file_path: str) -> str | None:
     """
     获取文件的版本控制系统版本（预留接口，暂不实现完整功能）
 
@@ -431,7 +426,7 @@ def get_version(file_path: str) -> Optional[str]:
         file_path: 文件路径
 
     返回:
-        Optional[str]: 版本标识，不可用时返回 None
+        str | None: 版本标识，不可用时返回 None
     """
     git_path = shutil.which("git")
     if not git_path:
@@ -453,7 +448,7 @@ def get_version(file_path: str) -> Optional[str]:
     return None
 
 
-def parse_diff_args(cli_args: Dict[str, Any]) -> Dict[str, Any]:
+def parse_diff_args(cli_args: dict[str, Any]) -> dict[str, Any]:
     """
     解析 CLI 中与 diff 相关的参数（为 Task 12 预留接口）
 
@@ -470,7 +465,7 @@ def parse_diff_args(cli_args: Dict[str, Any]) -> Dict[str, Any]:
     返回:
         dict: 解析后的配置字典
     """
-    config: Dict[str, Any] = {
+    config: dict[str, Any] = {
         "enabled": bool(cli_args.get("diff", False)),
         "old_file": cli_args.get("diff_old"),
         "new_file": cli_args.get("diff_new"),
@@ -483,7 +478,7 @@ def parse_diff_args(cli_args: Dict[str, Any]) -> Dict[str, Any]:
     return config
 
 
-def run_diff_from_cli(cli_args: Dict[str, Any]) -> bool:
+def run_diff_from_cli(cli_args: dict[str, Any]) -> bool:
     """
     从 CLI 参数执行 diff 工作流（为 Task 12 预留接口）
 

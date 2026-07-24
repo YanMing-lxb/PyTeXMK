@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
 """engine_detect 智能引擎判定模块单元测试"""
 
 from pytexmk.engine_detect import (
-    detect_document_features,
-    parse_magic_comments,
-    select_engine,
-    select_bib_tool,
-    select_index_tool,
-    auto_configure,
     _empty_features,
     _is_comment_line,
     _normalize_engine_name,
+    auto_configure,
+    detect_document_features,
+    parse_magic_comments,
+    select_bib_tool,
+    select_engine,
+    select_index_tool,
 )
 from pytexmk.toolchain import ToolchainManager
 

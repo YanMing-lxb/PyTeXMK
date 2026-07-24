@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 PyTeXMK 异常定义模块
 """

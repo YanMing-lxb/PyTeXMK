@@ -1,31 +1,32 @@
-# -*- coding: utf-8 -*-
 """
 实时文件监听与自动编译模块（PVC 模式，类似 latexmk -pvc）
 """
 
 import os
-import sys
-import time
 import subprocess
+import sys
 import threading
+import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional, Set, Any
+from typing import Any
 
-from rich.console import Console
-from watchdog.events import FileSystemEventHandler, FileSystemEvent
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
+from pytexmk.additional import MoveRemoveOperation
 from pytexmk.auxiliary_fun import is_shutdown_requested, setup_signal_handlers
 from pytexmk.compile import CompileLaTeX
-from pytexmk.additional import MoveRemoveOperation
-from pytexmk.log_analysis import LogAnalysis
+from pytexmk.console import get_console
+from pytexmk.constants import SUFFIXES_AUX, SUFFIXES_OUT
 from pytexmk.language import set_language
+from pytexmk.log_analysis import LogAnalysis
 
 _ = set_language("watcher")
 
-console = Console(legacy_windows=False)
+console = get_console(legacy_windows=False)
 
-DEFAULT_WATCHED_EXTENSIONS: Set[str] = {
+DEFAULT_WATCHED_EXTENSIONS: set[str] = {
     ".tex",
     ".bib",
     ".bst",
@@ -48,7 +49,7 @@ DEFAULT_WATCHED_EXTENSIONS: Set[str] = {
     ".tikz",
 }
 
-DEFAULT_EXCLUDE_DIRS: Set[str] = {
+DEFAULT_EXCLUDE_DIRS: set[str] = {
     "build",
     ".git",
     ".svn",
@@ -59,7 +60,7 @@ DEFAULT_EXCLUDE_DIRS: Set[str] = {
 }
 
 
-def open_pdf_preview(pdf_path: Path, preview_command: Optional[str] = None) -> None:
+def open_pdf_preview(pdf_path: Path, preview_command: str | None = None) -> None:
     """
     跨平台打开 PDF 预览
 
@@ -94,9 +95,9 @@ class FileChangeHandler(FileSystemEventHandler):
         self,
         project_root: Path,
         project_name: str,
-        watched_extensions: Optional[Set[str]] = None,
-        exclude_dirs: Optional[Set[str]] = None,
-        compile_callback: Optional[Callable[[Path], Any]] = None,
+        watched_extensions: set[str] | None = None,
+        exclude_dirs: set[str] | None = None,
+        compile_callback: Callable[[Path], Any] | None = None,
         debounce_seconds: float = 1.0,
     ):
         """
@@ -120,11 +121,11 @@ class FileChangeHandler(FileSystemEventHandler):
 
         self._last_event_time: float = 0.0
         self._pending_compile: bool = False
-        self._timer: Optional[threading.Timer] = None
+        self._timer: threading.Timer | None = None
         self._timer_id: int = 0
         self._lock = threading.Lock()
         self._compiling: bool = False
-        self._last_changed_file: Optional[Path] = None
+        self._last_changed_file: Path | None = None
 
     def on_any_event(self, event: FileSystemEvent) -> None:
         """
@@ -222,10 +223,10 @@ class PvcMode:
         self,
         project_dir: str | Path,
         project_name: str,
-        compile_callback: Optional[Callable[[Optional[Path]], bool]] = None,
-        compiler_kwargs: Optional[dict] = None,
+        compile_callback: Callable[[Path | None], bool] | None = None,
+        compiler_kwargs: dict | None = None,
         auto_open_preview: bool = False,
-        preview_command: Optional[str] = None,
+        preview_command: str | None = None,
     ):
         """
         初始化 PVC 模式
@@ -245,8 +246,8 @@ class PvcMode:
         self.auto_open_preview = auto_open_preview
         self.preview_command = preview_command
 
-        self.observer: Optional[Observer] = None
-        self.event_handler: Optional[FileChangeHandler] = None
+        self.observer: Observer | None = None
+        self.event_handler: FileChangeHandler | None = None
         self._shutdown_requested = False
 
     def _get_pdf_path(self) -> Path:
@@ -254,7 +255,7 @@ class PvcMode:
         outdir = self.compiler_kwargs.get("outdir", "build")
         return self.project_dir / outdir / f"{self.project_name}.pdf"
 
-    def _default_compile_callback(self, changed_file: Optional[Path] = None) -> bool:
+    def _default_compile_callback(self, changed_file: Path | None = None) -> bool:
         """
         默认编译回调函数
 
@@ -278,49 +279,8 @@ class PvcMode:
         outdir = self.compiler_kwargs.get("outdir", "Build")
         auxdir = self.compiler_kwargs.get("auxdir", "Auxiliary")
 
-        suffixes_out = [".pdf", ".synctex.gz"]
-        suffixes_aux = [
-            ".log",
-            ".blg",
-            ".ilg",
-            ".xlg",
-            ".aux",
-            ".bbl",
-            ".xml",
-            ".toc",
-            ".lof",
-            ".lot",
-            ".out",
-            ".bcf",
-            ".idx",
-            ".ind",
-            ".nlo",
-            ".nls",
-            ".ist",
-            ".glo",
-            ".gls",
-            ".bak",
-            ".spl",
-            ".ent-x",
-            ".tmp",
-            ".ltx",
-            ".los",
-            ".lol",
-            ".loc",
-            ".listing",
-            ".gz",
-            ".userbak",
-            ".nav",
-            ".snm",
-            ".vrb",
-            ".fls",
-            ".xdv",
-            ".fdb_latexmk",
-            ".run.xml",
-        ]
-
-        out_files = [f"{self.project_name}{suffix}" for suffix in suffixes_out]
-        aux_files = [f"{self.project_name}{suffix}" for suffix in suffixes_aux]
+        out_files = [f"{self.project_name}{suffix}" for suffix in SUFFIXES_OUT]
+        aux_files = [f"{self.project_name}{suffix}" for suffix in SUFFIXES_AUX]
 
         MRO = MoveRemoveOperation()
 
@@ -428,12 +388,12 @@ class PvcMode:
 def run_pvc_mode(
     project_dir: str | Path,
     project_name: str,
-    engine: Optional[str] = None,
-    run_count: Optional[int] = None,
-    outdir: Optional[str] = None,
-    auxdir: Optional[str] = None,
+    engine: str | None = None,
+    run_count: int | None = None,
+    outdir: str | None = None,
+    auxdir: str | None = None,
     auto_open_preview: bool = False,
-    preview_command: Optional[str] = None,
+    preview_command: str | None = None,
     **kwargs,
 ) -> None:
     """

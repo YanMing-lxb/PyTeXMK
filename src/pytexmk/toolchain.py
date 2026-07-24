@@ -1,27 +1,24 @@
-# -*- coding: utf-8 -*-
 """
 工具链管理模块
 """
 
-import shutil
 import logging
-import subprocess
 import re
+import shutil
+import subprocess
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Tuple, List
 
-from rich.console import Console
-
+from pytexmk.console import get_console
 from pytexmk.exceptions import ToolchainNotFoundError
 from pytexmk.language import set_language
 
 _ = set_language("toolchain")
 
 logger = logging.getLogger(__name__)
-console = Console(legacy_windows=False)
+console = get_console(legacy_windows=False)
 
 
-def detect_tool_available(executable: str, custom_path: Optional[str] = None) -> Tuple[bool, Optional[str]]:
+def detect_tool_available(executable: str, custom_path: str | None = None) -> tuple[bool, str | None]:
     """
     检测工具是否在 PATH 中可用，返回 (available, version_string)
 
@@ -61,11 +58,11 @@ class ToolchainBase(ABC):
     executable: str
 
     def __init__(self):
-        self.version: Optional[str] = None
+        self.version: str | None = None
         self.available: bool = False
-        self._custom_path: Optional[str] = None
+        self._custom_path: str | None = None
 
-    def detect(self, custom_path: Optional[str] = None) -> bool:
+    def detect(self, custom_path: str | None = None) -> bool:
         """
         检测工具是否可用
 
@@ -91,7 +88,7 @@ class ToolchainBase(ABC):
         """获取可执行文件路径（优先使用自定义路径）"""
         return self._custom_path if self._custom_path else self.executable
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """
         运行 --version 获取版本字符串
 
@@ -111,14 +108,13 @@ class ToolchainBase(ABC):
             raise ToolchainNotFoundError(tool_name=self.name)
 
     @abstractmethod
-    def build_command(self, *args, **kwargs) -> List[str]:
+    def build_command(self, *args, **kwargs) -> list[str]:
         """
         构建命令列表（抽象方法，子类实现）
 
         返回:
             命令列表
         """
-        pass
 
 
 class PdfLaTeXEngine(ToolchainBase):
@@ -130,15 +126,15 @@ class PdfLaTeXEngine(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         non_quiet: bool = False,
         shell_escape: bool = True,
         file_line_error: bool = True,
         halt_on_error: bool = True,
         synctex: bool = True,
-        extra_args: Optional[List[str]] = None,
-    ) -> List[str]:
+        extra_args: list[str] | None = None,
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
 
         if shell_escape:
@@ -172,16 +168,16 @@ class XeLaTeXEngine(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         non_quiet: bool = False,
         shell_escape: bool = True,
         file_line_error: bool = True,
         halt_on_error: bool = True,
         synctex: bool = True,
         no_pdf: bool = True,
-        extra_args: Optional[List[str]] = None,
-    ) -> List[str]:
+        extra_args: list[str] | None = None,
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
 
         if shell_escape:
@@ -218,15 +214,15 @@ class LuaLaTeXEngine(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         non_quiet: bool = False,
         shell_escape: bool = True,
         file_line_error: bool = True,
         halt_on_error: bool = True,
         synctex: bool = True,
-        extra_args: Optional[List[str]] = None,
-    ) -> List[str]:
+        extra_args: list[str] | None = None,
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
 
         if shell_escape:
@@ -260,10 +256,10 @@ class BibTeXTool(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         quiet: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
         cmd.append(project_name)
         return cmd
@@ -278,10 +274,10 @@ class BiberTool(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         quiet: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
         if quiet:
             cmd.append("--quiet")
@@ -300,12 +296,12 @@ class MakeindexTool(ToolchainBase):
     def build_command(
         self,
         project_name: str,
-        style_file: Optional[str] = None,
-        out_ext: Optional[str] = None,
-        in_ext: Optional[str] = None,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
-    ) -> List[str]:
+        style_file: str | None = None,
+        out_ext: str | None = None,
+        in_ext: str | None = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
 
         if style_file:
@@ -332,14 +328,14 @@ class XindyTool(ToolchainBase):
         project_name: str,
         language: str = "general",
         codepage: str = "utf8",
-        module: Optional[str] = None,
-        out_ext: Optional[str] = None,
-        in_ext: Optional[str] = None,
-        log_file: Optional[str] = None,
-        outdir: Optional[str] = None,
-        auxdir: Optional[str] = None,
+        module: str | None = None,
+        out_ext: str | None = None,
+        in_ext: str | None = None,
+        log_file: str | None = None,
+        outdir: str | None = None,
+        auxdir: str | None = None,
         quiet: bool = False,
-    ) -> List[str]:
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
 
         cmd.extend(["-L", language])
@@ -379,7 +375,7 @@ class DvipdfmxTool(ToolchainBase):
         project_name: str,
         quiet: bool = False,
         version: str = "2.0",
-    ) -> List[str]:
+    ) -> list[str]:
         cmd = [self.get_executable_path()]
         if quiet:
             cmd.append("-q")
@@ -393,21 +389,21 @@ class ToolchainManager:
 
     ENGINE_PRIORITY = ["xelatex", "lualatex", "pdflatex"]
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or {}
 
-        self.engines: Dict[str, ToolchainBase] = {
+        self.engines: dict[str, ToolchainBase] = {
             "pdflatex": PdfLaTeXEngine(),
             "xelatex": XeLaTeXEngine(),
             "lualatex": LuaLaTeXEngine(),
         }
 
-        self.bib_tools: Dict[str, ToolchainBase] = {
+        self.bib_tools: dict[str, ToolchainBase] = {
             "bibtex": BibTeXTool(),
             "biber": BiberTool(),
         }
 
-        self.index_tools: Dict[str, ToolchainBase] = {
+        self.index_tools: dict[str, ToolchainBase] = {
             "makeindex": MakeindexTool(),
             "xindy": XindyTool(),
         }
@@ -416,7 +412,7 @@ class ToolchainManager:
 
         self._detected = False
 
-    def detect_all(self) -> Dict[str, bool]:
+    def detect_all(self) -> dict[str, bool]:
         """
         检测所有工具可用性
 
@@ -451,9 +447,9 @@ class ToolchainManager:
 
     def get_engine(
         self,
-        preference: Optional[str] = None,
+        preference: str | None = None,
         auto_detect: bool = True,
-        doc_features: Optional[Dict] = None,
+        doc_features: dict | None = None,
     ) -> ToolchainBase:
         """
         获取 TeX 引擎，支持降级
@@ -544,7 +540,7 @@ class ToolchainManager:
         tool.ensure_available()
         return tool
 
-    def select_bib_tool(self, aux_content: str) -> Tuple[Optional[ToolchainBase], Optional[str]]:
+    def select_bib_tool(self, aux_content: str) -> tuple[ToolchainBase | None, str | None]:
         """
         分析 aux 内容自动选择 bib 工具
 
@@ -570,7 +566,7 @@ class ToolchainManager:
 
         return None, None
 
-    def select_index_tools(self, aux_content: str, project_name: str) -> List[Tuple[ToolchainBase, Dict]]:
+    def select_index_tools(self, aux_content: str, project_name: str) -> list[tuple[ToolchainBase, dict]]:
         """
         分析 aux 内容自动检测需要的索引工具及其参数
 

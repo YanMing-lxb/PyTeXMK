@@ -24,13 +24,13 @@ Description  :
 """
 
 # -*- coding: utf-8 -*-
-import logging
 import datetime
-from rich import box
-from rich import print
-from rich.text import Text
-from rich.table import Table
+import logging
+
+from rich import box, print
 from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
 from pytexmk.language import set_language
 

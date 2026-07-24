@@ -1,0 +1,11 @@
+- [x] `constants.py` 包含 `SUFFIXES_OUT` 和 `SUFFIXES_AUX` 常量，`__main__.py` 和 `watcher.py` 从 `constants` 导入
+- [x] `toolchain.py` 使用 `get_console()` 而非独立创建 `Console` 实例
+- [x] `compile.py` 中已评估废弃代码：setter 方法已移除，bib/index 相关方法因被 `run.py` 调用而保留
+- [x] `compile.py` 中废弃方法移除后，无关的导入已清理（`warnings`/`shlex` 仍被保留方法使用）
+- [x] `LatexLogParser` 已评估：测试中有引用，保留并添加 deprecation 标记
+- [x] `__main__.py` 参数解析逻辑已提取到 `cli_args.py`
+- [x] `__main__.py` 工作流处理函数已提取到 `workflow.py`
+- [x] `__init__.py` 包含 `__all__` 列表，明确公共 API
+- [x] 全部单元测试通过：327 passed, 6 skipped
+- [x] Lint 检查通过：workflow.py 仅剩 3 个与代码库一致的风格提示（S110/BLE001），无新增问题
+- [x] 构建成功：wheel + sdist 均成功生成（pytexmk-1.1.2）

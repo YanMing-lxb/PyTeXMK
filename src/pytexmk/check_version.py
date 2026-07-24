@@ -23,19 +23,19 @@ Description  :
  -----------------------------------------------------------------------
 """
 
-import time
-import toml
 import json
 import logging
+import time
 import urllib.request
-from rich import print
-from pathlib import Path
-from packaging import version
 from datetime import timedelta
+from pathlib import Path
+
+from packaging import version
 from platformdirs import user_cache_dir
+from rich import print
 
 from pytexmk.language import set_language
-from pytexmk.version import script_name, __version__
+from pytexmk.version import __version__, script_name
 
 _ = set_language("check_version")
 
@@ -67,7 +67,7 @@ class UpdateChecker:
         self.time_out = time_out  # 存储超时时间
 
         cache_path = Path(user_cache_dir(script_name, ensure_exists=True))
-        self.cache_file = cache_path / f"{script_name}_version_cache.toml"
+        self.cache_file = cache_path / f"{script_name}_version_cache.json"
 
     # --------------------------------------------------------------------------------
     # 定义 缓存文件读取函数
@@ -102,7 +102,7 @@ class UpdateChecker:
 
             if cache_path.exists() and (cache_time_remaining > 0):  # 检查缓存文件是否存在且未过期
                 with cache_path.open("r", encoding="utf-8") as f:  # 打开缓存文件
-                    data = toml.load(f)  # 加载缓存文件内容
+                    data = json.load(f)  # 加载缓存文件内容
                     self.logger.info(
                         _("读取版本缓存文件中的版本号，缓存有效期: ")
                         + f"{int(hours):02} h {int(minutes):02} min {int(seconds):02} s"
@@ -129,8 +129,8 @@ class UpdateChecker:
         try:
             # 尝试以写模式打开缓存文件
             with open(self.cache_file, "w", encoding="utf-8") as f:
-                # 使用toml库将最新的版本号写入文件
-                toml.dump({"latest_version": latest_version}, f)
+                # 使用json库将最新的版本号写入文件
+                json.dump({"latest_version": latest_version}, f)
         except Exception as e:
             # 如果更新缓存时出错,记录错误日志
             self.logger.error(_("更新版本缓存时出错: ") + str(e))

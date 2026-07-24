@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:04+0800\n"
+"POT-Creation-Date: 2026-07-24 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,137 +16,137 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:161
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:162
 msgid "[bold]运行命令: [/bold]"
 msgstr "[bold]Running command: [/bold]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:206
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:207
 #, python-format
 msgid "%(args)s 执行超时（%(timeout).1f 秒）"
-msgstr ""
+msgstr "%(args)s execution timed out (%(timeout).1f seconds)"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:213
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:236
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:253
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:214
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:237
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:254
 msgid "清理回调执行失败: "
-msgstr ""
+msgstr "Cleanup callback execution failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:229
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:230
 #, python-format
 msgid "%(args)s 运行失败，返回码: %(code)d"
-msgstr ""
+msgstr "%(args)s execution failed, return code: %(code)d"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:245
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:246
 #, python-format
 msgid "%(args)s 执行时发生异常: %(err)s"
-msgstr ""
+msgstr "Exception occurred while executing %(args)s: %(err)s"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:292
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:325
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:293
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:326
 msgid "删除成功: "
 msgstr "Deletion successful: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:294
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:327
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:371
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:429
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:295
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:328
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:372
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:430
 msgid "删除失败: "
 msgstr "Deletion failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:377
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:435
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:378
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:436
 msgid "移动成功: "
 msgstr "Move successful: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:379
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:439
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:380
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:440
 msgid "移动失败: "
 msgstr "Move failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:492
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:493
 msgid "文件名中不能存在路径"
 msgstr "Path cannot exist in filename"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:504
-#, fuzzy, python-format
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:505
+#, python-format
 msgid "文件类型非 %(args)s: "
-msgstr "File type is not tex: "
+msgstr "File type is not %(args)s: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:551
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:552
 msgid "搜索到: "
 msgstr "Found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:554
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:555
 msgid "文件数目: "
 msgstr "Number of files: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:556
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:557
 msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
 msgstr ""
 "File does not exist in current path, please check if the terminal display "
 "path is the project path"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:557
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:628
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:558
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:629
 msgid "当前终端路径: "
 msgstr "Current terminal path: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:560
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:561
 msgid "文件搜索失败: "
 msgstr "File search failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:617
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:618
 msgid "通过特征命令检索到主文件: "
 msgstr "Retrieved main file via feature command: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:620
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:687
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:954
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:621
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:688
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:955
 msgid "打开文件失败: "
 msgstr "Failed to open file: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:624
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:625
 msgid "发现主文件数量: "
 msgstr "Number of main files found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:627
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:628
 msgid "终端路径下不存在主文件!请检查终端显示路径是否是项目路径!"
 msgstr ""
 "Main file does not exist under terminal path! Please check if the terminal "
 "display path is the project path!"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:752
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:753
 msgid "通过命令行命令指定待编译主文件为: "
 msgstr "The main file to be compiled is specified via command line command: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:757
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:758
 msgid "通过根目录下唯一主文件指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the unique main file in the "
 "root directory: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:761
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:762
 msgid "魔法注释 % !TEX root 在当前根目录下主文件中有被定义"
 msgstr ""
 "The magic comment % !TEX root is defined in the main file in the current "
 "root directory"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:764
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:765
 msgid "魔法注释 % !TEX root 只存在于: "
 msgstr "The magic comment % !TEX root only exists in: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:770
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:771
 msgid "通过魔法注释 % !TEX root 指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the magic comment % !TEX root: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:774
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:775
 msgid "魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: "
 msgstr ""
 "The file name specified by the magic comment % !TEX root is different from "
 "the current file name, the main file cannot be determined: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:781
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:782
 msgid ""
 "魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释"
 "确定待编译主文件"
@@ -155,7 +155,7 @@ msgstr ""
 "current root directory, the main file to be compiled cannot be determined "
 "based on the magic comment"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:785
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:786
 msgid ""
 "无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"
 msgstr ""
@@ -163,26 +163,26 @@ msgstr ""
 "comment, attempting to specify the main file to be compiled based on the "
 "default main file name"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:790
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:791
 #, python-format
 msgid "通过默认文件名 \"%(args)s.tex\" 指定待编译主文件为: "
 msgstr ""
 "The main file to be compiled is specified by the default file name "
 "\"%(args)s.tex\": "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:795
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:796
 #, python-format
 msgid "当前根目录下不存在名为 \"%(args)s.tex\" 的文件"
 msgstr ""
 "The file named \"%(args)s.tex\" does not exist in the current root directory"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:798
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:799
 msgid "无法进行编译, 当前根目录下存在多个主文件: "
 msgstr ""
 "Compilation cannot proceed, there are multiple main files in the current "
 "root directory: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:801
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:802
 msgid ""
 "请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 "
 "\"% !TEX root = [待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" "
@@ -194,74 +194,84 @@ msgstr ""
 "compiled]\" in the terminal, or delete the extra tex files in the current "
 "root directory"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:805
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:806
 msgid "当前根目录是: "
 msgstr "The current root directory is: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:837
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:838
 msgid "草稿模式未启用, 跳过处理."
 msgstr "Draft mode not enabled, skipping processing."
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:868
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:869
 msgid "启用草稿模式"
 msgstr "Draft mode enabled"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:868
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:869
 msgid "关闭草稿模式"
 msgstr "Draft mode disabled"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:872
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:873
 #, python-format
 msgid "处理文件: %(args)s, 文件大小: %(size).3f MB"
-msgstr "Processing file: %(args)s, file size: "
+msgstr "Processing file: %(args)s, file size: %(size).3f MB"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:875
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:876
 msgid "未匹配到内容, 文件未修改."
 msgstr "No content matched, file not modified."
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:878
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:879
 msgid "文件未找到: "
 msgstr "File not found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:880
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:881
 msgid "权限错误: 无法读取或写入文件: "
 msgstr "Permission error: Unable to read or write file: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:882
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:883
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:912
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:913
 msgid "未设置 PDF 查看器,使用默认 PDF 查看器"
 msgstr "No PDF viewer set, default PDF viewer used"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:915
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:916
 msgid "设置 PDF 查看器: "
 msgstr "Setting up the PDF viewer: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:949
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:950
 msgid "文件路径: "
 msgstr "File path: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1007
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1008
 msgid "当前路径下没有 PDF 文件"
-msgstr "No PDF files found in current path: "
+msgstr "No PDF files found in current path"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1010
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1011
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1024
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1025
 msgid "修复成功: "
 msgstr "Fix successful: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1026
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1027
 msgid "修复失败: "
 msgstr "Fix failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1027
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:1028
 msgid "[bold green]修复 PDF 结束[/bold green]"
 msgstr "[bold green]PDF fix complete[/bold green]"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:179
+#, python-format
+msgid "[status]正在 %(program)s..."
+msgstr "[status]Running %(program)s..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\additional.py⁩:224
+#, python-format
+msgid "✓ 运行 %(program)s 成功 [time](耗时: %(duration)s)[/]"
+msgstr "✓ %(program)s completed successfully [time](duration: %(duration)s)[/]"
 
 #, python-format
 #~ msgid "%(args)s 运行失败,请查看日志文件以获取详细信息: "

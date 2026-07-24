@@ -58,7 +58,7 @@ body:
     attributes:
       label: PyTeXMK Version / 版本号
       description: Run `pytexmk -v` to get the version
-      placeholder: e.g. 1.1.0
+      placeholder: e.g. 1.1.2
     validations:
       required: true
   - type: textarea

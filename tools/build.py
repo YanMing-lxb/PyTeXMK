@@ -53,7 +53,7 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
         "rich_argparse",
         "watchdog.observers.polling",
         "watchdog.observers.api",
-        "toml",
+        "tomli_w",
         "pypdf",
         "packaging",
         "packaging.version",
@@ -66,6 +66,13 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
         hiddenimports.append("watchdog.observers.fsevents")
     else:
         hiddenimports.append("watchdog.observers.inotify")
+
+    # Platform-specific icon selection
+    icon_path = TOOLS_DIR / "icon.ico"
+    if is_macos:
+        icns = TOOLS_DIR / "icon.icns"
+        if icns.exists():
+            icon_path = icns
 
     datas = [
         (str(SRC_PATH / "data" / "*"), "pytexmk/data"),
@@ -85,6 +92,7 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
     collect_block = ""
     if mode == "onedir":
         exe_third_arg = "[],"
+        exe_extra_kwargs = " exclude_binaries=True,"
         collect_block = f"""
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,
@@ -93,6 +101,10 @@ coll = COLLECT(
 """
     else:
         exe_third_arg = "a.binaries, a.zipfiles, a.datas,"
+        exe_extra_kwargs = ""
+
+    # Icon line: only include if icon file exists
+    icon_line = f"icon=r'{icon_path.resolve().as_posix()}'," if icon_path.exists() else ""
 
     spec_content = f"""# -*- mode: python ; coding: utf-8 -*-
 import sys
@@ -126,10 +138,10 @@ a = Analysis(
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
-    pyz, a.scripts, {exe_third_arg}
+    pyz, a.scripts, {exe_third_arg}{exe_extra_kwargs}
     name='{exe_name}', debug=False, bootloader_ignore_signals=False,
     strip=False, upx={"True" if use_upx else "False"}, upx_exclude=[], runtime_tmpdir=None,
-    console=True, disable_windowed_traceback=False, argv_emulation=False,
+    console=True, {icon_line} disable_windowed_traceback=False, argv_emulation=False,
     target_arch=None, codesign_identity=None, entitlements_file=None,
 )
 {collect_block}
@@ -267,6 +279,19 @@ def main():
     print("Cleaning previous builds...")
     clean_build()
     print("Clean complete.")
+    print()
+
+    print("Generating platform icons...")
+    try:
+        sys.path.insert(0, str(TOOLS_DIR))
+        from generate_icon import generate_ico, generate_icns
+        ico_path = generate_ico()
+        print(f"  ICO: {ico_path}")
+        icns_path = generate_icns()
+        if icns_path:
+            print(f"  ICNS: {icns_path}")
+    except Exception as e:
+        print(f"  Warning: Icon generation failed ({e}), continuing without custom icon")
     print()
 
     print("Generating PyInstaller spec...")

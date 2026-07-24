@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """MySubProcess 单元测试"""
 
 import sys

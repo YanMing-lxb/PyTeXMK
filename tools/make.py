@@ -35,8 +35,6 @@ Targets:
     ci-full           CI: lint + test + integration + build
 """
 
-from __future__ import annotations
-
 import os
 import platform
 import re
@@ -343,7 +341,7 @@ def cmd_inswhl():
     c.rule("[info]📦 安装测试 PyTeXMK...[/info]")
 
     c.print("[status]卸载旧版 PyTeXMK...[/status]")
-    _run(["uv", "pip", "uninstall", "pytexmk"], check=False,
+    _run(["uv", "tool", "uninstall", "pytexmk"], check=False,
          success_msg="旧版 PyTeXMK 卸载完成", error_msg="旧版 PyTeXMK 卸载失败")
 
     whl_files = list(DIST_DIR.glob("*.whl"))
@@ -352,7 +350,7 @@ def cmd_inswhl():
         sys.exit(1)
 
     c.print("[status]安装测试版 PyTeXMK...[/status]")
-    _run(["uv", "pip", "install", str(whl_files[0])],
+    _run(["uv", "tool", "install", str(whl_files[0])],
          success_msg="测试 PyTeXMK 安装完成", error_msg="测试 PyTeXMK 安装失败")
 
 

@@ -1,0 +1,12 @@
+- [x] README.en.md 包含与中文版对齐的完整内容（魔法注释、配置、环境变量、案例、PVC、LaTeXDiff、FAQ、贡献指南、GitHub Actions）
+- [x] README.en.md 中 `--language LANG` 已修正为 `PYTEXMK_LANG` 环境变量
+- [x] README.md 中 Python 版本要求改为 "3.13+"
+- [x] README.md 主命令参考表包含 PVC 和 LaTeXDiff 子参数
+- [x] CONTRIBUTING.md 已创建，包含开发环境、命令、规范、PR 流程
+- [x] .github/pull-request-template.md 中 `[贡献者指南]()` 链接已修复为 `[贡献者指南](CONTRIBUTING.md)`
+- [x] CHANGELOG.md 中 HTML 注释头部已清理
+- [x] docs/ 文件中 HTML 注释格式已改为标准 Markdown
+- [x] pyproject.toml 包含 Python 3.14 分类器
+- [x] tools/scoop/pytexmk.json 的 hash 字段有注释说明
+- [x] 全部单元测试通过（`make test`）：327 passed, 6 deselected
+- [x] 构建成功（`make build`）：wheel + sdist 均成功生成（pytexmk-1.1.2）

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:04+0800\n"
+"POT-Creation-Date: 2026-07-24 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,210 +16,218 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:193
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:194
 msgid "文件清理失败: "
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:201
-msgid "文件不存在: "
-msgstr ""
+msgstr "File cleanup failed: "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:202
+msgid "文件不存在: "
+msgstr "File does not exist: "
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:203
 msgid "主 .tex 文件不存在"
-msgstr ""
+msgstr "Main .tex file does not exist"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:218
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:219
 msgid "第"
-msgstr ""
+msgstr "No. "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:218
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:219
 msgid "次"
-msgstr ""
+msgstr " "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:218
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:219
 msgid "编译"
-msgstr ""
+msgstr "compilation"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:246
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:247
 msgid "编译超时"
-msgstr ""
+msgstr "Compilation timed out"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:250
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:251
 msgid "编译失败"
-msgstr ""
+msgstr "Compilation failed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:257
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:258
 msgid "未配置参考文献工具，跳过 bib 编译"
-msgstr ""
+msgstr "Bibliography tool not configured, skipping bib compilation"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:277
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:278
 msgid "Bib 编译超时"
-msgstr ""
+msgstr "Bib compilation timed out"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:280
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:281
 msgid "Bib 编译失败"
-msgstr ""
+msgstr "Bib compilation failed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:330
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:331
 msgid "索引编译超时"
-msgstr ""
+msgstr "Index compilation timed out"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:333
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:334
 msgid "索引编译失败"
-msgstr ""
+msgstr "Index compilation failed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:343
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:344
 msgid "PDF 文件已存在，跳过 dvipdfmx"
-msgstr ""
+msgstr "PDF file already exists, skipping dvipdfmx"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:347
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:348
 msgid "未找到 xdv 文件，跳过 dvipdfmx"
-msgstr ""
+msgstr "xdv file not found, skipping dvipdfmx"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:367
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:368
 msgid "dvipdfmx 超时"
-msgstr ""
+msgstr "dvipdfmx timed out"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:370
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:371
 msgid "dvipdfmx 失败"
-msgstr ""
+msgstr "dvipdfmx failed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:391
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:390
 msgid "日志分析失败: "
-msgstr ""
+msgstr "Log analysis failed: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:399
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:398
 msgid "日志展示失败: "
-msgstr ""
+msgstr "Log display failed: "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:456
 msgid "开始执行 PyTeXMK 编译调度"
-msgstr ""
+msgstr "Starting PyTeXMK compilation scheduling"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:465
 msgid "检查失败"
-msgstr ""
+msgstr "Check failed"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:471
 msgid "run_count=0，仅执行文件清理/移动"
-msgstr ""
+msgstr "run_count=0, only performing file cleanup/movement"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:489
 msgid "检测到需要参考文献编译，执行 bib"
-msgstr ""
+msgstr "Bibliography compilation required, executing bib"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:491
 msgid "Bib 编译失败，继续后续流程"
-msgstr ""
+msgstr "Bib compilation failed, continuing with subsequent steps"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:494
 msgid "检测到需要索引编译，执行 index"
-msgstr ""
+msgstr "Index compilation required, executing index"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:514
 msgid "检测到致命错误，停止智能补编"
-msgstr ""
+msgstr "Fatal error detected, stopping smart recompilation"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:522
 msgid "智能补编：检测到未定义引用或 bbl 缺失，执行第"
-msgstr ""
+msgstr "Smart recompilation: undefined references or missing bbl detected, executing recompilation No. "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:522
 msgid "次补编（bib + tex）"
-msgstr ""
+msgstr " (bib + tex)"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:533
 msgid "智能补编：检测到索引问题，执行第"
-msgstr ""
+msgstr "Smart recompilation: index issue detected, executing recompilation No. "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:533
 msgid "次补编（index + tex）"
-msgstr ""
+msgstr " (index + tex)"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:544
 msgid "智能补编：检测到交叉引用需要重新计算，执行第"
-msgstr ""
+msgstr "Smart recompilation: cross-references need recalculation, executing recompilation No. "
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:544
 msgid "次补编（tex）"
-msgstr ""
+msgstr " (tex)"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:566
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:555
+msgid "已达到最大额外编译次数"
+msgstr "Maximum additional compilation count reached"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:555
+msgid "，可能存在未解决的交叉引用或引用问题"
+msgstr ", there may be unresolved cross-references or reference issues"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:571
 msgid "编译完成"
-msgstr ""
+msgstr "Compilation complete"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:566
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:571
 msgid "总耗时"
-msgstr ""
+msgstr "Total time"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:600
-#, fuzzy, python-format
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:606
+#, python-format
 msgid "文件不存在或无法读取,跳过文件: %(args)s"
 msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:635
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:704
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:640
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:711
 msgid "未找到辅助文件: "
 msgstr "Auxiliary file not found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:663
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:672
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:670
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:679
 msgid "未设置参考文献数据库文件: "
 msgstr "Bibliography database file not set: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:678
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:685
 msgid "编译参考文献"
 msgstr "Compiling bibliography"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:683
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:690
 msgid "未找到参考文献数据库文件: "
 msgstr "Bibliography database file not found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:688
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:695
 msgid "参考文献引用数量没有变化"
 msgstr "Number of bibliography references has not changed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:694
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:701
 msgid "LaTeX 编译日志中存在 bbl 文件缺失或引用未定义的提示"
 msgstr ""
 "LaTeX compilation log contains hints of missing bbl file or undefined "
 "references"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:698
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:705
 msgid "thebibliography 环境实现排版"
 msgstr "thebibliography environment for typesetting"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:702
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:709
 msgid "没有引用参考文献或编译工具不属于 bibtex 或 biber"
 msgstr ""
 "No bibliography references or the compilation tool is not bibtex or biber"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:727
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:736
 msgid "重新编译索引,因日志文件提示没有输入文件"
 msgstr "Recompiling index because the log file indicates no input file"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:734
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:743
 msgid "重新编译索引,因词汇表文件内容发生变化"
 msgstr "Recompiling index because the glossary file content has changed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:737
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:746
 msgid "无需编译索引,因词汇表文件内容没有变化"
 msgstr ""
 "No need to compile the index because the glossary file content has not "
 "changed"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:739
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:748
 msgid "无需编译索引,因没有索引内容"
 msgstr "No need to compile the index because there is no index content"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:743
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:752
 msgid "重新编译索引,因以下索引辅助文件之一存在缺失: "
 msgstr ""
 "Recompiling index because one of the following index auxiliary files is "
 "missing: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:786
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\compile.py⁩:796
 msgid "使用 glossaries、nomencl 和 makeidx 以外宏包或未设置索引,因此不编译索引"
 msgstr ""
 "Index not compiled because a package other than glossaries, nomencl, or "
-"makeidx is used or the index is not set up."
+"makeidx is used or the index is not set up"

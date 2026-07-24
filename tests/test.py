@@ -1,10 +1,11 @@
-import shutil
-import datetime
 import argparse
+import datetime
+import shutil
 import subprocess
+from pathlib import Path  # 导入pathlib库
+
 from rich.console import Console
 from rich.table import Table
-from pathlib import Path  # 导入pathlib库
 
 
 def copy(source_folder, destination_folder):
@@ -147,11 +148,11 @@ def print_table(data):
         table.add_row(
             str(i + 1),
             data[i][0],
-            "{:.4f} s".format(data[i][1]),
+            f"{data[i][1]:.4f} s",
             data[i][2],
             str(i + 1 + row_num) if i + row_num <= len(data) else "",
             data[i + row_num][0] if i + row_num < len(data) else "",
-            "{:.4f} s".format(data[i + row_num][1]) if i + row_num < len(data) else "",
+            f"{data[i + row_num][1]:.4f} s" if i + row_num < len(data) else "",
             data[i + row_num][2] if i + row_num < len(data) else "",
         )
 

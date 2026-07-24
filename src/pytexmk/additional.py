@@ -24,25 +24,26 @@ Description  :
 """
 
 # -*- coding: utf-8 -*-
-import re
-import time
-import queue
 import logging
 import platform
-import threading
-import webbrowser
+import queue
+import re
 import subprocess
-from rich import print
-from pathlib import Path
-from rich.theme import Theme
-from typing import List, Dict, Callable, Optional, Tuple
-from rich.console import Console
+import threading
+import time
+import webbrowser
 from collections import defaultdict
-from pypdf import PdfReader, PdfWriter
+from collections.abc import Callable
+from pathlib import Path
 
-from pytexmk.language import set_language
+from pypdf import PdfReader, PdfWriter
+from rich import print
+from rich.console import Console
+from rich.theme import Theme
+
 from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.exceptions import CompilationError, CompilationTimeoutError
+from pytexmk.language import set_language
 
 _ = set_language("additional")
 
@@ -59,12 +60,12 @@ custom_theme = Theme(
 console = Console(theme=custom_theme, legacy_windows=False)
 
 
-class MySubProcess(object):
+class MySubProcess:
     """子进程管理类，提供安全的命令执行、超时控制和资源清理"""
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self._process: Optional[subprocess.Popen] = None
+        self._process: subprocess.Popen | None = None
 
     def __enter__(self):
         return self
@@ -124,8 +125,8 @@ class MySubProcess(object):
         program_name: str = "执行命令",
         cwd: str | Path | None = None,
         timeout: float = 300,
-        error_callback: Optional[Callable[[], None]] = None,
-    ) -> Tuple[bool, str]:
+        error_callback: Callable[[], None] | None = None,
+    ) -> tuple[bool, str]:
         """
         通用命令执行函数
 
@@ -143,9 +144,9 @@ class MySubProcess(object):
             CompilationError: 命令执行失败（返回码非0）
             CompilationTimeoutError: 命令执行超时
         """
-        output_lines: List[str] = []
+        output_lines: list[str] = []
         start_time = time.time()
-        output_queue: "queue.Queue[str]" = queue.Queue()
+        output_queue: queue.Queue[str] = queue.Queue()
 
         def reader_thread(stream, q):
             """读取 stdout 的线程函数"""
@@ -175,7 +176,7 @@ class MySubProcess(object):
             reader.start()
 
             timed_out = False
-            with console.status(f"[status]正在{program_name}..."):
+            with console.status(_("[status]正在 %(program)s...") % {"program": program_name}):
                 while True:
                     try:
                         line = output_queue.get(timeout=0.1)
@@ -220,7 +221,8 @@ class MySubProcess(object):
 
             if returncode == 0:
                 console.print(
-                    f"✓ 运行 {program_name} 成功 [time](耗时: {self._format_duration(time.time() - start_time)})[/]",
+                    _("✓ 运行 %(program)s 成功 [time](耗时: %(duration)s)[/]")
+                    % {"program": program_name, "duration": self._format_duration(time.time() - start_time)},
                     style="success",
                 )
                 self._process = None
@@ -260,7 +262,7 @@ class MySubProcess(object):
                 self._process = None
 
 
-class MoveRemoveOperation(object):
+class MoveRemoveOperation:
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
 
@@ -441,7 +443,7 @@ class MoveRemoveOperation(object):
                         break  # 匹配到一个模式后,不再检查其他模式
 
 
-class MainFileOperation(object):
+class MainFileOperation:
     def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
 
@@ -634,8 +636,8 @@ class MainFileOperation(object):
     # 定义魔法注释检索函数
     # --------------------------------------------------------------------------------
     def search_magic_comments(
-        self, main_files_in_root: List[str], magic_comment_keys: List[str]
-    ) -> Dict[str, Dict[str, str]]:
+        self, main_files_in_root: list[str], magic_comment_keys: list[str]
+    ) -> dict[str, dict[str, str]]:
         """搜索指定TeX文件中的所有魔法注释。
 
         行为逻辑说明:
@@ -702,8 +704,8 @@ class MainFileOperation(object):
         self,
         default_file: str,
         args_document: str,
-        main_files_in_root: List[str],
-        all_magic_comments: Dict[str, Dict[str, str]],
+        main_files_in_root: list[str],
+        all_magic_comments: dict[str, dict[str, str]],
     ) -> str:
         """根据提供的信息获取主TeX文件
 
@@ -882,7 +884,7 @@ class MainFileOperation(object):
             self.logger.error(_("更新草稿模式时出错: " + str(e)))
 
 
-class PdfFileOperation(object):
+class PdfFileOperation:
     def __init__(self, viewer: str = "default") -> None:
         self.logger = logging.getLogger(__name__)
         self.viewer = viewer

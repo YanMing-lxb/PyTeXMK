@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 """
 真实 LaTeX 编译测试（标记为 requires_latex 和 slow，默认跳过）
 """
 
 import os
-import sys
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
-
 
 COMPILE_TIMEOUT = 120
 PROJECT_ROOT = Path(__file__).parent.parent.parent

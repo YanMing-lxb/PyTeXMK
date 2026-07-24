@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 """
 CLI 集成测试：使用 subprocess 运行 pytexmk 命令
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
-
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CLI_TIMEOUT = 30
@@ -45,7 +43,7 @@ class TestCLIVersionHelp:
 
     def test_version_output(self):
         """测试 python -m pytexmk --version 返回正确版本号，退出码 0"""
-        from pytexmk.version import script_name, __version__
+        from pytexmk.version import __version__, script_name
 
         result = run_cli(["--version"])
         assert result.returncode == 0
@@ -92,6 +90,8 @@ class TestCLIErrorHandling:
             or "No .tex files found" in combined_output
             or "未找到" in combined_output
             or "错误" in combined_output
+            or "File does not exist" in combined_output
+            or "Main file does not exist" in combined_output
         )
 
     def test_nonexistent_file_error(self, tmp_dir):

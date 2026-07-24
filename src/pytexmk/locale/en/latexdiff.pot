@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:04+0800\n"
+"POT-Creation-Date: 2026-07-24 15:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,30 +17,29 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:152
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:155
 msgid "运行 latexdiff 生成差异文件"
-msgstr ""
+msgstr "Running latexdiff to generate diff file"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:153
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:156
 msgid "[bold]命令: [/bold]"
-msgstr ""
+msgstr "[bold]Command: [/bold]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:174
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:177
 msgid "差异文件已生成"
-msgstr ""
+msgstr "Diff file generated"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:281
-#, fuzzy
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:284
 msgid "已压平文件"
-msgstr "File flattened: "
+msgstr "File flattened"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:322
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:324
 msgid "编译差异文件"
-msgstr ""
+msgstr "Compiling diff file"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:420
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:415
 msgid "编译失败"
-msgstr ""
+msgstr "Compilation failed"
 
 #~ msgid "文件不存在: "
 #~ msgstr "File does not exist: "

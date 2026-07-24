@@ -61,13 +61,13 @@ PyTeXMK 的核心设计理念是**「固定编译次数 + 智能补编兜底」*
 | 📁 **目录整洁** | 自动将 PDF 输出到 `Build/`，辅助文件归集到 `Auxiliary/`，保持工作区整洁 |
 | 🖥️ **跨平台支持** | Windows / macOS / Linux 全平台，兼容 MiKTeX 和 TeX Live |
 | ⚙️ **灵活配置** | 支持 TOML 配置文件 + 魔法注释 + 命令行参数三级配置 |
-| 🚀 **Python 3.13** | 基于最新 Python 版本，性能优异，启动快速 |
+| 🚀 **Python 3.14** | 基于最新 Python 版本，性能优异，启动快速 |
 
 ---
 
 ## 🖥️ 环境要求
 
-- **Python**: 3.13 或更高版本（pip 安装方式）
+- **Python**: 3.14+（pip 安装方式）
 - **LaTeX 发行版**: TeX Live 2022+ 或 MiKTeX（需包含 xelatex/lualatex/pdflatex）
 - **可选工具**:
   - `latexdiff`：用于文档版本对比功能
@@ -562,7 +562,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.13'
+          python-version: '3.14'
 
       - name: Install PyTeXMK
         run: uv pip install pytexmk
@@ -698,13 +698,13 @@ uv sync --dev
 
 详见 [CHANGELOG.md](CHANGELOG.md)。
 
-**v1.1.0 主要更新**：
+**v1.1.2 主要更新**：
 - 新增 PVC 实时监听模式（文件监听+自动编译）
 - 新增 xindy 索引工具支持
 - 智能引擎降级：XeLaTeX → LuaLaTeX → PdfLaTeX
 - 增强 LaTeXDiff 功能（flatten、fast 模式）
 - 中英文国际化支持
-- Python 3.13 支持
+- Python 3.14 支持
 - 完整的 GitHub Actions CI/CD 流程
 - 跨平台打包支持（PyInstaller）
 - 327+ 单元测试覆盖

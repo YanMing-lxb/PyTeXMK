@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-24 15:05+0800\n"
+"POT-Creation-Date: 2026-07-24 19:51+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,463 +17,311 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:78
-msgid ""
-"\n"
-"PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅"
-"支持检索文档前 50 行）\n"
-msgstr ""
-"\n"
-"PyTeXMK - supports using magic comments to define the main file to be "
-"compiled, compiler, storage location of compilation results, etc. (only "
-"supports retrieving the first 50 lines of the document)\n"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:99
-msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
-msgstr "[i]LaTeX Auxiliary Compiler  ---- Yan Ming[/]"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:101
-msgid ""
-"如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发现 "
-"BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://github.com/"
-"YanMing-lxb/PyTeXMK/issues"
-msgstr ""
-"To learn about magic comments and other detailed instructions, please run "
-"the -r parameter to read the README file. If you find a BUG, please update "
-"to the latest version promptly, and feel free to submit an Issue in the "
-"Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:115
-msgid "显示 PyTeXMK 的版本号并退出"
-msgstr "Show the version number of PyTeXMK and exit"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:117
-msgid "显示 PyTeXMK 的帮助信息并退出"
-msgstr "Show help information for PyTeXMK and exit"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:118
-msgid "显示README文件"
-msgstr "Show the README file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:120
-msgid "PdfLaTeX 进行编译"
-msgstr "Compile with PdfLaTeX"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:121
-msgid "XeLaTeX 进行编译"
-msgstr "Compile with XeLaTeX"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:122
-msgid "LuaLaTeX 进行编译"
-msgstr "Compile with LuaLaTeX"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:123
-msgid "显式指定 TeX 引擎"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:131
-msgid ""
-"使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省"
-"略 'OLD_FILE' 和 'NEW_FILE'"
-msgstr ""
-"Compile using LaTeXDiff, generate a comparison file for changes and compile "
-"the new file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:140
-msgid ""
-"使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关"
-"参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
-msgstr ""
-"Compile using LaTeXDiff, generate a comparison file for changes and compile "
-"the new file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:143
-msgid "启用草稿模式进行编译，提高编译速度 (无图显示)"
-msgstr ""
-"Enable draft mode for compilation to improve compilation speed (not shown)"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:145
-msgid "清除所有主文件的辅助文件"
-msgstr "Clear all auxiliary files of the main file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:147
-msgid "清除所有主文件的辅助文件（包含根目录）和输出文件"
-msgstr ""
-"Clear all auxiliary files of the main file (including root directory) and "
-"output files"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:149
-msgid "清除所有带辅助文件后缀的文件"
-msgstr "Clear all files with auxiliary file suffixes"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:151
-msgid "清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件"
-msgstr ""
-"Clear all files with auxiliary file suffixes (including root directory) and "
-"main file output files"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:154
-msgid "非安静模式运行, 此模式下终端显示日志信息"
-msgstr ""
-"Run in non-quiet mode, where log information is displayed in the terminal"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:155
-msgid "显示 PyTeXMK 运行过程中的详细信息"
-msgstr "Show detailed information during the PyTeXMK runtime"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:161
-msgid ""
-"尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R "
-"object 时, 可使用此参数尝试修复所有 pdf 文件"
-msgstr ""
-"Attempt to fix all PDF files outside the root directory, when LaTeX "
-"compilation process warns about invalid X X R object, this parameter can be "
-"used to attempt to fix all pdf files"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:171
-msgid ""
-"尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在"
-"命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示"
-"例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, "
-"示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打"
-"开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"
-msgstr ""
-"Attempt to call a web browser or local PDF reader to preview the generated "
-"PDF file after compilation (if you need to specify the main file to be "
-"compiled in the command line, then the -pv command, needs to be placed after "
-"document and does not need to specify parameters, example: pytexmk main -pv; "
-"if you do not need to specify the main file to be compiled in the command "
-"line, then simply enter -pv, example: pytexmk -pv), if [dark_cyan]FILE_NAME[/"
-"dark_cyan] is filled in, it will not compile and will open the specified "
-"file (note that only PDF files in the output directory are supported, "
-"example: pytexmk -pv main)"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:174
-msgid "编译成功后自动打开 PDF 文件预览"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:175
-msgid "固定编译次数（默认2），同 --runs"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:176
-msgid "输出目录，同 --outdir"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:178
-msgid "指定参考文献工具"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:179
-msgid "指定索引工具"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:182
-msgid "启用智能引擎自动判定（默认）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:183
-msgid "禁用智能引擎自动判定"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:185
-msgid "编译超时时间（默认300秒）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:186
-msgid "固定编译次数（默认2，设为3时包含 bib 编译）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:187
-msgid "输出目录（命令行覆盖魔法注释和配置）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:188
-#, fuzzy
-msgid "辅助文件目录"
-msgstr "AUX files -> Root dir"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:191
-msgid "启用 SyncTeX（默认）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:192
-msgid "禁用 SyncTeX"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:196
-msgid "启用 -shell-escape（默认）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:199
-msgid "禁用 -shell-escape"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:207
-msgid "启用 PVC 模式（实时文件监听+自动编译），类似 latexmk -pvc"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:210
-msgid "PVC 模式文件变更防抖时间（默认1.0秒）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:212
-msgid "PVC 模式下编译成功自动打开预览"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:214
-msgid "LaTeXDiff 时压平子文件（--flatten）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:215
-msgid "LaTeXDiff 使用 --fast 模式"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:216
-msgid "LaTeXDiff 输出文件名"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:221
-msgid "LaTeXDiff 显示风格：1-显示参考文献修改，2-不显示（默认2，非交互模式）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:225
-msgid "非交互模式（不询问用户，自动处理，适合 CI/CD）"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:228
-msgid "待编译主文件名"
-msgstr "Main file name to be compiled"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:302
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:306
-msgid "清除所有的辅助文件"
-msgstr "Clear all auxiliary files"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:303
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令"
-msgstr ""
-"[bold green]Completed the instruction to clear all files with auxiliary file "
-"suffixes"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:308
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:322
-msgid "清除文件夹内输出文件"
-msgstr "Clear output files in the folder"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:309
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令"
-msgstr ""
-"[bold green]Completed the instruction to clear all files with auxiliary file "
-"suffixes and main file output files"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:312
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:318
-msgid "清除文件夹内辅助文件"
-msgstr "Clear auxiliary files in the folder"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:314
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:320
-msgid "清除根目录内辅助文件"
-msgstr "Clear auxiliary files in the root directory"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:315
-#, fuzzy
-msgid "[bold green]已完成清除所有主文件的辅助文件的指令"
-msgstr ""
-"[bold green]Completed the instruction to clear all auxiliary files of the "
-"main file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:323
-msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令"
-msgstr ""
-"[bold green]Completed the instruction to clear all auxiliary files and "
-"output files of the main file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:382
-msgid "[bold red]错误: LaTeXDiff 需要指定 0 或 2 个文件参数[/bold red]"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:386
-#, fuzzy
-msgid ""
-"[bold red]错误: 请在命令行或配置文件中指定 LaTeXDiff 的新旧 TeX 文件[/bold "
-"red]"
-msgstr ""
-"Please specify two new and old TeX files in command line or configuration "
-"file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:390
-msgid "[bold red]错误: 不能对同一个文件进行比较[/bold red]"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:396
-msgid "LaTeXDiff 预处理"
-msgstr "LaTeXDiff preprocessing"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:412
-msgid ""
-"请输入 LaTeXDiff 的显示风格：\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改\n"
-"请选择 (1 或者 2): "
-msgstr ""
-"Please enter a display style for LaTeXDiff:\n"
-" 1 - Show changes in reference/symbol description\n"
-" 2 - Do not show changes in reference/symbol description\n"
-"Please select (1 or 2):"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:425
-msgid "[bold red]错误: 未检测到 latexdiff 命令，请先安装 LaTeXDiff[/bold red]"
-msgstr ""
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:429
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:455
-msgid "LaTeXDiff 运行"
-msgstr "LaTeXDiff running"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:461
-msgid "开始预处理命令"
-msgstr "Starting preprocessing"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:462
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:850
-msgid "检测并移动辅助文件到根目录..."
-msgstr "Detecting and moving auxiliary files to root directory..."
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:464
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:852
-msgid "辅助文件->根目录"
-msgstr "AUX files -> Root dir"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:494
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:880
-msgid "开始后处理"
-msgstr "Starting postprocessing"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:495
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:881
-msgid "移动结果文件到输出目录..."
-msgstr "Moving result files to output directory..."
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:497
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:883
-msgid "结果文件->输出目录"
-msgstr "RES files -> OUT dir"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:498
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:884
-msgid "移动辅助文件到辅助目录..."
-msgstr "Moving auxiliary files to auxiliary directory..."
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:500
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:886
-msgid "辅助文件->辅助目录"
-msgstr "AUX files -> AUX dir"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:506
-#, fuzzy
-msgid "[bold red]LaTeXDiff 编译出错: "
-msgstr "LaTeXDiff compile error: "
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:533
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:98
 #, python-format
 msgid "PyTeXMK 版本: %(args)s"
 msgstr "PyTeXMK version: %(args)s"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:534
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:99
 msgid "[bold green]PyTeXMK 开始运行...\n"
 msgstr "[bold green]PyTeXMK is starting...\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:540
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:105
 #, python-format
 msgid ""
 "\n"
 "[bold red]错误: %(message)s[/bold red]"
 msgstr ""
+"\n"
+"[bold red]Error: %(message)s[/bold red]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:543
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:108
 msgid ""
 "\n"
 "[bold yellow]用户中断操作[/bold yellow]"
 msgstr ""
+"\n"
+"[bold yellow]User interrupted operation[/bold yellow]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:547
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:112
 #, python-format
 msgid ""
 "\n"
 "[bold red]未预期的错误: %(error)s[/bold red]"
 msgstr ""
+"\n"
+"[bold red]Unexpected error: %(error)s[/bold red]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:548
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:113
 msgid "[yellow]请将以下信息提交到 GitHub Issue 帮助我们改进：[/yellow]"
-msgstr ""
+msgstr "[yellow]Please submit the following information to a GitHub Issue to help us improve:[/yellow]"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:606
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:131
 msgid "[bold green]正在打开 README 文件..."
 msgstr "[bold green]Opening README file..."
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:607
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:132
 #, python-format
 msgid "README 本地路径: %(args)s"
 msgstr "Local path of README: %(args)s"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:610
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:135
 msgid "README.html 文件未找到: "
-msgstr "README.html file not found."
+msgstr "README.html file not found: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:615
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:140
 msgid "打开 README 文件出错: "
 msgstr "Error opening README file: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:641
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:167
 msgid "通过配置文件设置默认文件为: "
 msgstr "Set default file via configuration file: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:644
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:171
 msgid "通过配置文件设置编译器为: "
 msgstr "Set compiler via configuration file: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:653
-msgid "通过配置文件设置输出目录为: "
-msgstr "Set output directory via configuration file: "
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:656
-msgid "通过配置文件设置辅助目录为: "
-msgstr "Set auxiliary directory via configuration file: "
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:698
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:228
 msgid "非安静模式运行"
 msgstr "Running in non-quiet mode"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:721
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:251
 msgid "提取魔法注释: "
 msgstr "Extracting magic comments: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:725
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:255
 msgid "通过魔法注释设置输出目录: "
 msgstr "Setting output directory via magic comments: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:728
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:258
 msgid "通过魔法注释设置辅助目录: "
 msgstr "Setting auxiliary directory via magic comments: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:764
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:294
 msgid "修复 PDF 文件"
 msgstr "Fix PDF files"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:849
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:379
 msgid "开始预处理"
 msgstr "Starting preprocessing"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:872
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:380
+msgid "检测并移动辅助文件到根目录..."
+msgstr "Detecting and moving auxiliary files to root directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:382
+msgid "辅助文件->根目录"
+msgstr "AUX files -> Root dir"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:402
 msgid "日志分析器"
 msgstr "log analyzer"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:878
-#, fuzzy
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:408
 msgid "日志分析失败: "
-msgstr "log analyzer"
+msgstr "Log analysis failed: "
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:410
+msgid "开始后处理"
+msgstr "Starting postprocessing"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:411
+msgid "移动结果文件到输出目录..."
+msgstr "Moving result files to output directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:413
+msgid "结果文件->输出目录"
+msgstr "RES files -> OUT dir"
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:414
+msgid "移动辅助文件到辅助目录..."
+msgstr "Moving auxiliary files to auxiliary directory..."
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:416
+msgid "辅助文件->辅助目录"
+msgstr "AUX files -> AUX dir"
+
+#~ msgid ""
+#~ "\n"
+#~ "PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等"
+#~ "（仅支持检索文档前 50 行）\n"
+#~ msgstr ""
+#~ "\n"
+#~ "PyTeXMK - supports using magic comments to define the main file to be "
+#~ "compiled, compiler, storage location of compilation results, etc. (only "
+#~ "supports retrieving the first 50 lines of the document)\n"
+
+#~ msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
+#~ msgstr "[i]LaTeX Auxiliary Compiler  ---- Yan Ming[/]"
+
+#~ msgid ""
+#~ "如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发"
+#~ "现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://"
+#~ "github.com/YanMing-lxb/PyTeXMK/issues"
+#~ msgstr ""
+#~ "To learn about magic comments and other detailed instructions, please run "
+#~ "the -r parameter to read the README file. If you find a BUG, please "
+#~ "update to the latest version promptly, and feel free to submit an Issue "
+#~ "in the Github repository: https://github.com/YanMing-lxb/PyTeXMK/issues"
+
+#~ msgid "显示 PyTeXMK 的版本号并退出"
+#~ msgstr "Show the version number of PyTeXMK and exit"
+
+#~ msgid "显示 PyTeXMK 的帮助信息并退出"
+#~ msgstr "Show help information for PyTeXMK and exit"
+
+#~ msgid "显示README文件"
+#~ msgstr "Show the README file"
+
+#~ msgid "PdfLaTeX 进行编译"
+#~ msgstr "Compile with PdfLaTeX"
+
+#~ msgid "XeLaTeX 进行编译"
+#~ msgstr "Compile with XeLaTeX"
+
+#~ msgid "LuaLaTeX 进行编译"
+#~ msgstr "Compile with LuaLaTeX"
+
+#~ msgid ""
+#~ "使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可"
+#~ "省略 'OLD_FILE' 和 'NEW_FILE'"
+#~ msgstr ""
+#~ "Compile using LaTeXDiff, generate a comparison file for changes and "
+#~ "compile the new file"
+
+#~ msgid ""
+#~ "使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置"
+#~ "相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+#~ msgstr ""
+#~ "Compile using LaTeXDiff, generate a comparison file for changes and "
+#~ "compile the new file"
+
+#~ msgid "启用草稿模式进行编译，提高编译速度 (无图显示)"
+#~ msgstr ""
+#~ "Enable draft mode for compilation to improve compilation speed (not shown)"
+
+#~ msgid "清除所有主文件的辅助文件"
+#~ msgstr "Clear all auxiliary files of the main file"
+
+#~ msgid "清除所有主文件的辅助文件（包含根目录）和输出文件"
+#~ msgstr ""
+#~ "Clear all auxiliary files of the main file (including root directory) and "
+#~ "output files"
+
+#~ msgid "清除所有带辅助文件后缀的文件"
+#~ msgstr "Clear all files with auxiliary file suffixes"
+
+#~ msgid "清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件"
+#~ msgstr ""
+#~ "Clear all files with auxiliary file suffixes (including root directory) "
+#~ "and main file output files"
+
+#~ msgid "非安静模式运行, 此模式下终端显示日志信息"
+#~ msgstr ""
+#~ "Run in non-quiet mode, where log information is displayed in the terminal"
+
+#~ msgid "显示 PyTeXMK 运行过程中的详细信息"
+#~ msgstr "Show detailed information during the PyTeXMK runtime"
+
+#~ msgid ""
+#~ "尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R "
+#~ "object 时, 可使用此参数尝试修复所有 pdf 文件"
+#~ msgstr ""
+#~ "Attempt to fix all PDF files outside the root directory, when LaTeX "
+#~ "compilation process warns about invalid X X R object, this parameter can "
+#~ "be used to attempt to fix all pdf files"
+
+#~ msgid ""
+#~ "尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指"
+#~ "定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定"
+#~ "参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输"
+#~ "入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/"
+#~ "dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示"
+#~ "例: pytexmk -pv main)"
+#~ msgstr ""
+#~ "Attempt to call a web browser or local PDF reader to preview the "
+#~ "generated PDF file after compilation (if you need to specify the main "
+#~ "file to be compiled in the command line, then the -pv command, needs to "
+#~ "be placed after document and does not need to specify parameters, "
+#~ "example: pytexmk main -pv; if you do not need to specify the main file to "
+#~ "be compiled in the command line, then simply enter -pv, example: pytexmk "
+#~ "-pv), if [dark_cyan]FILE_NAME[/dark_cyan] is filled in, it will not "
+#~ "compile and will open the specified file (note that only PDF files in the "
+#~ "output directory are supported, example: pytexmk -pv main)"
+
+#~ msgid "辅助文件目录"
+#~ msgstr "AUX files -> Root dir"
+
+#~ msgid "待编译主文件名"
+#~ msgstr "Main file name to be compiled"
+
+#~ msgid "清除所有的辅助文件"
+#~ msgstr "Clear all auxiliary files"
+
+#~ msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令"
+#~ msgstr ""
+#~ "[bold green]Completed the instruction to clear all files with auxiliary "
+#~ "file suffixes"
+
+#~ msgid "清除文件夹内输出文件"
+#~ msgstr "Clear output files in the folder"
+
+#~ msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令"
+#~ msgstr ""
+#~ "[bold green]Completed the instruction to clear all files with auxiliary "
+#~ "file suffixes and main file output files"
+
+#~ msgid "清除文件夹内辅助文件"
+#~ msgstr "Clear auxiliary files in the folder"
+
+#~ msgid "清除根目录内辅助文件"
+#~ msgstr "Clear auxiliary files in the root directory"
+
+#~ msgid "[bold green]已完成清除所有主文件的辅助文件的指令"
+#~ msgstr ""
+#~ "[bold green]Completed the instruction to clear all auxiliary files of the "
+#~ "main file"
+
+#~ msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令"
+#~ msgstr ""
+#~ "[bold green]Completed the instruction to clear all auxiliary files and "
+#~ "output files of the main file"
+
+#~ msgid ""
+#~ "[bold red]错误: 请在命令行或配置文件中指定 LaTeXDiff 的新旧 TeX 文件[/"
+#~ "bold red]"
+#~ msgstr ""
+#~ "Please specify two new and old TeX files in command line or configuration "
+#~ "file"
+
+#~ msgid "LaTeXDiff 预处理"
+#~ msgstr "LaTeXDiff preprocessing"
+
+#~ msgid ""
+#~ "请输入 LaTeXDiff 的显示风格：\n"
+#~ "  1 - 显示参考文献/符号说明的修改\n"
+#~ "  2 - 不显示参考文献/符号说明的修改\n"
+#~ "请选择 (1 或者 2): "
+#~ msgstr ""
+#~ "Please enter a display style for LaTeXDiff:\n"
+#~ " 1 - Show changes in reference/symbol description\n"
+#~ " 2 - Do not show changes in reference/symbol description\n"
+#~ "Please select (1 or 2):"
+
+#~ msgid "LaTeXDiff 运行"
+#~ msgstr "LaTeXDiff running"
+
+#~ msgid "开始预处理命令"
+#~ msgstr "Starting preprocessing"
+
+#~ msgid "[bold red]LaTeXDiff 编译出错: "
+#~ msgstr "LaTeXDiff compile error: "
+
+#~ msgid "通过配置文件设置输出目录为: "
+#~ msgstr "Set output directory via configuration file: "
+
+#~ msgid "通过配置文件设置辅助目录为: "
+#~ msgstr "Set auxiliary directory via configuration file: "
 
 #~ msgid "通过配置文件设置安静模式为: "
 #~ msgstr "Set quiet mode via configuration file: "

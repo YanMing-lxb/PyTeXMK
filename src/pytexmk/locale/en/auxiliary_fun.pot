@@ -22,10 +22,12 @@ msgid ""
 "\n"
 "[bold yellow]收到中断信号，正在优雅退出...[/bold yellow]"
 msgstr ""
+"\n"
+"[bold yellow]Interrupt signal received, exiting gracefully...[/bold yellow]"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:55
 msgid "用户中断操作"
-msgstr ""
+msgstr "User interrupted operation"
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:89
 msgid "[bold red]正在退出 PyTeXMK..."
@@ -33,4 +35,4 @@ msgstr "[bold red]Exiting PyTeXMK..."
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\auxiliary_fun.py⁩:90
 msgid "程序正常退出"
-msgstr ""
+msgstr "Program exited normally"
