@@ -11,6 +11,10 @@
 #   make clean         Clean build artifacts
 #   make dist          Build full distribution
 #   make ci-test       CI pipeline (lint + test)
+#   make pot           Generate .pot translation templates
+#   make mo            Compile .pot to .mo files
+#   make i18n-update   Update translations (pot + mo)
+#   make html          Generate README.html from README.md
 #
 # Windows users without Make can use:
 #   uv run python tools/make.py <target>
@@ -20,7 +24,7 @@ MAKE_SCRIPT := tools/make.py
 
 .PHONY: help all clean install install-dev test test-cov test-integration \
         lint lint-fix format format-check build build-exe build-exe-onefile \
-        install-pkg uninstall-pkg pot mo i18n-update version dist \
+        install-pkg uninstall-pkg inswhl pot mo i18n-update poup html version dist \
         ci-test ci-full publish-tag
 
 help:
@@ -73,6 +77,9 @@ install-pkg:
 uninstall-pkg:
 	@$(PYTHON) $(MAKE_SCRIPT) uninstall-pkg
 
+inswhl:
+	@$(PYTHON) $(MAKE_SCRIPT) inswhl
+
 pot:
 	@$(PYTHON) $(MAKE_SCRIPT) pot
 
@@ -81,6 +88,12 @@ mo:
 
 i18n-update:
 	@$(PYTHON) $(MAKE_SCRIPT) i18n-update
+
+poup:
+	@$(PYTHON) $(MAKE_SCRIPT) poup
+
+html:
+	@$(PYTHON) $(MAKE_SCRIPT) html
 
 version:
 	@$(PYTHON) $(MAKE_SCRIPT) version
