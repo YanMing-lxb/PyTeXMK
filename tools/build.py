@@ -45,6 +45,10 @@ def get_exe_suffix() -> str:
 
 
 def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
+    system = platform.system()
+    is_macos = system == "Darwin"
+    is_windows = system == "Windows"
+
     hiddenimports = [
         "rich_argparse",
         "watchdog.observers.polling",
@@ -56,9 +60,9 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
         "packaging.specifiers",
         "packaging.requirements",
     ]
-    if platform.system() == "Windows":
+    if is_windows:
         hiddenimports.append("watchdog.observers.winapi")
-    elif platform.system() == "Darwin":
+    elif is_macos:
         hiddenimports.append("watchdog.observers.fsevents")
     else:
         hiddenimports.append("watchdog.observers.inotify")
@@ -69,13 +73,20 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
         (str(SRC_PATH / "version.py"), "pytexmk"),
     ]
 
+    use_upx = not is_macos
+
+    collect_name = "PyTeXMK"
+    exe_name = name
+    if is_macos:
+        exe_name = collect_name
+
     collect_block = ""
     if mode == "onedir":
         exe_third_arg = "[],"
-        collect_block = """
+        collect_block = f"""
 coll = COLLECT(
     exe, a.binaries, a.zipfiles, a.datas,
-    strip=False, upx=True, upx_exclude=[], name='PyTeXMK'
+    strip=False, upx={"True" if use_upx else "False"}, upx_exclude=[], name='{collect_name}'
 )
 """
     else:
@@ -114,8 +125,8 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
 exe = EXE(
     pyz, a.scripts, {exe_third_arg}
-    name='{name}', debug=False, bootloader_ignore_signals=False,
-    strip=False, upx=True, upx_exclude=[], runtime_tmpdir=None,
+    name='{exe_name}', debug=False, bootloader_ignore_signals=False,
+    strip=False, upx={"True" if use_upx else "False"}, upx_exclude=[], runtime_tmpdir=None,
     console=True, disable_windowed_traceback=False, argv_emulation=False,
     target_arch=None, codesign_identity=None, entitlements_file=None,
 )
@@ -169,9 +180,16 @@ def copy_additional_files(dist_dir: Path, mode: str = "onedir"):
             print(f"Copied: {filename}")
 
 
+def get_exe_name() -> str:
+    if platform.system() == "Darwin":
+        return "PyTeXMK"
+    return "pytexmk"
+
+
 def rename_output(version: str, mode: str = "onedir") -> Path:
     plat = get_platform_suffix()
     exe_suffix = get_exe_suffix()
+    exe_name = get_exe_name()
     if mode == "onedir":
         orig_dir = DIST_DIR / "PyTeXMK"
         new_name = f"PyTeXMK_v{version}_{plat}"
@@ -183,7 +201,7 @@ def rename_output(version: str, mode: str = "onedir") -> Path:
             return new_dir
         return orig_dir
     else:
-        orig_exe = DIST_DIR / f"pytexmk{exe_suffix}"
+        orig_exe = DIST_DIR / f"{exe_name}{exe_suffix}"
         new_name = f"PyTeXMK_v{version}_{plat}{exe_suffix}"
         new_exe = DIST_DIR / new_name
         if orig_exe.exists():
@@ -267,7 +285,7 @@ def main():
         if mode == "onedir":
             output_path = DIST_DIR / "PyTeXMK"
         else:
-            output_path = DIST_DIR / f"pytexmk{get_exe_suffix()}"
+            output_path = DIST_DIR / f"{get_exe_name()}{get_exe_suffix()}"
 
     print()
     print("=" * 60)
@@ -280,7 +298,7 @@ def main():
         rel = output_path.relative_to(PROJECT_ROOT)
         if mode == "onedir":
             print(f"Output directory: {rel}/")
-            exe_name = f"pytexmk{get_exe_suffix()}"
+            exe_name = f"{get_exe_name()}{get_exe_suffix()}"
             print(f"Executable: {rel / exe_name}")
         else:
             print(f"Executable: {rel}")
