@@ -13,6 +13,7 @@
 
 ### 🔧 工程化改进
 
+<<<<<<< HEAD
 - **统一任务入口**：`tools/make.py` 提供 clean/install/test/lint/format/build/build-exe/i18n/dist 等全套命令
 - **跨平台构建**：tools/build.py 支持 Windows/Linux/macOS 的 PyInstaller 打包，自动识别平台和架构
 - **GitHub Actions CI/CD**：
@@ -31,6 +32,9 @@
 - 修复子进程资源管理和异常退出处理
 
 ### 📁 项目结构
+=======
+## v1.0.3.251001
+>>>>>>> parent of b817d62 (fix(version): 更新版本号至 v1.0.4.251001)
 
 - 构建脚本统一移至 `tools/` 目录
 - 删除冗余的 build.bat、build.ps1、旧 spec 文件

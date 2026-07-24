@@ -25,5 +25,10 @@ Description  :
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
+<<<<<<< HEAD
 script_name = "PyTeXMK"
 __version__ = "1.1.2"
+=======
+script_name = 'PyTeXMK'
+__version__ = '1.0.3.251001'
+>>>>>>> parent of b817d62 (fix(version): 更新版本号至 v1.0.4.251001)
