@@ -537,15 +537,15 @@ def main():
         _main_internal(args, CP, MFO, MRO, PFO, start_time, logger, non_interactive)
     except PyTeXMKError as e:
         console = Console()
-        console.print(f"\n[bold red]错误: {e.message}[/bold red]")
+        console.print(_("\n[bold red]错误: %(message)s[/bold red]") % {"message": e.message})
         sys.exit(e.exit_code)
     except KeyboardInterrupt:
         print(_("\n[bold yellow]用户中断操作[/bold yellow]"))
         sys.exit(130)
     except Exception as e:
         console = Console()
-        console.print(f"\n[bold red]未预期的错误: {e}[/bold red]")
-        console.print("[yellow]请将以下信息提交到 GitHub Issue 帮助我们改进：[/yellow]")
+        console.print(_("\n[bold red]未预期的错误: %(error)s[/bold red]") % {"error": e})
+        console.print(_("[yellow]请将以下信息提交到 GitHub Issue 帮助我们改进：[/yellow]"))
         traceback.print_exc()
         sys.exit(1)
     finally:
