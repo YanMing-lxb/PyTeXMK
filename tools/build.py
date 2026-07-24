@@ -77,7 +77,9 @@ def generate_spec(name: str = "pytexmk", mode: str = "onedir") -> Path:
 
     collect_name = "PyTeXMK"
     exe_name = name
-    if is_macos:
+    if is_macos and mode == "onedir":
+        exe_name = "pytexmk-bin"
+    elif is_macos and mode == "onefile":
         exe_name = collect_name
 
     collect_block = ""
@@ -180,6 +182,17 @@ def copy_additional_files(dist_dir: Path, mode: str = "onedir"):
             print(f"Copied: {filename}")
 
 
+def rename_macos_onedir_exe():
+    if platform.system() != "Darwin":
+        return
+    collect_dir = DIST_DIR / "PyTeXMK"
+    exe_bin = collect_dir / "pytexmk-bin"
+    exe_final = collect_dir / "PyTeXMK"
+    if exe_bin.exists() and not exe_final.exists():
+        exe_bin.rename(exe_final)
+        print("Renamed macOS executable: pytexmk-bin -> PyTeXMK")
+
+
 def get_exe_name() -> str:
     if platform.system() == "Darwin":
         return "PyTeXMK"
@@ -271,6 +284,11 @@ def main():
         print("  Build FAILED!")
         print("=" * 60)
         sys.exit(1)
+
+    if mode == "onedir" and platform.system() == "Darwin":
+        print()
+        print("Renaming macOS onedir executable...")
+        rename_macos_onedir_exe()
 
     print()
     print("Copying additional files...")
