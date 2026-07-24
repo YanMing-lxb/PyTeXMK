@@ -19,13 +19,18 @@ Targets:
     format-check      Check formatting without modifying files
     build             Build wheel + sdist with uv build
     build-exe         Build PyInstaller onedir distribution
+    build-exe-onefile  Build PyInstaller onefile distribution
     install-pkg       Install built wheel locally
     uninstall-pkg     Uninstall pytexmk
+    inswhl            Install built wheel for testing (alias for install-pkg)
     pot               Generate .pot translation templates
     mo                Compile .pot to .mo binary files
-    i18n-update       Update translations (pot + merge + mo)
+    i18n-update       Update translations (pot + mo)
+    poup              Alias for i18n-update
+    html              Generate README.html from README.md (pandoc)
     version           Print current version
     dist              Build wheel + PyInstaller exe (full distribution)
+    publish-tag       Create and push git tag for release
     ci-test           CI: lint + test (no LaTeX required)
     ci-full           CI: lint + test + integration + build
 """
@@ -38,6 +43,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 TOOLS_DIR = Path(__file__).resolve().parent
@@ -60,10 +66,12 @@ def _get_console():
 
             theme = Theme(
                 {
-                    "info": "cyan",
-                    "success": "green bold",
-                    "warning": "yellow",
-                    "error": "red bold",
+                    "success": "bold green",
+                    "warning": "bold yellow",
+                    "error": "bold red",
+                    "info": "bold blue",
+                    "status": "bold cyan",
+                    "time": "bold magenta",
                     "cmd": "dim",
                 }
             )
@@ -84,20 +92,89 @@ def _get_console():
     return console
 
 
-def _run(cmd: list[str], check: bool = True, **kwargs) -> subprocess.CompletedProcess:
+def _run(
+    cmd: list[str],
+    success_msg: str = "",
+    error_msg: str = "",
+    process_name: str = "",
+    check: bool = True,
+    stream: bool = False,
+    **kwargs,
+) -> subprocess.CompletedProcess:
+    """Run a subprocess command with styled output.
+
+    Args:
+        cmd: Command list to execute.
+        success_msg: Message shown on success.
+        error_msg: Message shown on failure.
+        process_name: Name shown in the status spinner.
+        check: If True, exit on non-zero return code.
+        stream: If True, stream output in real-time.
+    """
     c = _get_console()
     cmd_str = " ".join(str(x) for x in cmd)
     c.print(f"  [cmd]$ {cmd_str}[/cmd]")
     env = os.environ.copy()
     kwargs.setdefault("cwd", PROJECT_ROOT)
     kwargs.setdefault("env", env)
+
+    if stream:
+        return _run_streaming(cmd, check, **kwargs)
+
+    start_time = time.time()
     try:
         result = subprocess.run(cmd, check=check, **kwargs)
+        duration = time.time() - start_time
+        if duration > 60:
+            dur_str = f"{duration // 60:.0f}m {duration % 60:.1f}s"
+        else:
+            dur_str = f"{duration:.2f}s"
+        if success_msg:
+            c.print(f"✓ {success_msg} [time](耗时: {dur_str})[/time]", style="success")
         return result
     except subprocess.CalledProcessError as e:
-        c.print(f"[error]Command failed with exit code {e.returncode}[/error]")
+        if error_msg:
+            c.print(f"✗ {error_msg}: {e}", style="error")
         if check:
             sys.exit(e.returncode)
+        raise
+
+
+def _run_streaming(
+    cmd: list[str], check: bool = True, **kwargs
+) -> subprocess.CompletedProcess:
+    """Run a command with real-time output streaming."""
+    c = _get_console()
+    kwargs.pop("capture_output", None)
+    kwargs.pop("stdout", None)
+    kwargs.pop("stderr", None)
+    try:
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            encoding="utf-8",
+            errors="replace",
+            **kwargs,
+        )
+        with c.status("[status]Running...[/status]"):
+            while True:
+                output = process.stdout.readline()
+                if not output and process.poll() is not None:
+                    break
+                if output:
+                    c.print(f"[dim]{output.rstrip()}[/dim]")
+
+        if process.returncode != 0 and check:
+            c.print(f"[error]Command failed with exit code {process.returncode}[/error]")
+            sys.exit(process.returncode)
+        return subprocess.CompletedProcess(cmd, process.returncode)
+    except FileNotFoundError:
+        c.print(f"[error]Command not found: {cmd[0]}[/error]")
+        if check:
+            sys.exit(1)
         raise
 
 
@@ -169,7 +246,7 @@ def cmd_clean():
 
 def cmd_install():
     _get_console().rule("[info]Installing dependencies with uv...[/info]")
-    _run(["uv", "sync", "--dev"])
+    _run(["uv", "sync", "--dev"], success_msg="依赖安装完成", error_msg="依赖安装失败")
 
 
 def cmd_install_dev():
@@ -178,7 +255,8 @@ def cmd_install_dev():
 
 def cmd_test():
     _get_console().rule("[info]Running unit tests...[/info]")
-    _uv("pytest", str(TESTS_DIR), "-v", "--tb=short", "-m", "not slow and not requires_latex")
+    _uv("pytest", str(TESTS_DIR), "-v", "--tb=short", "-m", "not slow and not requires_latex",
+        success_msg="单元测试通过", error_msg="单元测试失败")
 
 
 def cmd_test_cov():
@@ -192,44 +270,54 @@ def cmd_test_cov():
         "--cov-report=term-missing",
         "-m",
         "not slow and not requires_latex",
+        success_msg="覆盖率测试通过",
+        error_msg="覆盖率测试失败",
     )
 
 
 def cmd_test_integration():
     _get_console().rule("[info]Running integration tests (LaTeX required)...[/info]")
-    _uv("pytest", str(TESTS_DIR / "integration"), "-v", "--tb=short", "-m", "requires_latex")
+    _uv("pytest", str(TESTS_DIR / "integration"), "-v", "--tb=short", "-m", "requires_latex",
+        success_msg="集成测试通过", error_msg="集成测试失败")
 
 
 def cmd_lint():
     _get_console().rule("[info]Running ruff linter...[/info]")
-    _uv("ruff", "check", "src/", "tests/")
+    _uv("ruff", "check", "src/", "tests/", success_msg="Lint 检查通过", error_msg="Lint 检查有问题")
 
 
 def cmd_lint_fix():
     _get_console().rule("[info]Running ruff linter with auto-fix...[/info]")
-    _uv("ruff", "check", "--fix", "src/", "tests/")
+    _uv("ruff", "check", "--fix", "src/", "tests/", success_msg="Lint 修复完成", error_msg="Lint 修复失败")
 
 
 def cmd_format():
     _get_console().rule("[info]Running ruff formatter...[/info]")
-    _uv("ruff", "format", "src/", "tests/")
+    _uv("ruff", "format", "src/", "tests/", success_msg="格式化完成", error_msg="格式化失败")
 
 
 def cmd_format_check():
     _get_console().rule("[info]Checking formatting...[/info]")
-    _uv("ruff", "format", "--check", "src/", "tests/")
+    _uv("ruff", "format", "--check", "src/", "tests/", success_msg="格式检查通过", error_msg="代码格式不符合规范")
 
 
 def cmd_build():
     c = _get_console()
     c.rule("[info]Building wheel & sdist...[/info]")
-    _run(["uv", "build"])
+    _run(["uv", "build"], success_msg="wheel + sdist 构建完成", error_msg="构建失败")
     c.print("[success]Build complete. Artifacts in dist/[/success]")
 
 
 def cmd_build_exe():
     _get_console().rule("[info]Building PyInstaller onedir distribution...[/info]")
-    _py(str(TOOLS_DIR / "build.py"), "--no-rename")
+    _py(str(TOOLS_DIR / "build.py"), "--no-rename",
+        success_msg="PyInstaller onedir 构建完成", error_msg="PyInstaller onedir 构建失败")
+
+
+def cmd_build_exe_onefile():
+    _get_console().rule("[info]Building PyInstaller onefile distribution...[/info]")
+    _py(str(TOOLS_DIR / "build.py"), "--onefile", "--no-rename",
+        success_msg="PyInstaller onefile 构建完成", error_msg="PyInstaller onefile 构建失败")
 
 
 def cmd_install_pkg():
@@ -239,13 +327,33 @@ def cmd_install_pkg():
     if not wheels:
         c.print("[warning]No wheel found in dist/. Run `make build` first.[/warning]")
         sys.exit(1)
-    _run([sys.executable, "-m", "pip", "install", "--force-reinstall", str(wheels[0])])
-    c.print(f"[success]Installed: {wheels[0].name}[/success]")
+    _run([sys.executable, "-m", "pip", "install", "--force-reinstall", str(wheels[0])],
+         success_msg=f"已安装: {wheels[0].name}", error_msg="安装失败")
 
 
 def cmd_uninstall_pkg():
     _get_console().rule("[info]Uninstalling pytexmk...[/info]")
-    _run([sys.executable, "-m", "pip", "uninstall", "-y", "pytexmk"], check=False)
+    _run([sys.executable, "-m", "pip", "uninstall", "-y", "pytexmk"], check=False,
+         success_msg="pytexmk 卸载完成", error_msg="pytexmk 卸载失败")
+
+
+def cmd_inswhl():
+    """Install built wheel locally for testing (compatible with old tools naming)."""
+    c = _get_console()
+    c.rule("[info]📦 安装测试 PyTeXMK...[/info]")
+
+    c.print("[status]卸载旧版 PyTeXMK...[/status]")
+    _run(["uv", "pip", "uninstall", "pytexmk"], check=False,
+         success_msg="旧版 PyTeXMK 卸载完成", error_msg="旧版 PyTeXMK 卸载失败")
+
+    whl_files = list(DIST_DIR.glob("*.whl"))
+    if not whl_files:
+        c.print("[warning]dist 目录中没有找到 .whl 文件[/warning]")
+        sys.exit(1)
+
+    c.print("[status]安装测试版 PyTeXMK...[/status]")
+    _run(["uv", "pip", "install", str(whl_files[0])],
+         success_msg="测试 PyTeXMK 安装完成", error_msg="测试 PyTeXMK 安装失败")
 
 
 def _get_i18n_modules() -> list[str]:
@@ -330,6 +438,31 @@ def cmd_i18n_update():
     cmd_mo()
 
 
+def cmd_poup():
+    """Alias for i18n-update (pot + merge + mo). Compatible with old tools naming."""
+    cmd_i18n_update()
+
+
+def cmd_html():
+    """Generate README.html from README.md using pandoc."""
+    c = _get_console()
+    c.rule("[info]Generating README.html from README.md...[/info]")
+    readme_md = PROJECT_ROOT / "README.md"
+    readme_html = PROJECT_ROOT / "README.html"
+    target_dir = SRC_DIR / "data"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        _run(["pandoc", str(readme_md), "-o", str(readme_html)], stream=True)
+    except (FileNotFoundError, SystemExit):
+        c.print("[warning]pandoc not found. Install pandoc to generate README.html.[/warning]")
+        c.print("[dim]  Windows: scoop install pandoc[/dim]")
+        c.print("[dim]  macOS:   brew install pandoc[/dim]")
+        c.print("[dim]  Linux:   apt install pandoc[/dim]")
+        return
+    shutil.move(str(readme_html), str(target_dir / "README.html"))
+    c.print(f"[success]README.html generated → {target_dir / 'README.html'}[/success]")
+
+
 def cmd_version():
     print(get_version())
 
@@ -362,11 +495,17 @@ def cmd_publish_tag():
     c = _get_console()
     version = get_version()
     tag = f"v{version}"
-    c.rule(f"[info]Creating and pushing tag {tag}...[/info]")
-    c.print("[warning]This will create and push a git tag, triggering a release.[/warning]")
-    _run(["git", "tag", tag])
-    _run(["git", "push", "origin", tag])
-    c.print(f"[success]Tag {tag} pushed. GitHub Actions will build and publish.[/success]")
+    c.rule(f"[info]📤 发布标签 {tag}...[/info]")
+
+    c.print(f"[status]创建标签: {tag}[/status]")
+    _run(["git", "tag", tag],
+         success_msg=f"标签 {tag} 创建成功", error_msg=f"标签 {tag} 创建失败")
+
+    c.print(f"[status]推送标签: {tag}[/status]")
+    _run(["git", "push", "origin", tag],
+         success_msg=f"标签 {tag} 推送成功", error_msg=f"标签 {tag} 推送失败")
+
+    c.print("[success]成功上传标签并推送到远程仓库，发布到 GitHub[/success]")
 
 
 # ──────────────────────────────────────────────────────────────────
@@ -387,16 +526,20 @@ TARGETS = {
     "format-check": cmd_format_check,
     "build": cmd_build,
     "build-exe": cmd_build_exe,
+    "build-exe-onefile": cmd_build_exe_onefile,
     "install-pkg": cmd_install_pkg,
     "uninstall-pkg": cmd_uninstall_pkg,
+    "inswhl": cmd_inswhl,
     "pot": cmd_pot,
     "mo": cmd_mo,
     "i18n-update": cmd_i18n_update,
+    "poup": cmd_poup,
+    "html": cmd_html,
     "version": cmd_version,
     "dist": cmd_dist,
+    "publish-tag": cmd_publish_tag,
     "ci-test": cmd_ci_test,
     "ci-full": cmd_ci_full,
-    "publish-tag": cmd_publish_tag,
 }
 
 
