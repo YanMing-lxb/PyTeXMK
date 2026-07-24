@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-24 15:59+0800\n"
+"POT-Creation-Date: 2025-05-15 19:26+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,35 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:155
-msgid "运行 latexdiff 生成差异文件"
-msgstr "Running latexdiff to generate diff file"
+#: src\pytexmk\latexdiff.py:109
+msgid "文件不存在: "
+msgstr "File does not exist: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:156
-msgid "[bold]命令: [/bold]"
-msgstr "[bold]Command: [/bold]"
+#: src\pytexmk\latexdiff.py:140
+msgid "已压平文件: "
+msgstr "File flattened: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:177
-msgid "差异文件已生成"
-msgstr "Diff file generated"
+#: src\pytexmk\latexdiff.py:142
+msgid "压平出错: "
+msgstr "Flattening error: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:284
-msgid "已压平文件"
-msgstr "File flattened"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:324
-msgid "编译差异文件"
-msgstr "Compiling diff file"
-
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\latexdiff.py⁩:415
-msgid "编译失败"
-msgstr "Compilation failed"
-
-#~ msgid "文件不存在: "
-#~ msgstr "File does not exist: "
-
-#~ msgid "压平出错: "
-#~ msgstr "Flattening error: "
-
-#~ msgid "新旧辅助文件同时存在: "
-#~ msgstr "Old and new auxiliary files exist at the same time."
+#: src\pytexmk\latexdiff.py:166
+msgid "新旧辅助文件同时存在: "
+msgstr "Old and new auxiliary files exist at the same time."

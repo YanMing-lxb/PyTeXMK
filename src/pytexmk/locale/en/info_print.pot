@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:04+0800\n"
+"POT-Creation-Date: 2025-03-08 20:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,81 +16,77 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:84
+#: src\pytexmk\info_print.py:82
 #, python-format
 msgid "执行函数 %(args)s 时出错: "
 msgstr "Error executing function %(args)s: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:151
+#: src\pytexmk\info_print.py:145
 msgid "打印模块信息时出错: "
 msgstr "Error printing module information: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:198
+#: src\pytexmk\info_print.py:186
 msgid "LaTeX 编译时长"
 msgstr "LaTeX Compilation Time"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:199
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:206
+#: src\pytexmk\info_print.py:186 src\pytexmk\info_print.py:189
 msgid "Python 运行时长"
 msgstr "Python Execution Time"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:200
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:206
+#: src\pytexmk\info_print.py:186 src\pytexmk\info_print.py:189
 msgid "PyTeXMK 运行时长"
 msgstr "PyTeXMK Execution Time"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:225
+#: src\pytexmk\info_print.py:199
 msgid "PyTeXMK 运行时长统计表"
 msgstr "PyTeXMK Execution Time Statistics Table"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:230
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:233
+#: src\pytexmk\info_print.py:203 src\pytexmk\info_print.py:206
 msgid "运行项目"
 msgstr "Run Project"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:231
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:234
+#: src\pytexmk\info_print.py:204 src\pytexmk\info_print.py:207
 msgid "运行时长"
 msgstr "Execution Time"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:272
+#: src\pytexmk\info_print.py:242
 msgid "PyTeXMK 运行时长: "
 msgstr "PyTeXMK Execution Time: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:275
+#: src\pytexmk\info_print.py:243
 msgid "运行 LaTeX 程序数目: "
 msgstr "Number of LaTeX Runs: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:277
+#: src\pytexmk\info_print.py:245
 msgid "打印运行时长统计表时出错: "
 msgstr "Error printing execution time statistics table: "
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:301
+#: src\pytexmk\info_print.py:269
 msgid "指定编译程序: XeLaTeX PdfLaTeX LuaLaTeX"
 msgstr "Specify compilation program: XeLaTeX PdfLaTeX LuaLaTeX"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:302
+#: src\pytexmk\info_print.py:270
 msgid "指定待编译主文件名，仅支持根目录下的文件"
 msgstr ""
 "Specify the main file to be compiled, only files in the root directory are "
 "supported"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:303
+#: src\pytexmk\info_print.py:271
 msgid "指定编译结果存放位置，仅支持文件夹名称"
 msgstr ""
 "Specify the location to store compilation results, only folder names are "
 "supported"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:304
+#: src\pytexmk\info_print.py:272
 msgid "指定辅助文件存放位置，仅支持文件夹名称"
 msgstr ""
 "Specify the location to store auxiliary files, only folder names are "
 "supported"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:309
+#: src\pytexmk\info_print.py:276
 msgid "魔法注释说明表"
 msgstr "Magic Comment Explanation Table"
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\info_print.py⁩:323
+#: src\pytexmk\info_print.py:289
 msgid "打印魔法注释说明表时出错: "
 msgstr "Error printing magic comment explanation table: "

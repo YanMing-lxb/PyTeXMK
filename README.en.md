@@ -1,739 +1,269 @@
 <!--
  *  =======================================================================
- *  PyTeXMK - LaTeX Auxiliary Compilation Command Line Tool
+ *  ····Y88b···d88P················888b·····d888·d8b·······················
+ *  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ *  ······Y88o88P··················88888b·d88888···························
+ *  ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ *  ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ *  ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ *  ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ *  ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ *  ·······························································888·····
+ *  ··························································Y8b·d88P·····
+ *  ···························································"Y88P"······
  *  =======================================================================
- *  Author       : 焱铭 (YanMing)
- *  Github       : https://github.com/YanMing-lxb/PyTeXMK
- *  Description  : A modern, cross-platform LaTeX build automation tool
- *  =======================================================================
--->
+ * 
+ *  -----------------------------------------------------------------------
+ * Author       : 焱铭
+ * Date         : 2024-09-01 22:20:03 +0800
+ * LastEditTime : 2025-01-23 20:57:56 +0800
+ * Github       : https://github.com/YanMing-lxb/
+ * FilePath     : /PyTeXMK/README.en.md
+ * Description  : 
+ *  -----------------------------------------------------------------------
+ -->
 
-<h1 align="center">PyTeXMK</h1>
+# PyTeXMK
 
-<p align="center">
-<strong>Smart LaTeX Build Automation Tool</strong><br/>
-Automated LaTeX compilation engine · Multi-toolchain smart adaptation · Like latexmk but more powerful
-</p>
+[![GitHub](https://img.shields.io/badge/Github-PyTeXMK-000000.svg)](https://github.com/YanMing-lxb/PyTeXMK) [![License](https://img.shields.io/badge/license-GPLv3-aff)](https://www.latex-project.org/lppl/) ![OS](https://img.shields.io/badge/OS-Linux%2C%20Win%2C%20Mac-pink.svg) [![GitHub release](https://img.shields.io/github/release/YanMing-lxb/PyTeXMK.svg?color=blueviolet&label=version&style=popout)](https://github.com/YanMing-lxb/PyTeXMK/releases/latest) [![Last Commit](https://img.shields.io/github/last-commit/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/zipball/master) [![Issues](https://img.shields.io/github/issues/YanMing-lxb/PyTeXMK)](https://github.com/YanMing-lxb/PyTeXMK/issues) [![PyPI version](https://img.shields.io/pypi/v/pytexmk.svg)](https://pypi.python.org/pypi/pytexmk/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pytexmk.svg?label=PyPI%20downloads)](https://pypi.org/project/pytexmk/) ![GitHub repo size](https://img.shields.io/github/repo-size/YanMing-lxb/PyTeXMK)
 
-<p align="center">
-<a href="https://github.com/YanMing-lxb/PyTeXMK/actions/workflows/ci.yml"><img src="https://github.com/YanMing-lxb/PyTeXMK/actions/workflows/ci.yml/badge.svg" alt="CI Status"/></a>
-<a href="https://pypi.org/project/pytexmk/"><img src="https://img.shields.io/pypi/v/pytexmk.svg" alt="PyPI Version"/></a>
-<a href="https://pypi.org/project/pytexmk/"><img src="https://img.shields.io/pypi/pyversions/pytexmk.svg" alt="Python Versions"/></a>
-<a href="https://github.com/YanMing-lxb/PyTeXMK/blob/main/LICENSE"><img src="https://img.shields.io/github/license/YanMing-lxb/PyTeXMK.svg" alt="License"/></a>
-<a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff"/></a>
-</p>
+[简体中文](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.md) | [English](https://github.com/YanMing-lxb/PyTeXMK/blob/main/README.en.md)
 
-[简体中文](README.md) | English
+LaTeX Auxiliary Compilation Command Line Program
 
 ---
 
-## Table of Contents
+<div align="center">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show1.png" alt="示例部分1" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-right: 2.5px;">
+    <img src="https://github.com/YanMing-lxb/PyTeXMK/raw/main/imgs/show2.png" alt="示例部分2" width="45%" style="max-width: 700px; box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.4), 0 6px 20px 0 rgba(0, 0, 0, 0.19); margin-left: 2.5px;">
+</div>
 
-- [Project Introduction](#-project-introduction)
-- [Core Features](#-core-features)
-- [Environment Requirements](#-environment-requirements)
-- [Installation Guide](#-installation-guide)
-- [Quick Start](#-quick-start)
-- [Complete Command Reference](#-complete-command-reference)
-- [Magic Comments](#-magic-comments)
-- [Configuration File Details](#-configuration-file-details)
-- [Environment Variables](#-environment-variables)
-- [Usage Examples](#-usage-examples)
-- [PVC Continuous Watch Mode](#-pvc-continuous-watch-mode)
-- [LaTeXDiff Document Comparison](#-latexdiff-document-comparison)
-- [GitHub Actions Integration](#-github-actions-integration)
-- [FAQ](#-faq)
-- [Contribution Guide](#-contribution-guide)
-- [Changelog](#-changelog)
-- [License](#-license)
+## Installation
 
----
+The official version of PyTeXMK is released on [PyPI](https://pypi.org/project/pytexmk/) and can be easily installed via the pip package manager from the PyPI mirror.
 
-## 📖 Project Introduction
+Please note that you must use the Python 3 version of pip:
 
-**PyTeXMK** is a modern LaTeX build automation CLI tool written in Python 3.14, designed as an enhanced replacement for latexmk. It automatically detects LaTeX source file dependencies, intelligently selects the optimal compilation engine, manages auxiliary files, and provides an elegant terminal output experience.
-
-PyTeXMK's core design philosophy is **"fixed compilation count + smart supplemental compilation as fallback"**: under normal circumstances it compiles stably according to preset counts, and only triggers supplemental compilation when it detects fixable issues such as undefined references — balancing both compilation efficiency and reliability.
-
----
-
-## ✨ Core Features
-
-| Feature | Description |
-|----------|-------------|
-| 🔧 **Multi-Engine Smart Adaptation** | Auto-detect XeLaTeX/LuaLaTeX/PdfLaTeX, intelligent fallback: XeLaTeX → LuaLaTeX → PdfLaTeX |
-| 📚 **Automatic Bibliography Handling** | Auto-detect BibTeX/Biber requirements and invoke the corresponding tool |
-| 📇 **Index Tool Support** | Supports both makeindex and **xindy** index tools, with auto-detection |
-| 👀 **PVC Continuous Watch Mode** | File watching + auto-compilation mode similar to `latexmk -pvc`, save to compile |
-| 📊 **Structured Log Parsing** | Precise parsing of compilation logs, highlighted errors/warnings with line numbers |
-| 📄 **LaTeXDiff Integration** | One-click generation of document version comparison PDFs, supports flattening sub-files and fast mode |
-| 🌏 **Internationalization** | Chinese/English bilingual interface, switchable via `PYTEXMK_LANG` environment variable |
-| 📁 **Clean Directory Structure** | Automatically outputs PDFs to `Build/`, auxiliary files to `Auxiliary/`, keeping the workspace tidy |
-| 🖥️ **Cross-platform Support** | Windows / macOS / Linux, compatible with MiKTeX and TeX Live |
-| ⚙️ **Flexible Configuration** | Three-tier configuration: TOML config files + magic comments + CLI arguments |
-| 🚀 **Python 3.14** | Based on the latest Python version, excellent performance, fast startup |
-
----
-
-## 🖥️ Environment Requirements
-
-- **Python**: 3.14 or later (for pip installation)
-- **LaTeX distribution**: TeX Live 2022+ or MiKTeX (must include xelatex/lualatex/pdflatex)
-- **Optional tools**:
-  - `latexdiff`: for document version comparison
-  - `xindy`: for xindy index support
-  - `biber`: for BibLaTeX bibliography support
-
----
-
-## 📦 Installation Guide
-
-### pip (recommended, cross-platform)
-
-```bash
-pip install pytexmk
+```
+pip3 install pytexmk
 ```
 
-Upgrade to the latest version:
-```bash
-pip install --upgrade pytexmk
+## Upgrade
+
+```
+pip3 install --upgrade pytexmk
 ```
 
-### Windows - Scoop
+## Getting Started
 
-The Scoop manifest is ready. After the official release, install via:
-```powershell
-scoop bucket add pytexmk https://github.com/YanMing-lxb/PyTeXMK
-scoop install pytexmk
+For basic usage see: [Issues #1](https://github.com/YanMing-lxb/PyTeXMK/issues/1#issuecomment-2383474600)
+
+Please read carefully: [Logic for Selecting the Main File to Compile and Compilation Type](#logic-for-selecting-the-main-file-to-compile-and-compilation-type)
+
+> PyTeXMK only supports TeX files encoded in utf-8.
+
+### Default Configuration
+
+The default configuration of Pytexmk is as follows:
+
+1. Compilation program: `XeLaTeX`
+2. Main file to be compiled: `main.tex`
+3. Compilation results are stored in the `Build` folder of the LaTeX project (VSCode users need to set `"latex-workshop.latex.outDir": "./Build",` in `settings.json` so that LaTeX-Workshop can find the pdf)
+4. Auxiliary files are stored in the `Auxiliary` folder of the LaTeX project
+5. Compilation mode: batch mode (compilation process information is not displayed, use the `-uq` parameter to display compilation process information)
+
+> Note: The above parameters can be modified in the configuration file. For details, please refer to: [Configuration File Description](#configuration-file-description)
+
+### Compilation Commands
+
+PyTeXMK supports:
+
+- Compilation programs: `XeLaTeX` `PdfLaTeX` `LuaLaTeX`
+- Bibliography: `bibtex` `biblatex` `thebibliography`
+- Symbol index: `glossaries` `nomencl` `mkeidx`
+
+Positional arguments:
+
+| Option   | Description                 |
+| -------- | --------------------------- |
+| document | The filename to be compiled |
+
+Options:
+
+| Option                   | Description                                                                                                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -h, --help               | Display help information                                                                                                                                                                 |
+| -v, --version            | Display program version number                                                                                                                                                           |
+| -p, --PdfLaTeX           | Compile with PdfLaTeX                                                                                                                                                                    |
+| -x, --XeLaTeX            | Compile with XeLaTeX                                                                                                                                                                     |
+| -l, --LuaLaTeX           | Compile with LuaLaTeX                                                                                                                                                                    |
+| -d, --LaTeXDiff          | Compile using LaTeXDiff to generate a comparison file                                                                                                                                    |
+| -dc, --LaTexDiff-compile | Compile using LaTeXDiff to generate a comparison file and compile the new file                                                                                                           |
+| -dr, --draft             | Enable draft mode for compilation, improving compilation speed (no images displayed)                                                                                                     |
+| -c, --clean              | Clean all auxiliary files of the main file                                                                                                                                               |
+| -C, --Clean              | Clean all auxiliary files (including root directory) and output files of the main file                                                                                                   |
+| -ca, --clean-any         | Clean all files with auxiliary file suffixes                                                                                                                                             |
+| -Ca, --Clean-any         | Clean all files with auxiliary file suffixes (including root directory) and main file output files                                                                                       |
+| -nq, --non_quiet         | Run in non-quiet mode, displaying the compilation process in this mode                                                                                                                   |
+| -vb, --verbose           | Display detailed information during PyTeXMK runtime                                                                                                                                      |
+| -pr, --pdf-repair        | Repair all pdf files outside the root directory                                                                                                                                          |
+| -pv, --pdf-preview       | Attempt to call a Web browser or local PDF reader to preview the generated PDF file after compilation. If 'FILE_NAME' is filled in, it will not compile and will open the specified file |
+
+**Explanation:**
+
+- The function of the `-pr` parameter is "When a warning similar to `invalid X X R object at offset XXXXX` appears during LaTeX compilation, this parameter can be used to attempt to repair all pdf files." The warning `invalid X X R object at offset XXXXX` occurs due to some form of corruption or illegal operation during the creation, editing, or transmission of the PDF image file, which may be caused by missing parts of the file, a damaged xref table, or other issues in the file structure.
+- Examples for the `-d` and `-dc` commands: `pytexmk -d old_tex_file new_tex_file` and `pytexmk -dc old_tex_file new_tex_file`. The generated comparison file is named `LaTeXDiff.tex`.
+- The function of the `-pv` parameter is: Attempt to call a Web browser or local PDF reader to preview the generated PDF file after compilation. It only supports PDF files in the output directory. If you need to specify the main file to be compiled in the command line, the `-pv` command should be placed after `document`, `-pv` command does not need to specify parameters, example: `pytexmk main -pv`; if you do not need to specify the main file in the command line, simply enter `-pv`, example: `pytexmk -pv`.
+
+
+The `-dc` and `-d` commands have a new style option to support displaying traces of changes in reference and symbol indexes, with a compilation prompt to enter option 1 or 2
+
+- 1 - Show changes in reference/symbol descriptions
+- 2 - Do not show changes in references/symbol descriptions
+
+### Magic Comments
+
+PyTeXMK supports using magic comments to define the main file to be compiled, compilation program, location to store compilation results, etc. (only supports searching the first 50 lines of the document).
+
+| Magic Comment                    | Description                                                                                          | Examples                      |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `% !TEX program = <XeLaTeX>`   | Specify the compilation type, optional `XeLaTeX` `PdfLaTeX` `LuaLaTeX`                         | `% !TEX program = PdfLaTeX` |
+| `% !TEX root = <main_file>`    | Specify the LaTeX filename to be compiled, only supports the main file in the project root directory | `% !TEX root = test_file`   |
+| `% !TEX outdir = <out_folde>`  | Specify the location to store compilation results, only supports folder names                        | `% !TEX outdir = output`    |
+| `% !TEX auxdir = <aux_folder>` | Specify the location to store auxiliary files, only supports folder names                            | `% !TEX auxdir = auxfiles`  |
+
+> Magic comments only support definition in the main file, not in sub-files.
+
+### Logic for Selecting the Main File to Compile and Compilation Type
+
+<details>
+<summary><b>Logic for Selecting the Main File to Compile</b></summary>
+
+1. If a master file is specified in the command line arguments, the master file is compiled. For example: `pytexmk <main file name>` The main file name may not be followed by a file suffix. 3.
+2. If there is only one `TEX` file in the current root directory, that file is used as the master file to be compiled. 4.
+3. If there is a magic comment `% !TEX root`, the file specified by the magic comment is used as the master file to be compiled.
+4. retrieve `\documentclass[]{}` or `\begin{document}` from `TEX` file (only supports retrieving the first 200 lines of the document)
+5. if the main file cannot be determined from the magic comment, try to specify the main file to be compiled based on the default main file name, `main.tex`. 7.
+6. If you still cannot determine the main file, output an error message and exit the program.
+
+</details>
+
+<details>
+<summary><b>Logic for Selecting the Compilation Type</b></summary>
+
+1. PyTeXMK prioritizes using the compilation type specified by the terminal input command `-p` `-x` `-l` parameters.
+2. If not specified, it will use the compilation type specified by `% !TEX program = XeLaTeX`.
+3. If not specified, it will use the default compilation type `XeLaTeX`.
+
+</details>
+
+PyTeXMK will prioritize using the compilation result storage location specified by `% !TEX outdir = PDFfile`. If not specified, it will use the default compilation result storage location `Build`.
+
+### Configuration File Description
+
+PyTeXMK supports two types of configuration files, system configuration files and local configuration files. Configuration files can be used to change the default configuration of Pytexmk and configure some other functions. The system configuration file is automatically generated when PyTeXMK is first run, located in the user directory, with the filename `.pytexmkrc`; the local configuration file is automatically generated when PyTeXMK is first run in the project, located in the current working directory, with the filename `.pytexmkrc`. Detailed comments exist in the automatically generated configuration file, please configure according to the comments.
+
+#### Configuration File Path
+
+System configuration file path: For Windows systems, it is `C:\Users\username\.pytexmkrc`, for Linux systems, it is `~/.pytexmkrc`.
+Local configuration file path: The `.pytexmkrc` file in the current working directory.
+
+#### Configuration File Priority
+
+The local configuration file has a higher priority than the system configuration file. If both configure the same parameters, the configuration in the local configuration file will be prioritized.
+
+## Building the `Wheel`
+
+```
+1. Installing Python3
+2. pip install -r requirements-windows.txt
+3. pip install pyinstaller
+4. make
 ```
 
-### Windows - Winget
-
-Available after publishing to the winget repository:
-```powershell
-winget install YanMing.PyTeXMK
-```
-
-### Pre-built binaries
-
-Download platform-specific executables from [GitHub Releases](https://github.com/YanMing-lxb/PyTeXMK/releases), extract and add the directory to your system PATH.
-
-### From source (development)
-
-```bash
-git clone https://github.com/YanMing-lxb/PyTeXMK.git
-cd PyTeXMK
-uv sync
-uv run pytexmk --version
-```
-
-### TeX Distribution Integration
-
-PyTeXMK works seamlessly with major TeX distributions:
-
-- **MiKTeX**: Auto-detected after installation, automatically finds installed engines and tools
-- **TeX Live**: Fully compatible, supports the complete toolchain managed by tlmgr
-- **Manual paths**: If the TeX distribution is not in PATH, specify paths via config file or environment variables
-
----
-
-## 🚀 Quick Start
-
-### Minimal Example
-
-1. Have a main file `main.tex` in your LaTeX project root:
-
-```latex
-% !TEX program = XeLaTeX
-\documentclass{article}
-\begin{document}
-Hello, PyTeXMK!
-\end{document}
-```
-
-2. Run in the project directory:
-
-```bash
-pytexmk
-```
-
-3. After compilation, the PDF is generated at `Build/main.pdf`, with auxiliary files in the `Auxiliary/` directory.
-
-### Compile a Specific File
-
-```bash
-pytexmk mydocument
-```
-
-### Auto-Preview PDF After Compilation
-
-```bash
-pytexmk -pv
-```
-
-### Clean Auxiliary Files
-
-```bash
-pytexmk -c    # Clean auxiliary files
-pytexmk -C    # Clean auxiliary files and output PDF
-```
-
----
-
-## 📋 Complete Command Reference
-
-Run `pytexmk --help` to view the full help message.
-
-### Basic Options
-
-| Option | Description |
-|--------|-------------|
-| `-v`, `--version` | Show version and exit |
-| `-h`, `--help` | Show help and exit |
-| `-r`, `--readme` | Open README documentation in browser |
-
-### Engine Selection
-
-| Option | Description |
-|--------|-------------|
-| `-x`, `--XeLaTeX` | Force XeLaTeX compilation |
-| `-l`, `--LuaLaTeX` | Force LuaLaTeX compilation |
-| `-p`, `--PdfLaTeX` | Force PdfLaTeX compilation |
-| `--engine {xelatex,lualatex,pdflatex}` | Explicitly specify TeX engine |
-| `--auto` | Enable smart engine auto-detection (default) |
-| `--no-auto` | Disable smart engine auto-detection |
-
-### Bibliography & Index
-
-| Option | Description |
-|--------|-------------|
-| `--bib {auto,bibtex,biber}` | Specify bibliography tool |
-| `--index {auto,makeindex,xindy}` | Specify index tool |
-
-### Compilation Control
-
-| Option | Description |
-|--------|-------------|
-| `-n N`, `--runs N` | Fixed compilation count (default 2; set to 3 to include bib compilation) |
-| `-dr`, `--draft` | Draft mode (no images, faster compilation) |
-| `--timeout SECONDS` | Single compilation timeout (default 300 seconds) |
-| `--non-interactive` | Non-interactive mode, no user prompts, suitable for CI/CD |
-| `-nq`, `--non-quiet` | Non-quiet mode, show full compilation log in terminal |
-| `-vb`, `--verbose` | Show detailed debug information |
-
-### Output Control
-
-| Option | Description |
-|--------|-------------|
-| `-o DIR`, `--outdir DIR` | Specify PDF output directory (overrides magic comments and config) |
-| `--auxdir DIR` | Specify auxiliary files directory |
-| `-O`, `--open` | Auto-open PDF preview after successful compilation |
-| `-pv [FILE]`, `--pdf-preview [FILE]` | Preview PDF after compilation; specify FILE to open directly |
-| `-pr`, `--pdf-repair` | Attempt to repair PDF files (fixes `invalid X X R object` warnings) |
-
-### SyncTeX & Shell Escape
-
-| Option | Description |
-|--------|-------------|
-| `--synctex` | Enable SyncTeX (default) |
-| `--no-synctex` | Disable SyncTeX |
-| `--shell-escape` | Enable `-shell-escape` (default) |
-| `--no-shell-escape` | Disable `-shell-escape` |
-
-### Cleanup Commands
-
-| Option | Description |
-|--------|-------------|
-| `-c`, `--clean` | Clean auxiliary files for current main file |
-| `-C`, `--Clean` | Clean auxiliary files (including root directory) and output PDF |
-| `-ca`, `--clean-any` | Clean all files with auxiliary file suffixes |
-| `-Ca`, `--Clean-any` | Clean all auxiliary files and main file output PDF (including root directory) |
-
-### PVC Continuous Watch Mode
-
-| Option | Description |
-|--------|-------------|
-| `--pvc`, `--continuous` | Enable PVC mode (continuous watch + auto-compile) |
-| `--pvc-debounce SECONDS` | File change debounce time (default 1.0 seconds) |
-| `--pvc-preview` | Auto-open preview on successful compilation in PVC mode |
-
-### LaTeXDiff Document Comparison
-
-| Option | Description |
-|--------|-------------|
-| `-d [OLD NEW]`, `--LaTeXDiff [OLD NEW]` | Generate LaTeXDiff comparison file (no compilation) |
-| `-dc [OLD NEW]`, `--LaTeXDiff-compile [OLD NEW]` | Generate comparison file and compile |
-| `--diff-flatten` | Flatten `\input`/`\include` sub-files during LaTeXDiff |
-| `--diff-fast` | Use latexdiff `--fast` mode |
-| `--diff-output FILE` | LaTeXDiff output filename |
-| `--diff-style {1,2}` | Display style: 1-show bibliography changes, 2-hide (default 2) |
-
----
-
-## 🔮 Magic Comments
-
-PyTeXMK supports magic comments in the first 50 lines of TeX files to configure compilation behavior. Priority is higher than configuration files.
-
-| Magic Comment | Description |
-|---------------|-------------|
-| `% !TEX program = XeLaTeX` | Specify compilation engine: XeLaTeX / PdfLaTeX / LuaLaTeX |
-| `% !TEX root = main.tex` | Specify the main file to compile (root directory files only) |
-| `% !TEX outdir = out_folder` | Specify PDF output location |
-| `% !TEX auxdir = aux_folder` | Specify auxiliary file location |
-| `% !TEX bib = biber` | Specify bibliography tool: bibtex / biber |
-| `% !TEX index = xindy` | Specify index tool: makeindex / xindy |
-
-**Configuration Priority** (highest to lowest):
-1. CLI arguments
-2. Magic comments
-3. Project config file (`.pytexmkrc` in project directory)
-4. User config file (`~/.pytexmkrc`)
-5. Built-in defaults
-
----
-
-## ⚙️ Configuration File Details
-
-PyTeXMK uses TOML format configuration files, supporting two levels:
-
-- **User-level config**: `~/.pytexmkrc` — applies to all projects
-- **Project-level config**: `./.pytexmkrc` — applies only to the current project, overrides user config
-
-A default configuration file is auto-generated on first run.
-
-### Full Configuration Options
-
-```toml
-# ============ Basic Settings ============
-default_file = "main"           # Default main filename (without .tex extension)
-compiled_program = "XeLaTeX"    # Default compiler: XeLaTeX / PdfLaTeX / LuaLaTeX
-non_quiet = false               # true=show compilation log, false=quiet mode
-quiet_mode = true               # Quiet mode (inverse of non_quiet, kept for backward compatibility)
-
-# ============ PDF Preview Settings ============
-[pdf]
-pdf_preview_status = false      # Auto-open PDF after compilation
-pdf_viewer = "default"          # PDF viewer: default=system default viewer
-
-# ============ Directory Settings ============
-[folder]
-auxdir = "./Auxiliary/"         # Auxiliary files directory
-outdir = "./Build/"             # PDF output directory
-
-# ============ Engine Settings ============
-[engine]
-default = "xelatex"             # Default engine: xelatex / lualatex / pdflatex
-auto_detect = true              # Enable smart engine auto-detection
-fallback_order = ["xelatex", "lualatex", "pdflatex"]  # Fallback priority
-timeout = 300                   # Single compilation timeout in seconds
-
-# ============ Bibliography Settings ============
-[bib]
-default_tool = "auto"           # auto=auto-detect / bibtex / biber
-
-# ============ Index Settings ============
-[index]
-default_tool = "auto"           # auto=auto-detect / makeindex / xindy
-index_style_file = "nomencl.ist" # Index style file
-input_suffix = ".nlo"           # Index input file suffix
-output_suffix = ".nls"          # Index output file suffix
-
-# ============ Compilation Settings ============
-[compilation]
-default_run_count = 2           # Default fixed compilation count
-max_extra_passes = 2            # Max supplemental compilation retries
-shell_escape = true             # Enable -shell-escape
-synctex = true                  # Enable SyncTeX
-quiet = true                    # Quiet compilation (batchmode)
-
-# ============ PVC Continuous Watch Settings ============
-[pvc]
-enabled = false                 # Enable PVC mode by default
-debounce = 1.0                  # File change debounce in seconds
-auto_open_preview = false       # Auto-open preview on successful compilation
-watch_extensions = [".tex", ".bib", ".bst", ".cls", ".sty", ".idx", ".ist", ".png", ".jpg", ".pdf", ".eps"]
-exclude_dirs = ["build", ".git", "__pycache__", ".venv", "node_modules"]
-
-# ============ LaTeXDiff Settings ============
-[diff]
-flatten = false                 # Flatten sub-files by default
-fast = false                    # Use latexdiff --fast mode
-auto_compile = true             # Auto-compile after generating diff
-
-[latexdiff]                     # Legacy config (backward compatible)
-old_tex_file = "old_file"
-new_tex_file = "new_file"
-diff_tex_file = "LaTeXDiff"
-```
-
----
-
-## 🌐 Environment Variables
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PYTEXMK_LANG` | Force UI language | `PYTEXMK_LANG=en` or `PYTEXMK_LANG=zh_CN` |
-| `LANGUAGE` / `LANG` / `LC_ALL` / `LC_MESSAGES` | System language (auto-detected) | `LANG=zh_CN.UTF-8` |
-
-Language detection priority: `PYTEXMK_LANG` → `LANGUAGE` → `LANG` → `LC_ALL` → `LC_MESSAGES` → system locale → default English.
-
----
-
-## 📝 Usage Examples
-
-### Example 1: Basic Compilation (Chinese Document)
-
-**Scenario**: Compile a Chinese paper using XeLaTeX.
-
-**`main.tex`**:
-```latex
-% !TEX program = XeLaTeX
-\documentclass{ctexart}
-\title{Test Document}
-\author{Author}
-\begin{document}
-\maketitle
-Hello, PyTeXMK!
-\end{document}
-```
-
-**Command**:
-```bash
-pytexmk
-```
-
-**Expected output**:
-- `Build/main.pdf` — compiled PDF
-- `Auxiliary/` — auxiliary files (.aux, .log, .out, etc.)
-
----
-
-### Example 2: BibLaTeX + Biber
-
-**Scenario**: Use the BibLaTeX package with the Biber backend for bibliography processing.
-
-**`main.tex`**:
-```latex
-% !TEX program = XeLaTeX
-% !TEX bib = biber
-\documentclass{article}
-\usepackage[backend=biber]{biblatex}
-\addbibresource{refs.bib}
-\begin{document}
-Citation test~\cite{knuth1984texbook}.
-\printbibliography
-\end{document}
-```
-
-**Command**:
-```bash
-pytexmk -n 3    # Compile 3 times to ensure bibliography is correctly generated
-```
-
-Or let PyTeXMK auto-detect (recommended):
-```bash
-pytexmk
-```
-
----
-
-### Example 3: xindy Index
-
-**Scenario**: Generate Chinese/English indexes using xindy for Unicode sorting support.
-
-**Command**:
-```bash
-pytexmk --index xindy
-```
-
-Or via magic comment:
-```latex
-% !TEX index = xindy
-```
-
----
-
-### Example 4: Non-Interactive Mode (CI/CD)
-
-**Scenario**: Automatically compile LaTeX documents in CI environments like GitHub Actions.
-
-```bash
-pytexmk --non-interactive --timeout 120
-```
-
----
-
-### Example 5: Draft Mode for Fast Compilation
-
-**Scenario**: Quick preview during editing, without images.
-
-```bash
-pytexmk -dr
-```
-
----
-
-### Example 6: Repair Corrupted PDF
-
-**Scenario**: When the compilation log shows `invalid X X R object` warnings.
-
-```bash
-pytexmk -pr
-```
-
----
-
-## 👀 PVC Continuous Watch Mode
-
-PVC (Preview Continuous) mode is similar to `latexmk -pvc`. Once started, it continuously monitors the project directory for file changes and automatically triggers compilation when `.tex`, `.bib`, `.sty`, and other files are saved.
-
-### Start PVC Mode
-
-```bash
-pytexmk --pvc
-```
-
-### With Auto-Preview
-
-```bash
-pytexmk --pvc --pvc-preview
-```
-
-### Custom Debounce Time
-
-```bash
-pytexmk --pvc --pvc-debounce 2.0
-```
-
-### PVC Mode Features
-
-- Uses the watchdog library for efficient filesystem event monitoring
-- Debouncing mechanism prevents multiple triggers during save operations
-- Automatically filters directories like `.git`, `__pycache__`, `build`
-- Press `Ctrl+C` to exit watch mode
-- Displays error summary on compilation failure, auto-recompiles after fixes
-
----
-
-## 📄 LaTeXDiff Document Comparison
-
-The LaTeXDiff feature generates a diff comparison PDF of two versions of a TeX file, making it easy to review changes.
-
-### Basic Usage
-
-```bash
-# Generate comparison file without compiling
-pytexmk -d old_version.tex new_version.tex
-
-# Generate comparison file and compile to PDF
-pytexmk -dc old_version.tex new_version.tex
-```
-
-### Flatten Sub-files
-
-If your document uses `\input` or `\include`:
-
-```bash
-pytexmk -dc old.tex new.tex --diff-flatten
-```
-
-### Config File Presets
-
-Configure in `.pytexmkrc` to omit command-line arguments:
-
-```toml
-[latexdiff]
-old_tex_file = "v1.tex"
-new_tex_file = "v2.tex"
-diff_tex_file = "diff"
-```
-
-Then simply run:
-```bash
-pytexmk -dc
-```
-
----
-
-## 🤖 GitHub Actions Integration
-
-Use PyTeXMK to compile LaTeX documents in GitHub Actions:
-
-```yaml
-name: Build LaTeX
-on: [push, pull_request]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          python-version: '3.14'
-
-      - name: Install PyTeXMK
-        run: uv pip install pytexmk
-
-      - name: Install TeX Live (minimal)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y texlive-xetex texlive-latex-extra texlive-bibtex-extra biber
-
-      - name: Compile LaTeX
-        run: pytexmk --non-interactive --timeout 120
-
-      - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-pdf
-          path: Build/*.pdf
-```
-
----
-
-## ❓ FAQ
-
-### Q1: How to switch between Chinese and English interface?
-
-Set the `PYTEXMK_LANG` environment variable:
-```bash
-# Windows PowerShell
-$env:PYTEXMK_LANG = "en"
-
-# Linux/macOS
-export PYTEXMK_LANG=en
-```
-
-### Q2: Compilation shows engine not found?
-
-Make sure TeX Live or MiKTeX is properly installed and added to the system PATH:
-```bash
-xelatex --version
-```
-If the command is not found, check your TeX distribution installation.
-
-### Q3: How to output PDF to the current directory instead of Build/?
-
-Use the `-o` option or a magic comment:
-```bash
-pytexmk -o .
-```
-Or add to the TeX file header:
-```latex
-% !TEX outdir = .
-```
-
-### Q4: Which engine should I use for Chinese documents?
-
-We recommend **XeLaTeX** (the default engine), which has the best support for Chinese and Unicode. PyTeXMK's smart fallback also prioritizes XeLaTeX.
-
-### Q5: Which files trigger recompilation in PVC mode?
-
-By default, files with extensions `.tex`, `.bib`, `.bst`, `.cls`, `.sty`, `.idx`, `.ist`, `.png`, `.jpg`, `.pdf`, `.eps` are monitored. You can customize this in the `[pvc]` section's `watch_extensions` in the config file.
-
-### Q6: How to use PyTeXMK with VS Code?
-
-Configure in VS Code's LaTeX Workshop extension:
-```json
-"latex-workshop.latex.recipes": [
-  {
-    "name": "PyTeXMK",
-    "tools": ["pytexmk"]
-  }
-],
-"latex-workshop.latex.tools": [
-  {
-    "name": "pytexmk",
-    "command": "pytexmk",
-    "args": ["--non-interactive", "-nq", "%DOCFILE%"]
-  }
-]
-```
-
-### Q7: How to fully clean a project?
-
-```bash
-pytexmk -Ca    # Clean all auxiliary and output files (including root directory)
-```
-
-### Q8: Which operating systems are supported?
-
-PyTeXMK supports all major platforms:
-- **Windows**: 10/11, supports MiKTeX and TeX Live
-- **macOS**: 10.15+, Intel and Apple Silicon
-- **Linux**: Major distributions (Ubuntu 20.04+, Fedora, Arch, etc.)
-
----
-
-## 👥 Contribution Guide
-
-Issues and Pull Requests are welcome!
-
-### Development Environment Setup
-
-```bash
-git clone https://github.com/YanMing-lxb/PyTeXMK.git
-cd PyTeXMK
-uv sync --dev
-```
-
-### Common Development Commands
-
-| Command | Description |
-|---------|-------------|
-| `make help` | Show all available commands |
-| `make test` | Run unit tests |
-| `make test-cov` | Run tests and generate coverage report |
-| `make lint` | Ruff code style check |
-| `make lint-fix` | Auto-fix lint issues |
-| `make format` | Ruff code formatting |
-| `make build` | Build wheel package |
-| `make i18n-update` | Update internationalization translation files |
-| `make ci-test` | Run full CI test pipeline |
-| `make clean` | Clean build artifacts |
-
-### Code Standards
-
-- Follow PEP 8 conventions
-- Use Ruff for linting and formatting
-- Add type annotations
-- Supplement unit tests for new features
-
----
-
-## 📋 Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for details.
-
-**v1.1.2 Highlights**:
-- New PVC continuous watch mode (file monitoring + auto-compilation)
-- New xindy index tool support
-- Smart engine fallback: XeLaTeX → LuaLaTeX → PdfLaTeX
-- Enhanced LaTeXDiff functionality (flatten, fast mode)
-- Chinese/English internationalization support
-- Python 3.14 support
-- Complete GitHub Actions CI/CD pipeline
-- Cross-platform packaging support (PyInstaller)
-- 327+ unit test coverage
-
----
-
-## 📄 License
-
-This project is open-sourced under the **GNU General Public License v3.0 or later**.
-
-See the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-Made with ❤️ by <a href="https://github.com/YanMing-lxb">焱铭 (YanMing)</a><br/>
-For questions, please report on <a href="https://github.com/YanMing-lxb/PyTeXMK/issues">GitHub Issues</a>
-</p>
-
-## 📊 Star History
+In addition, the make command needs to be configured separately on Windows: see [Using make on Windows](https://github.com/YanMing-lxb/PyTeXMK/blob/main/docs/Window%20%E4%B8%8B%E4%BD%BF%E7%94%A8%20make.md) for details.
+
+## Update Log
+
+For the update log, please see the [CHANGELOG document](https://github.com/YanMing-lxb/PyTeXMK/blob/main/CHANGELOG.md)
+
+## Future Work Directions
+
+- [X] Add the function to attempt to repair all PDF files outside the root directory (to solve the problem of warnings similar to `invalid X X R object at offset XXXXX` during compilation due to some form of corruption or illegal operation during the creation, editing, or transmission of the PDF file)
+- [X] Improve the main file judgment function:
+
+  - [X] Determine by searching for `\documentclass[]{}` or `\begin{document}` in the TeX file
+  - [ ] Multi-main file compilation function
+- [X] Magic comment function
+
+  - [X] Set the main file name via magic comments
+  - [X] Set the compilation engine type via magic comments
+  - [X] Set the location to store compilation results via magic comments
+  - [X] Set the location to store auxiliary files via magic comments
+  - [X] Solve the case and space sensitivity problem of magic comments
+  - [ ] LaTeXDiff related magic comments
+  - [ ] Handling logic for repeated definition of magic comments
+    - [ ] Conflict handling for magic comments in the main file and sub-files
+    - [ ] Solve the conflict problem of magic comments in the main file and sub-files when multiple main files exist
+- [X] Automatic judgment function for the number of compilations
+
+  <details><summary>Expand to view</summary>
+
+  - [X] Improve the interruption mechanism after an error occurs in the compilation process
+  - [X] Automatically judge whether to compile the bibliography
+  - [X] Automatically judge whether to compile the index file
+  - [X] Automatically judge whether to recompile
+
+  </details>
+- [ ] Add configuration file function
+
+  - [X] Configurable default compilation engine (currently the default compilation command is `XeLaTeX`)
+  - [X] Configurable default location to store result files (currently stored in the `Build` subfolder by default)
+  - [X] Configurable default location to store auxiliary files (currently stored in the `Auxiliary` subfolder by default)
+  - [ ] Configurable configuration for other index packages
+  - [X] Configurable whether to preview the PDF by default after compilation
+  - [ ] Configurable PDF file opening program
+  - [X] Configurable default quiet mode status
+  - [X] Configurable default verbose mode status
+  - [X] Configurable default file name
+  - [X] Configurable default new TeX file name for LaTeXDiff
+  - [X] Configurable default old TeX file name for LaTeXDiff
+  - [X] Configurable default output file name for LaTeXDiff
+- [ ] Preview and log function
+
+  - [ ] Solve the problem of Chinese display in the terminal
+  - [X] PDF preview function
+  - [X] Error information display function
+  - [ ] Further improve the error information display function
+  - [X] Implement log recording function
+- [X] Improve cleaning function
+
+  <details><summary>Expand to view</summary>
+
+  - [X] Improve the function to clean auxiliary files
+  - [X] Improve the function to clean all files
+  - [X] Improve the function to clean all auxiliary files
+
+  </details>
+- [ ] Check for missing packages and automatically install (texlive)
+- [X] Add PyTeXMK update check function
+- [ ] LaTeXDiff related functions
+
+  - [X] Add the function to move auxiliary files to the root directory after compilation
+  - [X] Implementation of LaTeXDiff command line parameters
+  - [X] Add configuration file function for a single project
+  - [ ] LaTeXDiff compilation judgment logic
+- [X] Program internationalization
+- [ ] README document improvement
+
+  - [ ] Add configuration file related instructions
+
+## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&type=Date)](https://star-history.com/#YanMing-lxb/PyTeXMK&Date)
+
+<div align="center">
+
+## ༼ つ ◕_◕ ༽つ  Please share.
+
+</div>

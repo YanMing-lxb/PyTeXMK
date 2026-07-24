@@ -1,7 +1,0 @@
-- [x] `tools/build.py` 的 `datas` 列表中不包含图标文件条目
-- [x] `tools/build.py` 的 `EXE()` 调用中 `icon` 参数使用 `r'...resolve().as_posix()'` 格式（原始字符串 + 正斜杠绝对路径）
-- [x] 全部单元测试通过（`make test`，327 passed）
-- [x] 构建 wheel + sdist 成功（`make build`）
-- [x] PyInstaller onedir 构建成功，图标正确嵌入（无 FileNotFoundError、无 SyntaxWarning）
-- [x] PyInstaller onefile 构建成功，图标正确嵌入
-- [x] `tools/generate_icon.py` 三平台图标生成逻辑正确（Windows: PNG-in-ICO, macOS: sips+iconutil→ICNS, Linux: ICO）

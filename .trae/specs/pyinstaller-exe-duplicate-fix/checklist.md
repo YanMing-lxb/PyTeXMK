@@ -1,9 +1,0 @@
-- [x] `tools/build.py` onedir 模式 EXE() 调用包含 `exclude_binaries=True`
-- [x] `tools/build.py` onefile 模式 EXE() 调用不包含 `exclude_binaries`（保持二进制内嵌）
-- [x] 三平台（Windows/macOS/Linux）onedir 模式生成的 spec 均包含 `exclude_binaries=True`
-- [x] onedir 构建成功（`make build-exe`），dist 根目录无多余 EXE 文件
-- [x] onedir 构建的 `dist/PyTeXMK/pytexmk.exe -h` 正常输出帮助信息
-- [x] onefile 构建成功，dist 根目录单个 EXE 正常运行（`pytexmk.exe -v` 输出版本号 1.1.2）
-- [x] macOS onedir exe 重命名逻辑（pytexmk-bin → PyTeXMK）与新参数兼容
-- [x] 全部单元测试通过（327 passed, 6 deselected）
-- [x] 图标嵌入功能正常（日志显示 `Copying icon to EXE`）
