@@ -2,8 +2,21 @@ name: Publish pytexmk 🐍  # 定义工作流的名称，当推送匹配的标�
 on:
   push:
     tags:
-      - v*.*.*.*  # 当推送以v开头的标签时触发此工作流
+      - v*.*.*  # 当推送以v开头的标签时触发此工作流
+    branches-ignore:
+      - '**'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (build only, NO publishing to PyPI/GitHub Release)'
+        type: boolean
+        default: true
 
+# 发布需要写入权限，但仅在正式发布时生效
+permissions:
+  contents: write
+  id-token: write
+  
 jobs:
   build:
     name: Build PyTeXMK  # 定义构建作业的名称
@@ -11,13 +24,13 @@ jobs:
 
     steps:
     - name: Checkout source  # 检出源代码的步骤
-      uses: actions/checkout@v4  # 使用actions/checkout动作来检出代码
+      uses: actions/checkout@v7  # 使用actions/checkout动作来检出代码
     
     - name: 安装 uv
-      uses: astral-sh/setup-uv@v5
+      uses: astral-sh/setup-uv@v9.0.0
     
     - name: "安装 Python"
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7.0.0
       with:
         python-version-file: "pyproject.toml"
     
@@ -28,7 +41,7 @@ jobs:
       run: uv build
 
     - name: Store the distribution packages  # 存储构建好的分发包的步骤
-      uses: actions/upload-artifact@v4  # 使用actions/upload-artifact动作来上传构建好的包
+      uses: actions/upload-artifact@v7.0.1  # 使用actions/upload-artifact动作来上传构建好的包
       with:
         name: python-package-distributions  # 指定上传的artifact名称
         path: |
@@ -49,7 +62,7 @@ jobs:
 
     steps:
     - name: Download all the 📦 dists  # 下载所有分发包的步骤
-      uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
+      uses: actions/download-artifact@v8  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
     - name: List dist directory contents  # 列出dist目录内容的调试步骤
@@ -69,7 +82,7 @@ jobs:
 
     steps:
     - name: Download all the 📦 dists  # 下载所有分发包的步骤
-      uses: actions/download-artifact@v4  # 使用actions/download-artifact动作来下载构建好的包
+      uses: actions/download-artifact@v8  # 使用actions/download-artifact动作来下载构建好的包
       with:
         name: python-package-distributions  # 指定要下载的artifact名称
     - name: Display structure of downloaded files
@@ -102,7 +115,7 @@ jobs:
         echo "$version_content" > ${{ github.workspace }}-CHANGELOG.txt
 
     - name: Publish to GitHub Release  # 发布到GitHub Release的步骤
-      uses: softprops/action-gh-release@v2  # 使用softprops/action-gh-release动作来发布到GitHub Release
+      uses: softprops/action-gh-release@v3.0.0  # 使用softprops/action-gh-release动作来发布到GitHub Release
       with:
         body_path: ${{ github.workspace }}-CHANGELOG.txt
         token: ${{ secrets.PUBLISH_PYTEXMK }}  # 替换为实际的GitHub Token
