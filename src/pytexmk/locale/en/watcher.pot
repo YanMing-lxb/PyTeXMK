@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:34+0800\n"
+"POT-Creation-Date: 2026-07-23 21:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -27,36 +27,36 @@ msgstr ""
 msgid "[yellow]打开预览失败: %(error)s[/yellow]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:191
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:196
 #, python-format
 msgid "[bold red]编译回调异常: %(error)s[/bold red]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:259
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:269
 #, python-format
 msgid "[bold cyan]检测到文件变更: %(filename)s，开始重新编译...[/bold cyan]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:261
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:273
 msgid "[bold cyan]开始首次编译...[/bold cyan]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:336
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:348
 #, python-format
 msgid "[bold red]编译失败: %(error)s[/bold red]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:362
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:375
 msgid ""
 "[bold blue on white]| PyTeXMK PVC 模式（预览持续模式） |[/bold blue on white]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:378
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:392
 msgid ""
 "[bold green]PyTeXMK PVC 模式已启动，正在监听文件变更。按 Ctrl+C 停止...[/"
 "bold green]\n"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:401
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\watcher.py⁩:415
 msgid "[bold yellow]PVC 模式已停止[/bold yellow]"
 msgstr ""

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:04+0800\n"
+"POT-Creation-Date: 2026-07-24 15:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -385,10 +385,28 @@ msgstr "PyTeXMK version: %(args)s"
 msgid "[bold green]PyTeXMK 开始运行...\n"
 msgstr "[bold green]PyTeXMK is starting...\n"
 
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:540
+#, python-format
+msgid ""
+"\n"
+"[bold red]错误: %(message)s[/bold red]"
+msgstr ""
+
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:543
 msgid ""
 "\n"
 "[bold yellow]用户中断操作[/bold yellow]"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:547
+#, python-format
+msgid ""
+"\n"
+"[bold red]未预期的错误: %(error)s[/bold red]"
+msgstr ""
+
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:548
+msgid "[yellow]请将以下信息提交到 GitHub Issue 帮助我们改进：[/yellow]"
 msgstr ""
 
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\__main__.py⁩:606

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 18:38+0800\n"
+"POT-Creation-Date: 2026-07-23 20:38+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,61 +37,61 @@ msgstr ""
 msgid "解析魔法注释时出错 (%(path)s): %(error)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:399
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:400
 #, python-format
 msgid "首选引擎 %(selected)s 不可用，降级使用 %(fallback)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:404
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:407
 #, python-format
 msgid "引擎可用性检查失败（可能工具未检测）: %(error)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:466
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:470
 #, python-format
 msgid "%(selected)s 不可用，尝试使用 %(other)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:470
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:475
 #, python-format
 msgid "Bib 工具可用性检查失败: %(error)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:530
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:535
 msgid "xindy 不可用，回退使用 makeindex"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:534
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:539
 #, python-format
 msgid "Index 工具可用性检查失败: %(error)s"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:647
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:652
 #, python-format
 msgid "[bold green]引擎选择: %(engine)s[/bold green]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:648
 #: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:653
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:659
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:658
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:664
 #, python-format
 msgid "[dim]  理由: %(reason)s[/dim]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:652
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:657
 #, python-format
 msgid "[bold green]参考文献工具: %(tool)s[/bold green]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:655
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:660
 msgid "[yellow]参考文献工具: 未检测到需求[/yellow]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:658
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:663
 #, python-format
 msgid "[bold green]索引工具: %(tool)s[/bold green]"
 msgstr ""
 
-#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:662
+#: ⁨D:\Document YM\Desktop Document\Tools_Development\PyTeXMK\src\pytexmk\engine_detect.py⁩:667
 msgid "[cyan]检测到中文/CTeX 文档，已为您选择合适的 Unicode 引擎[/cyan]"
 msgstr ""
