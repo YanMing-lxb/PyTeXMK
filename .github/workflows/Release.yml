@@ -23,15 +23,12 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            bin_name: pytexmk
             bin_path: ./dist/pytexmk/pytexmk
           - os: windows-latest
             platform: windows
-            bin_name: pytexmk.exe
             bin_path: ./dist/pytexmk/pytexmk.exe
           - os: macos-latest
             platform: macos
-            bin_name: pytexmk
             bin_path: ./dist/pytexmk/pytexmk
     runs-on: ${{ matrix.os }}
     defaults:
@@ -62,30 +59,38 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "version=$(uv run python -c 'from pytexmk.version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
+        run: |
+          version=$(uv run python -c "import re; f=open('src/pytexmk/version.py', encoding='utf-8').read(); m=re.search(r'__version__\s*=\s*[\"\x27]([^\"\x27]+)[\"\x27]', f); print(m.group(1) if m else '')")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Prepare artifact (Linux/macOS)
+      - name: Prepare release zip (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          pkg_dir="pytexmk-${{ steps.version.outputs.version }}-${{ matrix.platform }}-x64"
-          rm -rf "$pkg_dir" "$pkg_dir.zip"
-          mkdir -p "$pkg_dir"
-          cp -a "dist/pytexmk"/* "$pkg_dir/"
-          zip -r "$pkg_dir.zip" "$pkg_dir"
+          version="${{ steps.version.outputs.version }}"
+          platform="${{ matrix.platform }}"
+          zip_name="pytexmk-${version}-${platform}-x64.zip"
+          rm -f "$zip_name"
+          rm -rf staging_pack
+          mkdir -p staging_pack/pytexmk
+          cp -a dist/pytexmk/* staging_pack/pytexmk/
+          cd staging_pack
+          zip -r "../$zip_name" pytexmk/
+          cd ..
+          rm -rf staging_pack
 
-      - name: Prepare artifact (Windows)
+      - name: Prepare release zip (Windows)
         if: runner.os == 'Windows'
         shell: powershell
         run: |
           $version = "${{ steps.version.outputs.version }}"
           $platform = "${{ matrix.platform }}"
-          $pkgDir = "pytexmk-$version-$platform-x64"
-          $zipPath = "$pkgDir.zip"
-          if (Test-Path $pkgDir) { Remove-Item $pkgDir -Recurse -Force }
-          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
-          New-Item -ItemType Directory -Path $pkgDir -Force | Out-Null
-          Copy-Item "dist\pytexmk\*" -Destination $pkgDir -Recurse
-          Compress-Archive -Path $pkgDir -DestinationPath $zipPath
+          $zipName = "pytexmk-$version-$platform-x64.zip"
+          if (Test-Path $zipName) { Remove-Item $zipName -Force }
+          if (Test-Path staging_pack) { Remove-Item staging_pack -Recurse -Force }
+          New-Item -ItemType Directory -Path staging_pack\pytexmk -Force | Out-Null
+          Copy-Item "dist\pytexmk\*" -Destination "staging_pack\pytexmk" -Recurse
+          Compress-Archive -Path "staging_pack\pytexmk" -DestinationPath $zipName
+          Remove-Item staging_pack -Recurse -Force
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7.0.1
