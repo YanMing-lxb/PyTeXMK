@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="imgs/pytexmk-logo.png" alt="PyTeXMK Logo" width="128" height="128">
+  <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/pytexmk-logo.png?raw=true" alt="PyTeXMK Logo" width="128" height="128">
   <h1>PyTeXMK</h1>
   <p>LaTeX 辅助编译命令行程序</p>
 
@@ -63,8 +63,8 @@
 ## 📸 预览
 
 <div align="center">
-  <img src="imgs/show1.png" alt="PyTeXMK 预览 1" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  <img src="imgs/show2.png" alt="PyTeXMK 预览 2" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show1.png?raw=true" alt="PyTeXMK 预览 1" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show2.png?raw=true" alt="PyTeXMK 预览 2" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
 </div>
 
 ---
