@@ -46,14 +46,14 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Pack binary (onedir, Cython)
-        run: python tools/pack.py pack
+        run: uv run python tools/pack.py pack
 
       - name: Test binary
         run: ${{ matrix.bin_path }} --help
 
       - name: Get version
         id: version
-        run: echo "version=$(python -c 'from pytexmk.version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(uv run python -c 'from pytexmk.version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
 
       - name: Prepare artifact (Linux/macOS)
         if: runner.os != 'Windows'
