@@ -1,4 +1,4 @@
-'''
+"""
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -19,11 +19,10 @@ Date         : 2024-03-01 15:52:28 +0800
 LastEditTime : 2025-10-01 11:25:59 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/version.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
-'''
-# -*- coding: utf-8 -*-
+"""
 #!/usr/bin/env python
 
-script_name = 'PyTeXMK'
-__version__ = '1.0.4.251001'
+script_name = "PyTeXMK"
+__version__ = "1.0.5"
