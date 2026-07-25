@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 log_analysis.py - LaTeX 编译日志分析模块
 
@@ -12,11 +11,12 @@ log_analysis.py - LaTeX 编译日志分析模块
 
 import logging
 import re
+import tomllib
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-import toml
+import tomli_w
 
 from pytexmk.language import set_language
 
@@ -56,7 +56,7 @@ class LogType(Enum):
 # 数据结构定义
 # ========================
 
-LogEntry = Dict[str, Union[str, int, LogType]]
+LogEntry = dict[str, str | int | LogType]
 
 
 # ========================
@@ -128,10 +128,10 @@ file_stack_close_re = re.compile(r"$")
 
 
 class LatexLogParser:
-    def __init__(self, root_file: str = None):
-        self.build_log: List[LogEntry] = []
-        self.current_result: Optional[LogEntry] = None
-        self.file_stack: List[str] = []
+    def __init__(self, root_file: str | None = None):
+        self.build_log: list[LogEntry] = []
+        self.current_result: LogEntry | None = None
+        self.file_stack: list[str] = []
         self.root_file: str = root_file or ""
         self.search_empty_line = False
         self.inside_box_warn = False
@@ -139,7 +139,7 @@ class LatexLogParser:
         self.nested = 0
         self._resolved_paths = {}
 
-    def parse(self, log: str, root_file: Optional[str] = None) -> List[LogEntry]:
+    def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -377,7 +377,7 @@ class LatexLogParser:
         pages = [entry for entry in sorted_logs if entry["type"] == LogType.PAGE]
         infos = [entry for entry in sorted_logs if entry["type"] == LogType.INFO]
 
-        def format_message(entry: Dict[str, Any]) -> str:
+        def format_message(entry: dict[str, Any]) -> str:
             file_path = Path(entry["file"])
             try:
                 rel_path = file_path.relative_to(Path.cwd()).as_posix()
@@ -492,22 +492,22 @@ class BibTeXLogParser:
     用于解析 BibTeX 编译器生成的日志文件（.blg 文件），提取其中的错误和警告信息。
     """
 
-    def __init__(self, root_file: Optional[str] = None) -> None:
+    def __init__(self, root_file: str | None = None) -> None:
         """
         初始化 BibTeX 日志解析器
 
         Parameters
         ----------
-        root_file : Optional[str], optional
+        root_file : str | None, optional
             根 TeX 文件路径，默认为 None
         """
-        self.build_log: List[LogEntry] = []
+        self.build_log: list[LogEntry] = []
         self.root_file: str = root_file or ""
-        self.bib_file_stack: List[str] = [self.root_file]
-        self.current_result: Optional[LogEntry] = None
-        self._resolved_paths: Dict[str, str] = {}  # 缓存已解析的文件路径
+        self.bib_file_stack: list[str] = [self.root_file]
+        self.current_result: LogEntry | None = None
+        self._resolved_paths: dict[str, str] = {}  # 缓存已解析的文件路径
 
-    def parse(self, log: str, root_file: Optional[str] = None) -> List[LogEntry]:
+    def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
         """
         解析 BibTeX 日志内容
 
@@ -515,12 +515,12 @@ class BibTeXLogParser:
         ----------
         log : str
             BibTeX 日志内容
-        root_file : Optional[str], optional
+        root_file : str | None, optional
             根 TeX 文件路径，默认为 None
 
         Returns
         -------
-        List[LogEntry]
+        list[LogEntry]
             解析后的日志条目列表
         """
         if root_file:
@@ -557,7 +557,7 @@ class BibTeXLogParser:
             "text": "",
         }
 
-    def parse_line(self, line: str, exclude_regexp: List[Any]) -> None:
+    def parse_line(self, line: str, exclude_regexp: list[Any]) -> None:
         """
         解析单行日志内容
 
@@ -565,7 +565,7 @@ class BibTeXLogParser:
         ----------
         line : str
             日志行内容
-        exclude_regexp : List[Any]
+        exclude_regexp : list[Any]
             需要排除的日志条目的正则表达式列表
         """
         line = line.strip("\x00")  # 去除多余空字符
@@ -708,7 +708,7 @@ class BibTeXLogParser:
         file: str,
         line: int,
         message: str,
-        exclude_patterns: List[Any],
+        exclude_patterns: list[Any],
     ) -> None:
         """
         添加一条日志条目，若匹配排除规则则忽略
@@ -723,7 +723,7 @@ class BibTeXLogParser:
             行号
         message : str
             日志消息内容
-        exclude_patterns : List[Any]
+        exclude_patterns : list[Any]
             需要排除的日志条目的正则表达式列表
         """
         if self._should_exclude(message, exclude_patterns):
@@ -732,7 +732,7 @@ class BibTeXLogParser:
         entry = {"type": log_type, "file": file, "line": line, "text": message}
         self.build_log.append(entry)
 
-    def _should_exclude(self, text: str, exclude_patterns: List[Any]) -> bool:
+    def _should_exclude(self, text: str, exclude_patterns: list[Any]) -> bool:
         """
         检查是否应该忽略该日志条目
 
@@ -740,7 +740,7 @@ class BibTeXLogParser:
         ----------
         text : str
             日志消息文本
-        exclude_patterns : List[Any]
+        exclude_patterns : list[Any]
             需要排除的日志条目的正则表达式列表
 
         Returns
@@ -763,13 +763,13 @@ class BibTeXLogParser:
         errors = [e for e in sorted_logs if e["type"] == LogType.ERROR]
         warnings = [e for e in sorted_logs if e["type"] == LogType.WARNING]
 
-        def format_message(e: Dict[str, Any]) -> str:
+        def format_message(e: dict[str, Any]) -> str:
             """
             格式化日志消息
 
             Parameters
             ----------
-            e : Dict[str, Any]
+            e : dict[str, Any]
                 日志条目
 
             Returns
@@ -833,14 +833,14 @@ biber_line_warning_re = re.compile(r"^WARN - (.*? entry `(.+?)\' .*)$")
 
 # TODO 添加一种触发机制，当检测到参考文献相关错误时启动key的检索功能，用来确定位置
 class BiberLogParser(BibTeXLogParser):
-    def __init__(self, root_file: str = None):
+    def __init__(self, root_file: str | None = None):
         super().__init__(root_file)
-        self.build_log: List[LogEntry] = []
+        self.build_log: list[LogEntry] = []
         self.root_file: str = root_file or ""
-        self.bib_file_stack: List[str] = [self.root_file]
+        self.bib_file_stack: list[str] = [self.root_file]
         self._resolved_paths = {}  # 缓存已解析的文件路径
 
-    def parse(self, log: str, root_file: str = None) -> List[LogEntry]:
+    def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -948,7 +948,7 @@ class BiberLogParser(BibTeXLogParser):
                     key, location = parts
                     self.citation_cache[key] = location
 
-    def find_key_location(self, key: str) -> Optional[Dict[str, Union[str, int]]]:
+    def find_key_location(self, key: str) -> dict[str, str | int] | None:
         """从缓存中查找引用键的位置"""
         location = self.citation_cache.get(key)
         if location:
@@ -961,7 +961,7 @@ class BiberLogParser(BibTeXLogParser):
 
 
 class CitationCacheManager:
-    def __init__(self, project_name: str, auxdir: Union[str, Path]):
+    def __init__(self, project_name: str, auxdir: str | Path):
         self.main_file_path = Path(f"{project_name}.tex")
         self.auxdir = Path(auxdir)
         self.cache_file = self.auxdir / f"{project_name}.citecache"  # 新的缓存文件后缀
@@ -987,8 +987,8 @@ class CitationCacheManager:
             for key, info in self.citation_cache.items()
         }
 
-        with open(self.cache_file, "w", encoding="utf-8") as f:
-            toml.dump(toml_data, f)
+        with open(self.cache_file, "wb") as f:
+            tomli_w.dump(toml_data, f)
         logger.info(_("引用缓存已生成：%(args)s") % {"args": str(self.cache_file)})
 
     def _parse_tex_file(self, file_path: Path, citation_cache: dict):
@@ -1034,8 +1034,8 @@ class CitationCacheManager:
             return False
 
         try:
-            with open(self.cache_file, "r", encoding="utf-8") as f:
-                toml_data = toml.load(f)
+            with open(self.cache_file, "rb") as f:
+                toml_data = tomllib.load(f)
             self.citation_cache = {
                 key: f"{value['file']} line {value['line']}"
                 for key, value in toml_data.items()
@@ -1046,7 +1046,7 @@ class CitationCacheManager:
             logger.error(_("加载缓存失败：%(args)s") % {"args": str(e)})
             return False
 
-    def get_location(self, key: str) -> Optional[Dict[str, Union[str, int]]]:
+    def get_location(self, key: str) -> dict[str, str | int] | None:
         """查找指定 key 的引用位置"""
         location = self.citation_cache.get(key)
         if location:
