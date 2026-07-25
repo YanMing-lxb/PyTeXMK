@@ -92,9 +92,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: python-package-distributions
-          path: |
-            dist/
-            CHANGELOG.md
+          path: dist/
 
   publish-to-pypi:
     name: Publish to PyPI
