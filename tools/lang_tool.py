@@ -34,8 +34,12 @@ def _generate_pot_files(locale_dir, modules):
     for module in modules:
         py_file = SRC_DIR / f"{module}.py"
         temp_pot = locale_dir / f"{module}-temp.pot"
-        run_command(["xgettext", "--output", str(temp_pot), str(py_file)])
-        console.log(f"生成临时 .pot 文件: {temp_pot}")
+        run_command(
+            ["xgettext", "--output", str(temp_pot), str(py_file)],
+            f"生成临时 .pot 文件成功: {temp_pot.name}",
+            f"生成临时 .pot 文件失败: {temp_pot.name}",
+            process_name="xgettext",
+        )
 
 
 def _update_pot_files(locale_dir, modules):
@@ -53,8 +57,12 @@ def _update_pot_files(locale_dir, modules):
                 console.log(f"警告: 临时 .pot 文件 {temp_pot} 不存在，跳过更新")
             continue
 
-        run_command(["msgmerge", "--update", str(original_pot), str(temp_pot)])
-        console.log(f"更新 .pot 文件: {original_pot}")
+        run_command(
+            ["msgmerge", "--update", str(original_pot), str(temp_pot)],
+            f"更新 .pot 文件成功: {original_pot.name}",
+            f"更新 .pot 文件失败: {original_pot.name}",
+            process_name="msgmerge",
+        )
 
 
 def _generate_mo_files(locale_dir, modules):
@@ -68,8 +76,12 @@ def _generate_mo_files(locale_dir, modules):
             console.log(f"警告: {pot_file} 不存在，跳过更新")
             continue
 
-        run_command(["msgfmt", "-o", str(mo_file), str(pot_file)])
-        console.log(f"生成 .mo 文件: {mo_file}")
+        run_command(
+            ["msgfmt", "-o", str(mo_file), str(pot_file)],
+            f"生成 .mo 文件成功: {mo_file.name}",
+            f"生成 .mo 文件失败: {mo_file.name}",
+            process_name="msgfmt",
+        )
 
 
 def _cleanup_temp_pot_files(locale_dir, modules):
@@ -78,6 +90,12 @@ def _cleanup_temp_pot_files(locale_dir, modules):
         if temp_pot.exists():
             temp_pot.unlink()
             console.log(f"删除临时 .pot 文件: {temp_pot}")
+
+
+def _cleanup_backup_files(locale_dir):
+    for backup in locale_dir.glob("*.pot~"):
+        backup.unlink()
+        console.log(f"删除备份文件: {backup.name}")
 
 
 def pot():
@@ -95,6 +113,7 @@ def poup():
     _update_pot_files(LANG_EN_DIR, _get_modules())
     _generate_mo_files(LANG_EN_DIR, _get_modules())
     _cleanup_temp_pot_files(LANG_EN_DIR, _get_modules())
+    _cleanup_backup_files(LANG_EN_DIR)
     console.log("更新 .pot 和 .mo 文件完成")
 
 

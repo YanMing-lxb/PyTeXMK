@@ -2,7 +2,9 @@ import shutil
 import subprocess
 import sys
 import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
@@ -42,7 +44,7 @@ class PerformanceTracker:
         """初始化一个空列表用于存储性能记录"""
         self.records = []
 
-    def add_record(self, performance_data: dict) -> None:
+    def add_record(self, performance_data: dict[str, Any]) -> None:
         """
         添加一条性能记录。
 
@@ -62,7 +64,7 @@ class PerformanceTracker:
             }
         )
 
-    def execute_with_timing(self, func: any, step_name: str) -> tuple:
+    def execute_with_timing(self, func: Callable[..., Any], step_name: str) -> tuple:
         """
         执行指定函数并记录其执行时间及状态。
 
@@ -102,9 +104,7 @@ class PerformanceTracker:
             duration = time.time() - start_time
 
             # 输出异常信息
-            console.print(
-                f"❌ [{step_name}] 执行异常 - 耗时: {duration}, 错误: {str(e)}"
-            )
+            console.print(f"❌ [{step_name}] 执行异常 - 耗时: {duration}, 错误: {e!s}")
 
             # 返回 False 和异常状态
             return False, {"name": step_name, "duration": duration, "status": "异常"}

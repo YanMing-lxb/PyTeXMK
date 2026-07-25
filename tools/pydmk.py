@@ -1,14 +1,14 @@
+import locale
 import shutil
 import sys
+import sysconfig
 from pathlib import Path
 
 from config import ROOT_DIR, SRC_DIR, SRCPYD_DIR
-
-# 导入工具函数和配置
 from utils import PerformanceTracker, console, run_command
 
-# 获取当前 Python 版本号
-python_version = f"{sys.version_info.major}{sys.version_info.minor}"
+ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
+ext_final = Path(ext_suffix).suffix
 
 
 def move_src_to_srcpyd(src_dir: Path, srcpyd_dir: Path) -> bool:
@@ -40,7 +40,7 @@ def should_exclude(file_path: Path, exclude_files: list) -> bool:
 
 
 def encrypt_py_to_pyd(py_file: Path) -> bool:
-    """使用 Cython 加密单个 .py 文件为 .pyd"""
+    """使用 Cython 编译单个 .py 文件为扩展模块"""
     try:
         # 使用 cythonize 命令编译 py 文件为 pyd
         command = ["cythonize", "-3", "-i", "-j", "8", str(py_file)]
@@ -49,7 +49,7 @@ def encrypt_py_to_pyd(py_file: Path) -> bool:
             success_msg=f"加密成功: {py_file.name}",
             error_msg=f"加密失败: {py_file.name}",
             process_name="Cython 编译",
-            encoding="gbk",
+            encoding=locale.getpreferredencoding(False),
         )
         return success
     except Exception as e:
@@ -58,16 +58,15 @@ def encrypt_py_to_pyd(py_file: Path) -> bool:
 
 
 def rename_pyd_file(pyd_file: Path, original_name: Path) -> Path:
-    """将生成的 .pyd 文件重命名为原始名称"""
-    pyd_suffix = f".cp{python_version}-*.pyd"
-    pattern = f"{original_name.stem}{pyd_suffix}"
+    """将生成的编译文件重命名为原始名称"""
+    pattern = f"{original_name.stem}{ext_suffix}"
     for file in pyd_file.parent.glob(pattern):
-        new_name = f"{original_name.with_suffix('.pyd').name}"
+        new_name = f"{original_name.stem}{ext_final}"
         renamed_file = file.parent / new_name
         file.rename(renamed_file)
         console.print(f"✓ 重命名: {file.name} → {renamed_file.name}", style="info")
         return renamed_file
-    console.print(f"⚠️ 未找到匹配的 .pyd 文件: {pattern}", style="warning")
+    console.print(f"⚠️ 未找到匹配的编译文件: {pattern}", style="warning")
     return None
 
 
@@ -115,7 +114,7 @@ def process_directory(srcpyd_dir: Path, exclude_files: list) -> bool:
                 console.print(f"✓ 已删除原文件: {py_file.name}", style="info")
             else:
                 console.print(
-                    f"⚠️ 未找到重命名后的文件: {py_file.stem}*.pyd", style="warning"
+                    f"⚠️ 未找到重命名后的文件: {py_file.stem}*{ext_final}", style="warning"
                 )
                 all_success = False
         else:
@@ -170,7 +169,7 @@ def pydmk():
     except Exception as e:
         console.rule("[bold red]💥 发生未知异常！[/]")
         console.print(f"异常类型: {type(e).__name__}", style="error")
-        console.print(f"异常内容: {str(e)}", style="error")
+        console.print(f"异常内容: {e!s}", style="error")
         console.print_exception()
         sys.exit(1)
 
