@@ -42,7 +42,9 @@ def should_exclude(file_path: Path, exclude_files: list) -> bool:
 def encrypt_py_to_pyd(py_file: Path) -> bool:
     """使用 Cython 编译单个 .py 文件为扩展模块"""
     try:
-        # 使用 cythonize 命令编译 py 文件为 pyd
+        cython_output_dir = SRC_DIR.parent / "srcpyd"
+        cython_output_dir.mkdir(parents=True, exist_ok=True)
+
         command = ["cythonize", "-3", "-i", "-j", "8", str(py_file)]
         success = run_command(
             command=command,
@@ -51,6 +53,17 @@ def encrypt_py_to_pyd(py_file: Path) -> bool:
             process_name="Cython 编译",
             encoding=locale.getpreferredencoding(False),
         )
+
+        if success and cython_output_dir.exists():
+            for so_file in cython_output_dir.glob(f"{py_file.stem}{ext_suffix}"):
+                target_file = py_file.parent / so_file.name
+                shutil.move(str(so_file), str(target_file))
+                console.print(f"✓ 移动编译文件: {so_file.name} → {target_file}", style="info")
+            for so_file in cython_output_dir.glob(f"{py_file.stem}{ext_final}"):
+                target_file = py_file.parent / so_file.name
+                shutil.move(str(so_file), str(target_file))
+                console.print(f"✓ 移动编译文件: {so_file.name} → {target_file}", style="info")
+
         return success
     except Exception as e:
         console.print(f"✗ 加密异常: {py_file}, 错误: {e}", style="error")

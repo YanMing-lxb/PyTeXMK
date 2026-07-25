@@ -48,11 +48,14 @@ jobs:
       - name: Test binary
         run: ${{ matrix.bin_path }} --help
 
-      - name: Upload binary directory (for testing)
+      - name: Prepare release zip
+        run: uv run python tools/zip_release.py ${{ matrix.platform }}
+
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: pytexmk-binary-${{ matrix.os }}
-          path: dist/pytexmk
+          path: pytexmk-*.zip
           retention-days: 7
 
   build-package:
