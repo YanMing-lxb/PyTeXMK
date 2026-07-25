@@ -1,0 +1,113 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-binary:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            bin_name: pytexmk
+            bin_path: ./dist/pytexmk/pytexmk
+          - os: windows-latest
+            platform: windows
+            bin_name: pytexmk.exe
+            bin_path: ./dist/pytexmk/pytexmk.exe
+          - os: macos-latest
+            platform: macos
+            bin_name: pytexmk
+            bin_path: ./dist/pytexmk/pytexmk
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+
+      - name: Pack binary (onedir, Cython)
+        run: python tools/pack.py pack
+
+      - name: Test binary
+        run: ${{ matrix.bin_path }} --help
+
+      - name: Get version
+        id: version
+        run: echo "version=$(python -c 'from pytexmk.version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare artifact (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          pkg_dir="pytexmk-${{ steps.version.outputs.version }}-${{ matrix.platform }}-x64"
+          rm -rf "$pkg_dir" "$pkg_dir.zip"
+          mkdir -p "$pkg_dir"
+          cp -a "dist/pytexmk"/* "$pkg_dir/"
+          zip -r "$pkg_dir.zip" "$pkg_dir"
+
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $platform = "${{ matrix.platform }}"
+          $pkgDir = "pytexmk-$version-$platform-x64"
+          $zipPath = "$pkgDir.zip"
+          if (Test-Path $pkgDir) { Remove-Item $pkgDir -Recurse -Force }
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          New-Item -ItemType Directory -Path $pkgDir -Force | Out-Null
+          Copy-Item "dist\pytexmk\*" -Destination $pkgDir -Recurse
+          Compress-Archive -Path $pkgDir -DestinationPath $zipPath
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytexmk-binary-${{ matrix.os }}
+          path: pytexmk-*.zip
+
+  build-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras
+
+      - name: Build package
+        run: uv build
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/

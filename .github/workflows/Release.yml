@@ -1,0 +1,205 @@
+name: Release PyTeXMK
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (build only, NO publishing to PyPI/GitHub Release)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-binary:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            bin_name: pytexmk
+            bin_path: ./dist/pytexmk/pytexmk
+          - os: windows-latest
+            platform: windows
+            bin_name: pytexmk.exe
+            bin_path: ./dist/pytexmk/pytexmk.exe
+          - os: macos-latest
+            platform: macos
+            bin_name: pytexmk
+            bin_path: ./dist/pytexmk/pytexmk
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+
+      - name: Pack binary (onedir, Cython)
+        run: python tools/pack.py pack
+
+      - name: Test binary
+        run: ${{ matrix.bin_path }} --help
+
+      - name: Get version
+        id: version
+        run: echo "version=$(python -c 'from pytexmk.version import __version__; print(__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare artifact (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          pkg_dir="pytexmk-${{ steps.version.outputs.version }}-${{ matrix.platform }}-x64"
+          rm -rf "$pkg_dir" "$pkg_dir.zip"
+          mkdir -p "$pkg_dir"
+          cp -a "dist/pytexmk"/* "$pkg_dir/"
+          zip -r "$pkg_dir.zip" "$pkg_dir"
+
+      - name: Prepare artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $platform = "${{ matrix.platform }}"
+          $pkgDir = "pytexmk-$version-$platform-x64"
+          $zipPath = "$pkgDir.zip"
+          if (Test-Path $pkgDir) { Remove-Item $pkgDir -Recurse -Force }
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          New-Item -ItemType Directory -Path $pkgDir -Force | Out-Null
+          Copy-Item "dist\pytexmk\*" -Destination $pkgDir -Recurse
+          Compress-Archive -Path $pkgDir -DestinationPath $zipPath
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytexmk-binary-${{ matrix.os }}
+          path: pytexmk-*.zip
+
+  build-package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras
+
+      - name: Build package
+        run: uv build
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: |
+            dist/
+            CHANGELOG.md
+
+  publish-to-pypi:
+    name: Publish to PyPI
+    if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
+    needs: build-package
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/pytexmk
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download package distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: List dist directory contents
+        run: ls -R dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+  publish-to-github-release:
+    name: Publish to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
+    needs: [build-binary, build-package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download package distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pytexmk-binary-*
+          path: dist/
+          merge-multiple: true
+
+      - name: List dist directory contents
+        run: ls -R dist/
+
+      - name: Extract tag name
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+
+      - name: Generate Changelog
+        run: |
+          changelog=$(cat CHANGELOG.md)
+          tag_name=${{ env.TAG_NAME }}
+          version_header="## $tag_name"
+          version_content=""
+          if [[ $changelog == *"$version_header"* ]]; then
+            version_content=$(echo "$changelog" | awk -v version_header="$version_header" '
+              /^## / { if (p) exit; p=0 }
+              $0 ~ version_header { p=1; next }
+              p')
+            echo "$version_content"
+          else
+            echo "Version $tag_name not found in CHANGELOG.md"
+          fi
+          echo "$version_content" > CHANGELOG.txt
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG.txt
+          token: ${{ secrets.PUBLISH_PYTEXMK }}
+          name: PyTeXMK ${{ github.ref_name }}
+          files: dist/*
+          draft: false
+          prerelease: false
