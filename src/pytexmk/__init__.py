@@ -38,4 +38,8 @@ python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-outp
 pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
-from .__main__ import main  # 显式导出 main() 供 CLI 入口使用
+def __getattr__(name):
+    if name == "main":
+        from .__main__ import main
+        return main
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
