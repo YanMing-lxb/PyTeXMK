@@ -23,7 +23,6 @@ Description  :
  -----------------------------------------------------------------------
 """
 
-# -*- coding: utf-8 -*-
 import logging
 import re
 import subprocess
@@ -31,7 +30,6 @@ import time
 import webbrowser
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List
 
 from pypdf import PdfReader, PdfWriter
 from rich import print
@@ -57,9 +55,9 @@ custom_theme = Theme(
 console = Console(theme=custom_theme, legacy_windows=False)
 
 
-class MySubProcess(object):
+class MySubProcess:
     def __init__(
-        self, outdir, auxdir, project_name: str = None, latexdiff: bool = False
+        self, outdir, auxdir, project_name: str | None = None, latexdiff: bool = False
     ):
         self.logger = logging.getLogger(__name__)
         self.project_name = project_name
@@ -136,7 +134,7 @@ class MySubProcess(object):
             exit_pytexmk()
 
 
-class MoveRemoveOperation(object):
+class MoveRemoveOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -334,7 +332,7 @@ class MoveRemoveOperation(object):
                         break  # 匹配到一个模式后,不再检查其他模式
 
 
-class MainFileOperation(object):
+class MainFileOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -548,8 +546,8 @@ class MainFileOperation(object):
     # 定义魔法注释检索函数
     # --------------------------------------------------------------------------------
     def search_magic_comments(
-        self, main_files_in_root: List[str], magic_comment_keys: List[str]
-    ) -> Dict[str, Dict[str, str]]:
+        self, main_files_in_root: list[str], magic_comment_keys: list[str]
+    ) -> dict[str, dict[str, str]]:
         """搜索指定TeX文件中的所有魔法注释。
 
         行为逻辑说明:
@@ -566,14 +564,14 @@ class MainFileOperation(object):
 
         Parameters
         ----------
-        main_files_in_root : List[str]
+        main_files_in_root : list[str]
             包含TeX文件路径的列表
-        magic_comment_keys : List[str]
+        magic_comment_keys : list[str]
             包含魔法注释关键字的列表
 
         Returns
         -------
-        Dict[str, Dict[str, str]]
+        dict[str, dict[str, str]]
             包含所有魔法注释的字典，格式为 {magic_comment_key: {file_path: magic_comment_value},...}.
         """
         file_magic_comments = defaultdict(dict)
@@ -630,8 +628,8 @@ class MainFileOperation(object):
         self,
         default_file: str,
         args_document: str,
-        main_files_in_root: List[str],
-        all_magic_comments: Dict[str, Dict[str, str]],
+        main_files_in_root: list[str],
+        all_magic_comments: dict[str, dict[str, str]],
     ) -> str:
         """根据提供的信息获取主TeX文件
 
@@ -659,9 +657,9 @@ class MainFileOperation(object):
             默认的主文件名
         args_document : str
             通过命令行参数指定的主文件名
-        main_files_in_root : List[str]
+        main_files_in_root : list[str]
             当前根目录下的TeX文件路径列表，已经去除了后缀名
-        all_magic_comments : Dict[str, Dict[str, str]]
+        all_magic_comments : dict[str, dict[str, str]]
             包含所有魔法注释的字典，格式为 {magic_comment_key: {file_path: magic_comment_value},...}
 
         Returns
@@ -848,7 +846,7 @@ class MainFileOperation(object):
             self.logger.error(_("更新草稿模式时出错: " + str(e)))
 
 
-class PdfFileOperation(object):
+class PdfFileOperation:
     def __init__(self, viewer="default"):
         self.logger = logging.getLogger(__name__)
         self.viewer = viewer
