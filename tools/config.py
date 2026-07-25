@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 
@@ -29,9 +30,17 @@ elif sys.platform == "darwin":
     ICON_FILE = ICNS_PATH
 elif sys.platform == "linux":
     ICON_FILE = PNG_PATH
-sys.path.append(str(ROOT_DIR))
-sys.path.append(str(ROOT_DIR / "src"))
-from pytexmk.version import __version__
+
+
+def _read_version():
+    version_file = SRC_DIR / "version.py"
+    match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', version_file.read_text(encoding="utf-8"))
+    if match:
+        return match.group(1)
+    raise RuntimeError(f"无法从 {version_file} 中解析 __version__")
+
+
+__version__ = _read_version()
 
 __all__ = [
     "CONFIG_DIR",
