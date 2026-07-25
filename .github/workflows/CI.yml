@@ -52,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: pytexmk-binary-${{ matrix.os }}
-          path: dist/pytexmk/
+          path: dist/pytexmk
           retention-days: 7
 
   build-package:

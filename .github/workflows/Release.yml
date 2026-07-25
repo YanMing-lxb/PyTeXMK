@@ -57,44 +57,8 @@ jobs:
       - name: Test binary
         run: ${{ matrix.bin_path }} --help
 
-      - name: Get version
-        id: version
-        run: |
-          version=$(grep __version__ src/pytexmk/version.py | cut -d'"' -f2)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - name: Prepare release zip (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          set -e
-          version="${{ steps.version.outputs.version }}"
-          platform="${{ matrix.platform }}"
-          zip_name="pytexmk-${version}-${platform}-x64.zip"
-          rm -f "$zip_name"
-          rm -rf staging_pack
-          mkdir -p staging_pack/pytexmk
-          cp -a dist/pytexmk/. staging_pack/pytexmk/
-          cd staging_pack && zip -r "../${zip_name}" pytexmk/ && cd ..
-          rm -rf staging_pack
-          echo "Created: $zip_name ($(stat -c%s "$zip_name" 2>/dev/null || stat -f%z "$zip_name" 2>/dev/null) bytes)"
-
-      - name: Prepare release zip (Windows)
-        if: runner.os == 'Windows'
-        shell: powershell
-        run: |
-          $ErrorActionPreference = "Stop"
-          $version = "${{ steps.version.outputs.version }}"
-          $platform = "${{ matrix.platform }}"
-          $zipName = "pytexmk-$version-$platform-x64.zip"
-          if (Test-Path $zipName) { Remove-Item $zipName -Force }
-          if (Test-Path staging_pack) { Remove-Item staging_pack -Recurse -Force }
-          New-Item -ItemType Directory -Path staging_pack\pytexmk -Force | Out-Null
-          Copy-Item -Path "dist\pytexmk\*" -Destination "staging_pack\pytexmk" -Recurse
-          Push-Location staging_pack
-          Compress-Archive -Path "pytexmk" -DestinationPath "..\$zipName"
-          Pop-Location
-          Remove-Item staging_pack -Recurse -Force
-          Write-Host "Created: $zipName ($((Get-Item $zipName).Length) bytes)"
+      - name: Prepare release zip
+        run: uv run python tools/zip_release.py ${{ matrix.platform }}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7.0.1
