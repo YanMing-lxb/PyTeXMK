@@ -10,8 +10,7 @@
 - **Cython 跨平台加密**：打包工具支持在 Linux（.so）和 macOS（.so）上进行 Cython 编译，不再仅限 Windows（.pyd）
 - **跨平台打包工具**：`tools/pack.py` 支持源码模式和 Cython 加密模式，默认 Cython onedir 模式
 - **图标生成工具**：`tools/generate_icon.py` 自动从 logo 生成 Windows ICO（多尺寸）、macOS ICNS、Linux PNG 图标
-- **macOS 打包优化**：自动禁用 UPX 压缩，避免 Mach-O 格式兼容性问题
-- **统一构建命令**：Makefile 新增 `build` 目标（默认 Cython 加密），移除过时的 `exe` / `exe-cython`
+- **统一构建命令**：Makefile 新增 `build` 目标（默认 Cython 加密）
 
 ### 🚀 改进
 
