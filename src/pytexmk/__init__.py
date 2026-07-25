@@ -1,4 +1,4 @@
-'''
+"""
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -19,9 +19,9 @@ Date         : 2024-02-29 12:27:07 +0800
 LastEditTime : 2025-01-30 15:49:15 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__init__.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
-'''
+"""
 
 """
 pytexmk: LaTeX 编译 CLI 工具
@@ -38,10 +38,4 @@ python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-outp
 pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
-import sys
-
-if sys.version_info[0] == 3:
-    from .__main__ import main  # 显式导出 main() 供 CLI 入口使用
-else:
-    # Don't import anything.
-    pass 
+from .__main__ import main  # 显式导出 main() 供 CLI 入口使用
