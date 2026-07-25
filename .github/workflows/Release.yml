@@ -70,13 +70,7 @@ jobs:
           platform="${{ matrix.platform }}"
           zip_name="pytexmk-${version}-${platform}-x64.zip"
           rm -f "$zip_name"
-          rm -rf staging_pack
-          mkdir -p staging_pack/pytexmk
-          cp -a dist/pytexmk/* staging_pack/pytexmk/
-          cd staging_pack
-          zip -r "../$zip_name" pytexmk/
-          cd ..
-          rm -rf staging_pack
+          (cd dist && zip -r "../$zip_name" pytexmk/)
           ls -la "$zip_name"
 
       - name: Prepare release zip (Windows)
@@ -88,9 +82,11 @@ jobs:
           $zipName = "pytexmk-$version-$platform-x64.zip"
           if (Test-Path $zipName) { Remove-Item $zipName -Force }
           if (Test-Path staging_pack) { Remove-Item staging_pack -Recurse -Force }
-          New-Item -ItemType Directory -Path staging_pack\pytexmk -Force | Out-Null
-          Copy-Item "dist\pytexmk\*" -Destination "staging_pack\pytexmk" -Recurse
-          Compress-Archive -Path "staging_pack\pytexmk" -DestinationPath $zipName
+          New-Item -ItemType Directory -Path staging_pack -Force | Out-Null
+          Copy-Item -Path "dist\pytexmk" -Destination "staging_pack\pytexmk" -Recurse
+          Push-Location staging_pack
+          Compress-Archive -Path "pytexmk" -DestinationPath "..\$zipName"
+          Pop-Location
           Remove-Item staging_pack -Recurse -Force
           Write-Host "Created zip: $zipName"
           Get-ChildItem $zipName | Select-Object Name, Length
