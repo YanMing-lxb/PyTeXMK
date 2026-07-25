@@ -23,7 +23,6 @@ Description  :
  -----------------------------------------------------------------------
 """
 
-# -*- coding: utf-8 -*-
 import argparse
 import datetime
 import webbrowser
@@ -102,6 +101,7 @@ def parse_args():
         ),
         formatter_class=CustomHelpFormatter,
         add_help=False,
+        suggest_on_error=True,
     )
 
     meg_clean = parser.add_mutually_exclusive_group()
