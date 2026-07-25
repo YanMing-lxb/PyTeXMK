@@ -1,4 +1,4 @@
-'''
+"""
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -19,12 +19,13 @@ Date         : 2024-08-06 16:59:49 +0800
 LastEditTime : 2024-08-09 21:40:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/language_module.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
-'''
+"""
 
-import locale
 import gettext
+import locale
+import sys
 from pathlib import Path
 
 
@@ -33,11 +34,18 @@ from pathlib import Path
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
     current_locale = locale.getdefaultlocale()
-    locale_path = Path(__file__).resolve().parent / 'locale'
+    if hasattr(sys, "_MEIPASS"):
+        locale_path = Path(sys._MEIPASS) / "locale"
+    elif getattr(sys, "frozen", False):
+        locale_path = Path(sys.executable).parent / "locale"
+    else:
+        locale_path = Path(__file__).resolve().parent / "locale"
 
-    if current_locale[0].startswith('zh'):
+    if current_locale[0].startswith("zh"):
         translation = gettext.NullTranslations()
     else:
-        translation = gettext.translation(lang_file, localedir=locale_path, languages=['en'])
+        translation = gettext.translation(
+            lang_file, localedir=locale_path, languages=["en"]
+        )
 
     return translation.gettext
