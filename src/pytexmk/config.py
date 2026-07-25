@@ -1,13 +1,16 @@
-import toml
 import logging
-from pathlib import Path
+import tomllib
 from collections import defaultdict
-from typing import Optional, Dict, Any
+from pathlib import Path
+from typing import Any
 
-from pytexmk.language import set_language
+import tomli_w
+
 from pytexmk.auxiliary_fun import get_app_path
+from pytexmk.language import set_language
 
-_ = set_language('config')
+_ = set_language("config")
+
 
 class ConfigParser:
     """
@@ -20,27 +23,27 @@ class ConfigParser:
         """
         self.logger = logging.getLogger(__name__)  # 初始化日志记录器
         self.user_config_path = self._get_user_config_path()  # 获取用户配置文件路径
-        self.project_config_path = Path.cwd() / '.pytexmkrc'  # 获取项目配置文件路径
-        self.data_dir = get_app_path() / 'data'  # 获取data文件夹路径
+        self.project_config_path = Path.cwd() / ".pytexmkrc"  # 获取项目配置文件路径
+        self.data_dir = get_app_path() / "data"  # 获取data文件夹路径
         self.logger.info(_("PyTeXMK 配置模块已初始化"))
 
-    def _get_user_config_path(self) -> Optional[Path]:
+    def _get_user_config_path(self) -> Path | None:
         """获取用户配置文件路径。
 
         Returns
         -------
-        Optional[Path]
+        Path | None
             用户配置文件路径，如果获取失败则返回 None。
         """
         try:
             user_home_path = Path.home()  # 获取用户主目录
             self.logger.info(_("用户主目录路径: ") + str(user_home_path))
-            return user_home_path / '.pytexmkrc'
+            return user_home_path / ".pytexmkrc"
         except Exception as e:
             self.logger.error(_("获取用户主目录路径失败: ") + str(e))
             return None
 
-    def _load_toml(self, path: Path) -> Optional[Dict[str, Any]]:
+    def _load_toml(self, path: Path) -> dict[str, Any] | None:
         """加载指定路径的 TOML 配置文件。
 
         Parameters
@@ -50,7 +53,7 @@ class ConfigParser:
 
         Returns
         -------
-        Optional[Dict[str, Any]]
+        dict[str, Any] | None
             配置字典。
         """
         if not path.exists():
@@ -58,8 +61,8 @@ class ConfigParser:
             return None
 
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                config = toml.load(f)
+            with open(path, "rb") as f:
+                config = tomllib.load(f)
             self.logger.info(_("成功加载配置文件: ") + str(path))
             return config
         except Exception as e:
@@ -80,9 +83,9 @@ class ConfigParser:
             try:
                 self.logger.info(_("正在创建默认配置文件: ") + str(path))
                 path.parent.mkdir(parents=True, exist_ok=True)  # 创建父目录
-                with open(self.data_dir / config_file, 'r', encoding='utf-8') as f:
+                with open(self.data_dir / config_file, "r", encoding="utf-8") as f:
                     default_config = f.read()
-                with open(path, 'w', encoding='utf-8') as f:
+                with open(path, "w", encoding="utf-8") as f:
                     f.write(default_config)
             except Exception as e:
                 self.logger.error(_("创建默认配置文件失败: ") + f"{path} --> {e}")
@@ -100,15 +103,15 @@ class ConfigParser:
             默认配置文件名。
         """
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                existing_config = toml.load(f)
+            with open(path, "rb") as f:
+                existing_config = tomllib.load(f)
         except Exception as e:
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return
 
         # 加载默认配置文件
-        with open(self.data_dir / config_file, 'r', encoding='utf-8') as f:
-            default_config_dict = toml.load(f)
+        with open(self.data_dir / config_file, "rb") as f:
+            default_config_dict = tomllib.load(f)
 
         # 获取所有key的集合
         existing_keys = set(existing_config.keys())
@@ -129,12 +132,18 @@ class ConfigParser:
                 for key in missing_keys:
                     self.logger.warning(f"  {key}: {default_config_dict[key]}")
 
-            choice = input(_("是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): ")).strip().lower()
-            if choice in ['yes', 'y']:
+            choice = (
+                input(_("是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "))
+                .strip()
+                .lower()
+            )
+            if choice in ["yes", "y"]:
                 # 补全缺少的key
                 for key in missing_keys:
                     existing_config[key] = default_config_dict[key]
-                    self.logger.info(_("已补全配置项: ") + f"{key}: {default_config_dict[key]}")
+                    self.logger.info(
+                        _("已补全配置项: ") + f"{key}: {default_config_dict[key]}"
+                    )
 
                 # 删除多余的key
                 for key in extra_keys:
@@ -145,31 +154,37 @@ class ConfigParser:
                 # 写回配置文件，保持默认配置的顺序
                 ordered_config = {k: existing_config[k] for k in default_config_dict}
                 try:
-                    with open(path, 'w', encoding='utf-8') as f:
-                        toml.dump(ordered_config, f)
+                    with open(path, "wb") as f:
+                        tomli_w.dump(ordered_config, f)
                     self.logger.info(_("配置文件更新成功: ") + str(path))
                 except Exception as e:
                     self.logger.error(_("配置文件更新失败: ") + f"{path} --> {e}")
-            elif choice in ['no', 'n']:
+            elif choice in ["no", "n"]:
                 self.logger.info(_("请稍后手动修改配置文件"))
             else:
                 self.logger.error(_("无效输入，请输入如下选项: yes/no 或 y/n"))
 
-    def init_config_file(self) -> Dict[str, Any]:
+    def init_config_file(self) -> dict[str, Any]:
         """初始化配置文件。
         加载用户配置和项目配置文件, 优先使用项目配置。
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             最终的配置字典。
         """
-        self._init_default_config(self.user_config_path, 'default_user_config.toml')
-        user_config = defaultdict(lambda: None, self._load_toml(self.user_config_path))  # 加载用户配置文件
+        self._init_default_config(self.user_config_path, "default_user_config.toml")
+        user_config = defaultdict(
+            lambda: None, self._load_toml(self.user_config_path)
+        )  # 加载用户配置文件
         project_config = None  # 初始化 project_config
         if user_config["project_config_auto_init"]:
-            self._init_default_config(self.project_config_path, 'default_project_config.toml')
-            project_config = self._load_toml(self.project_config_path)  # 加载项目配置文件
+            self._init_default_config(
+                self.project_config_path, "default_project_config.toml"
+            )
+            project_config = self._load_toml(
+                self.project_config_path
+            )  # 加载项目配置文件
 
         final_config = user_config if user_config else {}
 
