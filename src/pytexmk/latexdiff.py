@@ -1,4 +1,4 @@
-'''
+"""
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -19,27 +19,27 @@ Date         : 2024-08-02 10:44:16 +0800
 LastEditTime : 2025-10-01 11:17:47 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/latexdiff.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
-'''
-# -*- coding: utf-8 -*-
+"""
+
+import logging
 import re
 import sys
-import logging
 from pathlib import Path
+
 from rich import console
 
-from pytexmk.language import set_language
-from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.additional import MoveRemoveOperation, MySubProcess
+from pytexmk.auxiliary_fun import exit_pytexmk
+from pytexmk.language import set_language
 
-_ = set_language('latexdiff')
+_ = set_language("latexdiff")
 
 console = console.Console()
 
 
 class LaTeXDiff_Aux:
-
     def __init__(self, outdir, suffixes_out, suffixes_aux, auxdir):
 
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
@@ -61,7 +61,7 @@ class LaTeXDiff_Aux:
         返回:
         - bool: 指定的旧TeX辅助文件是否存在.
 
-        行为逻辑:        
+        行为逻辑:
         1. 遍历指定目录下的所有文件,判断是否存在指定的文件.
         """
         aux_files = [f"{file_name}{suffix}" for suffix in self.suffixes_aux]
@@ -77,13 +77,13 @@ class LaTeXDiff_Aux:
     def flatten_Latex(self, file_name):
         """
         将 LaTeX 文件及其所有引用的子文件压平为一个单一文件.
-         
+
         参数:
         file_name (str): 主 LaTeX 文件的名称(不带 .tex 扩展名).
-         
+
         返回:
         str: 压平后的文件名称.
-         
+
         行为逻辑:
         1. 定义两个正则表达式来匹配 \\input 和 \\include 命令.
         2. 打开输出文件并将 sys.stdout 重定向到该文件.
@@ -91,13 +91,15 @@ class LaTeXDiff_Aux:
         4. 恢复 sys.stdout 并返回压平后的文件名称.
         """
 
-        def flattenLatex(tex_file_name):  # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
+        def flattenLatex(
+            tex_file_name,
+        ):  # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
             """
             递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout.
-             
+
             参数:
             tex_file_name (str): LaTeX 文件的名称.
-             
+
             行为逻辑:
             1. 检查文件是否存在.
             2. 读取文件内容,匹配 \\input 和 \\include 命令.
@@ -106,38 +108,42 @@ class LaTeXDiff_Aux:
             """
             rootPath = Path(tex_file_name)
             if not rootPath.is_file():
-                self.logger.error(_('文件不存在: ') + tex_file_name)
+                self.logger.error(_("文件不存在: ") + tex_file_name)
                 exit_pytexmk()
             dirpath = rootPath.parent
-            with open(tex_file_name, 'r', encoding='utf-8') as file_handler:
+            with open(tex_file_name, "r", encoding="utf-8") as file_handler:
                 for line in file_handler:
                     match_input = inputPattern.search(line)
                     match_include = includePattern.search(line)
                     if match_input:
                         newFile = match_input.group(1)
-                        if not newFile.endswith('tex'):
-                            newFile += '.tex'
+                        if not newFile.endswith("tex"):
+                            newFile += ".tex"
                         flattenLatex(dirpath / newFile)
                     elif match_include:
                         newFile = match_include.group(1)
-                        if not newFile.endswith('tex'):
-                            newFile += '.tex'
+                        if not newFile.endswith("tex"):
+                            newFile += ".tex"
                         flattenLatex(dirpath / newFile)
                     else:
                         sys.stdout.write(line)
 
         # 定义正则表达式 匹配命令前面没有%的 \input 和 \include 命令
-        inputPattern = re.compile(r'^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})', re.MULTILINE)
-        includePattern = re.compile(r'^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})', re.MULTILINE)
+        inputPattern = re.compile(
+            r"^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})", re.MULTILINE
+        )
+        includePattern = re.compile(
+            r"^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})", re.MULTILINE
+        )
 
         # 打开输出文件并将 sys.stdout 重定向到该文件
-        output_file_name = f'{file_name}-flatten'
+        output_file_name = f"{file_name}-flatten"
         try:
-            with open(output_file_name + '.tex', 'w', encoding='utf-8') as output_file:
+            with open(output_file_name + ".tex", "w", encoding="utf-8") as output_file:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
             sys.stdout = sys.__stdout__
-            self.logger.info(_("已压平文件: ") + output_file_name + '.tex')
+            self.logger.info(_("已压平文件: ") + output_file_name + ".tex")
         except Exception as e:
             self.logger.error(_("压平出错: ") + str(e))
             exit_pytexmk()
@@ -163,15 +169,27 @@ class LaTeXDiff_Aux:
         old_file_path = Path(old_file + suffix)  # 转换为Path对象
         new_file_path = Path(new_file + suffix)  # 转换为Path对象
         if old_file_path.exists() and new_file_path.exists():
-            self.logger.info(_("新旧辅助文件同时存在: ") + str(old_file_path) + " " + str(new_file_path))
+            self.logger.info(
+                _("新旧辅助文件同时存在: ")
+                + str(old_file_path)
+                + " "
+                + str(new_file_path)
+            )
             return suffix
 
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
-        command = ["latexdiff", old_tex_file + suffix, new_tex_file + suffix, ">", diff_tex_file + suffix, "--encoding=utf8"]
-        
+        command = [
+            "latexdiff",
+            old_tex_file + suffix,
+            new_tex_file + suffix,
+            ">",
+            diff_tex_file + suffix,
+            "--encoding=utf8",
+        ]
+
         old_out_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_out]
         new_out_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_out]
         diff_out_files = [f"{diff_tex_file}{suffix}" for suffix in self.suffixes_out]
@@ -179,5 +197,5 @@ class LaTeXDiff_Aux:
         old_aux_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_aux]
         new_aux_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_aux]
         aux_files = old_aux_files + new_aux_files
-        
+
         self.MSP.run_command(command, out_files, aux_files, "latexdiff")
