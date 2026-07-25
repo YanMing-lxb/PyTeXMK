@@ -48,6 +48,13 @@ jobs:
       - name: Test binary
         run: ${{ matrix.bin_path }} --help
 
+      - name: Upload binary directory (for testing)
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: pytexmk-binary-${{ matrix.os }}
+          path: dist/pytexmk/
+          retention-days: 7
+
   build-package:
     runs-on: ubuntu-latest
     steps:
