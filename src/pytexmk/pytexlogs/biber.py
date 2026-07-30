@@ -11,6 +11,7 @@ from .base import BaseLogParser, LogEntry, LogLevel, ParsedLog
 
 __all__ = [
     "BiberParser",
+    "BIBER_WARNING_HINTS",
     "biber_error_re",
     "biber_generic_error_re",
     "biber_generic_warning_re",
@@ -18,6 +19,16 @@ __all__ = [
     "biber_line_warning_re",
     "biber_missing_entry_re",
 ]
+
+
+BIBER_WARNING_HINTS: dict[str, str] = {
+    "I didn't find a database entry":
+        "Biber 未找到对应参考文献键：检查 .bib 文件中 @xxx{key, 是否存在，或键名与 \\cite/\\autocite 是否一致。",
+    "entry `.+?' has":
+        "条目重复或字段冲突：检查 .bib 中是否存在重复键，或同一条目同一字段重复定义。",
+    "WARN -":
+        "通用 Biber 警告：可能是数据校验问题，确认 .bib 字段格式与 biblatex 要求一致。",
+}
 
 biber_info_re = re.compile(r"^INFO - Found BibTeX data source \'(.*)\'$")
 biber_error_re = re.compile(r"^ERROR - BibTeX subsystem.*, line (\d+), (.*)$")

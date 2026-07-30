@@ -6,6 +6,7 @@ import logging
 import re
 import time
 from collections import Counter
+from collections.abc import Callable
 from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,30 +27,125 @@ from .manager import LogParserManager
 from .reftracker import RefChangeTracker
 from .summary import print_summary
 
-try:
-    from ..version import __version__ as _pytexmk_version
-except Exception:  # noqa: BLE001
-    _pytexmk_version = 'unknown'
-
 logger = logging.getLogger(__name__)
 
 
 def run_pipeline(
-    jobname: str,
-    auxdir: str | Path,
+    jobname: str | None = None,
+    auxdir: str | Path | None = None,
     steps: list[str] | None = None,
     captured_outputs: dict[str, str] | None = None,
     ignore_patterns: list[str] | None = None,
     project_config: dict[str, Any] | None = None,
     root_file: str | None = None,
-    write_report: bool = True,
+    write_report: bool = False,
     report_path: str | Path | None = None,
-    print_terminal: bool = True,
+    print_terminal: bool | None = None,
+    ref_tracker_translate_fn: Callable[[str], str] | None = None,
+    pytexmk_version: str | None = None,
+    text_len_fn: Callable[[str], int] | None = None,
+    *,
+    tex_engine: str | None = None,
+    tex_output: str | None = None,
+    bibtex_output: str | None = None,
+    biber_output: str | None = None,
+    other_engine_outputs: dict[str, str] | None = None,
+    quiet: bool | None = None,
 ) -> ParsedPipelineReport:
-    """入口函数，统一执行日志发现 → 解析 → 汇总 → 终端打印 → 报告写盘 → 返回结构化报告."""
-    if steps is None:
-        steps = ['pdflatex', 'bibtex', 'biber', 'makeindex', 'xindy', 'makeglossaries',
-                 'nomencl', 'pythontex', 'minted', 'asymptote']
+    """入口函数，统一执行日志发现 → 解析 → 汇总 → 终端打印 → 报告写盘 → 返回结构化报告.
+
+    支持两套调用签名：
+      - 新签名（推荐）：run_pipeline(jobname, auxdir, captured_outputs={...}, steps=[...])
+      - 旧兼容签名：run_pipeline(tex_engine='pdflatex', tex_output='', bibtex_output='',
+                                    biber_output='', other_engine_outputs={}, quiet=True)
+
+    - ref_tracker_translate_fn: 参考文献跟踪模块的翻译函数，不注入时默认纯英文回退，方便独立库运行。
+    - pytexmk_version: PyTeXMK 版本号，不注入时默认为 'unknown'，方便独立库运行。
+    - text_len_fn: 文本显示宽度计算函数，不注入时默认 len()（纯英文单宽），方便独立库运行。
+    """
+    import tempfile as _tf
+    from pathlib import Path as _Path
+
+    if tex_engine is not None or tex_output is not None or bibtex_output is not None \
+            or biber_output is not None or other_engine_outputs is not None:
+        if captured_outputs is None:
+            captured_outputs = {}
+        _captured = dict(captured_outputs)
+        if tex_engine and tex_output is not None:
+            _captured.setdefault(tex_engine, tex_output)
+        if bibtex_output is not None:
+            _captured.setdefault('bibtex', bibtex_output)
+        if biber_output is not None:
+            _captured.setdefault('biber', biber_output)
+        if other_engine_outputs:
+            for k, v in other_engine_outputs.items():
+                _captured.setdefault(k, v)
+        captured_outputs = _captured
+        if steps is None:
+            steps = list(dict.fromkeys(
+                ([tex_engine] if tex_engine else [])
+                + (['bibtex'] if bibtex_output is not None else [])
+                + (['biber'] if biber_output is not None else [])
+                + list(other_engine_outputs.keys() if other_engine_outputs else [])
+            )) or ['pdflatex']
+        if quiet is not None and print_terminal is None:
+            print_terminal = not quiet
+
+    if captured_outputs is None:
+        captured_outputs = {}
+
+    if jobname is None or auxdir is None:
+        _td = _Path(_tf.mkdtemp(prefix='pytexlogs_aux_'))
+        if jobname is None:
+            jobname = 'pytexlogs_default_job'
+        if auxdir is None:
+            auxdir = str(_td)
+    else:
+        _td = None
+
+    try:
+        effective_pytexmk_version = pytexmk_version or 'unknown'
+        if steps is None:
+            steps = ['pdflatex', 'bibtex', 'biber', 'makeindex', 'xindy', 'makeglossaries',
+                     'nomencl', 'pythontex', 'minted', 'asymptote']
+        if print_terminal is None:
+            print_terminal = True
+        return _run_pipeline_impl(
+            jobname=jobname,
+            auxdir=auxdir,
+            steps=steps,
+            captured_outputs=captured_outputs,
+            ignore_patterns=ignore_patterns,
+            project_config=project_config,
+            root_file=root_file,
+            write_report=write_report,
+            report_path=report_path,
+            print_terminal=print_terminal,
+            ref_tracker_translate_fn=ref_tracker_translate_fn,
+            pytexmk_version=effective_pytexmk_version,
+            text_len_fn=text_len_fn,
+        )
+    finally:
+        if _td is not None:
+            import shutil as _sh
+            _sh.rmtree(_td, ignore_errors=True)
+
+
+def _run_pipeline_impl(
+    jobname: str,
+    auxdir: str | Path,
+    steps: list[str],
+    captured_outputs: dict[str, str],
+    ignore_patterns: list[str] | None,
+    project_config: dict[str, Any] | None,
+    root_file: str | None,
+    write_report: bool,
+    report_path: str | Path | None,
+    print_terminal: bool,
+    ref_tracker_translate_fn: Callable[[str], str] | None,
+    pytexmk_version: str,
+    text_len_fn: Callable[[str], int] | None,
+) -> ParsedPipelineReport:
 
     auxdir_path = Path(auxdir)
     auxdir_path.mkdir(parents=True, exist_ok=True)
@@ -191,7 +287,7 @@ def run_pipeline(
     ref_current_keys: list[str] = []
     ref_key_counts: dict[str, int] = {}
     try:
-        tracker = RefChangeTracker(auxdir_path, jobname)
+        tracker = RefChangeTracker(auxdir_path, jobname, translate_fn=ref_tracker_translate_fn)
         raw_keys, ref_key_counts = tracker.extract_current_with_counts()
         old_keys = tracker.load_cache()
         diff = tracker.diff(raw_keys, old_keys)
@@ -265,7 +361,7 @@ def run_pipeline(
     report = ParsedPipelineReport(
         schema_version=1,
         generated_at=datetime.now(tz=UTC).isoformat(),
-        pytexmk_version=_pytexmk_version,
+        pytexmk_version=pytexmk_version,
         jobname=jobname,
         root_file=root_file or '',
         auxdir=str(auxdir_path),
@@ -318,6 +414,7 @@ def run_pipeline(
             ref_total=len(ref_current_keys),
             ref_unchanged=len(ref_unchanged),
             ref_key_counts=ref_key_counts,
+            text_len_fn=text_len_fn,
         )
 
     if write_report:

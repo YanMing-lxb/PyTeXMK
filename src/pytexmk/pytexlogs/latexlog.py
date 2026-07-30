@@ -10,6 +10,7 @@ from .base import BaseLogParser, LogEntry, LogLevel, ParsedLog
 
 __all__ = [
     "LatexLogParser",
+    "LATEX_LOG_HINTS",
     "bib_empty_re",
     "biber_warn_re",
     "class_warning_info_re",
@@ -39,6 +40,26 @@ __all__ = [
     "underfull_box_output_re",
     "underfull_box_re",
 ]
+
+
+LATEX_LOG_HINTS: dict[str, str] = {
+    "Undefined control sequence":
+        "检查 \\ 命令名拼写，或确认是否已 \\usepackage 对应宏包。",
+    "Undefined reference":
+        "LaTeX 标签尚未被记录：通常需要再编译一到两次（或检查 \\label / \\ref 名）。",
+    "Undefined citation":
+        "参考文献键未找到：检查 .bib 文件中的 @xxx{key, 是否与 \\cite{key} 一致，并确认已跑过 bibtex/biber。",
+    "Overfull \\\\hbox":
+        "行/盒子过宽超过页面边距：手动断行、放宽 \\sloppy、或调整图文尺寸。",
+    "Underfull \\\\hbox":
+        "行/盒子文字不足导致间距拉伸：可接受，或在相应段落补充内容/使用 \\\\linebreak。",
+    "Missing character":
+        "当前字体不含该字形：更换支持该字符的字体，或用 \\usepackage[T1]{fontenc} 等。",
+    "Rerun to get cross-references right":
+        "提示再跑一轮 pdflatex：跨引用页码/链接在 .aux 中更新后需要二次编译。",
+    "Rerun to get citations correct":
+        "提示先跑 bibtex/biber，再跑 pdflatex 一到两次以同步参考文献引用。",
+}
 
 latex_error_re1 = re.compile(r"^(?:(.*):(\d+):|!)(?: (.+) Error:)? (.+?)$")
 latex_error_re2 = re.compile(r"^!(?: (.+) Error:)? (.+?)$")
@@ -130,9 +151,10 @@ class _TempEntry(dict):
 
 class LatexLogParser(BaseLogParser):
     """LaTeX .log 日志解析器（兼容旧 API）。"""
-    def __init__(self, root_file: str | None = None) -> None:
+    def __init__(self, root_file: str | None = None, quiet: bool = False) -> None:
         """初始化 LatexLogParser（新）：调用父类并设置 latex 默认工具元数据。"""
         super().__init__(root_file)
+        self.quiet = quiet
         self.build_log: list[LogEntry] = []
         self.current_result: _TempEntry | None = None
         self.file_stack: list[str] = []
@@ -145,6 +167,10 @@ class LatexLogParser(BaseLogParser):
         self._undefined_cites = 0
         self._overfull_boxes = 0
         self._underfull_boxes = 0
+
+    def parse_lines(self, lines: list[str], root_file: str | None = None) -> ParsedLog:
+        """兼容旧 API：接收行列表，委托给 parse。"""
+        return self.parse("\n".join(lines), root_file=root_file)
 
     def parse(self, log_text: str, root_file: str | None = None) -> ParsedLog:
         """解析 LaTeX .log 文本并返回 ParsedLog。"""

@@ -5,17 +5,16 @@ import logging
 import re as _re
 import textwrap
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from rich.console import Console
 
-from pytexmk.info_print import get_text_len
-
-from .base import LogLevel
+from .base import LogLevel, ParsedLog
 
 if TYPE_CHECKING:
-    from .base import LogEntry, ParsedLog
+    from .base import LogEntry
 
 logger = logging.getLogger(__name__)
 
@@ -205,11 +204,12 @@ def _group_by(
     return result
 
 
-def _format_separator(title: str, style: str) -> str:
+def _format_separator(title: str, style: str, text_len_fn: Callable[[str], int] | None = None) -> str:
     """返回单行居中的 rich markup 字符串，总宽 SUMMARY_TOTAL_LEN，左右 === 填充，标题加粗+style 颜色。"""
+    _len = text_len_fn or len
     total_width = SUMMARY_TOTAL_LEN
     title_plain = title
-    padding_size = total_width - get_text_len(title_plain) - 2
+    padding_size = total_width - _len(title_plain) - 2
     left_len = padding_size // 2
     right_len = padding_size - left_len
     left_sep = "=" * left_len
@@ -246,8 +246,10 @@ def print_summary(
     ref_total: int | None = None,
     ref_unchanged: int | None = None,
     ref_key_counts: dict[str, int] | None = None,
+    text_len_fn: Callable[[str], int] | None = None,
 ) -> str:
     """按类别/等级分组打印日志摘要并返回拼接字符串（去 rich 版用于兼容旧调用方）。"""
+    _len = text_len_fn or len
     grouped = _group_by(parsed_logs)
     output_lines: list[str] = []
 
@@ -265,7 +267,7 @@ def print_summary(
         if not has_entries:
             continue
 
-        sep_markup = _format_separator(_LEVEL_TITLE[level], _LEVEL_SEP_STYLE[level])
+        sep_markup = _format_separator(_LEVEL_TITLE[level], _LEVEL_SEP_STYLE[level], text_len_fn)
         sep_plain = _strip_rich_markup(sep_markup)
         output_lines.append(sep_plain)
         if use_logger:
@@ -283,7 +285,7 @@ def print_summary(
             prefix = "[bold #d79921]+--[/] [bold]"
             suffix_part = "[/bold] [bold #d79921]"
             plain_prefix_text = f"+-- {label} "
-            plain_prefix_len = get_text_len(plain_prefix_text)
+            plain_prefix_len = _len(plain_prefix_text)
             dashes_count = max(0, SUMMARY_TOTAL_LEN - plain_prefix_len)
             dashes = "-" * dashes_count
             cat_markup = f"{prefix}{label}{suffix_part}{dashes}[/]"
@@ -396,3 +398,46 @@ def _format_separator_old(title: str, ansi_color: str) -> str:
     sep_len = max(40, len(title) + 8)
     line = "=" * sep_len
     return f"{line}\n{ansi_color}{title}{_ANSI_RESET}\n{line}"
+
+
+def format_editor_jumps(entries: list[LogEntry]) -> list[str]:
+    result: list[str] = []
+    for e in entries:
+        pathname = Path(str(e.file or '')).name if e.file else ''
+        result.append(f"{pathname}:{e.line}: {e.text}")
+    return result
+
+
+def log_editor_jumps(entries: list[LogEntry], logger: logging.Logger | None = None, level: int = logging.INFO) -> None:
+    logger = logger or logging.getLogger('pytexmk.pytexlogs')
+    sorted_entries = sorted(entries, key=lambda e: (e.level.value, e.file, e.line))
+    for e in sorted_entries:
+        pathname = Path(str(e.file or '')).name if e.file else ''
+        msg = f"{pathname}:{e.line}: {e.text}"
+        logger.log(level, msg)
+
+
+def show_log_entries(entries_or_parsed_logs, use_logger: bool = True, show_info: bool = False, non_quiet: bool = True, text_len_fn: Callable[[str], int] | None = None) -> None:
+    parsed_logs: list[ParsedLog]
+    if isinstance(entries_or_parsed_logs, list):
+        if entries_or_parsed_logs and isinstance(entries_or_parsed_logs[0], ParsedLog):
+            parsed_logs = entries_or_parsed_logs
+        else:
+            parsed_logs = [ParsedLog(entries=entries_or_parsed_logs)]
+    elif isinstance(entries_or_parsed_logs, ParsedLog):
+        parsed_logs = [entries_or_parsed_logs]
+    else:
+        parsed_logs = [ParsedLog(entries=[entries_or_parsed_logs])]
+    print_summary(
+        parsed_logs=parsed_logs,
+        use_logger=use_logger,
+        non_quiet=non_quiet,
+        show_info=show_info,
+        ref_change_report=None,
+        ref_added_keys=None,
+        ref_removed_keys=None,
+        ref_total=None,
+        ref_unchanged=None,
+        ref_key_counts=None,
+        text_len_fn=text_len_fn,
+    )

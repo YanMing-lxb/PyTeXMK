@@ -5,12 +5,11 @@ import json
 import logging
 import re
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
-from ..language import set_language
 from .biber import BiberParser
 
 __all__ = [
@@ -26,16 +25,16 @@ citation_command_re = re.compile(
 )
 
 logger = logging.getLogger(__name__)
-_ = set_language("log_parser")
 
 
 class RefChangeTracker:
     """参考文献变更追踪器：从 aux/bcf 提取引用键并与缓存 diff。"""
-    def __init__(self, auxdir: str | Path, jobname: str) -> None:
+    def __init__(self, auxdir: str | Path, jobname: str, translate_fn: Callable[[str], str] | None = None) -> None:
         """初始化 RefChangeTracker：缓存 auxdir、jobname 与引用缓存路径。"""
         self.auxdir = Path(auxdir)
         self.jobname = jobname
         self.cache_path = self.auxdir / ".pytexmk_refcache.json"
+        self._translate_fn: Callable[[str], str] = translate_fn or (lambda s: s)
 
     def extract_from_aux(self, aux_path: str | Path) -> list[str]:
         """从 LaTeX .aux 文件提取所有 cite 引用键列表。"""
@@ -180,13 +179,19 @@ class RefChangeTracker:
         old_cache_empty = len(diff_dict.get("unchanged", set())) == 0 and removed == 0
 
         if added == 0 and removed == 0:
-            return _("参考文献: {} 篇引用, 无变动").format(total_unique)
+            return self._translate_fn("参考文献: {} 篇引用, 无变动").format(total_unique)
 
         if old_cache_empty and removed == 0:
-            return _("参考文献: {} 篇引用, 首次运行, 新增 {}").format(
+            return self._translate_fn("参考文献: {} 篇引用, 首次运行, 新增 {}").format(
                 total_unique, added
             )
 
-        return _("参考文献: {} 篇引用, 新增 {}, 移除 {}").format(
+        return self._translate_fn("参考文献: {} 篇引用, 新增 {}, 移除 {}").format(
             total_unique, added, removed
         )
+
+    def summarize_diff(self, old_keys: Iterable[str], now_keys: Iterable[str]) -> str:
+        """便捷方法：对比新旧引用键集合并返回格式化的差异摘要字符串。"""
+        diff_dict = self.diff(now_keys, old_keys)
+        total_unique = len(set(now_keys))
+        return self.format_report(diff_dict, total_unique)

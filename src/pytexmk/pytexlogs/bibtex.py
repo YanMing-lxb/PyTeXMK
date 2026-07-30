@@ -10,6 +10,7 @@ from .base import BaseLogParser, LogEntry, LogLevel, ParsedLog
 
 __all__ = [
     "BibtexParser",
+    "BIBTEX_ERROR_HINTS",
     "bad_cross_ref_bibtex_re",
     "database_file_re",
     "entries_processed_re",
@@ -20,6 +21,18 @@ __all__ = [
     "re_error",
     "single_line_bibtex_warning_re",
 ]
+
+
+BIBTEX_ERROR_HINTS: dict[str, str] = {
+    "I'm skipping whatever remains of this entry":
+        "BibTeX 条目语法错误：检查该条目中是否缺逗号、括号不配对，或字段名拼写错误。",
+    "I'm skipping whatever remains of this command":
+        "@string / 缩写宏定义错误：检查 @string{key = \"value\"} 语法。",
+    "A bad cross reference":
+        "交叉引用指向不存在的条目：检查 crossref = {xxx} 中 xxx 是否存在于同一 .bib 文件。",
+    "---while reading file":
+        "读取辅助文件失败：检查 .aux 是否正常生成（先跑一次 pdflatex），路径是否正确。",
+}
 
 single_line_bibtex_warning_re = re.compile(r"^Warning--(.+?)(?:\s+in\s+(?:file\s+)?(\S+))?\s*$")
 multi_line_bibtex_warning_re = re.compile(
