@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 _RICH_CONSOLE = Console(highlight=False, markup=True, soft_wrap=False)
 _ANSI_RE = _re.compile(r"\x1b\[[0-9;]*[mK]")
 
-SUMMARY_TOTAL_LEN = 78
+SUMMARY_TOTAL_LEN = 74
 
 CATEGORY_ORDER = [
     "bibliography",
