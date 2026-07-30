@@ -49,7 +49,7 @@ from pytexmk.info_print import (
 )
 from pytexmk.language import set_language
 from pytexmk.latexdiff import LaTeXDiff_Aux
-from pytexmk.log_parsers import run_log_pipeline
+from pytexmk.pytexlogs import run_log_pipeline
 
 # 日志与语言配置
 from pytexmk.logger_config import setup_logger
@@ -817,7 +817,11 @@ def main():
             )  # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-            run_log_pipeline(project_name, auxdir, root_file=project_name)
+            run_log_pipeline(
+                project_name, auxdir, root_file=project_name,
+                pytexmk_version=__version__,
+                ref_tracker_translate_fn=set_language("log_parser"),
+            )
 
     # --------------------------------------------------------------------------------
     # 编译结束后 PDF 预览

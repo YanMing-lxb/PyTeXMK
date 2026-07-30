@@ -39,7 +39,8 @@ from rich.theme import Theme
 
 from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.language import set_language
-from pytexmk.log_parsers import run_log_pipeline
+from pytexmk.pytexlogs import run_log_pipeline
+from pytexmk.version import __version__
 
 _ = set_language("additional")
 
@@ -132,7 +133,11 @@ class MySubProcess:
             self.MRO.move_specific_files(out_files, ".", self.outdir)
 
             if not self.latexdiff:
-                run_log_pipeline(self.project_name, self.auxdir, root_file=None)
+                run_log_pipeline(
+                    self.project_name, self.auxdir, root_file=None,
+                    pytexmk_version=__version__,
+                    ref_tracker_translate_fn=set_language("log_parser"),
+                )
             exit_pytexmk()
 
 
