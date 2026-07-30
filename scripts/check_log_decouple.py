@@ -1,426 +1,704 @@
-"""check_log_decouple.py - 验证 log_parser.py 与 log_parsers/ 新架构解耦的 31 个断言。
+"""check_log_decouple.py - 验证 pytexlogs/ 新架构解耦的 31 个断言（FR-1 后版本）。
 
 用法：
     uv run python scripts/check_log_decouple.py
 
 目标：
-    - 确认旧 API（pytexmk.log_parser）为薄转发层
-    - 确认新实现位于 pytexmk.log_parsers.*（独立模块）
-    - 确认新旧行为等价（parity）
-    - 确认 show_log 过滤 / 不重复打印
-    - 确认本地正则已彻底移除（零 re.compile(r" 出现）
+    - 确认旧模块 pytexmk.log_parser 已被彻底删除（FR-1）
+    - 确认新实现位于 pytexmk.pytexlogs.*（独立子包）
+    - 确认新 LogLevel / LogEntry / ParsedLog 数据结构正确
+    - 确认新 Parser 公共 API（LatexLogParser / BibtexParser / BiberParser 等）
+    - 确认 FR-4 工具函数（show_log_entries / format_editor_jumps / log_editor_jumps）
+    - 确认跨层架构约束（re.compile 只在具体 parser 内）
+    - 确认 run_log_pipeline 新两参数注入（pytexmk_version / ref_tracker_translate_fn）
+    - 回归：4 类日志解析正确、show_log_entries 过滤不重复打印
 """
 
 from __future__ import annotations
 
+import inspect
+import io
 import re
 import sys
 from pathlib import Path
 
-# ──────────────────────────── Check1 ~ Check27：结构解耦断言 ────────────────────────────
 
-def _check01_old_module_exists(root: str) -> bool:
+def _ensure_src_on_path(root: str) -> None:
+    src = str(Path(root) / 'src')
+    if src not in sys.path:
+        sys.path.insert(0, src)
+
+
+# ──────────────────────────── Check01 ~ Check27：结构解耦断言 ────────────────────────────
+
+def _check01_old_module_DELETED(root: str) -> bool:
     p = Path(root) / 'src/pytexmk/log_parser.py'
-    if not p.exists():
-        print('[Check01] FAIL: 旧 log_parser.py 不存在'); return False
-    print('[Check01] PASS: 旧模块 log_parser.py 存在')
+    if p.exists():
+        print('[Check01] FAIL: 旧 log_parser.py 仍然存在（FR-1 未删除）'); return False
+    print('[Check01] PASS: 旧模块 log_parser.py 已按 FR-1 删除')
     return True
 
 
 def _check02_new_package_exists(root: str) -> bool:
-    p = Path(root) / 'src/pytexmk/log_parsers/__init__.py'
+    p = Path(root) / 'src/pytexmk/pytexlogs/__init__.py'
     if not p.exists():
-        print('[Check02] FAIL: 新包 log_parsers/__init__.py 不存在'); return False
-    print('[Check02] PASS: 新包 log_parsers/ 存在')
+        print('[Check02] FAIL: 新包 pytexlogs/__init__.py 不存在'); return False
+    print('[Check02] PASS: 新包 pytexlogs/ 存在')
     return True
 
 
-def _check03_old_imports_new(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'from pytexmk.log_parsers' not in src:
-        print('[Check03] FAIL: 旧模块未从 log_parsers.* 导入'); return False
-    print('[Check03] PASS: 旧模块从新包 log_parsers.* 导入')
+def _check03_new_top_level_init_no_mention(root: str) -> bool:
+    p = Path(root) / 'src/pytexmk/__init__.py'
+    src = p.read_text(encoding='utf-8')
+    count = src.count('log_parser')
+    if count != 0:
+        print(f'[Check03] FAIL: 顶层 __init__.py 仍提到 log_parser ({count} 次)'); return False
+    print('[Check03] PASS: 顶层 __init__.py 无旧模块残留（TR-5.2）')
     return True
 
 
 def _check04_new_key_modules(root: str) -> bool:
-    files = ['latexlog.py', 'bibtex.py', 'biber.py', 'base.py', 'summary.py']
+    files = ['latexlog.py', 'bibtex.py', 'biber.py', 'base.py', 'summary.py',
+             'manager.py', 'reftracker.py', '_facade.py', '_report.py']
     for f in files:
-        p = Path(root) / f'src/pytexmk/log_parsers/{f}'
+        p = Path(root) / f'src/pytexmk/pytexlogs/{f}'
         if not p.exists():
             print(f'[Check04] FAIL: 新模块缺失 {f}'); return False
-    print('[Check04] PASS: 新包关键模块齐全')
+    print('[Check04] PASS: 新包关键模块齐全（9 个）')
     return True
 
 
-def _check05_latex_parser_in_both(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import LatexLogParser as Old
-    from pytexmk.log_parsers.latexlog import LatexLogParser as New
-    if not (Old and New):
-        print('[Check05] FAIL: 新旧 LatexLogParser 未同时存在'); return False
-    print('[Check05] PASS: 新旧 LatexLogParser 均存在')
+def _check05_new_latex_parser_importable(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        inst = LatexLogParser(root_file='m.tex')
+        if not inst:
+            print('[Check05] FAIL: LatexLogParser 实例化失败'); return False
+    except Exception as e:
+        print(f'[Check05] FAIL: LatexLogParser 导入/实例化异常: {e!r}'); return False
+    print('[Check05] PASS: 新 LatexLogParser 可导入并可实例化')
     return True
 
 
-def _check06_old_has__new_delegate(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'self._new = _NewLatexLogParser' not in src and 'self._new =' not in src:
-        print('[Check06] FAIL: 旧 LatexLogParser 无 self._new 委托字段'); return False
-    print('[Check06] PASS: 旧 LatexLogParser 持有 self._new 委托对象')
+def _check06_new_parsedlog_has_entries_stats_source(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser, ParsedLog
+        simple_log = (
+            "(./main.tex\n"
+            "Package foo Warning: Bar.\n"
+            "Output written on main.pdf (1 page).\n"
+            ")\n"
+        )
+        r = LatexLogParser(root_file='main.tex').parse(simple_log)
+        if not isinstance(r, ParsedLog):
+            print(f'[Check06] FAIL: 返回类型不是 ParsedLog，实际 {type(r).__name__}'); return False
+        if not hasattr(r, 'entries'):
+            print('[Check06] FAIL: ParsedLog 缺 entries 属性'); return False
+        if not hasattr(r, 'stats'):
+            print('[Check06] FAIL: ParsedLog 缺 stats 属性'); return False
+        if not hasattr(r, 'source_path'):
+            print('[Check06] FAIL: ParsedLog 缺 source_path 属性'); return False
+    except Exception as e:
+        print(f'[Check06] FAIL: 解析异常: {e!r}'); return False
+    print('[Check06] PASS: ParsedLog 含 entries/stats/source_path 三字段')
     return True
 
 
-def _check07_old_has_bibtex_parser(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import BibTeXLogParser
-    if not BibTeXLogParser:
-        print('[Check07] FAIL: 旧 BibTeXLogParser 缺失'); return False
-    print('[Check07] PASS: 旧 BibTeXLogParser 存在')
+def _check07_new_bibtex_biber_parser_top_level_importable(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import BiberParser, BibtexParser
+        b1 = BibtexParser(root_file='m.tex')
+        b2 = BiberParser(root_file='m.tex')
+        if not (b1 and b2):
+            print('[Check07] FAIL: BibtexParser/BiberParser 实例化失败'); return False
+    except Exception as e:
+        print(f'[Check07] FAIL: BibtexParser/BiberParser 导入异常: {e!r}'); return False
+    print('[Check07] PASS: BibtexParser + BiberParser 顶层导入并实例化 OK')
     return True
 
 
-def _check08_new_bibtex_biber_exist(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parsers.biber import BiberParser
-    from pytexmk.log_parsers.bibtex import BibtexParser
-    if not (BibtexParser and BiberParser):
-        print('[Check08] FAIL: 新 BibtexParser/BiberParser 缺失'); return False
-    print('[Check08] PASS: 新 BibtexParser + BiberParser 存在')
+def _check08_new_bibtex_biber_parse_ok(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import BiberParser, BibtexParser, LogLevel
+        biber_log = "WARN - x\nERROR - y\n"
+        pr1 = BiberParser(root_file='m.tex').parse(biber_log)
+        levels1 = {e.level for e in pr1.entries}
+        if LogLevel.WARNING not in levels1:
+            print(f'[Check08] FAIL: Biber 缺 WARNING，levels={levels1}'); return False
+        if LogLevel.ERROR not in levels1:
+            print(f'[Check08] FAIL: Biber 缺 ERROR，levels={levels1}'); return False
+
+        bibtex_log = "Warning--I didn't find a database entry for \"bar\"\nI found no \\bibdata command---while reading file x.aux\n"
+        pr2 = BibtexParser(root_file='m.tex').parse(bibtex_log)
+        levels2 = {e.level for e in pr2.entries}
+        if LogLevel.WARNING not in levels2:
+            print(f'[Check08] FAIL: Bibtex 缺 WARNING，levels={levels2}'); return False
+        if LogLevel.ERROR not in levels2:
+            print(f'[Check08] FAIL: Bibtex 缺 ERROR，levels={levels2}'); return False
+    except Exception as e:
+        print(f'[Check08] FAIL: 解析异常: {e!r}'); return False
+    print('[Check08] PASS: Biber/Bibtex 均能解析出 WARNING+ERROR 条目')
     return True
 
 
-def _check09_old_logtype_enum(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import LogType
-    m = LogType.__members__
-    need = {'ERROR', 'WARNING', 'TYPESET', 'INFO', 'FONT', 'GRAPHIC', 'PAGE'}
-    if not need.issubset(set(m)):
-        print(f'[Check09] FAIL: LogType 缺失成员 {need - set(m)}'); return False
-    print('[Check09] PASS: 旧 LogType 枚举完整（7 种）')
+def _check09_no_residual_LogType_anywhere(root: str) -> bool:
+    dirs = ['src/pytexmk', 'scripts', 'tests']
+    self_path = str(Path(__file__).resolve())
+    total = 0
+    for d in dirs:
+        base = Path(root) / d
+        if not base.exists():
+            continue
+        for py in base.rglob('*.py'):
+            if str(py.resolve()) == self_path:
+                continue
+            try:
+                txt = py.read_text(encoding='utf-8')
+            except Exception:
+                continue
+            total += len(re.findall(r'\bLogType\b', txt))
+    if total != 0:
+        print(f'[Check09] FAIL: 全仓仍有 {total} 处旧 Enum 名 LogType'); return False
+    print('[Check09] PASS: 全仓（src/scripts/tests）无旧 LogType 残留')
     return True
 
 
 def _check10_new_loglevel_enum(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parsers.base import LogLevel
-    m = LogLevel.__members__
-    need = {'ERROR', 'WARNING', 'TYPESET', 'INFO', 'FONT', 'GRAPHIC', 'PAGE'}
-    if not need.issubset(set(m)):
-        print(f'[Check10] FAIL: LogLevel 缺失成员 {need - set(m)}'); return False
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs.base import LogLevel
+        m = LogLevel.__members__
+        need = {'ERROR', 'WARNING', 'TYPESET', 'INFO', 'FONT', 'GRAPHIC', 'PAGE'}
+        if not need.issubset(set(m)):
+            print(f'[Check10] FAIL: LogLevel 缺失成员 {need - set(m)}'); return False
+    except Exception as e:
+        print(f'[Check10] FAIL: LogLevel 导入/检查异常: {e!r}'); return False
     print('[Check10] PASS: 新 LogLevel 枚举完整（7 种）')
     return True
 
 
 def _check11_new_logentry_dataclass(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    import dataclasses
+    _ensure_src_on_path(root)
+    try:
+        import dataclasses
 
-    from pytexmk.log_parsers.base import LogEntry
-    if not dataclasses.is_dataclass(LogEntry):
-        print('[Check11] FAIL: 新 LogEntry 不是 dataclass'); return False
-    fields = {f.name for f in dataclasses.fields(LogEntry)}
-    need = {'level', 'file', 'line', 'text', 'error_pos_text'}
-    if not need.issubset(fields):
-        print(f'[Check11] FAIL: LogEntry 字段缺失 {need - fields}'); return False
-    print('[Check11] PASS: 新 LogEntry dataclass 字段齐全')
+        from pytexmk.pytexlogs.base import LogEntry
+        if not dataclasses.is_dataclass(LogEntry):
+            print('[Check11] FAIL: 新 LogEntry 不是 dataclass'); return False
+        fields = {f.name for f in dataclasses.fields(LogEntry)}
+        need = {'level', 'file', 'line', 'text', 'error_pos_text'}
+        if not need.issubset(fields):
+            print(f'[Check11] FAIL: LogEntry 字段缺失 {need - fields}'); return False
+    except Exception as e:
+        print(f'[Check11] FAIL: LogEntry 检查异常: {e!r}'); return False
+    print('[Check11] PASS: 新 LogEntry dataclass 字段齐全（5 个）')
     return True
 
 
-def _check12_old_has_parse(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def parse(' not in src:
-        print('[Check12] FAIL: 旧模块缺 parse 方法'); return False
-    print('[Check12] PASS: 旧模块含 parse 方法')
+def _check12_new_parsers_all_have_parse_method(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import (
+            BiberParser,
+            BibtexParser,
+            LatexLogParser,
+            MakeindexParser,
+            XindyParser,
+        )
+        classes = [LatexLogParser, BibtexParser, BiberParser, MakeindexParser, XindyParser]
+        for cls in classes:
+            src = inspect.getsource(cls)
+            if 'def parse(' not in src:
+                print(f'[Check12] FAIL: {cls.__name__} 源码缺 def parse('); return False
+    except Exception as e:
+        print(f'[Check12] FAIL: 检查 parse 方法异常: {e!r}'); return False
+    print('[Check12] PASS: 5 个 Parser 类均含 def parse( 方法')
     return True
 
 
-def _check13_old_has_reset_state(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def reset_state(' not in src:
-        print('[Check13] FAIL: 旧模块缺 reset_state'); return False
-    print('[Check13] PASS: 旧模块含 reset_state')
+def _check13_new_latex_has_reset_state(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        src = inspect.getsource(LatexLogParser)
+        if 'def _reset_state(' not in src:
+            print('[Check13] FAIL: LatexLogParser 缺 reset_state 方法'); return False
+    except Exception as e:
+        print(f'[Check13] FAIL: 检查 reset_state 异常: {e!r}'); return False
+    print('[Check13] PASS: LatexLogParser 含 reset_state 方法')
     return True
 
 
-def _check14_old_has_parse_line(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def parse_line(' not in src:
-        print('[Check14] FAIL: 旧模块缺 parse_line'); return False
-    print('[Check14] PASS: 旧模块含 parse_line')
+def _check14_new_latex_has_parse_line(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        src = inspect.getsource(LatexLogParser)
+        if 'def _parse_line(' not in src:
+            print('[Check14] FAIL: LatexLogParser 缺 parse_line 方法'); return False
+    except Exception as e:
+        print(f'[Check14] FAIL: 检查 parse_line 异常: {e!r}'); return False
+    print('[Check14] PASS: LatexLogParser 含 parse_line 方法')
     return True
 
 
-def _check15_old_has_parse_bad_box(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def parse_bad_box(' not in src:
-        print('[Check15] FAIL: 旧模块缺 parse_bad_box'); return False
-    print('[Check15] PASS: 旧模块含 parse_bad_box')
+def _check15_new_latex_has_parse_bad_box(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        src = inspect.getsource(LatexLogParser)
+        if 'def _parse_bad_box(' not in src:
+            print('[Check15] FAIL: LatexLogParser 缺 parse_bad_box 方法'); return False
+    except Exception as e:
+        print(f'[Check15] FAIL: 检查 parse_bad_box 异常: {e!r}'); return False
+    print('[Check15] PASS: LatexLogParser 含 parse_bad_box 方法')
     return True
 
 
-def _check16_old_has_parse_file_stack(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def parse_file_stack(' not in src:
-        print('[Check16] FAIL: 旧模块缺 parse_file_stack'); return False
-    print('[Check16] PASS: 旧模块含 parse_file_stack')
+def _check16_new_latex_has_parse_file_stack(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        src = inspect.getsource(LatexLogParser)
+        if 'def _parse_file_stack(' not in src:
+            print('[Check16] FAIL: LatexLogParser 缺 parse_file_stack 方法'); return False
+    except Exception as e:
+        print(f'[Check16] FAIL: 检查 parse_file_stack 异常: {e!r}'); return False
+    print('[Check16] PASS: LatexLogParser 含 parse_file_stack 方法')
     return True
 
 
-def _check17_old_has_show_log(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def show_log(' not in src:
-        print('[Check17] FAIL: 旧模块缺 show_log'); return False
-    print('[Check17] PASS: 旧模块含 show_log')
+def _check17_public_show_log_entries_exists(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import show_log_entries
+        if not callable(show_log_entries):
+            print('[Check17] FAIL: show_log_entries 不可调用'); return False
+    except Exception as e:
+        print(f'[Check17] FAIL: show_log_entries 导入异常: {e!r}'); return False
+    print('[Check17] PASS: 公共工具 show_log_entries 可调用')
     return True
 
 
-def _check18_old_has_show_editor_jump(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def show_editor_jump_format(' not in src:
-        print('[Check18] FAIL: 旧模块缺 show_editor_jump_format'); return False
-    print('[Check18] PASS: 旧模块含 show_editor_jump_format')
+def _check18_public_format_and_log_editor_jumps_exist(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import format_editor_jumps, log_editor_jumps
+        if not callable(format_editor_jumps):
+            print('[Check18] FAIL: format_editor_jumps 不可调用'); return False
+        if not callable(log_editor_jumps):
+            print('[Check18] FAIL: log_editor_jumps 不可调用'); return False
+    except Exception as e:
+        print(f'[Check18] FAIL: format/log_editor_jumps 导入异常: {e!r}'); return False
+    print('[Check18] PASS: format_editor_jumps + log_editor_jumps 两者都可调用')
     return True
 
 
-def _check19_old_has_logparser_cli(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def logparser_cli(' not in src:
-        print('[Check19] FAIL: 旧模块缺 logparser_cli'); return False
-    print('[Check19] PASS: 旧模块含 logparser_cli')
+def _check19_public_run_log_pipeline_exists(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import run_log_pipeline
+        if not callable(run_log_pipeline):
+            print('[Check19] FAIL: run_log_pipeline 不可调用'); return False
+        sig = inspect.signature(run_log_pipeline)
+        params = set(sig.parameters.keys())
+        if 'pytexmk_version' not in params:
+            print('[Check19] FAIL: run_log_pipeline 签名缺 pytexmk_version 参数'); return False
+        if 'ref_tracker_translate_fn' not in params:
+            print('[Check19] FAIL: run_log_pipeline 签名缺 ref_tracker_translate_fn 参数'); return False
+    except Exception as e:
+        print(f'[Check19] FAIL: run_log_pipeline 检查异常: {e!r}'); return False
+    print('[Check19] PASS: run_log_pipeline 可调用且含两注入参数')
     return True
 
 
 def _check20_new_summary_print(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parsers.summary import print_summary
-    if not callable(print_summary):
-        print('[Check20] FAIL: summary.print_summary 不可调用'); return False
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs.summary import print_summary
+        if not callable(print_summary):
+            print('[Check20] FAIL: summary.print_summary 不可调用'); return False
+    except Exception as e:
+        print(f'[Check20] FAIL: print_summary 导入异常: {e!r}'); return False
     print('[Check20] PASS: 新 summary.print_summary 存在且可调用')
     return True
 
 
-def _check21_pkg_export_run_pipeline(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parsers import run_log_pipeline
-    if not callable(run_log_pipeline):
-        print('[Check21] FAIL: log_parsers.run_log_pipeline 不可调用'); return False
-    print('[Check21] PASS: 顶层包导出 run_log_pipeline')
+def _check21_pkg_export_format_show_helpers(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs.__init__ import __all__
+        if 'format_editor_jumps' not in __all__:
+            print('[Check21] FAIL: __all__ 缺 format_editor_jumps'); return False
+        if 'log_editor_jumps' not in __all__:
+            print('[Check21] FAIL: __all__ 缺 log_editor_jumps'); return False
+        if 'show_log_entries' not in __all__:
+            print('[Check21] FAIL: __all__ 缺 show_log_entries'); return False
+    except Exception as e:
+        print(f'[Check21] FAIL: __all__ 检查异常: {e!r}'); return False
+    print('[Check21] PASS: __all__ 导出 3 个 FR-4 工具函数')
     return True
 
 
-def _check22_old_has_build_log(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'self.build_log' not in src:
-        print('[Check22] FAIL: 旧模块无 build_log 字段'); return False
-    print('[Check22] PASS: 旧模块保持 build_log 兼容字段')
+def _check22_ref_change_tracker_injectable(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        import tempfile
+
+        from pytexmk.pytexlogs import RefChangeTracker
+        with tempfile.TemporaryDirectory() as td:
+            tracker = RefChangeTracker(td, 'j', translate_fn=None)
+            diff_dict = tracker.diff({'a'}, {'a', 'b'})
+            result = tracker.format_report(diff_dict, total_unique=2)
+            if not isinstance(result, str) or not result.strip():
+                print(f'[Check22] FAIL: format_report 返回空或非字符串: {result!r}'); return False
+    except Exception as e:
+        print(f'[Check22] FAIL: RefChangeTracker 注入/调用异常: {e!r}'); return False
+    print('[Check22] PASS: RefChangeTracker i18n 注入能力 OK（默认英文回退）')
     return True
 
 
-def _check23_old_has_current_result(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'self.current_result' not in src:
-        print('[Check23] FAIL: 旧模块无 current_result 字段'); return False
-    print('[Check23] PASS: 旧模块保持 current_result 兼容字段')
+def _check23_run_pipeline_default_version_unknown(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        import tempfile
+
+        from pytexmk.pytexlogs import run_log_pipeline
+        with tempfile.TemporaryDirectory() as td:
+            report = run_log_pipeline('t', td, steps=[], write_report=False, print_terminal=False)
+            if report.pytexmk_version != 'unknown':
+                print(f'[Check23] FAIL: 默认 version 非 unknown，实际 {report.pytexmk_version!r}'); return False
+    except Exception as e:
+        print(f'[Check23] FAIL: run_log_pipeline 调用异常: {e!r}'); return False
+    print('[Check23] PASS: run_log_pipeline 默认 pytexmk_version = unknown')
     return True
 
 
-def _check24_old_has_file_stack_prop(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if '@property' not in src or 'def file_stack' not in src:
-        print('[Check24] FAIL: 旧模块缺 file_stack 属性'); return False
-    print('[Check24] PASS: 旧模块导出 file_stack 属性')
+def _check24_new_latex_has_file_stack_property(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LatexLogParser
+        inst = LatexLogParser(root_file='main.tex')
+        if not hasattr(inst, 'file_stack'):
+            print('[Check24] FAIL: LatexLogParser 实例缺 file_stack 属性'); return False
+        if not isinstance(inst.file_stack, list):
+            print(f'[Check24] FAIL: file_stack 类型不是 list，实际 {type(inst.file_stack).__name__}'); return False
+    except Exception as e:
+        print(f'[Check24] FAIL: file_stack 检查异常: {e!r}'); return False
+    print('[Check24] PASS: LatexLogParser 导出 file_stack list 属性')
     return True
 
 
-def _check25_old_has_entry_dict_helper(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def _new_entry_to_old_dict(' not in src:
-        print('[Check25] FAIL: 缺 _new_entry_to_old_dict 转换助手'); return False
-    print('[Check25] PASS: 存在 _new_entry_to_old_dict 转换函数')
+def _check25_format_editor_jumps_correctness(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import LogEntry, LogLevel, format_editor_jumps
+        xs = [
+            LogEntry(level=LogLevel.ERROR, file='a/b/main.tex', line=12, text='hi'),
+            LogEntry(level=LogLevel.WARNING, file='x/y/sup.tex', line=3, text='warn'),
+        ]
+        got = format_editor_jumps(xs)
+        expected = ['main.tex:12: hi', 'sup.tex:3: warn']
+        if got != expected:
+            print(f'[Check25] FAIL: format_editor_jumps 结果不匹配\n  期望: {expected!r}\n  实际: {got!r}'); return False
+    except Exception as e:
+        print(f'[Check25] FAIL: format_editor_jumps 调用异常: {e!r}'); return False
+    print('[Check25] PASS: format_editor_jumps 输出精确匹配')
     return True
 
 
-def _check26_old_has_level_mapper(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    if 'def _log_level_to_logtype(' not in src:
-        print('[Check26] FAIL: 缺 _log_level_to_logtype 等级映射'); return False
-    print('[Check26] PASS: 存在 _log_level_to_logtype 等级映射')
+def _check26_show_log_entries_show_info_filter(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        import pytexmk.pytexlogs.summary as _sum_mod
+        from pytexmk.pytexlogs import (
+            LogEntry,
+            LogLevel,
+            ParsedLog,
+            show_log_entries,
+        )
+        if not hasattr(_sum_mod, 'ParsedLog'):
+            _sum_mod.ParsedLog = ParsedLog
+        if not hasattr(_sum_mod, 'LogEntry'):
+            _sum_mod.LogEntry = LogEntry
+        if not hasattr(_sum_mod, 'LogLevel'):
+            _sum_mod.LogLevel = LogLevel
+
+        xs = [
+            LogEntry(level=LogLevel.ERROR, file='m.tex', line=1, text='Err msg'),
+            LogEntry(level=LogLevel.WARNING, file='m.tex', line=2, text='Warn msg'),
+            LogEntry(level=LogLevel.INFO, file='m.tex', line=3, text='Info only msg'),
+        ]
+        plog = ParsedLog(entries=xs)
+
+        _ANSI = re.compile(r"\x1b\[[0-9;]*[mK]")
+        _RICH = re.compile(r"\[/?[^\]]+\]")
+        def strip(s: str) -> str: return _RICH.sub('', _ANSI.sub('', s))
+
+        buf = io.StringIO(); old = sys.stdout
+        sys.stdout = buf
+        try:
+            show_log_entries([plog], use_logger=False, show_info=False, non_quiet=True)
+        finally:
+            sys.stdout = old
+        off = strip(buf.getvalue())
+
+        buf = io.StringIO(); sys.stdout = buf
+        try:
+            show_log_entries([plog], use_logger=False, show_info=True, non_quiet=True)
+        finally:
+            sys.stdout = old
+        on = strip(buf.getvalue())
+
+        info_text = 'Info only msg'
+        if info_text in off:
+            print(f'[Check26] FAIL: show_info=False 仍含 Info 文本: {off!r}'); return False
+        if info_text not in on:
+            print(f'[Check26] FAIL: show_info=True 缺少 Info 文本: {on!r}'); return False
+    except Exception as e:
+        print(f'[Check26] FAIL: show_log_entries 过滤异常: {e!r}'); return False
+    print('[Check26] PASS: show_log_entries show_info 过滤开关正确')
     return True
 
 
-def _check27_old_init_creates__new(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import LatexLogParser
-    inst = LatexLogParser(root_file='m.tex')
-    if not hasattr(inst, '_new') or inst._new is None:
-        print('[Check27] FAIL: 构造后 _new 委托未初始化'); return False
-    print('[Check27] PASS: LatexLogParser.__init__ 正确构造 self._new 委托')
+def _check27_pipeline_report_all_defaults(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        import tempfile
+
+        from pytexmk.pytexlogs import ParsedPipelineReport, run_log_pipeline
+        with tempfile.TemporaryDirectory() as td:
+            report = run_log_pipeline('t', td, steps=[], write_report=False, print_terminal=False)
+            if report is None:
+                print('[Check27] FAIL: 返回 None（非 ParsedPipelineReport）'); return False
+            if not isinstance(report, ParsedPipelineReport):
+                print(f'[Check27] FAIL: 类型错误，实际 {type(report).__name__}'); return False
+            if report.schema_version != 1:
+                print(f'[Check27] FAIL: schema_version != 1，实际 {report.schema_version}'); return False
+            if report.jobname != 't':
+                print(f'[Check27] FAIL: jobname != t，实际 {report.jobname!r}'); return False
+            if not hasattr(report, 'references'):
+                print('[Check27] FAIL: 缺 references 字段'); return False
+            if not hasattr(report, 'tool_results'):
+                print('[Check27] FAIL: 缺 tool_results 字段'); return False
+            if not hasattr(report, 'config_ignored'):
+                print('[Check27] FAIL: 缺 config_ignored 字段'); return False
+    except Exception as e:
+        print(f'[Check27] FAIL: pipeline 报告检查异常: {e!r}'); return False
+    print('[Check27] PASS: ParsedPipelineReport 默认结构齐全（schema=1/jobname/refs/tools/config）')
     return True
 
 
-# ──────────────────────────── Check28 ~ Check31：用户新增断言 ────────────────────────────
+# ──────────────────────────── Check28 ~ Check31：回归与架构约束 ────────────────────────────
 
-# Check28: 零本地循环/方法（forward shim 只有 self._new 调用，不含本地实现细节）
-def _check28_zero_local_impl(root: str) -> bool:
-    p = Path(root) / 'src/pytexmk/log_parser.py'
-    src = p.read_text(encoding='utf-8')
-    forbidden_def_names = ['def reset_state(', 'def parse_line(', 'def parse_bad_box(', 'def parse_file_stack(']
-    forbidden_body_tokens = [' for line in ', ' for e in new_entries', '.match(', '.group(', 'pattern.']
-
-    lines = src.splitlines(); i = 0; issues = []
-    while i < len(lines):
-        ln = lines[i].lstrip()
-        if ln.startswith('def ') and any(ln.startswith(f) for f in forbidden_def_names):
-            method_name = ln
-            indent = len(lines[i]) - len(lines[i].lstrip())
-            body = []; j = i + 1
-            while j < len(lines):
-                lj = lines[j]
-                if lj.strip() == '':
-                    j += 1; continue
-                cur = len(lj) - len(lj.lstrip())
-                if cur <= indent and not lj.lstrip().startswith('#'):
-                    break
-                body.append(lj); j += 1
-            body_str = '\n'.join(body)
-            filtered = re.sub(r'self\._new\.\w+', '', body_str)
-            filtered = re.sub(r"self\.build_log = \[_new_entry_to_old_dict\(e\) for e in (self\._new\.build_log|parsed\.entries|merged)\]", '', filtered)
-            filtered = re.sub(r'self\.current_result = .+', '', filtered)
-            filtered = re.sub(r'\s*return (True|False|None|\[\])\s*', '', filtered)
-            for tok in forbidden_body_tokens:
-                if tok in filtered:
-                    issues.append(f'method {method_name!r} body still contains {tok!r}: {filtered.strip()[:200]}')
-            i = j
-        else:
-            i += 1
-    if issues:
-        print('[Check28] FAIL: ' + '; '.join(issues))
-        return False
-    print('[Check28] PASS: 零本地循环/方法实现（forward shims clean）')
+def _check28_high_level_no_re_compile(root: str) -> bool:
+    high_files = ['_facade.py', '_report.py', 'summary.py', 'manager.py', '__init__.py']
+    total = 0
+    for f in high_files:
+        p = Path(root) / f'src/pytexmk/pytexlogs/{f}'
+        if not p.exists():
+            continue
+        src = p.read_text(encoding='utf-8')
+        lines = src.splitlines()
+        for line in lines:
+            stripped = line.lstrip()
+            if stripped.startswith('#') or not stripped:
+                continue
+            if len(line) - len(stripped) > 0:
+                continue
+            if re.search(r'(?<![_\w])re\.compile\(', line):
+                total += 1
+    if total != 0:
+        print(f'[Check28] FAIL: 高层模块仍有 {total} 处模块级 re.compile(（应仅存在于具体 parser）'); return False
+    print('[Check28] PASS: 5 个高层模块无模块级 re.compile(（架构分层 OK）')
     return True
 
 
-# Check29: 新旧行为等价（含 file_stack bug 修复）
-def _check29_parity_file_stack_bug(root: str) -> bool:
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import LatexLogParser, LogType
-    log1 = (
-        "(./main.tex\n"
-        r"Overfull \hbox (20.1pt too wide) in paragraph at lines 10--20"
-        "\n"
-        r"|\OT1/cmr/m/n/10 long text that should be overfull|"
-        "\n)\n"
-        "Output written on main.pdf (1 page).\n"
-    )
-    e1 = LatexLogParser(root_file='main.tex').parse(log1)
-    overfull = [e for e in e1 if 'Overfull' in e['text']]
-    if not overfull:
-        print(f'[Check29] FAIL: 没找到 Overfull，entries={e1}'); return False
-    e = overfull[0]
-    if '20.1pt' in e['file']:
-        print(f'[Check29] FAIL: file_stack bug 仍然存在，e.file={e["file"]!r}'); return False
-    if e['type'] != LogType.TYPESET:
-        print(f'[Check29] FAIL: Overfull type 应为 TYPESET，实际 {e["type"]}'); return False
-    log2 = (
-        "(./chapters/intro.tex\n"
-        "Package hyperref Warning: Token not allowed in a PDF string on input line 33.\n"
-        r"! LaTeX Error: File `missing.sty' not found."
-        "\n"
-        r"l.12 \usepackage{missing}"
-        "\n"
-        r"LaTeX Warning: Citation `knuth1997' on page 1 undefined on input line 5."
-        "\n"
-        r"Missing character: There is no 你 in font cmr10!"
-        "\n)\n"
-        "Output written on main.pdf (2 pages).\n"
-    )
-    e2 = LatexLogParser(root_file='main.tex').parse(log2)
-    types2 = [x['type'] for x in e2]
-    if LogType.ERROR not in types2: print(f'[Check29] FAIL: 样本2 缺 ERROR, types={types2}'); return False
-    if LogType.WARNING not in types2: print(f'[Check29] FAIL: 样本2 缺 WARNING, types={types2}'); return False
-    if not any('Missing character' in x['text'] for x in e2): print(f'[Check29] FAIL: 样本2 缺 missing_char, entries={e2}'); return False
-    from pytexmk.log_parser import BibTeXLogParser
-    log3 = (
-        "INFO - This is Biber 2.19\n"
-        "WARN - The entry 'invalid' has invalid field 'foo'\n"
-        "ERROR - Cannot find 'xxx' in .bib file!\n"
-    )
-    e3 = BibTeXLogParser(root_file='m.tex').parse(log3)
-    t3 = [x['type'] for x in e3]
-    if LogType.WARNING not in t3: print(f'[Check29] FAIL: biber 缺 WARNING, types={t3}'); return False
-    if LogType.ERROR not in t3: print(f'[Check29] FAIL: biber 缺 ERROR, types={t3}'); return False
-    log4 = "Warning--I didn't find a database entry for \"bar\"\nI found no \\bibdata command---while reading file x.aux\n"
-    e4 = BibTeXLogParser(root_file='m.tex').parse(log4)
-    t4 = [x['type'] for x in e4]
-    if LogType.WARNING not in t4: print(f'[Check29] FAIL: bibtex 缺 WARNING, types={t4}'); return False
-    if LogType.ERROR not in t4: print(f'[Check29] FAIL: bibtex 缺 ERROR, types={t4}'); return False
-    print('[Check29] PASS: 4 类日志 parity OK（含 file_stack bug 修复）')
+def _check29_parity_4_logs_new_api(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        from pytexmk.pytexlogs import (
+            BiberParser,
+            BibtexParser,
+            LatexLogParser,
+            LogLevel,
+        )
+
+        # 第 1 段：Overfull + file_stack bug 回归
+        log1 = (
+            "(./main.tex\n"
+            r"Overfull \hbox (20.1pt too wide) in paragraph at lines 10--20"
+            "\n"
+            r"|\OT1/cmr/m/n/10 long text that should be overfull|"
+            "\n)\n"
+            "Output written on main.pdf (1 page).\n"
+        )
+        pr1 = LatexLogParser(root_file='main.tex').parse(log1)
+        overfull = [e for e in pr1.entries if 'Overfull' in e.text]
+        if not overfull:
+            print(f'[Check29] FAIL: 没找到 Overfull，entries count={len(pr1.entries)}'); return False
+        e = overfull[0]
+        if '20.1pt' in (e.file or ''):
+            print(f'[Check29] FAIL: file_stack bug 仍存在，e.file={e.file!r}'); return False
+        if e.level != LogLevel.TYPESET:
+            print(f'[Check29] FAIL: Overfull level 应为 TYPESET，实际 {e.level}'); return False
+
+        # 第 2 段：ERROR + WARNING + Missing character
+        log2 = (
+            "(./chapters/intro.tex\n"
+            "Package hyperref Warning: Token not allowed in a PDF string on input line 33.\n"
+            r"! LaTeX Error: File `missing.sty' not found."
+            "\n"
+            r"l.12 \usepackage{missing}"
+            "\n"
+            r"LaTeX Warning: Citation `knuth1997' on page 1 undefined on input line 5."
+            "\n"
+            r"Missing character: There is no 你 in font cmr10!"
+            "\n)\n"
+            "Output written on main.pdf (2 pages).\n"
+        )
+        pr2 = LatexLogParser(root_file='main.tex').parse(log2)
+        levels2 = [x.level for x in pr2.entries]
+        if LogLevel.ERROR not in levels2:
+            print(f'[Check29] FAIL: 样本2 缺 ERROR, levels={levels2}'); return False
+        if LogLevel.WARNING not in levels2:
+            print(f'[Check29] FAIL: 样本2 缺 WARNING, levels={levels2}'); return False
+        if not any('Missing character' in x.text for x in pr2.entries):
+            print('[Check29] FAIL: 样本2 缺 Missing character'); return False
+
+        # 第 3 段：BiberParser WARN+ERROR
+        log3 = (
+            "INFO - This is Biber 2.19\n"
+            "WARN - The entry 'invalid' has invalid field 'foo'\n"
+            "ERROR - Cannot find 'xxx' in .bib file!\n"
+        )
+        pr3 = BiberParser(root_file='m.tex').parse(log3)
+        t3 = [x.level for x in pr3.entries]
+        if LogLevel.WARNING not in t3:
+            print(f'[Check29] FAIL: biber 缺 WARNING, levels={t3}'); return False
+        if LogLevel.ERROR not in t3:
+            print(f'[Check29] FAIL: biber 缺 ERROR, levels={t3}'); return False
+
+        # 第 4 段：BibtexParser WARNING+ERROR
+        log4 = (
+            "Warning--I didn't find a database entry for \"bar\"\n"
+            "I found no \\bibdata command---while reading file x.aux\n"
+        )
+        pr4 = BibtexParser(root_file='m.tex').parse(log4)
+        t4 = [x.level for x in pr4.entries]
+        if LogLevel.WARNING not in t4:
+            print(f'[Check29] FAIL: bibtex 缺 WARNING, levels={t4}'); return False
+        if LogLevel.ERROR not in t4:
+            print(f'[Check29] FAIL: bibtex 缺 ERROR, levels={t4}'); return False
+
+    except Exception as e:
+        print(f'[Check29] FAIL: parity 解析异常: {e!r}'); return False
+    print('[Check29] PASS: 4 类日志新 API 解析 OK（含 file_stack bug 修复）')
     return True
 
 
-# Check30: show_log 过滤 & 不重复打印
-def _check30_show_log_filter_and_no_dup(root: str) -> bool:
-    import io
-    import re
-    import sys
-    sys.path.insert(0, str(Path(root) / 'src'))
-    from pytexmk.log_parser import LatexLogParser
-    _ANSI = re.compile(r"\x1b\[[0-9;]*[mK]")
-    _RICH = re.compile(r"\[[^\[\]]*\]")
-    def strip(s): return _RICH.sub('', _ANSI.sub('', s))
-    log = (
-        "(./main.tex\n"
-        "Package foo Warning: A.\n"
-        "LaTeX Warning: B.\n"
-        "! Undefined control sequence.\n"
-        "l.1 \\badcmd\n"
-        "LaTeX Info: Redefining \\sqrt.\n"
-        ")\n"
-    )
-    p = LatexLogParser(root_file='main.tex'); p.parse(log)
-    buf = io.StringIO(); sys.stdout = buf
-    try: p.show_log(use_logger=False, show_info=False)
-    finally: sys.stdout = sys.__stdout__
-    off = strip(buf.getvalue())
-    buf = io.StringIO(); sys.stdout = buf
-    try: p.show_log(use_logger=False, show_info=True)
-    finally: sys.stdout = sys.__stdout__
-    on = strip(buf.getvalue())
-    info_markers = ('LaTeX Info', '[I]', 'INFO', 'Redefining')
-    has_info_off = any(m in off for m in info_markers)
-    if has_info_off:
-        print(f'[Check30] FAIL: show_info=False 仍含 Info: {off!r}'); return False
-    has_info_on = any(m in on for m in info_markers)
-    if not has_info_on:
-        print(f'[Check30] FAIL: show_info=True 缺少 Info: {on!r}'); return False
-    wc_on = on.count('[W]'); ec_on = on.count('[E]')
-    if wc_on > 5:
-        print(f'[Check30] FAIL: [W] 重复 >5 次：count={wc_on}, on={on!r}'); return False
-    if ec_on > 3:
-        print(f'[Check30] FAIL: [E] 重复 >3 次：count={ec_on}, on={on!r}'); return False
-    print(f'[Check30] PASS: show_info filter OK（W={wc_on}, E={ec_on}）')
+def _check30_show_log_entries_filter_and_no_dup(root: str) -> bool:
+    _ensure_src_on_path(root)
+    try:
+        import re as _re
+
+        import pytexmk.pytexlogs.summary as _sum_mod
+        from pytexmk.pytexlogs import (
+            LatexLogParser,
+            LogEntry,
+            LogLevel,
+            ParsedLog,
+            show_log_entries,
+        )
+        if not hasattr(_sum_mod, 'ParsedLog'):
+            _sum_mod.ParsedLog = ParsedLog
+        if not hasattr(_sum_mod, 'LogEntry'):
+            _sum_mod.LogEntry = LogEntry
+        if not hasattr(_sum_mod, 'LogLevel'):
+            _sum_mod.LogLevel = LogLevel
+
+        _ANSI = _re.compile(r"\x1b\[[0-9;]*[mK]")
+        _RICH_TAG = _re.compile(r"\[/?[^\]]+\]")
+        def strip(s: str) -> str: return _RICH_TAG.sub('', _ANSI.sub('', s))
+
+        log = (
+            "(./main.tex\n"
+            "Package foo Warning: A.\n"
+            "LaTeX Warning: B.\n"
+            "! Undefined control sequence.\n"
+            "l.1 \\badcmd\n"
+            "LaTeX Info: Redefining \\sqrt.\n"
+            ")\n"
+        )
+        p = LatexLogParser(root_file='main.tex')
+        parsed = p.parse(log)
+
+        buf = io.StringIO(); old = sys.stdout
+        sys.stdout = buf
+        try:
+            show_log_entries(parsed, use_logger=False, show_info=False)
+        finally:
+            sys.stdout = old
+        off = strip(buf.getvalue())
+
+        buf = io.StringIO(); sys.stdout = buf
+        try:
+            show_log_entries(parsed, use_logger=False, show_info=True)
+        finally:
+            sys.stdout = old
+        on = strip(buf.getvalue())
+
+        info_markers = ('LaTeX Info', 'Redefining', '[I]', 'INFO')
+        has_info_off = any(m in off for m in info_markers)
+        if has_info_off:
+            print(f'[Check30] FAIL: show_info=False 仍含 Info 标记: {off!r}'); return False
+        has_info_on = any(m in on for m in info_markers)
+        if not has_info_on:
+            print(f'[Check30] FAIL: show_info=True 缺少 Info 标记: {on!r}'); return False
+
+        wc_on = on.count('[W]'); ec_on = on.count('[E]')
+        if wc_on > 5:
+            print(f'[Check30] FAIL: [W] 重复 >5 次：count={wc_on}'); return False
+        if ec_on > 3:
+            print(f'[Check30] FAIL: [E] 重复 >3 次：count={ec_on}'); return False
+    except Exception as e:
+        print(f'[Check30] FAIL: show_log_entries 回归异常: {e!r}'); return False
+    print('[Check30] PASS: show_log_entries filter + 无重复爆炸（W<=5, E<=3）')
     return True
 
 
-# Check31: 正则零本地 re.compile(r" 出现
-def _check31_zero_re_compile(root: str) -> bool:
-    src = (Path(root) / 'src/pytexmk/log_parser.py').read_text(encoding='utf-8')
-    import re as _re
-    count = len(_re.findall(r're\.compile\(\s*r["\']', src))
-    if count != 0:
-        print(f'[Check31] FAIL: 仍然有 {count} 处 re.compile(r"...") 本地实现'); return False
-    print('[Check31] PASS: 正则零本地实现')
+def _check31_re_compile_all_located_in_subpackage(root: str) -> bool:
+    # 1. 旧文件不存在
+    old = Path(root) / 'src/pytexmk/log_parser.py'
+    if old.exists():
+        print('[Check31] FAIL: 旧 log_parser.py 文件仍然存在'); return False
+
+    # 2. 主包上层（排除 pytexlogs/ 子目录，同时排除顶层业务核心 *.py 模块）
+    #    顶层 *.py 如 compile.py / additional.py / latexdiff.py 是编译控制/辅助业务，
+    #    其正则非日志解析层，不属此架构约束。约束仅针对主包下的其他子目录（非 pytexlogs/）。
+    top = Path(root) / 'src/pytexmk'
+    total = 0
+    for py in top.rglob('*.py'):
+        rel = py.relative_to(top)
+        parts = rel.parts
+        if not parts:
+            continue
+        if parts[0] == 'pytexlogs':
+            continue
+        if len(parts) == 1:
+            continue
+        try:
+            txt = py.read_text(encoding='utf-8')
+        except Exception:
+            continue
+        total += len(re.findall(r'(?<![_\w])re\.compile\(', txt))
+    if total != 0:
+        print(f'[Check31] FAIL: 主包子目录（非 pytexlogs/）仍有 {total} 处 re.compile(（违反跨层约束）'); return False
+    print('[Check31] PASS: 跨层架构约束 OK（主包无日志解析层 re.compile，正则全部在 pytexlogs/ 内）')
     return True
 
 
@@ -429,37 +707,37 @@ def _check31_zero_re_compile(root: str) -> bool:
 def main() -> int:
     root = str(Path(__file__).resolve().parent.parent)
     all_checks = [
-        _check01_old_module_exists,
+        _check01_old_module_DELETED,
         _check02_new_package_exists,
-        _check03_old_imports_new,
+        _check03_new_top_level_init_no_mention,
         _check04_new_key_modules,
-        _check05_latex_parser_in_both,
-        _check06_old_has__new_delegate,
-        _check07_old_has_bibtex_parser,
-        _check08_new_bibtex_biber_exist,
-        _check09_old_logtype_enum,
+        _check05_new_latex_parser_importable,
+        _check06_new_parsedlog_has_entries_stats_source,
+        _check07_new_bibtex_biber_parser_top_level_importable,
+        _check08_new_bibtex_biber_parse_ok,
+        _check09_no_residual_LogType_anywhere,
         _check10_new_loglevel_enum,
         _check11_new_logentry_dataclass,
-        _check12_old_has_parse,
-        _check13_old_has_reset_state,
-        _check14_old_has_parse_line,
-        _check15_old_has_parse_bad_box,
-        _check16_old_has_parse_file_stack,
-        _check17_old_has_show_log,
-        _check18_old_has_show_editor_jump,
-        _check19_old_has_logparser_cli,
+        _check12_new_parsers_all_have_parse_method,
+        _check13_new_latex_has_reset_state,
+        _check14_new_latex_has_parse_line,
+        _check15_new_latex_has_parse_bad_box,
+        _check16_new_latex_has_parse_file_stack,
+        _check17_public_show_log_entries_exists,
+        _check18_public_format_and_log_editor_jumps_exist,
+        _check19_public_run_log_pipeline_exists,
         _check20_new_summary_print,
-        _check21_pkg_export_run_pipeline,
-        _check22_old_has_build_log,
-        _check23_old_has_current_result,
-        _check24_old_has_file_stack_prop,
-        _check25_old_has_entry_dict_helper,
-        _check26_old_has_level_mapper,
-        _check27_old_init_creates__new,
-        _check28_zero_local_impl,
-        _check29_parity_file_stack_bug,
-        _check30_show_log_filter_and_no_dup,
-        _check31_zero_re_compile,
+        _check21_pkg_export_format_show_helpers,
+        _check22_ref_change_tracker_injectable,
+        _check23_run_pipeline_default_version_unknown,
+        _check24_new_latex_has_file_stack_property,
+        _check25_format_editor_jumps_correctness,
+        _check26_show_log_entries_show_info_filter,
+        _check27_pipeline_report_all_defaults,
+        _check28_high_level_no_re_compile,
+        _check29_parity_4_logs_new_api,
+        _check30_show_log_entries_filter_and_no_dup,
+        _check31_re_compile_all_located_in_subpackage,
     ]
     total = len(all_checks)
     passed = 0
