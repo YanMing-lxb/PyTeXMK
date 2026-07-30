@@ -3,7 +3,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from pytexmk.log_parsers import (
+from pytexmk.pytexlogs import (
     AsymptoteParser,
     MintedParser,
     PythontexParser,

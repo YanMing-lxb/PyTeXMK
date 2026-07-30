@@ -1,30 +1,30 @@
 from __future__ import annotations
 
 import logging
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
-import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from pytexmk.log_parsers.base import (
+from pytexmk.pytexlogs.asymptote import AsymptoteParser
+from pytexmk.pytexlogs.base import (
     BaseLogParser,
     LogEntry,
     LogLevel,
     ParsedLog,
 )
-from pytexmk.log_parsers.asymptote import AsymptoteParser
-from pytexmk.log_parsers.biber import BiberParser
-from pytexmk.log_parsers.bibtex import BibtexParser
-from pytexmk.log_parsers.glossaries import GlossariesParser
-from pytexmk.log_parsers.latexlog import LatexLogParser
-from pytexmk.log_parsers.makeindex import MakeindexParser
-from pytexmk.log_parsers.minted import MintedParser
-from pytexmk.log_parsers.nomencl import NomenclParser
-from pytexmk.log_parsers.pythontex import PythontexParser
-from pytexmk.log_parsers.xindy import XindyParser
+from pytexmk.pytexlogs.biber import BiberParser
+from pytexmk.pytexlogs.bibtex import BibtexParser
+from pytexmk.pytexlogs.glossaries import GlossariesParser
+from pytexmk.pytexlogs.latexlog import LatexLogParser
+from pytexmk.pytexlogs.makeindex import MakeindexParser
+from pytexmk.pytexlogs.minted import MintedParser
+from pytexmk.pytexlogs.nomencl import NomenclParser
+from pytexmk.pytexlogs.pythontex import PythontexParser
+from pytexmk.pytexlogs.xindy import XindyParser
 
 logging.basicConfig(level=logging.CRITICAL)
 
@@ -71,7 +71,7 @@ def _old_parsed_log_to_result(
 
 
 class OldLogParserManager:
-    _STEP_TO_PARSER: dict[str, type[BaseLogParser]] = {
+    _STEP_TO_PARSER: ClassVar[dict[str, type[BaseLogParser]]] = {
         "pdflatex": LatexLogParser,
         "xelatex": LatexLogParser,
         "lualatex": LatexLogParser,
@@ -92,7 +92,7 @@ class OldLogParserManager:
         "minted": MintedParser,
     }
 
-    _STEP_TO_CATEGORY: dict[str, str] = {
+    _STEP_TO_CATEGORY: ClassVar[dict[str, str]] = {
         "pdflatex": "compile",
         "xelatex": "compile",
         "lualatex": "compile",
@@ -113,7 +113,7 @@ class OldLogParserManager:
         "minted": "code",
     }
 
-    _STEP_TO_IMPORTANCE: dict[str, Literal["high", "medium", "low"]] = {
+    _STEP_TO_IMPORTANCE: ClassVar[dict[str, Literal["high", "medium", "low"]]] = {
         "pdflatex": "high",
         "xelatex": "high",
         "lualatex": "high",
@@ -413,7 +413,7 @@ def main() -> int:
         old_mgr = OldLogParserManager()
         old_results = old_mgr.run(jobname, tmpdir, steps, captured)
 
-        from pytexmk.log_parsers.manager import LogParserManager as NewLogParserManager
+        from pytexmk.pytexlogs.manager import LogParserManager as NewLogParserManager
         new_mgr = NewLogParserManager()
         new_results = new_mgr.run(jobname, tmpdir, steps, captured)
 
@@ -423,7 +423,7 @@ def main() -> int:
             print(f"  ✗ 长度不一致！ diff = {len(new_results) - len(old_results)}")
             ok_all = False
         else:
-            print(f"  ✓ 长度一致")
+            print("  ✓ 长度一致")
 
         n = min(len(old_results), len(new_results))
         print(f"\n[3] 逐字段对比前 {n} 条结果：")

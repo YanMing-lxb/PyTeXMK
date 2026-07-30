@@ -5,8 +5,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from pytexmk.log_parsers.manager import LogParserManager
-from pytexmk.log_parsers.latexlog import LatexLogParser
+from pytexmk.pytexlogs.latexlog import LatexLogParser
+from pytexmk.pytexlogs.manager import LogParserManager
 
 
 def main() -> int:
@@ -62,14 +62,14 @@ def main() -> int:
             results = manager.run('main', tmpdir, steps=['my_step'], captured_outputs=captured)
             if len(results) == 1:
                 r = results[0]
-                print(f"  ✓ run() 返回 1 条结果")
+                print("  ✓ run() 返回 1 条结果")
                 print(f"    tool_name={r.tool_name!r} (期望 'my_step')")
                 print(f"    category={r.category!r}")
                 print(f"    len(entries)={len(r.entries)}")
                 print(f"    stats.stats['error']={r.stats.stats.get('error')}")
                 print(f"    stats.stats['warning']={r.stats.stats.get('warning')}")
                 if r.tool_name != 'my_step':
-                    print(f"  ✗ tool_name 错误")
+                    print("  ✗ tool_name 错误")
                     ok_all = False
             else:
                 print(f"  ✗ run() 返回 {len(results)} 条结果，期望 1")
@@ -81,7 +81,7 @@ def main() -> int:
             ok_all = False
 
     print("\n[Test 4] 验证 register 后，fallback 也生效（用完全未知的 step_name）")
-    from pytexmk.log_parsers.bibtex import BibtexParser
+    from pytexmk.pytexlogs.bibtex import BibtexParser
     manager2 = LogParserManager()
     manager2.register('custom_bib', BibtexParser)
     spec2 = manager2.lookup('custom_bib')
@@ -98,6 +98,10 @@ def main() -> int:
     else:
         print("[FAIL] TR-2.2 存在上述失败项")
         return 1
+
+
+def test_tr22_register_compat():
+    assert main() == 0
 
 
 if __name__ == "__main__":
