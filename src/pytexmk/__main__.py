@@ -1,4 +1,5 @@
-"""
+"""PyTeXMK CLI 主入口：命令行解析、编译调度与日志解析.
+
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -48,7 +49,7 @@ from pytexmk.info_print import (
 )
 from pytexmk.language import set_language
 from pytexmk.latexdiff import LaTeXDiff_Aux
-from pytexmk.log_parser import LatexLogParser
+from pytexmk.log_parsers import run_log_pipeline
 
 # 日志与语言配置
 from pytexmk.logger_config import setup_logger
@@ -64,7 +65,9 @@ _ = set_language("__main__")
 
 
 class CustomArgumentParser(argparse.ArgumentParser):
+    """自定义 ArgumentParser：退出时打印魔法注释说明表与版本检查。"""
     def exit(self, status=0, message=None):
+        """自定义 argparse 退出：帮助时打印魔法注释说明与版本检查。"""
         if (
             status == 0 and message is None
         ):  # 只有在请求帮助信息时,status 为 0,message 为 None
@@ -82,6 +85,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
 
 
 class CustomHelpFormatter(RichHelpFormatter):
+    """自定义 RichHelpFormatter：定制 LaTeXDiff 参数元变量显示。"""
     def _format_args(self, action, default_metavar):
         if action.dest == "LaTeXDiff_compile" or action.dest == "LaTeXDiff":
             return "OLD_FILE NEW_FILE"
@@ -93,6 +97,7 @@ class CustomHelpFormatter(RichHelpFormatter):
 # --------------------------------------------------------------------------------
 def parse_args():
     # 创建 ArgumentParser 对象
+    """定义并解析 PyTeXMK 命令行参数，返回 argparse.Namespace。"""
     parser = CustomArgumentParser(
         prog="pytexmk",
         description=_("[i]LaTeX 辅助编译程序  ---- 焱铭[/]"),
@@ -215,6 +220,7 @@ def parse_args():
 # 标准化名称方法
 # --------------------------------------------------------------------------------
 def standardize_name(compiled_program):
+    """标准化编译器名称：xelatex→XeLaTeX，pdflatex→PdfLaTeX，lualatex→LuaLaTeX。"""
     standard_names = {
         "xelatex": "XeLaTeX",
         "pdflatex": "PdfLaTeX",
@@ -227,7 +233,8 @@ def standardize_name(compiled_program):
 # 主程序
 # --------------------------------------------------------------------------------
 def main():
-    start_time = datetime.datetime.now()  # 计算开始时间
+    """PyTeXMK CLI 主入口：配置初始化、编译调度、日志解析、PDF 预览。"""
+    start_time = datetime.datetime.now()  # noqa: DTZ005
 
     MFO = MainFileOperation()  # 实例化 MainFileOperation 类
     MRO = MoveRemoveOperation()  # 实例化 MoveRemoveOperation 类
@@ -240,7 +247,6 @@ def main():
     default_file = "main"
     compiled_program = "XeLaTeX"
     non_quiet = False
-    local_config_auto_init = True  # 是否自动创建本地配置文件
 
     pdf_preview_status = "preview after compile"
     pdf_viewer = "default"  # PDF查看器: default为默认PDF查看器
@@ -340,7 +346,7 @@ def main():
 
                 time.sleep(60)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # 记录打开 README 文件时的错误信息
             logger.error(_("打开 README 文件出错: ") + str(e))
         finally:
@@ -737,7 +743,7 @@ def main():
                     MRO.move_specific_files, out_files, ".", outdir
                 )  # 将输出文件移动到指定目录
                 runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(_("LaTeXDiff 编译出错: ") + str(e))
             exit_pytexmk()
         finally:
@@ -811,11 +817,7 @@ def main():
             )  # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-            # 初始化日志解析器
-            log_parser = LatexLogParser()
-
-            # 解析日志
-            log_parser.logparser_cli(auxdir, project_name)
+            run_log_pipeline(project_name, auxdir, root_file=project_name)
 
     # --------------------------------------------------------------------------------
     # 编译结束后 PDF 预览
