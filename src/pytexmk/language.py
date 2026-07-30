@@ -33,6 +33,7 @@ from pathlib import Path
 # 定义系统语言检查函数
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
+    """根据系统区域设置配置 gettext，返回 _() 翻译函数。"""
     current_locale = locale.getdefaultlocale()
     if hasattr(sys, "_MEIPASS"):
         locale_path = Path(sys._MEIPASS) / "locale"
