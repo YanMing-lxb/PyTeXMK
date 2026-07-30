@@ -50,6 +50,7 @@ BIBTEX_CITE_PATTERN = re.compile(r"\\citation\{(.*)\}")  # 匹配\citation{}命�
 
 
 class CompileLaTeX:
+    """编译流水线调度器：编排 LaTeX/Bib/Index 多轮编译与重试。"""
     def __init__(
         self,
         project_name,
@@ -123,7 +124,7 @@ class CompileLaTeX:
         else:
             # 如果不存在.aux文件,初始化引用计数器为默认值
             cite_counter = {f"{self.project_name}.aux": defaultdict(int)}
-            index_aux_content_dict_old = dict()
+            index_aux_content_dict_old = {}
         # 使用Path对象创建项目名称对应的.toc文件路径
         toc_file_path = Path(f"{self.project_name}.toc")
         # 检查是否存在.toc文件
@@ -157,7 +158,7 @@ class CompileLaTeX:
         - 如果某个aux文件不存在或无法读取,则跳过该文件.
         - 返回包含所有aux文件引用数量的字典.
         """
-        cite_counter = dict()
+        cite_counter = {}
         file_name = f"{self.project_name}.aux"
         with open(file_name, "r", encoding="utf-8") as fobj:
             main_aux_content = fobj.read()
@@ -198,7 +199,7 @@ class CompileLaTeX:
         file_name = Path(
             f"{self.project_name}.aux"
         )  # 使用pathlib构造主aux文件的文件名,格式为项目名加上.aux后缀
-        index_aux_content_dict_old = dict()  # 定义一个字典,用于存储旧的索引辅助文件内容
+        index_aux_content_dict_old = {}  # 定义一个字典,用于存储旧的索引辅助文件内容
 
         # 读取主aux文件
         if file_name.exists():  # 使用pathlib检查主aux文件是否存在
@@ -213,7 +214,7 @@ class CompileLaTeX:
                 for match in re.finditer(
                     pattern, main_aux
                 ):  # 使用正则表达式查找所有匹配的词汇表条目
-                    name, ext_o, ext_i = (
+                    _name, ext_o, ext_i = (
                         match.groups()
                     )  # 提取匹配的组,分别是词汇表名称、输出扩展和输入扩展
                     if (
@@ -228,32 +229,30 @@ class CompileLaTeX:
                             index_ext_i_content
                         )
             # 判断并获取 nomencl 宏包的辅助文件内容
-            if Path(f"{self.project_name}.nlo").exists():
-                if (
-                    Path(f"{self.project_name}.nlo").exists()
-                    and Path(f"{self.project_name}.nls").exists()
-                ):  # 使用pathlib判断输出和输入扩展文件是否同时存在
-                    with open(
-                        Path(f"{self.project_name}.nlo"), "r", encoding="utf-8"
-                    ) as fobj:
-                        index_ext_i_content = fobj.read()
-                    index_aux_content_dict_old[f"{self.project_name}.nlo"] = (
-                        index_ext_i_content
-                    )
+            if Path(f"{self.project_name}.nlo").exists() and (
+                Path(f"{self.project_name}.nlo").exists()
+                and Path(f"{self.project_name}.nls").exists()
+            ):  # 使用pathlib判断输出和输入扩展文件是否同时存在
+                with open(
+                    Path(f"{self.project_name}.nlo"), "r", encoding="utf-8"
+                ) as fobj:
+                    index_ext_i_content = fobj.read()
+                index_aux_content_dict_old[f"{self.project_name}.nlo"] = (
+                    index_ext_i_content
+                )
 
             # 判断并获取 makeidx 宏包的辅助文件内容
-            if Path(f"{self.project_name}.idx").exists():
-                if (
-                    Path(f"{self.project_name}.idx").exists()
-                    and Path(f"{self.project_name}.ind").exists()
-                ):  # 使用pathlib判断输出和输入扩展文件是否同时存在
-                    with open(
-                        Path(f"{self.project_name}.idx"), "r", encoding="utf-8"
-                    ) as fobj:
-                        index_ext_i_content = fobj.read()
-                    index_aux_content_dict_old[f"{self.project_name}.{ext_i}"] = (
-                        index_ext_i_content
-                    )
+            if Path(f"{self.project_name}.idx").exists() and (
+                Path(f"{self.project_name}.idx").exists()
+                and Path(f"{self.project_name}.ind").exists()
+            ):  # 使用pathlib判断输出和输入扩展文件是否同时存在
+                with open(
+                    Path(f"{self.project_name}.idx"), "r", encoding="utf-8"
+                ) as fobj:
+                    index_ext_i_content = fobj.read()
+                index_aux_content_dict_old[f"{self.project_name}.{ext_i}"] = (
+                    index_ext_i_content
+                )
         else:
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
 
