@@ -51,7 +51,7 @@ def inswhl():
     console.print("📦 开始安装测试 PyTeXMK", style="status")
 
     uninstall_success = run_command(
-        command=["uv", "pip", "uninstall", "pytexmk"],
+        command=["uv", "tool", "uninstall", "pytexmk"],
         success_msg="旧版 PyTeXMK 卸载完成",
         error_msg="旧版 PyTeXMK 卸载失败",
         process_name="卸载旧版 PyTeXMK",
@@ -61,7 +61,7 @@ def inswhl():
     if not whl_files:
         raise FileNotFoundError("dist 目录中没有找到 .whl 文件")
     install_success = run_command(
-        command=["uv", "pip", "install", str(whl_files[0])],
+        command=["uv", "tool", "install", str(whl_files[0])],
         success_msg="测试 PyTeXMK 安装完成",
         error_msg="测试 PyTeXMK 安装失败",
         process_name="安装测试版 PyTeXMK",
