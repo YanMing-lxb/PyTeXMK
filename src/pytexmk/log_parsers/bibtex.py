@@ -21,7 +21,7 @@ __all__ = [
     "single_line_bibtex_warning_re",
 ]
 
-single_line_bibtex_warning_re = re.compile(r"^Warning--(.+) in ([^\s]+)\s*$")
+single_line_bibtex_warning_re = re.compile(r"^Warning--(.+?)(?:\s+in\s+(?:file\s+)?(\S+))?\s*$")
 multi_line_bibtex_warning_re = re.compile(
     r"(?m)^Warning--(.+)\n--line (\d+) of file (.+)$"
 )
@@ -177,8 +177,12 @@ class BibtexParser(BaseLogParser):
 
         match = single_line_bibtex_warning_re.match(line)
         if match:
-            filename = self._fix_bib_bib_dup(match.group(2))
-            filename = self._resolve_bib_file(filename)
+            raw_file = match.group(2)
+            if raw_file:
+                filename = self._fix_bib_bib_dup(raw_file)
+                filename = self._resolve_bib_file(filename)
+            else:
+                filename = self.root_file
             self._warnings_count += 1
             self.build_log.append(
                 LogEntry(
