@@ -40,8 +40,10 @@ console = console.Console()
 
 
 class LaTeXDiff_Aux:
+    """latexdiff 辅助类：负责 TeX 文件展开、diff 调用、目录清理。"""
     def __init__(self, outdir, suffixes_out, suffixes_aux, auxdir):
 
+        """初始化 LaTeXDiff_Aux：缓存输出/辅助目录、后缀列表与子进程包装。"""
         self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
         self.suffixes_out = suffixes_out
         self.suffixes_aux = suffixes_aux
@@ -144,7 +146,7 @@ class LaTeXDiff_Aux:
                 flattenLatex(f"{file_name}.tex")
             sys.stdout = sys.__stdout__
             self.logger.info(_("已压平文件: ") + output_file_name + ".tex")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("压平出错: ") + str(e))
             exit_pytexmk()
 
@@ -181,6 +183,7 @@ class LaTeXDiff_Aux:
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
     def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
+        """调用 latexdiff 命令生成差异 TeX 文件。"""
         command = [
             "latexdiff",
             old_tex_file + suffix,
