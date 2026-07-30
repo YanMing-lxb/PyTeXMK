@@ -50,6 +50,7 @@ dev = [
     "cython>=3.2.9",
     "pillow>=11.0.0",
     "pyinstaller>=6.21.0",
+    "pytest>=9.1.1",
 ]
 
 [tool.setuptools.dynamic]
@@ -58,3 +59,14 @@ version = {attr = "pytexmk.version.__version__"}
 [tool.setuptools.package-data]
 "pytexmk.data" = ["README.html","*.toml"]
 pytexmk = ["locale/en/LC_MESSAGES/*.mo"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["BLE001", "S112", "DTZ005", "PLW1510"]
+"scripts/*" = ["BLE001", "S112", "DTZ005", "PLW1510"]
+"tests/test.py" = ["BLE001", "S112", "DTZ005", "PLW1510"]
+"tests/test_tr21_manager_compare.py" = ["BLE001", "S112", "DTZ005", "PLW1510"]
+"tests/test_tr22_register_compat.py" = ["BLE001", "S112", "DTZ005", "PLW1510"]
+"scripts/check_log_decouple.py" = ["BLE001", "S112", "DTZ005", "PLW1510"]
