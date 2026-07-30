@@ -49,6 +49,7 @@ def RUN(
     draft,
 ):
     # 草稿模式函数启用
+    """主编译流程：草稿模式、多轮 LaTeX/Bib/Index 编译、统计时长。"""
     MFO.draft_model(project_name, draft, True)
 
     abbreviations_num = ("1st", "2nd", "3rd", "4th", "5th", "6th")
@@ -88,13 +89,12 @@ def RUN(
     bib_engine, Latex_compilation_times_bib, print_bib, name_target_bib = (
         return_bib_judgment  # 获取 bib_judgment 函数得到的参数
     )
-    if bib_engine:
-        if Latex_compilation_times_bib != 0:
-            print_message(_("%(args)s 编译文献") % {"args": bib_engine}, "running")
-            runtime_bib = time_count(
-                compile_model.compile_bib, bib_engine
-            )  # 编译参考文献
-            runtime_dict[_("%(args)s 编译") % {"args": name_target_bib}] = runtime_bib
+    if bib_engine and Latex_compilation_times_bib != 0:
+        print_message(_("%(args)s 编译文献") % {"args": bib_engine}, "running")
+        runtime_bib = time_count(
+            compile_model.compile_bib, bib_engine
+        )  # 编译参考文献
+        runtime_dict[_("%(args)s 编译") % {"args": name_target_bib}] = runtime_bib
 
     # 编译索引
     runtime_makindex_judgment, return_index_judgment = time_count(
@@ -181,6 +181,7 @@ def LaTeXDiffRUN(
     draft,
 ):
     # 草稿模式函数启用
+    """LaTeXDiff 差异文档编译流程：两轮 LaTeX 编译以稳定目录引用。"""
     MFO.draft_model(project_name, draft, True)
 
     abbreviations_num = ("1st", "2nd")
