@@ -13,6 +13,18 @@ from typing import Literal
 from ..language import set_language
 from .biber import BiberParser
 
+__all__ = [
+    "RefChangeTracker",
+    "citation_command_re",
+    "input_re",
+]
+
+input_re = re.compile(r"\\(?:input|include)\{(.+?)\}")
+citation_command_re = re.compile(
+    r"\\(?:cite|upcite|citet|citep|parencite|textcite|footcite|smartcite|autocite)\{([^}]+)\}",
+    re.IGNORECASE,
+)
+
 logger = logging.getLogger(__name__)
 _ = set_language("log_parser")
 
