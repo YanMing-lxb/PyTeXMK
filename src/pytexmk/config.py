@@ -1,3 +1,4 @@
+"""配置管理模块：加载/生成/校验用户配置与项目配置 TOML 文件。"""
 import logging
 import tomllib
 from collections import defaultdict
@@ -39,7 +40,7 @@ class ConfigParser:
             user_home_path = Path.home()  # 获取用户主目录
             self.logger.info(_("用户主目录路径: ") + str(user_home_path))
             return user_home_path / ".pytexmkrc"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("获取用户主目录路径失败: ") + str(e))
             return None
 
@@ -65,7 +66,7 @@ class ConfigParser:
                 config = tomllib.load(f)
             self.logger.info(_("成功加载配置文件: ") + str(path))
             return config
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return None
 
@@ -87,7 +88,7 @@ class ConfigParser:
                     default_config = f.read()
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(default_config)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.logger.error(_("创建默认配置文件失败: ") + f"{path} --> {e}")
         else:
             self._check_and_correct_config(path, config_file)
@@ -105,7 +106,7 @@ class ConfigParser:
         try:
             with open(path, "rb") as f:
                 existing_config = tomllib.load(f)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return
 
@@ -157,7 +158,7 @@ class ConfigParser:
                     with open(path, "wb") as f:
                         tomli_w.dump(ordered_config, f)
                     self.logger.info(_("配置文件更新成功: ") + str(path))
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     self.logger.error(_("配置文件更新失败: ") + f"{path} --> {e}")
             elif choice in ["no", "n"]:
                 self.logger.info(_("请稍后手动修改配置文件"))
