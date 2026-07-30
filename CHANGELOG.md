@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## v1.1.0 - 2026-07-30
+
+### 🎉 新增
+
+- **独立日志解析子包 `pytexlogs`（G6 可提取独立第三方库架构）**：
+  - 新增 `src/pytexmk/pytexlogs/` 独立子包（原 `log_parsers/` 统一更名），可整体复制为顶级包 `pytexlogs/`，在不含 `pytexmk` 环境下独立导入与运行（NFR-3 命名空间 B 全 4 PASS 验证通过）
+  - 对外纯数据常量：`LATEX_LOG_HINTS` / `BIBTEX_ERROR_HINTS` / `BIBER_WARNING_HINTS`（含 9/4/3 条常见错误修复建议映射）
+  - 对外纯函数工具：`format_editor_jumps(entries) -> list[str]` / `log_editor_jumps(entries, logger=None)` / `show_log_entries(entries, use_logger, show_info)` 替代旧类方法
+  - 对外解析入口：`run_log_pipeline(tex_engine, tex_output, bibtex_output, biber_output, other_engine_outputs, quiet=True, ref_tracker_translate_fn=None, pytexmk_version=None)` 关键字-only 版本号/翻译函数纯参数注入
+  - 对外解析器：`LatexLogParser.parse_lines(lines: list[str], root_file=None)` + `quiet:bool` 兼容参数
+
+### 🚀 改进
+
+- **旧 API 全部升级到新 API（零兼容层）**：彻底删除 `src/pytexmk/log_parser.py` 旧 `LogType`/`LogEntry` 别名/`LatexLogParser`/`BibTeXLogParser` 薄转发，仓库内 0 残留
+- **反向依赖清零（跨层解耦 FR-1）**：`pytexlogs/` 子包内部**禁止** `from ..xxx` 跳出子包与 `from pytexmk.xxx` 非子包导入；i18n 翻译函数（`language._`）与版本号（`version.__version__`）均由上层 `additional.py / __main__.py` 通过参数注入，独立库默认回退英文/`unknown`
+- **重命名 `log_parsers` → `pytexlogs`（与 `pytexmk` 家族命名对齐）**：
+  - 顶层调用：`__main__.py / additional.py` → `from pytexmk.pytexlogs`
+  - 脚本：`scripts/check_log_decouple.py` 8 类路径/import/`parts[0]=='pytexlogs'` 架构断言 全部对齐
+  - 测试：`tests/test_log_parsers.py / test_summary.py / test_tr21_manager_compare.py / test_tr22_register_compat.py` 10 文件全量子模块 import 对齐
+  - logger 名：`pytexmk.log_parsers` → `pytexmk.pytexlogs`
+- **架构约束加强**：Check31 跨层断言由「正则全部在 pytexlogs/ 内」，顶层非 pytexlogs 子目录 0 处 `re.compile` 日志解析正则
+
+### 🧪 测试（发布前硬验证）
+
+- V1 命名空间 A：`from pytexmk.pytexlogs import {LatexLogParser,...,run_log_pipeline,RefChangeTracker}` 全部公共符号导入链完整
+- V2 解耦脚本：`scripts/check_log_decouple.py` **31/31 checks passed**
+- V3 pytest：`tests/test_log_parsers.py + test_summary.py + test_tr22_register_compat.py` **9 passed**
+- 🥇 G6 命名空间 B：临时目录复制 `src/pytexmk/pytexlogs/ → 顶级包 pytexlogs/`（sys.path 仅临时目录、无 pytexmk），4 PASS → **`G6_PASS_NAMESPACE_B: pytexlogs standalone OK`** exit_code=0
+
 ## v1.0.5 - 2025-07-25
 
 ### 🎉 新增
