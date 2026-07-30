@@ -470,3 +470,4 @@ TSWLatexianTemp*
 #*Notes.bib
 
 *.pytexmkrc
+.trae/*
