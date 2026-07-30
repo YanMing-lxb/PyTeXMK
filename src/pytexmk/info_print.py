@@ -66,11 +66,11 @@ def time_count(fun, *args):
     """
     try:
         # 获取当前时间作为函数执行的开始时间
-        time_start = datetime.datetime.now()
+        time_start = datetime.datetime.now()  # noqa: DTZ005
         # 调用传入的函数并传入参数,获取函数返回值
         fun_return = fun(*args)
         # 获取当前时间作为函数执行的结束时间
-        time_end = datetime.datetime.now()
+        time_end = datetime.datetime.now()  # noqa: DTZ005
         # 计算函数执行的总时间(以秒为单位)
         time_run = (time_end - time_start).total_seconds()
         # 如果函数没有返回值,只返回执行时间
@@ -78,7 +78,7 @@ def time_count(fun, *args):
             return round(time_run, 4)
         # 否则返回函数执行时间和函数返回值,时间保留四位小数
         return round(time_run, 4), fun_return
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # 如果执行函数时出错,记录错误信息并返回None
         logger.error(
             _("执行函数 %(args)s 时出错: ") % {"args": {fun.__name__}} + str(e)
@@ -90,6 +90,7 @@ def time_count(fun, *args):
 # 计算 text 中非ASCII字符的数量
 # --------------------------------------------------------------------------------
 def get_text_len(text):
+    """计算 text 的显示长度（中文按双宽计数）。"""
     non_ascii_len = sum(1 for i in text if not i.isascii())
     text_len = len(text) + non_ascii_len
     return text_len
@@ -148,7 +149,7 @@ def print_message(message, state):
         console.print("\n" + out_dec_chars * total_len, style=f"{out_dec_chars_style}")
         console.print(banner)
         console.print(out_dec_chars * total_len + "\n", style=f"{out_dec_chars_style}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(_("打印模块信息时出错: ") + str(e))  # 记录错误日志
 
 
@@ -176,7 +177,7 @@ def time_print(start_time, runtime_dict):
     - 如果在执行过程中发生异常,将错误信息记录到日志中.
     """
     try:
-        end_time = datetime.datetime.now()  # 计算结束时间
+        end_time = datetime.datetime.now()  # noqa: DTZ005  # 计算结束时间
         run_time = end_time - start_time  # 计算运行时间
         total_seconds = run_time.total_seconds()  # 获取总秒数
         hours, remainder = divmod(int(total_seconds), 3600)  # 计算小时数
@@ -297,7 +298,7 @@ def time_print(start_time, runtime_dict):
         print(
             _("运行 LaTeX 程序数目: ") + f"{number_programmes_run}"
         )  # 打印运行函数数量
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(_("打印运行时长统计表时出错: ") + str(e))  # 记录错误信息
 
 
@@ -356,5 +357,5 @@ def magic_comment_desc_table():
             table.add_row(f"{i + 1}", key, value)
 
         return table
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(_("打印魔法注释说明表时出错: ") + str(e))  # 记录错误信息
