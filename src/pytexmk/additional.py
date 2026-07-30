@@ -1,4 +1,5 @@
-"""
+"""PyTeXMK 辅助功能模块：主文件检索、魔法注释解析、文件移动删除、PDF 预览修复.
+
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -38,7 +39,7 @@ from rich.theme import Theme
 
 from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.language import set_language
-from pytexmk.log_parser import LatexLogParser
+from pytexmk.log_parsers import run_log_pipeline
 
 _ = set_language("additional")
 
@@ -56,9 +57,11 @@ console = Console(theme=custom_theme, legacy_windows=False)
 
 
 class MySubProcess:
+    """子进程调用封装：执行外部命令、捕获输出、处理失败时的文件回滚。"""
     def __init__(
         self, outdir, auxdir, project_name: str | None = None, latexdiff: bool = False
     ):
+        """初始化 MySubProcess：缓存 outdir/auxdir/project_name 与 MoveRemoveOperation 引用。"""
         self.logger = logging.getLogger(__name__)
         self.project_name = project_name
         self.latexdiff = latexdiff
@@ -129,13 +132,14 @@ class MySubProcess:
             self.MRO.move_specific_files(out_files, ".", self.outdir)
 
             if not self.latexdiff:
-                log_parser = LatexLogParser()
-                log_parser.logparser_cli(self.auxdir, self.project_name)
+                run_log_pipeline(self.project_name, self.auxdir, root_file=None)
             exit_pytexmk()
 
 
 class MoveRemoveOperation:
+    """文件移动与删除操作：按后缀/正则批量移动或清理辅助文件。"""
     def __init__(self):
+        """初始化 MoveRemoveOperation：配置 logger。"""
         self.logger = logging.getLogger(__name__)
 
     # --------------------------------------------------------------------------------
@@ -333,7 +337,9 @@ class MoveRemoveOperation:
 
 
 class MainFileOperation:
+    """主文件操作：TeX 文件发现、魔法注释解析、项目名称匹配。"""
     def __init__(self):
+        """初始化 MainFileOperation：配置 logger。"""
         self.logger = logging.getLogger(__name__)
 
     # --------------------------------------------------------------------------------
@@ -460,7 +466,7 @@ class MainFileOperation:
                 )
                 self.logger.warning(_("当前终端路径: ") + str(current_path))
                 exit_pytexmk()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("文件搜索失败: ") + f"{suffix} --> {e}")
         return suffix_files_in_dir
 
@@ -525,7 +531,7 @@ class MainFileOperation:
                         self.logger.info(
                             _("通过特征命令检索到主文件: ") + str(file_name)
                         )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 # 捕获并记录文件读取错误
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
 
@@ -607,7 +613,7 @@ class MainFileOperation:
                                     matched_comment_value  # 存储魔法注释
                                 )
                                 break  # 跳出当前循环,避免在一行中重复匹配同一关键字
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.logger.error(_("打开文件失败: ") + f"{file_path} --> {e}")
                 continue  # 跳过当前文件,继续处理下一个文件
 
@@ -842,16 +848,19 @@ class MainFileOperation:
             self.logger.error(_("文件未找到: ") + file_name)
         except PermissionError:
             self.logger.error(_("权限错误: 无法读取或写入文件: ") + file_name)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("更新草稿模式时出错: " + str(e)))
 
 
 class PdfFileOperation:
+    """PDF 文件操作：PDF 预览、PDF 修复、默认阅读器配置。"""
     def __init__(self, viewer="default"):
+        """初始化 PdfFileOperation：配置 logger 与默认 PDF 阅读器。"""
         self.logger = logging.getLogger(__name__)
         self.viewer = viewer
 
     def set_viewer(self, new_viewer):
+        """设置默认 PDF 阅读器并持久化到应用配置文件。"""
         self.viewer = new_viewer
 
     # --------------------------------------------------------------------------------
@@ -913,7 +922,7 @@ class PdfFileOperation:
             self.logger.info(_("文件路径: ") + f"{local_path}")
             # 使用 webbrowser 打开 pdf 文件
             self._preview_pdf_by_viewer(local_path)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # 记录打开 README 文件时的错误信息
             self.logger.error(_("打开文件失败: ") + f"{pdf_name} -->{e}")
         finally:
@@ -989,6 +998,6 @@ class PdfFileOperation:
                     writer.write(f)
 
                 self.logger.info(_("修复成功: ") + str(pdf_file))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 self.logger.error(_("修复失败: ") + f"{pdf_file} --> {e}")
         print(_("[bold green]修复 PDF 结束[/bold green]"))
