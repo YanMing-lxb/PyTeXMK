@@ -71,7 +71,7 @@ package_warning_extra_lines_re = re.compile(
     r"^\(.\)([a-zA-Z]+)\s+(.+?)(?: +on input line (\d+))?$"
 )
 
-missing_char_re = re.compile(r"^\s(Missing character:.+?\?)$")
+missing_char_re = re.compile(r"^\s*(Missing character:.+?[?!])$")
 
 bib_empty_re = re.compile(r"^Empty `thebibliography' environment$")
 
