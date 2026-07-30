@@ -1,4 +1,5 @@
-"""
+"""PyTeXMK 版本检查模块：GitHub API 查询最新版本、缓存读写与新版本提示.
+
  =======================================================================
  ····Y88b···d88P················888b·····d888·d8b·······················
  ·····Y88b·d88P·················8888b···d8888·Y8P·······················
@@ -45,6 +46,7 @@ API_URL = f"https://api.github.com/repos/YanMing-lxb/{script_name}/releases/late
 
 
 class UpdateChecker:
+    """版本检查器：GitHub API 查询、缓存读写、新版本提示。"""
     def __init__(self, time_out, cache_time):
         """
         初始化 CheckVersion 类的实例。
@@ -115,7 +117,7 @@ class UpdateChecker:
                         _("版本缓存文件路径: ") + str(self.cache_file)
                     )  # 记录日志信息
                     return data.get("latest_version")  # 返回最新版本号
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("加载缓存版本时出错: ") + str(e))  # 记录错误信息
         return None  # 如果加载失败或缓存文件无效,返回 None
 
@@ -137,7 +139,7 @@ class UpdateChecker:
             with open(self.cache_file, "wb") as f:
                 # 使用 tomli_w 库将最新的版本号写入文件
                 tomli_w.dump({"latest_version": latest_version}, f)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # 如果更新缓存时出错,记录错误日志
             self.logger.error(_("更新版本缓存时出错: ") + str(e))
 
@@ -185,7 +187,7 @@ class UpdateChecker:
             self.logger.error(_("响应数据解析失败"))
         except KeyError:
             self.logger.error(_("响应中缺少版本信息"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             self.logger.error(_("获取GitHub版本失败：") + str(e))
         finally:
             self.logger.info(_("请求耗时：%.2f秒") % (time.time() - start_time))
