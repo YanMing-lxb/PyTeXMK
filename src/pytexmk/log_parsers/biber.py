@@ -12,6 +12,8 @@ from .base import BaseLogParser, LogEntry, LogLevel, ParsedLog
 __all__ = [
     "BiberParser",
     "biber_error_re",
+    "biber_generic_error_re",
+    "biber_generic_warning_re",
     "biber_info_re",
     "biber_line_warning_re",
     "biber_missing_entry_re",
@@ -23,6 +25,8 @@ biber_missing_entry_re = re.compile(
     r"^WARN - (I didn\'t find a database entry for \'.*?\'.*)$"
 )
 biber_line_warning_re = re.compile(r"^WARN - (.*? entry `(.+?)\' .*)$")
+biber_generic_warning_re = re.compile(r"^WARN - (.*)$")
+biber_generic_error_re = re.compile(r"^ERROR - (.*)$")
 
 
 class BiberParser(BaseLogParser):
@@ -113,6 +117,32 @@ class BiberParser(BaseLogParser):
                     file=file,
                     line=1,
                     text=warning_match.group(1),
+                )
+            )
+            return
+
+        warn_generic = biber_generic_warning_re.match(line)
+        if warn_generic:
+            file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            self.build_log.append(
+                LogEntry(
+                    level=LogLevel.WARNING,
+                    file=file,
+                    line=1,
+                    text=warn_generic.group(1),
+                )
+            )
+            return
+
+        err_generic = biber_generic_error_re.match(line)
+        if err_generic:
+            file = self.bib_file_stack[-1] if self.bib_file_stack else self.root_file
+            self.build_log.append(
+                LogEntry(
+                    level=LogLevel.ERROR,
+                    file=file,
+                    line=1,
+                    text=err_generic.group(1),
                 )
             )
             return
