@@ -30,6 +30,7 @@ _ = set_language("log_parser")
 
 
 class LogType(Enum):
+    """兼容旧 API 的日志等级类型别名。"""
     ERROR = "error"
     WARNING = "warning"
     TYPESET = "typesetting"
@@ -128,7 +129,9 @@ file_stack_close_re = re.compile(r"$")
 
 
 class LatexLogParser:
+    """LaTeX .log 日志解析器（兼容旧 API）。"""
     def __init__(self, root_file: str | None = None):
+        """初始化 LatexLogParser（新）：调用父类并设置 latex 默认工具元数据。"""
         self.build_log: list[LogEntry] = []
         self.current_result: LogEntry | None = None
         self.file_stack: list[str] = []
@@ -140,6 +143,7 @@ class LatexLogParser:
         self._resolved_paths = {}
 
     def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
+        """解析 LaTeX .log 文本并返回 ParsedLog。"""
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -160,7 +164,7 @@ class LatexLogParser:
         ):
             self.build_log.append(self.current_result)
 
-        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
+        logger.info(_("共解析 %d 条日志消息") % len(self.build_log))
         return self.build_log
 
     def reset_state(self):
@@ -178,6 +182,7 @@ class LatexLogParser:
         self.nested = 0
 
     def parse_line(self, line: str):
+        """解析单行日志文本，正则匹配错误/警告/坏盒等模式。"""
         line = line.strip("\x00")  # 去除多余空字符
 
         # 忽略空行
@@ -298,6 +303,7 @@ class LatexLogParser:
         self.parse_file_stack(line)
 
     def parse_bad_box(self, line: str) -> bool:
+        r"""解析 Overfull/Underfull \hbox/vbox 坏盒报告。"""
         bad_box_patterns = [
             overfull_box_re,
             overfull_box_alt_re,
@@ -328,6 +334,7 @@ class LatexLogParser:
         return False
 
     def parse_file_stack(self, line: str):
+        """解析日志中的文件开/关栈（括号匹配）信息。"""
         open_match = file_stack_open_re.search(line)
         close_match = file_stack_close_re.search(line)
 
@@ -345,6 +352,7 @@ class LatexLogParser:
                     self.file_stack.pop()
 
     def get_current_file(self) -> str:
+        """根据当前括号嵌套深度返回当前处理的源文件。"""
         current_path = self.file_stack[-1]
         if current_path in self._resolved_paths:
             return self._resolved_paths[current_path]
@@ -352,7 +360,7 @@ class LatexLogParser:
         root_dir = Path(self.root_file).parent
         try:
             resolved = str((root_dir / current_path).resolve())
-        except Exception:
+        except Exception:  # noqa: BLE001
             resolved = current_path
 
         self._resolved_paths[current_path] = resolved
@@ -383,7 +391,7 @@ class LatexLogParser:
                 rel_path = file_path.relative_to(Path.cwd()).as_posix()
             except ValueError:
                 rel_path = file_path.name  # 只显示文件名
-            level = entry["type"].value.upper()
+            entry["type"].value.upper()
             text = entry["text"]
             return f"{rel_path}:{entry['line']} --> {text}"
 
@@ -429,31 +437,17 @@ class LatexLogParser:
             logger.info(success_msg) if use_logger else print(success_msg)
 
     def show_editor_jump_format(self):
+        """按可跳转编辑器格式输出单条错误/警告/信息。"""
         for entry in sorted(self.build_log, key=lambda x: x["type"]):
             file_path = Path(entry["file"]).name
             msg = f"{file_path}:{entry['line']}: {entry['text']}"
             logger.info(msg)
 
     def logparser_cli(self, auxdir, project_name):
-        """
-        命令行接口：解析编译日志并输出结果
-
-        :param auxdir: 辅助文件所在目录
-        :param project_name: LaTeX 项目的主文件名（不带扩展名）
-        """
-        # 构建日志文件路径
-        log_path = Path(auxdir) / f"{project_name}.log"
-
-        try:
-            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-                log_content = f.read()
-        except FileNotFoundError:
-            logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
-            return
-
-        self.root_file = project_name + ".tex"
-        log_entries = self.parse(log_content)
-        self.show_log(use_logger=True, show_info=True)
+        """命令行入口（薄包装）：转发给 run_log_pipeline 统一处理（含摘要+参考文献+报告写盘）。"""
+        from pytexmk.log_parsers import run_log_pipeline
+        rf = self.root_file or (project_name + '.tex')
+        run_log_pipeline(project_name, auxdir, root_file=rf)
 
 
 # ========================
@@ -543,7 +537,7 @@ class BibTeXLogParser:
         if self.current_result and self.current_result["text"]:
             self.build_log.append(self.current_result)
 
-        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
+        logger.info(_("共解析 %d 条日志消息") % len(self.build_log))
         return self.build_log
 
     def reset_state(self) -> None:
@@ -678,7 +672,7 @@ class BibTeXLogParser:
         root_dir = Path(self.root_file).parent
         try:
             resolved = str((root_dir / filename).resolve())
-        except Exception:
+        except Exception:  # noqa: BLE001
             resolved = filename
 
         self._resolved_paths[filename] = resolved
@@ -793,29 +787,10 @@ class BibTeXLogParser:
             logger.info(_("未发现错误或警告"))
 
     def bibtex_logparser_cli(self, auxdir: str, project_name: str) -> None:
-        """
-        命令行接口：解析 BibTeX/Biber 编译日志并输出结果
-
-        Parameters
-        ----------
-        auxdir : str
-            辅助文件所在目录
-        project_name : str
-            LaTeX 项目的主文件名（不带扩展名）
-        """
-        # 构建日志文件路径
-        log_path = Path(auxdir) / f"{project_name}.blg"
-
-        try:
-            with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
-                log_content = f.read()
-        except FileNotFoundError:
-            logger.error(_("找不到日志文件: %(args)s") % {"args": str(log_path)})
-            return
-
-        self.root_file = project_name + ".tex"
-        log_entries = self.parse(log_content)
-        self.show_log(use_logger=True)
+        """BibTeX/Biber 专用 CLI 入口（薄包装）：只跑参考文献相关 steps。"""
+        from pytexmk.log_parsers import run_log_pipeline
+        rf = self.root_file or (project_name + '.tex')
+        run_log_pipeline(project_name, auxdir, steps=['bibtex', 'biber'], root_file=rf)
 
 
 # ========================
@@ -833,7 +808,9 @@ biber_line_warning_re = re.compile(r"^WARN - (.*? entry `(.+?)\' .*)$")
 
 # TODO 添加一种触发机制，当检测到参考文献相关错误时启动key的检索功能，用来确定位置
 class BiberLogParser(BibTeXLogParser):
+    """Biber 日志解析器（兼容旧 API）：继承 BibTeXLogParser 并替换为 Biber 实现。"""
     def __init__(self, root_file: str | None = None):
+        """初始化 BiberLogParser：调用父类构造并替换解析器为 Biber。"""
         super().__init__(root_file)
         self.build_log: list[LogEntry] = []
         self.root_file: str = root_file or ""
@@ -841,6 +818,7 @@ class BiberLogParser(BibTeXLogParser):
         self._resolved_paths = {}  # 缓存已解析的文件路径
 
     def parse(self, log: str, root_file: str | None = None) -> list[LogEntry]:
+        """调用新 BiberParser 解析并将结果转为旧 API 条目列表。"""
         if root_file:
             self.root_file = root_file
         elif not self.root_file:
@@ -861,7 +839,7 @@ class BiberLogParser(BibTeXLogParser):
         if self.current_result and self.current_result["text"]:
             self.build_log.append(self.current_result)
 
-        logger.info(_("共解析 %(args)s 条日志消息" % {"args": len(self.build_log)}))
+        logger.info(_("共解析 %d 条日志消息") % len(self.build_log))
         return self.build_log
 
     def reset_state(self):
@@ -874,6 +852,7 @@ class BiberLogParser(BibTeXLogParser):
         }
 
     def parse_line(self, line: str, exclude_regexp: list):
+        """解析单条 Biber 日志行（兼容旧 API）。"""
         line = line.strip("\x00")  # 去除多余空字符
 
         # 解析 BibTeX 数据源
@@ -930,7 +909,7 @@ class BiberLogParser(BibTeXLogParser):
         root_dir = Path(root_file).parent
         try:
             resolved = str((root_dir / filename).resolve())
-        except Exception:
+        except Exception:  # noqa: BLE001
             resolved = filename
 
         self._resolved_paths[filename] = resolved
@@ -961,7 +940,9 @@ class BiberLogParser(BibTeXLogParser):
 
 
 class CitationCacheManager:
+    """引用缓存管理器：扫描 TeX 源文件构建引用位置缓存并持久化。"""
     def __init__(self, project_name: str, auxdir: str | Path):
+        """初始化 CitationCacheManager：缓存项目名、auxdir、缓存文件路径与 RefChangeTracker。"""
         self.main_file_path = Path(f"{project_name}.tex")
         self.auxdir = Path(auxdir)
         self.cache_file = self.auxdir / f"{project_name}.citecache"  # 新的缓存文件后缀
@@ -1001,7 +982,7 @@ class CitationCacheManager:
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 _("无法读取文件 %(args)s: %(error)s")
                 % {"args": str(file_path), "error": str(e)}
@@ -1042,7 +1023,7 @@ class CitationCacheManager:
             }
             logger.info(_("引用缓存已加载：%(args)s") % {"args": str(self.cache_file)})
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(_("加载缓存失败：%(args)s") % {"args": str(e)})
             return False
 
