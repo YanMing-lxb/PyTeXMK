@@ -49,7 +49,7 @@ from pytexmk.info_print import (
 )
 from pytexmk.language import set_language
 from pytexmk.latexdiff import LaTeXDiff_Aux
-from pytexmk.pytexlogs import run_log_pipeline
+from pytexmk._pytexlogs_compat import run_log_pipeline
 
 # 日志与语言配置
 from pytexmk.logger_config import setup_logger

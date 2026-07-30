@@ -702,7 +702,31 @@ def _check31_re_compile_all_located_in_subpackage(root: str) -> bool:
     return True
 
 
-# ──────────────────────────── 主函数：批量执行 31 个断言 ────────────────────────────
+def _check32_compat_layer(root: str) -> bool:
+    """Check 32: compat 层 + attach 函数存在性（spec G5 logger 桥接）。"""
+    try:
+        _ensure_src_on_path(root)
+        from pytexmk._pytexlogs_compat import (
+            PYTEXLOGS_SOURCE,
+            attach_pytexlogs_handlers_to_pytexmk_logger,
+        )
+        import pytexmk._pytexlogs_compat as _c
+        assert "PYTEXLOGS_SOURCE" in _c.__all__, "PYTEXLOGS_SOURCE not in __all__"
+        assert "attach_pytexlogs_handlers_to_pytexmk_logger" in _c.__all__, "attach not in __all__"
+        import logging as _lg
+        before = len(_lg.getLogger("pytexlogs").handlers)
+        attach_pytexlogs_handlers_to_pytexmk_logger()
+        attach_pytexlogs_handlers_to_pytexmk_logger()
+        after = len(_lg.getLogger("pytexlogs").handlers)
+        assert after - before <= 0, "attach 不幂等，handler 增加了 %d" % (after - before)
+        print('[Check32] PASS: compat layer OK, PYTEXLOGS_SOURCE=%s' % PYTEXLOGS_SOURCE)
+        return True
+    except Exception as _e:  # noqa: BLE001
+        print('[Check32] FAIL: Check 32 (compat layer) - %s' % _e)
+        return False
+
+
+# ──────────────────────────── 主函数：批量执行 32 个断言 ────────────────────────────
 
 def main() -> int:
     root = str(Path(__file__).resolve().parent.parent)
@@ -738,6 +762,7 @@ def main() -> int:
         _check29_parity_4_logs_new_api,
         _check30_show_log_entries_filter_and_no_dup,
         _check31_re_compile_all_located_in_subpackage,
+        _check32_compat_layer,
     ]
     total = len(all_checks)
     passed = 0

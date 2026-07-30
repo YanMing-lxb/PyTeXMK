@@ -39,7 +39,7 @@ from rich.theme import Theme
 
 from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.language import set_language
-from pytexmk.pytexlogs import run_log_pipeline
+from pytexmk._pytexlogs_compat import run_log_pipeline
 from pytexmk.version import __version__
 
 _ = set_language("additional")
