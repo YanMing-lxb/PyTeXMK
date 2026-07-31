@@ -28,6 +28,9 @@ import argparse
 import datetime
 import webbrowser
 
+# 独立库日志解析（PyPI 包 pytexlogs>=0.1.0）
+import pytexlogs
+
 # rich 库（美化 CLI 输出）
 from rich import print
 from rich.console import Console
@@ -49,7 +52,6 @@ from pytexmk.info_print import (
 )
 from pytexmk.language import set_language
 from pytexmk.latexdiff import LaTeXDiff_Aux
-from pytexmk._pytexlogs_compat import run_log_pipeline
 
 # 日志与语言配置
 from pytexmk.logger_config import setup_logger
@@ -817,7 +819,7 @@ def main():
             )  # 将辅助文件移动到指定目录
             runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-            run_log_pipeline(
+            pytexlogs.run_log_pipeline(
                 project_name, auxdir, root_file=project_name,
                 pytexmk_version=__version__,
                 ref_tracker_translate_fn=set_language("log_parser"),
