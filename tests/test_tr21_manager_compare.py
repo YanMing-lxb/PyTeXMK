@@ -9,22 +9,22 @@ from typing import Any, ClassVar, Literal
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from pytexmk.pytexlogs.asymptote import AsymptoteParser
-from pytexmk.pytexlogs.base import (
+from pytexlogs.asymptote import AsymptoteParser
+from pytexlogs.base import (
     BaseLogParser,
     LogEntry,
     LogLevel,
     ParsedLog,
 )
-from pytexmk.pytexlogs.biber import BiberParser
-from pytexmk.pytexlogs.bibtex import BibtexParser
-from pytexmk.pytexlogs.glossaries import GlossariesParser
-from pytexmk.pytexlogs.latexlog import LatexLogParser
-from pytexmk.pytexlogs.makeindex import MakeindexParser
-from pytexmk.pytexlogs.minted import MintedParser
-from pytexmk.pytexlogs.nomencl import NomenclParser
-from pytexmk.pytexlogs.pythontex import PythontexParser
-from pytexmk.pytexlogs.xindy import XindyParser
+from pytexlogs.biber import BiberParser
+from pytexlogs.bibtex import BibtexParser
+from pytexlogs.glossaries import GlossariesParser
+from pytexlogs.latexlog import LatexLogParser
+from pytexlogs.makeindex import MakeindexParser
+from pytexlogs.minted import MintedParser
+from pytexlogs.nomencl import NomenclParser
+from pytexlogs.pythontex import PythontexParser
+from pytexlogs.xindy import XindyParser
 
 logging.basicConfig(level=logging.CRITICAL)
 
@@ -413,7 +413,7 @@ def main() -> int:
         old_mgr = OldLogParserManager()
         old_results = old_mgr.run(jobname, tmpdir, steps, captured)
 
-        from pytexmk.pytexlogs.manager import LogParserManager as NewLogParserManager
+        from pytexlogs.manager import LogParserManager as NewLogParserManager
         new_mgr = NewLogParserManager()
         new_results = new_mgr.run(jobname, tmpdir, steps, captured)
 

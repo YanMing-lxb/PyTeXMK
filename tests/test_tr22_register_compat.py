@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from pytexmk.pytexlogs.latexlog import LatexLogParser
-from pytexmk.pytexlogs.manager import LogParserManager
+from pytexlogs.latexlog import LatexLogParser
+from pytexlogs.manager import LogParserManager
 
 
 def main() -> int:
     print("=" * 70)
-    print("TR-2.2: register() + lookup() 兼容性验证")
+    print("TR-2.2: register() + lookup() 兼容性验证（standalone pytexlogs）")
     print("=" * 70)
     ok_all = True
 
@@ -43,7 +44,6 @@ def main() -> int:
         ok_all = False
 
     print("\n[Test 3] 额外：通过 run(steps=['my_step']) 调用 + captured_outputs 验证")
-    import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         tmpdir = Path(tmp)
         captured = {
@@ -81,7 +81,7 @@ def main() -> int:
             ok_all = False
 
     print("\n[Test 4] 验证 register 后，fallback 也生效（用完全未知的 step_name）")
-    from pytexmk.pytexlogs.bibtex import BibtexParser
+    from pytexlogs.bibtex import BibtexParser
     manager2 = LogParserManager()
     manager2.register('custom_bib', BibtexParser)
     spec2 = manager2.lookup('custom_bib')
