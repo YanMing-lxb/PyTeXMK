@@ -32,6 +32,7 @@ import webbrowser
 from collections import defaultdict
 from pathlib import Path
 
+import pytexlogs
 from pypdf import PdfReader, PdfWriter
 from rich import print
 from rich.console import Console
@@ -39,7 +40,6 @@ from rich.theme import Theme
 
 from pytexmk.auxiliary_fun import exit_pytexmk
 from pytexmk.language import set_language
-from pytexmk._pytexlogs_compat import run_log_pipeline
 from pytexmk.version import __version__
 
 _ = set_language("additional")
@@ -133,7 +133,7 @@ class MySubProcess:
             self.MRO.move_specific_files(out_files, ".", self.outdir)
 
             if not self.latexdiff:
-                run_log_pipeline(
+                pytexlogs.run_log_pipeline(
                     self.project_name, self.auxdir, root_file=None,
                     pytexmk_version=__version__,
                     ref_tracker_translate_fn=set_language("log_parser"),
