@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## v1.1.1 - 2026-07-31
+
+### 🚀 架构变更
+
+- **pytexlogs 正式「独立库化」：彻底移除中间层与内嵌子包**
+  - 删除 `src/pytexmk/_pytexlogs_compat.py` 适配层（原实现「remote 独立库优先 / bundled 内嵌子包 fallback」双轨逻辑），现改为单轨直连 PyPI 包
+  - 删除整个内嵌子包 `src/pytexmk/pytexlogs/`（18 个文件：所有 parser / manager / summary / registry / _facade 等），PyTeXMK 不再捆绑一份 pytexlogs 源码
+  - 顶层调用改写：`src/pytexmk/__main__.py` / `src/pytexmk/additional.py` 统一改为 `import pytexlogs` + `pytexlogs.run_log_pipeline(...)`，版本号与翻译函数仍按原参数注入
+  - 全量脚本/测试改写：`scripts/check_log_decouple.py`（30+ 处 bundled 路径 import）+ `tests/test_log_parsers.py` / `test_summary.py` / `test_tr21_manager_compare.py` / `test_tr22_register_compat.py` 全部切换为顶级 `from pytexlogs import ...` / `from pytexlogs.<submod> import ...`
+
+### 🧩 依赖管理
+
+- **pytexlogs 从「内嵌可选」变为「必选直接依赖」**
+  - `pyproject.toml` 的 `[project].dependencies` 新增 `pytexlogs>=0.1.0`（对应 PyPI 已发布的同名首版包，零运行时依赖）
+  - 安装 PyTeXMK 时会从 PyPI 拉取独立 `pytexlogs`，不再需要从本仓库内嵌子包加载
+- **保持零运行时副作用**：pytexlogs 包本身（0.1.0）无任何第三方运行时依赖，不会因引入该包增加 PyTeXMK 的闭包数量
+
+### 🔗 运行时一致性（日志桥接保留）
+
+- **无中间层后仍保证独立库日志与主程序一致**
+  - 在 `src/pytexmk/logger_config.py` 中新增公开函数 `attach_pytexlogs_handlers_to_pytexmk_logger()`
+  - 逻辑：以 `logging.getLogger("pytexmk")` 为参考，把 `pytexlogs` 顶级 logger 的 level / propagate / handlers 完全对齐，并基于 `type(h).__name__ + baseFilename` 键实现幂等挂载，重复调用不会重复添加 handler
+  - 挂载时机统一收敛到 `setup_logger(verbose)` 末尾调用（等价于旧 compat 层 import-time 自动桥接的 UX）
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 架构断言：`importlib.util.find_spec('pytexmk.pytexlogs') is None` + `find_spec('pytexmk._pytexlogs_compat') is None` → **均为 None，彻底移除成功**
+- 📦 独立库来源断言：`pytexlogs.__file__` 指向 `.venv\Lib\site-packages\pytexlogs\__init__.py`（**site-packages 唯一路径，无 bundled 泄漏**）
+- 🧹 Lint：`ruff check src scripts tests` → **All checks passed!**（0 errors / 0 warnings）
+- ✅ 单元测试：`pytest tests -v` → **9 passed**（含 PythonTeX/Minted/Asymptote 三解析器 + summary 5 项 + TR-2.2 register/lookup 兼容）
+- 🛞 构建产物：`uv build` 成功生成 `pytexmk-1.1.1-py3-none-any.whl`（~93 KB）+ `pytexmk-1.1.1.tar.gz`（~91 KB）
+
 ## v1.1.0 - 2026-07-30
 
 ### 🎉 新增
