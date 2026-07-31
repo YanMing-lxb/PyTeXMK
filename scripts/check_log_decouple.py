@@ -71,7 +71,7 @@ def _check04_new_key_modules(root: str) -> bool:
 def _check05_new_latex_parser_importable(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         inst = LatexLogParser(root_file='m.tex')
         if not inst:
             print('[Check05] FAIL: LatexLogParser 实例化失败'); return False
@@ -84,7 +84,7 @@ def _check05_new_latex_parser_importable(root: str) -> bool:
 def _check06_new_parsedlog_has_entries_stats_source(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser, ParsedLog
+        from pytexlogs import LatexLogParser, ParsedLog
         simple_log = (
             "(./main.tex\n"
             "Package foo Warning: Bar.\n"
@@ -109,7 +109,7 @@ def _check06_new_parsedlog_has_entries_stats_source(root: str) -> bool:
 def _check07_new_bibtex_biber_parser_top_level_importable(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import BiberParser, BibtexParser
+        from pytexlogs import BiberParser, BibtexParser
         b1 = BibtexParser(root_file='m.tex')
         b2 = BiberParser(root_file='m.tex')
         if not (b1 and b2):
@@ -123,7 +123,7 @@ def _check07_new_bibtex_biber_parser_top_level_importable(root: str) -> bool:
 def _check08_new_bibtex_biber_parse_ok(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import BiberParser, BibtexParser, LogLevel
+        from pytexlogs import BiberParser, BibtexParser, LogLevel
         biber_log = "WARN - x\nERROR - y\n"
         pr1 = BiberParser(root_file='m.tex').parse(biber_log)
         levels1 = {e.level for e in pr1.entries}
@@ -170,7 +170,7 @@ def _check09_no_residual_LogType_anywhere(root: str) -> bool:
 def _check10_new_loglevel_enum(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs.base import LogLevel
+        from pytexlogs.base import LogLevel
         m = LogLevel.__members__
         need = {'ERROR', 'WARNING', 'TYPESET', 'INFO', 'FONT', 'GRAPHIC', 'PAGE'}
         if not need.issubset(set(m)):
@@ -186,7 +186,7 @@ def _check11_new_logentry_dataclass(root: str) -> bool:
     try:
         import dataclasses
 
-        from pytexmk.pytexlogs.base import LogEntry
+        from pytexlogs.base import LogEntry
         if not dataclasses.is_dataclass(LogEntry):
             print('[Check11] FAIL: 新 LogEntry 不是 dataclass'); return False
         fields = {f.name for f in dataclasses.fields(LogEntry)}
@@ -202,7 +202,7 @@ def _check11_new_logentry_dataclass(root: str) -> bool:
 def _check12_new_parsers_all_have_parse_method(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import (
+        from pytexlogs import (
             BiberParser,
             BibtexParser,
             LatexLogParser,
@@ -223,7 +223,7 @@ def _check12_new_parsers_all_have_parse_method(root: str) -> bool:
 def _check13_new_latex_has_reset_state(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         src = inspect.getsource(LatexLogParser)
         if 'def _reset_state(' not in src:
             print('[Check13] FAIL: LatexLogParser 缺 reset_state 方法'); return False
@@ -236,7 +236,7 @@ def _check13_new_latex_has_reset_state(root: str) -> bool:
 def _check14_new_latex_has_parse_line(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         src = inspect.getsource(LatexLogParser)
         if 'def _parse_line(' not in src:
             print('[Check14] FAIL: LatexLogParser 缺 parse_line 方法'); return False
@@ -249,7 +249,7 @@ def _check14_new_latex_has_parse_line(root: str) -> bool:
 def _check15_new_latex_has_parse_bad_box(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         src = inspect.getsource(LatexLogParser)
         if 'def _parse_bad_box(' not in src:
             print('[Check15] FAIL: LatexLogParser 缺 parse_bad_box 方法'); return False
@@ -262,7 +262,7 @@ def _check15_new_latex_has_parse_bad_box(root: str) -> bool:
 def _check16_new_latex_has_parse_file_stack(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         src = inspect.getsource(LatexLogParser)
         if 'def _parse_file_stack(' not in src:
             print('[Check16] FAIL: LatexLogParser 缺 parse_file_stack 方法'); return False
@@ -275,7 +275,7 @@ def _check16_new_latex_has_parse_file_stack(root: str) -> bool:
 def _check17_public_show_log_entries_exists(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import show_log_entries
+        from pytexlogs import show_log_entries
         if not callable(show_log_entries):
             print('[Check17] FAIL: show_log_entries 不可调用'); return False
     except Exception as e:
@@ -287,7 +287,7 @@ def _check17_public_show_log_entries_exists(root: str) -> bool:
 def _check18_public_format_and_log_editor_jumps_exist(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import format_editor_jumps, log_editor_jumps
+        from pytexlogs import format_editor_jumps, log_editor_jumps
         if not callable(format_editor_jumps):
             print('[Check18] FAIL: format_editor_jumps 不可调用'); return False
         if not callable(log_editor_jumps):
@@ -301,7 +301,7 @@ def _check18_public_format_and_log_editor_jumps_exist(root: str) -> bool:
 def _check19_public_run_log_pipeline_exists(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import run_log_pipeline
+        from pytexlogs import run_log_pipeline
         if not callable(run_log_pipeline):
             print('[Check19] FAIL: run_log_pipeline 不可调用'); return False
         sig = inspect.signature(run_log_pipeline)
@@ -319,7 +319,7 @@ def _check19_public_run_log_pipeline_exists(root: str) -> bool:
 def _check20_new_summary_print(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs.summary import print_summary
+        from pytexlogs.summary import print_summary
         if not callable(print_summary):
             print('[Check20] FAIL: summary.print_summary 不可调用'); return False
     except Exception as e:
@@ -331,7 +331,7 @@ def _check20_new_summary_print(root: str) -> bool:
 def _check21_pkg_export_format_show_helpers(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs.__init__ import __all__
+        from pytexlogs import __all__
         if 'format_editor_jumps' not in __all__:
             print('[Check21] FAIL: __all__ 缺 format_editor_jumps'); return False
         if 'log_editor_jumps' not in __all__:
@@ -349,7 +349,7 @@ def _check22_ref_change_tracker_injectable(root: str) -> bool:
     try:
         import tempfile
 
-        from pytexmk.pytexlogs import RefChangeTracker
+        from pytexlogs import RefChangeTracker
         with tempfile.TemporaryDirectory() as td:
             tracker = RefChangeTracker(td, 'j', translate_fn=None)
             diff_dict = tracker.diff({'a'}, {'a', 'b'})
@@ -367,7 +367,7 @@ def _check23_run_pipeline_default_version_unknown(root: str) -> bool:
     try:
         import tempfile
 
-        from pytexmk.pytexlogs import run_log_pipeline
+        from pytexlogs import run_log_pipeline
         with tempfile.TemporaryDirectory() as td:
             report = run_log_pipeline('t', td, steps=[], write_report=False, print_terminal=False)
             if report.pytexmk_version != 'unknown':
@@ -381,7 +381,7 @@ def _check23_run_pipeline_default_version_unknown(root: str) -> bool:
 def _check24_new_latex_has_file_stack_property(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LatexLogParser
+        from pytexlogs import LatexLogParser
         inst = LatexLogParser(root_file='main.tex')
         if not hasattr(inst, 'file_stack'):
             print('[Check24] FAIL: LatexLogParser 实例缺 file_stack 属性'); return False
@@ -396,7 +396,7 @@ def _check24_new_latex_has_file_stack_property(root: str) -> bool:
 def _check25_format_editor_jumps_correctness(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import LogEntry, LogLevel, format_editor_jumps
+        from pytexlogs import LogEntry, LogLevel, format_editor_jumps
         xs = [
             LogEntry(level=LogLevel.ERROR, file='a/b/main.tex', line=12, text='hi'),
             LogEntry(level=LogLevel.WARNING, file='x/y/sup.tex', line=3, text='warn'),
@@ -414,8 +414,8 @@ def _check25_format_editor_jumps_correctness(root: str) -> bool:
 def _check26_show_log_entries_show_info_filter(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        import pytexmk.pytexlogs.summary as _sum_mod
-        from pytexmk.pytexlogs import (
+        import pytexlogs.summary as _sum_mod
+        from pytexlogs import (
             LogEntry,
             LogLevel,
             ParsedLog,
@@ -470,7 +470,7 @@ def _check27_pipeline_report_all_defaults(root: str) -> bool:
     try:
         import tempfile
 
-        from pytexmk.pytexlogs import ParsedPipelineReport, run_log_pipeline
+        from pytexlogs import ParsedPipelineReport, run_log_pipeline
         with tempfile.TemporaryDirectory() as td:
             report = run_log_pipeline('t', td, steps=[], write_report=False, print_terminal=False)
             if report is None:
@@ -521,7 +521,7 @@ def _check28_high_level_no_re_compile(root: str) -> bool:
 def _check29_parity_4_logs_new_api(root: str) -> bool:
     _ensure_src_on_path(root)
     try:
-        from pytexmk.pytexlogs import (
+        from pytexlogs import (
             BiberParser,
             BibtexParser,
             LatexLogParser,
@@ -606,8 +606,8 @@ def _check30_show_log_entries_filter_and_no_dup(root: str) -> bool:
     try:
         import re as _re
 
-        import pytexmk.pytexlogs.summary as _sum_mod
-        from pytexmk.pytexlogs import (
+        import pytexlogs.summary as _sum_mod
+        from pytexlogs import (
             LatexLogParser,
             LogEntry,
             LogLevel,
@@ -706,23 +706,22 @@ def _check32_compat_layer(root: str) -> bool:
     """Check 32: compat 层 + attach 函数存在性（spec G5 logger 桥接）。"""
     try:
         _ensure_src_on_path(root)
-        from pytexmk._pytexlogs_compat import (
-            PYTEXLOGS_SOURCE,
-            attach_pytexlogs_handlers_to_pytexmk_logger,
-        )
-        import pytexmk._pytexlogs_compat as _c
-        assert "PYTEXLOGS_SOURCE" in _c.__all__, "PYTEXLOGS_SOURCE not in __all__"
-        assert "attach_pytexlogs_handlers_to_pytexmk_logger" in _c.__all__, "attach not in __all__"
+        import pytexlogs
+
+        from pytexmk.logger_config import attach_pytexlogs_handlers_to_pytexmk_logger
+        PYTEXLOGS_SOURCE = "remote" if pytexlogs.__file__ and "site-packages" in pytexlogs.__file__ else "bundled"
+        assert hasattr(pytexlogs, "__all__"), "pytexlogs missing __all__"
+        assert len(pytexlogs.__all__) > 0, "pytexlogs __all__ is empty"
         import logging as _lg
         before = len(_lg.getLogger("pytexlogs").handlers)
         attach_pytexlogs_handlers_to_pytexmk_logger()
         attach_pytexlogs_handlers_to_pytexmk_logger()
         after = len(_lg.getLogger("pytexlogs").handlers)
-        assert after - before <= 0, "attach 不幂等，handler 增加了 %d" % (after - before)
-        print('[Check32] PASS: compat layer OK, PYTEXLOGS_SOURCE=%s' % PYTEXLOGS_SOURCE)
+        assert after - before <= 0, f"attach 不幂等，handler 增加了 {after - before}"
+        print(f'[Check32] PASS: compat layer OK, PYTEXLOGS_SOURCE={PYTEXLOGS_SOURCE}')
         return True
-    except Exception as _e:  # noqa: BLE001
-        print('[Check32] FAIL: Check 32 (compat layer) - %s' % _e)
+    except Exception as _e:
+        print(f'[Check32] FAIL: Check 32 (compat layer) - {_e}')
         return False
 
 

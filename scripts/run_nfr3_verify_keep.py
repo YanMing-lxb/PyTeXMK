@@ -152,7 +152,7 @@ def main() -> int:
         print(proc.stderr)
     print(f"----- NFR3 runner exit_code = {proc.returncode} -----")
     print(f"\n>>> 临时目录尚未清理，路径: {td}")
-    print(f">>> 请确认后手动删除，或再次运行清理脚本。")
+    print(">>> 请确认后手动删除，或再次运行清理脚本。")
     return proc.returncode
 
 
