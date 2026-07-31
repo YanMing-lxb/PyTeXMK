@@ -32,6 +32,25 @@ from pytexmk.language import set_language
 _ = set_language("logger_config")
 
 
+def attach_pytexlogs_handlers_to_pytexmk_logger() -> None:
+    """把独立库 pytexlogs logger 的 handlers/level 与主程序 pytexmk logger 对齐。
+
+    允许幂等调用（多次调用不重复添加 handler）。
+    """
+    ref_logger = logging.getLogger("pytexmk")
+    remote_logger = logging.getLogger("pytexlogs")
+    remote_logger.setLevel(ref_logger.level)
+    remote_logger.propagate = ref_logger.propagate
+    existing = {
+        type(h).__name__ + repr(getattr(h, "baseFilename", ""))
+        for h in remote_logger.handlers
+    }
+    for h in ref_logger.handlers:
+        key = type(h).__name__ + repr(getattr(h, "baseFilename", ""))
+        if key not in existing:
+            remote_logger.addHandler(h)
+
+
 # --------------------------------------------------------------------------------
 # 定义日志记录器
 # --------------------------------------------------------------------------------
@@ -58,5 +77,7 @@ def setup_logger(verbose):
     handler.setFormatter(logging.Formatter(FORMAT))
 
     logging.basicConfig(level=level, format=FORMAT, datefmt="[%X]", handlers=[handler])
+
+    attach_pytexlogs_handlers_to_pytexmk_logger()
 
     return logger
