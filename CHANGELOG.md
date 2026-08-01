@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## v1.1.2 - 2026-08-01
+
+### 🐛 修复
+
+- **修复多次编译漏检测：Cover-letter 等 lastpage/tikz/hyperref 项目只编译 1 次的问题**
+  - 新增 `aux_changed_judgment()` 与 `out_changed_judgment()`：基于 CWD → `auxdir` 两级回退读取 `.aux` / `.out` 文件快照，比较编译前后内容差异决定是否需要额外编译
+  - 新增 `log_has_rerun_warnings()`：集中定义 6 类 Rerun 信号正则（`undefined references`、`Label(s) may have changed`、`lastpage Rerun`、`rerunfilecheck Rerun`、`Citation undefined`、`multiply-defined labels`），任一命中即触发额外编译
+  - `RUN()` 聚合逻辑由 `max(bib, index, toc)` 扩展为 6 维 `max(bib, index, toc, aux_changed, out_changed, log_has_warn)`，新维度权重与原有三维度平等并入
+  - 原固定 `for` 循环改造为 `while` 收敛循环，并加入 `max_extra_compilations=10` 安全上限防止死循环；每轮编译前更新基线、每轮后重算全部 6 维度直至稳定
+  - 修复 while 循环内丢弃变量误使用裸 `_` 导致的 `UnboundLocalError: cannot access local variable '_' ...`（与模块级翻译函数 `_ = set_language("run")` 作用域冲突），统一改用 `_unused_*` 前缀
+
+### 🎉 新增
+
+- **触发额外编译的原因打印（可观测性增强）**
+  - 首次编译后与 while 每轮结束后，对 `aux_changed` / `out_changed` / `log_has_warn` 三分量分别打印 `[yellow]Rich markup[/]` 提示：
+    - 「检测到 aux 文件变化，需要额外编译。」
+    - 「检测到 out 文件变化，需要额外编译。」
+    - 「检测到 Rerun 警告（lastpage/undefined references 等），需要额外编译。」
+  - 仅当对应分量为 1 时输出，不干扰原有成功/失败汇总结构
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 单元测试：`pytest tests -q` → **9 passed**（0 failures / 0 skips，含 TR-1.1 / TR-1.2 / TR-1.3 / TR-2.3 / TR-2.4 / Checkpoint 9 边界全量覆盖）
+- 📝 Lint：`ruff check src tests --line-length 120 --config pyproject.toml` → **All checks passed!**（0 errors / 0 warnings）
+- 🛠 Cover-letter 端到端：清空 `Auxiliary/` / `Build/` 后运行 `pytexmk -l Cover_Letter`
+  - `lualatex` 实际执行 **2 次**，最终打印「文档整体: LuaLaTeX 编译 2 次」
+  - 最终 `Auxiliary/Cover_Letter.log` 中 6 类 Rerun/undefined/multiply-defined 信号匹配数 **全部为 0**（收敛稳定）
+  - 输出含触发原因提示：aux 文件变化 + Rerun 警告检测
+
 ## v1.1.1 - 2026-07-31
 
 ### 🚀 架构变更

@@ -50,6 +50,7 @@
 - 🚀 **多引擎支持**：XeLaTeX、PdfLaTeX、LuaLaTeX 三大编译引擎
 - 📚 **参考文献**：支持 bibtex、biblatex、thebibliography
 - 📑 **索引支持**：glossaries、nomencl、mkeidx
+- 🔁 **智能多次编译检测**：自动比较 aux/out 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、lastpage 总页数等收敛稳定
 - 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录等
 - 🧹 **智能清理**：支持多种清理模式，精确清理辅助文件
 - 🌍 **国际化**：支持多语言界面

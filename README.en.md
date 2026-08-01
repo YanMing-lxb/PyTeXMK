@@ -50,6 +50,7 @@
 - 🚀 **Multi-engine support**: XeLaTeX, PdfLaTeX, and LuaLaTeX compilation engines
 - 📚 **Bibliography**: bibtex, biblatex, thebibliography
 - 📑 **Index support**: glossaries, nomencl, mkeidx
+- 🔁 **Smart multi-pass detection**: Automatically compares aux/out file contents and parses Rerun warnings in logs to ensure cross-references, hyperref bookmarks, lastpage total page counts, etc. converge stably
 - 🔮 **Magic comments**: Specify engine, main file, output directory via `% !TEX` comments
 - 🧹 **Smart cleanup**: Multiple clean modes for precise auxiliary file removal
 - 🌍 **Internationalization**: Multi-language interface support
