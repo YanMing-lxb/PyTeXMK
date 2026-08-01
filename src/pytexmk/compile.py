@@ -48,6 +48,15 @@ BIBER_CITE_PATTERN = re.compile(
 )  # 匹配\abx@aux@cite{任意字符}{}命令
 BIBTEX_CITE_PATTERN = re.compile(r"\\citation\{(.*)\}")  # 匹配\citation{}命令
 
+RERUN_LOG_PATTERNS = [
+    re.compile(r"LaTeX Warning: There were undefined references\."),  # 匹配未定义引用警告
+    re.compile(r"LaTeX Warning: Label\(s\) may have changed\. Rerun to get cross-references right\."),  # 匹配标签变化需重跑警告
+    re.compile(r"Package lastpage Warning: Rerun to get the references right"),  # 匹配 lastpage 宏包需重跑警告
+    re.compile(r"Package rerunfilecheck Warning: .* Rerun"),  # 匹配 rerunfilecheck 宏包需重跑警告
+    re.compile(r"LaTeX Warning: Citation .* undefined"),  # 匹配引用未定义警告
+    re.compile(r"LaTeX Warning: There were multiply-defined labels\."),  # 匹配标签重复定义警告
+]
+
 
 class CompileLaTeX:
     """编译流水线调度器：编排 LaTeX/Bib/Index 多轮编译与重试。"""
@@ -636,6 +645,162 @@ class CompileLaTeX:
         if not self.non_quiet:
             command.insert(1, "-q")  # 静默编译
         self.MSP.run_command(command, self.out_files, self.aux_files, "dvipdfmx")
+
+    # --------------------------------------------------------------------------------
+    # 定义 aux/out 快照获取函数
+    # --------------------------------------------------------------------------------
+    def prepare_aux_out_snapshots(self):
+        """
+        准备 aux 和 out 文件的旧快照内容.
+
+        返回值:
+        - tuple[str, str]: (aux_content_old, out_content_old)
+          文件不存在或无法读取时对应返回空字符串.
+
+        行为逻辑:
+        1. 先尝试从当前目录读取 aux 和 out 文件.
+        2. 若当前目录不存在, 再尝试从 auxdir 目录读取.
+        3. 任何异常均降级为空字符串, 不抛出异常.
+        """
+        aux_content_old = ""
+        out_content_old = ""
+
+        aux_paths = [
+            Path(f"{self.project_name}.aux"),
+            Path(self.auxdir) / f"{self.project_name}.aux",
+        ]
+        for aux_path in aux_paths:
+            try:
+                if aux_path.exists():
+                    with open(aux_path, "r", encoding="utf-8") as fobj:
+                        aux_content_old = fobj.read()
+                    break
+            except (OSError, UnicodeDecodeError):
+                aux_content_old = ""
+
+        out_paths = [
+            Path(f"{self.project_name}.out"),
+            Path(self.auxdir) / f"{self.project_name}.out",
+        ]
+        for out_path in out_paths:
+            try:
+                if out_path.exists():
+                    with open(out_path, "r", encoding="utf-8") as fobj:
+                        out_content_old = fobj.read()
+                    break
+            except (OSError, UnicodeDecodeError):
+                out_content_old = ""
+
+        return aux_content_old, out_content_old
+
+    # --------------------------------------------------------------------------------
+    # 定义 aux 文件变化判断函数
+    # --------------------------------------------------------------------------------
+    def aux_changed_judgment(self, aux_content_old):
+        """
+        判断 aux 文件内容是否发生变化.
+
+        参数:
+        - aux_content_old: 传入的旧 aux 文件内容, 用于与当前 aux 文件比较.
+
+        返回值:
+        - bool: 内容不同返回 True, 文件缺失或无法读取返回 False.
+
+        行为逻辑:
+        1. 先尝试从当前目录读取 aux 文件, 再尝试 auxdir.
+        2. 成功读取则与 aux_content_old 比较, 不同返回 True.
+        3. 任何异常或文件缺失均返回 False.
+        """
+        aux_paths = [
+            Path(f"{self.project_name}.aux"),
+            Path(self.auxdir) / f"{self.project_name}.aux",
+        ]
+        for aux_path in aux_paths:
+            try:
+                if aux_path.exists():
+                    with open(aux_path, "r", encoding="utf-8") as fobj:
+                        if fobj.read() != aux_content_old:
+                            return True
+                    break
+            except (OSError, UnicodeDecodeError):
+                return False
+        return False
+
+    # --------------------------------------------------------------------------------
+    # 定义 out 文件变化判断函数
+    # --------------------------------------------------------------------------------
+    def out_changed_judgment(self, out_content_old):
+        """
+        判断 out 文件内容是否发生变化.
+
+        参数:
+        - out_content_old: 传入的旧 out 文件内容, 用于与当前 out 文件比较.
+
+        返回值:
+        - bool: 内容不同返回 True, 文件缺失或无法读取返回 False.
+
+        行为逻辑:
+        1. 先尝试从当前目录读取 out 文件, 再尝试 auxdir.
+        2. 成功读取则与 out_content_old 比较, 不同返回 True.
+        3. 任何异常或文件缺失均返回 False.
+        """
+        out_paths = [
+            Path(f"{self.project_name}.out"),
+            Path(self.auxdir) / f"{self.project_name}.out",
+        ]
+        for out_path in out_paths:
+            try:
+                if out_path.exists():
+                    with open(out_path, "r", encoding="utf-8") as fobj:
+                        if fobj.read() != out_content_old:
+                            return True
+                    break
+            except (OSError, UnicodeDecodeError):
+                return False
+        return False
+
+    # --------------------------------------------------------------------------------
+    # 定义日志 rerun 警告检测函数
+    # --------------------------------------------------------------------------------
+    def log_has_rerun_warnings(self, log_path=None):
+        """
+        检测日志文件中是否存在需要 rerun 的警告信号.
+
+        参数:
+        - log_path: 可选, 自定义日志文件路径. 默认为 None, 此时使用
+          f"{self.project_name}.log" 并按 CWD -> auxdir 两级回退查找.
+
+        返回值:
+        - bool: 任一 RERUN_LOG_PATTERNS 匹配返回 True, 否则返回 False.
+
+        行为逻辑:
+        1. 若传入 log_path 则直接使用, 否则按 CWD -> auxdir 查找默认 log.
+        2. 成功读取日志后依次匹配 RERUN_LOG_PATTERNS 中每个正则.
+        3. 任一匹配立即返回 True, 所有不匹配或文件缺失/异常返回 False.
+        """
+        log_content = ""
+
+        if log_path is not None:
+            candidate_paths = [Path(log_path)]
+        else:
+            candidate_paths = [
+                Path(f"{self.project_name}.log"),
+                Path(self.auxdir) / f"{self.project_name}.log",
+            ]
+
+        for candidate in candidate_paths:
+            try:
+                if candidate.exists():
+                    with open(candidate, "r", encoding="utf-8") as fobj:
+                        log_content = fobj.read()
+                    break
+            except (OSError, UnicodeDecodeError):
+                log_content = ""
+
+        for pattern in RERUN_LOG_PATTERNS:
+            if pattern.search(log_content):
+                return True
+        return False
 
 
 # --------------------------------------------------------------------------------
