@@ -20,7 +20,7 @@
  -----------------------------------------------------------------------
 Author       : 焱铭
 Date         : 2026-07-29 22:15:05 +0800
-LastEditTime : 2026-07-30 14:02:30 +0800
+LastEditTime : 2026-08-01 12:00:00 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/version.py
 Description  : 
@@ -28,4 +28,4 @@ Description  :
 '''
 
 script_name = "PyTeXMK"
-__version__ = "1.1.1"
+__version__ = "1.1.2"
