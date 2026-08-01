@@ -41,6 +41,13 @@ _ = set_language("info_print")  # 设置语言
 # 总字符串长度
 total_len = 78
 
+# 分隔线与报告样式常量
+DIVIDER_CHAR = "-"
+DIVIDER_STYLE = "cyan bold"
+WARNING_STYLE = "yellow"
+STABLE_STYLE = "green"
+CONCLUSION_STYLE = "bold cyan"
+
 
 # --------------------------------------------------------------------------------
 # 定义时间统计函数
@@ -359,3 +366,108 @@ def magic_comment_desc_table():
         return table
     except Exception as e:  # noqa: BLE001
         logger.error(_("打印魔法注释说明表时出错: ") + str(e))  # 记录错误信息
+
+
+# --------------------------------------------------------------------------------
+# 定义编译分隔线打印函数
+# --------------------------------------------------------------------------------
+def print_compile_separator(divider_char: str = DIVIDER_CHAR, style: str = DIVIDER_STYLE) -> None:
+    """
+    打印编译检测报告分隔线.
+
+    参数:
+    - divider_char (str): 分隔线字符，默认为 DIVIDER_CHAR.
+    - style (str): Rich 样式，默认为 DIVIDER_STYLE.
+
+    异常处理:
+    - 任何异常记录到日志，不抛出.
+    """
+    try:
+        console.print(divider_char * total_len, style=style)
+    except Exception as e:  # noqa: BLE001
+        logger.error(_("打印分隔线时出错: ") + str(e))
+
+
+# --------------------------------------------------------------------------------
+# 定义编译检测报告打印函数
+# --------------------------------------------------------------------------------
+def print_compile_report(
+    current_times: int,
+    compiled_program: str,
+    total_compilations: int,
+    next_extra_compilations: int,
+    dims: dict[str, int],
+    bib_status: str | None,
+    index_status: str | None,
+    reached_limit: bool = False,
+    max_extra_compilations: int = 10,
+) -> None:
+    """
+    打印统一格式的编译检测报告.
+
+    参数:
+    - current_times (int): 当前第几次检测轮次.
+    - compiled_program (str): 编译程序名称（如 LuaLaTeX）.
+    - total_compilations (int): 已完成的总编译次数.
+    - next_extra_compilations (int): 还需额外编译的次数.
+    - dims (dict[str, int]): 6 个维度的触发次数字典.
+    - bib_status (str | None): 参考文献检测状态说明.
+    - index_status (str | None): 索引检测状态说明.
+    - reached_limit (bool): 是否已达额外编译安全上限.
+    - max_extra_compilations (int): 额外编译安全上限次数.
+
+    行为顺序严格按 FR-2 要求:
+    1. 标题行.
+    2. 6 维度逐行检测报告.
+    3. 空行.
+    4. 参考文献状态.
+    5. 目录索引状态.
+    6. 空行.
+    7. 结论行（三分支）.
+
+    异常处理:
+    - 任何异常记录到日志，不抛出.
+    """
+    try:
+        print(f"[bold]检测报告（第 {current_times} 轮）[/]")
+
+        dim_defs: list[tuple[str, str, str]] = [
+            ("参考文献检测", "bib", "需额外编译"),
+            ("索引检测", "index", "需额外编译"),
+            ("目录变化", "toc", "需额外编译"),
+            ("交叉引用", "aux", "文件内容已变更"),
+            ("书签文件", "out", "文件内容已变更"),
+            ("日志 Rerun 信号", "log", "检测到需重跑的警告"),
+        ]
+
+        for display_name, key, warning_msg in dim_defs:
+            val = dims.get(key, 0)
+            if val > 0:
+                status = f"[{WARNING_STYLE}]⚠ {warning_msg}[/]"
+            else:
+                status = f"[{STABLE_STYLE}]✓ 稳定[/]"
+            print(f"• {display_name:<12} ({key:<3}) : {status}")
+
+        print()
+
+        safe_bib = bib_status if (bib_status is not None and bib_status != "") else "-"
+        print(f"• 参考文献状态 : {safe_bib}")
+
+        safe_idx = index_status if (index_status is not None and index_status != "") else "-"
+        print(f"• 目录索引状态 : {safe_idx}")
+
+        print()
+
+        if reached_limit:
+            conclusion = (
+                f"已达 {max_extra_compilations} 次额外编译安全上限，停止调度。"
+                f"共完成 {total_compilations} 次 {compiled_program} 编译。"
+            )
+        elif next_extra_compilations == 0:
+            conclusion = f"无需额外编译，共完成 {total_compilations} 次 {compiled_program} 编译。"
+        else:
+            conclusion = f"需额外进行 {next_extra_compilations} 次 {compiled_program} 编译。"
+
+        print(f"[{CONCLUSION_STYLE}]结论：[/{CONCLUSION_STYLE}] {conclusion}")
+    except Exception as e:  # noqa: BLE001
+        logger.error(_("打印编译检测报告时出错: ") + str(e))
