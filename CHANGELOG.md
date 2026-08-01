@@ -1,5 +1,54 @@
 # CHANGELOG
 
+## v1.1.3 - 2026-08-01
+
+### 🎉 新增
+
+- **📋 每次编译后的结构化检测报告（统一报告区块 + 分隔线美化）**
+  - 新增 `info_print.print_compile_separator()`：在「✓ 运行 XX 成功」行与检测提示之间打印 78 宽 cyan bold 分隔线，用于视觉区分
+  - 新增 `info_print.print_compile_report(current_times, compiled_program, total_compilations, next_extra_compilations, dims, bib_status, index_status, reached_limit, max_extra_compilations)`：将 6 维检测状态、参考文献状态、目录索引状态、本轮结论整合为一个报告区块，按固定顺序输出
+  - 6 维检测维度：`参考文献检测 (bib)` / `索引检测 (index)` / `目录变化 (toc)` / `交叉引用 (aux)` / `书签文件 (out)` / `日志 Rerun 信号 (log)`，稳定显示 `✓ 稳定`，触发显示 `⚠ <原因>`
+  - 结论文案三分支：`需额外进行 N 次 XX 编译`（还需要时）/ `无需额外编译，共完成 N 次 XX 编译`（已收敛时）/ `已达 N 次额外编译安全上限，停止调度`（达到 while 安全上限时）
+  - `RUN()` 首次编译后与 while 循环每一轮编译后**都调用同一个 helper**（DRY），不再在两处复制粘贴大段打印代码
+
+### 🚀 改进
+
+- **输出去重：删除「完成所有编译」横幅后重复的三行汇总**
+  - `RUN()` 末尾删除 `文档整体: XX 编译 N 次` / `参考文献: ...` / `目录索引: ...` 三行，因为这些内容已在最后一轮检测报告的参考文献/索引状态与结论行中呈现
+  - `LaTeXDiffRUN()` 末尾删除 `文档整体: XX 编译 2 次` 一行（与成功横幅之后的结论/横幅内容去重）
+- **while 循环内保存最新参考文献/索引状态字符串**
+  - 原循环内 `bib_judgment()` 与 `index_judgment()` 返回的 `print_bib` / `print_index` 被 `_unused_print_*` 丢弃，导致若循环内状态变化无法反映到后续报告
+  - 改为接收 `print_bib_latest` / `print_index_latest`，非空时回写到外层同名变量，保证第 2/3/N 轮统一报告的状态字符串与第 1 轮一致（不是 `-` 占位符）
+
+### 🐛 修复
+
+- **修复 `abbreviations_num` 长度不足（6 项）引发的 IndexError**：当达到 `max_extra_compilations=10` 时，`current_times-1` 可达 10（第 11 次编译），超出原 `("1st".."6th")` 的长度。现已扩展至 `13 项（1st..13th）`
+- **修复极简文档（无引用/无索引/无 toc）aux/out 被误判为「有变更」引发的无限循环与多余编译**：
+  - 新增 `CompileLaTeX._normalize_aux_like()` 静态方法，归一化比较前的 aux/out 内容：过滤 `\relax`、整行/行内 `%` 注释、空行、`\bookmarksetup{}`、`\@outlinefile{}`、`\gdef\xdef \@abspage@last{}`、`\global\@namedef{ver@*}{}` 等内核初始化写入，仅保留结构性行（`\newlabel/\citation/\bibcite/\@writefile/\abx@aux@…` 等）用于比较
+  - `aux_changed_judgment()` 与 `out_changed_judgment()` 统一改为 `_normalize_aux_like(current) != _normalize_aux_like(old)` 比较，避免「初始化占位 → 初始化占位内容」被误判为真正变更
+- **修复 thebibliography 场景参考文献维度恒=1 引发的多余编译**：
+  - `bib_judgment()` 原 `\bibcite` 分支硬编码 `Latex_compilation_times = 1`，不比较新旧引用计数，导致 Cover-letter 这类使用 `thebibliography` 的项目 bib 维度永远触发额外编译，最终依赖 reached_limit 或其他维度归零才能退出
+  - 改为与 bibtex/biber 分支等价：调用 `_generate_citation_counter()` 获取最新引用计数，与旧 `cite_counter` 比较，相等时 `Latex_compilation_times = 0`，描述字符串保持 `thebibliography 环境实现排版` 不变
+- **修复 `_count_citations()` 未统计 `\bibcite{key}{*}` 导致 thebibliography 新旧字典都是空的问题**：
+  - 新增 `THEBIB_CITE_PATTERN = re.compile(r"\\bibcite\{(.*?)\}")`
+  - `_count_citations()` 在 BIBER / BIBTEX 两种模式之后，新增 THEBIB 分支，将 `\bibcite{…}` 统计进同一个 counter 字典，保证旧新字典比较有实际内容
+- **修复 run.py 模块顶部 info_print 导入顺序（ruff I001）**：按字母重排为 `print_compile_report, print_compile_separator, print_message, time_count`
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 单元测试：`pytest tests -q` → **9 passed**（0 failures / 0 skips）
+- 📝 Lint：`ruff check src tests --line-length 120 --config pyproject.toml` → **All checks passed!**（0 errors / 0 warnings）
+- 🛠 Cover-letter 端到端（LuaLaTeX）：清空 `Auxiliary/` / `Build/` 后运行 `pytexmk -l Cover_Letter`
+  - `lualatex` 实际执行 **2 次**，最后一轮统一报告结论为「无需额外编译，共完成 2 次 LuaLaTeX 编译」
+  - 每次 `✓ 运行 LuaLaTeX 成功` 之后立即出现 78 宽 cyan 分隔线，报告区块包含 6 维检测 + 参考文献/索引状态 + 结论，结构完整
+  - 「完成所有编译」 success 横幅之后**不再出现** `文档整体:` / `参考文献:` / `目录索引:` 三行
+  - 第 1 轮与第 2 轮报告的参考文献状态、目录索引状态字符串完全一致（非 `-` 占位符）
+- 📄 极简 LuaLaTeX 文档端到端（`\documentclass{article}\begin{document}Hello.\end{document}`）：
+  - 仅 1 次统一报告，结论为「无需额外编译，共完成 1 次 LuaLaTeX 编译」，退出码为 0
+  - 成功横幅后无三行重复汇总
+- 🛡 安全上限场景（Mock 构造 max_extra_compilations=1，aux 恒变）：
+  - 报告结论出现「已达 1 次额外编译安全上限，停止调度。共完成 2 次 LuaLaTeX 编译」，while 循环正常退出（无死循环），RUN() 返回 dict 正常
+
 ## v1.1.2 - 2026-08-01
 
 ### 🐛 修复

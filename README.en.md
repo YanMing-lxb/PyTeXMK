@@ -51,6 +51,7 @@
 - 📚 **Bibliography**: bibtex, biblatex, thebibliography
 - 📑 **Index support**: glossaries, nomencl, mkeidx
 - 🔁 **Smart multi-pass detection**: Automatically compares aux/out file contents and parses Rerun warnings in logs to ensure cross-references, hyperref bookmarks, lastpage total page counts, etc. converge stably
+- 📋 **Structured compile-detection report**: Adds a unified separator between the "✓ Running XX succeeded" line and detection hints, collapsing the 6 detection dimensions (bibliography / index / TOC / cross-refs / bookmark file / log Rerun signals), bibliography status, index status, and per-pass conclusion into a single report block; also removes duplicate summary lines (Document overall / Bibliography / Index) after the "All compilations done" banner
 - 🔮 **Magic comments**: Specify engine, main file, output directory via `% !TEX` comments
 - 🧹 **Smart cleanup**: Multiple clean modes for precise auxiliary file removal
 - 🌍 **Internationalization**: Multi-language interface support
