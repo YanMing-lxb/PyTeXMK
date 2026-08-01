@@ -47,6 +47,7 @@ BIBER_CITE_PATTERN = re.compile(
     r"\\abx@aux@cite{.*?}\{(.*)\}"
 )  # 匹配\abx@aux@cite{任意字符}{}命令
 BIBTEX_CITE_PATTERN = re.compile(r"\\citation\{(.*)\}")  # 匹配\citation{}命令
+THEBIB_CITE_PATTERN = re.compile(r"\\bibcite\{(.*?)\}")  # 匹配 thebibliography 环境的 \bibcite{key}{*} 命令
 
 RERUN_LOG_PATTERNS = [
     re.compile(r"LaTeX Warning: There were undefined references\."),  # 匹配未定义引用警告
@@ -425,7 +426,8 @@ class CompileLaTeX:
 
             elif re.search(r"\\bibcite", aux_content):
                 print_bib = _("thebibliography 环境实现排版")
-                Latex_compilation_times = 1
+                new_cite_counter = self._generate_citation_counter()
+                Latex_compilation_times = 0 if old_cite_counter == new_cite_counter else 1
 
             else:
                 print_bib = _("没有引用参考文献或编译工具不属于 bibtex 或 biber")
@@ -694,70 +696,91 @@ class CompileLaTeX:
         return aux_content_old, out_content_old
 
     # --------------------------------------------------------------------------------
+    # 定义 aux/out 内容归一化函数（忽略纯初始化占位内容）
+    # --------------------------------------------------------------------------------
+    @staticmethod
+    def _normalize_aux_like(content: str) -> str:
+        """
+        归一化 aux/out 风格内容：去掉 \\relax 等无语义初始化、空白、注释，
+        仅保留真正会影响后续编译结果的"结构性内容"用于比较。
+        """
+        if not content:
+            return ""
+        stripped_lines: list[str] = []
+        for raw_line in content.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            # 去掉整行 LaTeX 注释
+            if line.startswith("%"):
+                continue
+            # 去掉行内 % 注释（非转义）
+            comment_idx = -1
+            for i, ch in enumerate(line):
+                if ch == "%" and (i == 0 or line[i - 1] != "\\"):
+                    comment_idx = i
+                    break
+            if comment_idx >= 0:
+                line = line[:comment_idx].strip()
+                if not line:
+                    continue
+            # 去掉初始化/内核状态占位类单行（保留任何包含 \newlabel / \citation / \bibcite / \@writefile / \abx@aux@ 等结构行）
+            if line in (r"\relax", "\\relax", "\\relax{}"):
+                continue
+            if re.fullmatch(r"\\bookmarksetup\{.*\}", line):
+                continue
+            if re.fullmatch(r"\\@outlinefile\s*\{.*\}", line):
+                continue
+            if re.fullmatch(r"\\gdef\s*\\@abspage@last\{.*\}", line) or re.fullmatch(r"\\xdef\s*\\@abspage@last\{.*\}", line):
+                continue
+            if re.fullmatch(r"\\global\\\@namedef\{ver@.*\}\{.*\}", line):
+                continue
+            stripped_lines.append(line)
+        return "\n".join(stripped_lines)
+
+    # --------------------------------------------------------------------------------
     # 定义 aux 文件变化判断函数
     # --------------------------------------------------------------------------------
     def aux_changed_judgment(self, aux_content_old):
         """
-        判断 aux 文件内容是否发生变化.
-
-        参数:
-        - aux_content_old: 传入的旧 aux 文件内容, 用于与当前 aux 文件比较.
-
-        返回值:
-        - bool: 内容不同返回 True, 文件缺失或无法读取返回 False.
-
-        行为逻辑:
-        1. 先尝试从当前目录读取 aux 文件, 再尝试 auxdir.
-        2. 成功读取则与 aux_content_old 比较, 不同返回 True.
-        3. 任何异常或文件缺失均返回 False.
+        判断 aux 文件内容是否发生变化（忽略初始化占位）.
         """
         aux_paths = [
             Path(f"{self.project_name}.aux"),
             Path(self.auxdir) / f"{self.project_name}.aux",
         ]
+        current = ""
         for aux_path in aux_paths:
             try:
                 if aux_path.exists():
                     with open(aux_path, "r", encoding="utf-8") as fobj:
-                        if fobj.read() != aux_content_old:
-                            return True
+                        current = fobj.read()
                     break
             except (OSError, UnicodeDecodeError):
                 return False
-        return False
+        return self._normalize_aux_like(current) != self._normalize_aux_like(aux_content_old)
 
     # --------------------------------------------------------------------------------
     # 定义 out 文件变化判断函数
     # --------------------------------------------------------------------------------
     def out_changed_judgment(self, out_content_old):
         """
-        判断 out 文件内容是否发生变化.
-
-        参数:
-        - out_content_old: 传入的旧 out 文件内容, 用于与当前 out 文件比较.
-
-        返回值:
-        - bool: 内容不同返回 True, 文件缺失或无法读取返回 False.
-
-        行为逻辑:
-        1. 先尝试从当前目录读取 out 文件, 再尝试 auxdir.
-        2. 成功读取则与 out_content_old 比较, 不同返回 True.
-        3. 任何异常或文件缺失均返回 False.
+        判断 out 文件内容是否发生变化（忽略初始化占位）.
         """
         out_paths = [
             Path(f"{self.project_name}.out"),
             Path(self.auxdir) / f"{self.project_name}.out",
         ]
+        current = ""
         for out_path in out_paths:
             try:
                 if out_path.exists():
                     with open(out_path, "r", encoding="utf-8") as fobj:
-                        if fobj.read() != out_content_old:
-                            return True
+                        current = fobj.read()
                     break
             except (OSError, UnicodeDecodeError):
                 return False
-        return False
+        return self._normalize_aux_like(current) != self._normalize_aux_like(out_content_old)
 
     # --------------------------------------------------------------------------------
     # 定义日志 rerun 警告检测函数
@@ -838,11 +861,12 @@ def _count_citations(file_name):
             counter[name] += 1  # counter[name] = counter[name] + 1
     match = BIBTEX_CITE_PATTERN.search(aux_content)
     if match:
-        # 使用正则表达式模式 BIBTEX_CITE_PATTERN 查找所有的 \citation
         for match in BIBTEX_CITE_PATTERN.finditer(aux_content):
-            # 获取匹配到的citation名称
             name = match.groups()[0]
-            # 增加该citation在字典中的计数
             counter[name] += 1
-    # 返回包含所有citation计数的字典
+    match = THEBIB_CITE_PATTERN.search(aux_content)
+    if match:
+        for match in THEBIB_CITE_PATTERN.finditer(aux_content):
+            name = match.groups()[0]
+            counter[name] += 1
     return counter
