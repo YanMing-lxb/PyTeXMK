@@ -68,6 +68,8 @@ def RUN(
     )
     runtime_dict[_("检测辅助文件")] = runtime_read
 
+    aux_content_old, out_content_old = compile_model.prepare_aux_out_snapshots()
+
     # 首次编译 LaTeX 文档
     print_message(_("1 次 %(args)s 编译") % {"args": compiled_program}, "running")
     runtime_Latex = time_count(
@@ -79,6 +81,11 @@ def RUN(
     # with open(f'{project_name}.log', 'r', encoding='utf-8', errors='ignore') as fobj:
     #     log_content = fobj.read()
     # compile_model.check_errors(log_content)
+
+    # 首次编译后新增的三个检测维度
+    aux_changed = 1 if compile_model.aux_changed_judgment(aux_content_old) else 0
+    out_changed = 1 if compile_model.out_changed_judgment(out_content_old) else 0
+    log_has_warn = 1 if compile_model.log_has_rerun_warnings() else 0
 
     # 编译参考文献
     runtime_bib_judgment, return_bib_judgment = time_count(
@@ -121,26 +128,91 @@ def RUN(
     else:
         Latex_compilation_times_toc = 0
 
-    # 计算额外需要的 LaTeX 编译次数
+    # 计算额外需要的 LaTeX 编译次数（整合三个新检测维度）
     Latex_compilation_times = max(
         Latex_compilation_times_bib,
         Latex_compilation_times_index,
         Latex_compilation_times_toc,
+        aux_changed,
+        out_changed,
+        log_has_warn,
     )
 
-    # 进行额外的 LaTeX 编译
-    for times in range(2, Latex_compilation_times + 2):
+    # Task 5: 输出触发额外编译的原因
+    if aux_changed == 1:
+        print("[yellow]检测到 aux 文件变化，需要额外编译。[/]")
+    if out_changed == 1:
+        print("[yellow]检测到 out 文件变化，需要额外编译。[/]")
+    if log_has_warn == 1:
+        print("[yellow]检测到 Rerun 警告（lastpage/undefined references 等），需要额外编译。[/]")
+
+    total_compilations = 1
+    current_times = 1
+    max_extra_compilations = 10  # 最大额外编译次数上限，防止死循环
+
+    # 进行额外的 LaTeX 编译（迭代收敛直到所有维度均返回 0，或达到安全上限）
+    while Latex_compilation_times > 0 and (current_times - 1) < max_extra_compilations:
+        current_times += 1
+        total_compilations += 1
+
+        # 本轮编译前：更新基线并保存快照
+        cite_counter, toc_file, index_aux_content_dict_old = (
+            compile_model.prepare_LaTeX_output_files()
+        )
+        aux_content_old, out_content_old = compile_model.prepare_aux_out_snapshots()
+
+        # 执行本轮 LaTeX 编译
         print_message(
             _("%(args1)s 次 %(args2)s 编译")
-            % {"args1": str(times), "args2": compiled_program},
+            % {"args1": str(current_times), "args2": compiled_program},
             "running",
         )
         runtime_Latex = time_count(
             compile_model.compile_tex,
         )
-        runtime_dict[f"{compiled_program} {abbreviations_num[times - 1]}"] = (
+        runtime_dict[f"{compiled_program} {abbreviations_num[current_times - 1]}"] = (
             runtime_Latex
         )
+
+        # 本轮编译后：重新计算新增的三个分量
+        aux_changed = 1 if compile_model.aux_changed_judgment(aux_content_old) else 0
+        out_changed = 1 if compile_model.out_changed_judgment(out_content_old) else 0
+        log_has_warn = 1 if compile_model.log_has_rerun_warnings() else 0
+
+        # 本轮编译后：重新计算 bib / index / toc 三个分量
+        _unused_bib_engine, Latex_compilation_times_bib, _unused_print_bib, _unused_name = (
+            compile_model.bib_judgment(cite_counter)
+        )
+
+        _unused_print_idx, run_index_list_cmd = compile_model.index_judgment(
+            index_aux_content_dict_old
+        )
+        Latex_compilation_times_index = 1 if run_index_list_cmd else 0
+
+        Latex_compilation_times_toc = (
+            1 if compile_model.toc_changed_judgment(toc_file) else 0
+        )
+
+        # 本轮编译后：重新汇总编译次数判断
+        Latex_compilation_times = max(
+            Latex_compilation_times_bib,
+            Latex_compilation_times_index,
+            Latex_compilation_times_toc,
+            aux_changed,
+            out_changed,
+            log_has_warn,
+        )
+
+        # Task 5: 输出本轮检测到的触发原因
+        if Latex_compilation_times > 0:
+            if aux_changed == 1:
+                print("[yellow]检测到 aux 文件变化，需要额外编译。[/]")
+            if out_changed == 1:
+                print("[yellow]检测到 out 文件变化，需要额外编译。[/]")
+            if log_has_warn == 1:
+                print(
+                    "[yellow]检测到 Rerun 警告（lastpage/undefined references 等），需要额外编译。[/]"
+                )
 
     # 编译完成, 开始判断编译 XDV 文件
     if compiled_program == "XeLaTeX":  # 判断是否编译 xdv 文件
@@ -155,7 +227,7 @@ def RUN(
 
     print(
         _("文档整体: %(args1)s 编译 %(args2)s 次")
-        % {"args1": compiled_program, "args2": str(Latex_compilation_times + 1)}
+        % {"args1": compiled_program, "args2": str(total_compilations)}
     )
     print(_("参考文献: ") + print_bib)
     print(_("目录索引: ") + print_index)
