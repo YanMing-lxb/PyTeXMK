@@ -27,7 +27,7 @@ from rich import print
 
 from pytexmk.additional import MainFileOperation
 from pytexmk.compile import CompileLaTeX
-from pytexmk.info_print import print_message, time_count
+from pytexmk.info_print import print_compile_report, print_compile_separator, print_message, time_count
 from pytexmk.language import set_language
 
 _ = set_language("run")
@@ -52,7 +52,10 @@ def RUN(
     """主编译流程：草稿模式、多轮 LaTeX/Bib/Index 编译、统计时长。"""
     MFO.draft_model(project_name, draft, True)
 
-    abbreviations_num = ("1st", "2nd", "3rd", "4th", "5th", "6th")
+    abbreviations_num = (
+        "1st", "2nd", "3rd", "4th", "5th", "6th",
+        "7th", "8th", "9th", "10th", "11th", "12th", "13th",
+    )
     # 编译前的准备工作
     compile_model = CompileLaTeX(
         project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet
@@ -138,17 +141,30 @@ def RUN(
         log_has_warn,
     )
 
-    # Task 5: 输出触发额外编译的原因
-    if aux_changed == 1:
-        print("[yellow]检测到 aux 文件变化，需要额外编译。[/]")
-    if out_changed == 1:
-        print("[yellow]检测到 out 文件变化，需要额外编译。[/]")
-    if log_has_warn == 1:
-        print("[yellow]检测到 Rerun 警告（lastpage/undefined references 等），需要额外编译。[/]")
-
     total_compilations = 1
     current_times = 1
     max_extra_compilations = 10  # 最大额外编译次数上限，防止死循环
+
+    dims: dict[str, int] = {
+        "bib":   1 if Latex_compilation_times_bib  > 0 else 0,
+        "index": 1 if Latex_compilation_times_index > 0 else 0,
+        "toc":   1 if Latex_compilation_times_toc   > 0 else 0,
+        "aux":   aux_changed,
+        "out":   out_changed,
+        "log":   log_has_warn,
+    }
+    print_compile_separator()
+    print_compile_report(
+        current_times=1,
+        compiled_program=compiled_program,
+        total_compilations=1,
+        next_extra_compilations=Latex_compilation_times,
+        dims=dims,
+        bib_status=print_bib,
+        index_status=print_index,
+        reached_limit=False,
+        max_extra_compilations=max_extra_compilations,
+    )
 
     # 进行额外的 LaTeX 编译（迭代收敛直到所有维度均返回 0，或达到安全上限）
     while Latex_compilation_times > 0 and (current_times - 1) < max_extra_compilations:
@@ -180,13 +196,17 @@ def RUN(
         log_has_warn = 1 if compile_model.log_has_rerun_warnings() else 0
 
         # 本轮编译后：重新计算 bib / index / toc 三个分量
-        _unused_bib_engine, Latex_compilation_times_bib, _unused_print_bib, _unused_name = (
+        _unused_bib_engine, Latex_compilation_times_bib, print_bib_latest, _unused_name = (
             compile_model.bib_judgment(cite_counter)
         )
+        if print_bib_latest is not None and print_bib_latest != "":
+            print_bib = print_bib_latest
 
-        _unused_print_idx, run_index_list_cmd = compile_model.index_judgment(
+        print_index_latest, run_index_list_cmd = compile_model.index_judgment(
             index_aux_content_dict_old
         )
+        if print_index_latest is not None and print_index_latest != "":
+            print_index = print_index_latest
         Latex_compilation_times_index = 1 if run_index_list_cmd else 0
 
         Latex_compilation_times_toc = (
@@ -203,16 +223,30 @@ def RUN(
             log_has_warn,
         )
 
-        # Task 5: 输出本轮检测到的触发原因
-        if Latex_compilation_times > 0:
-            if aux_changed == 1:
-                print("[yellow]检测到 aux 文件变化，需要额外编译。[/]")
-            if out_changed == 1:
-                print("[yellow]检测到 out 文件变化，需要额外编译。[/]")
-            if log_has_warn == 1:
-                print(
-                    "[yellow]检测到 Rerun 警告（lastpage/undefined references 等），需要额外编译。[/]"
-                )
+        dims = {
+            "bib":   1 if Latex_compilation_times_bib  > 0 else 0,
+            "index": 1 if Latex_compilation_times_index > 0 else 0,
+            "toc":   1 if Latex_compilation_times_toc   > 0 else 0,
+            "aux":   aux_changed,
+            "out":   out_changed,
+            "log":   log_has_warn,
+        }
+        reached_limit = (
+            (current_times - 1) >= max_extra_compilations
+            and Latex_compilation_times > 0
+        )
+        print_compile_separator()
+        print_compile_report(
+            current_times=current_times,
+            compiled_program=compiled_program,
+            total_compilations=total_compilations,
+            next_extra_compilations=Latex_compilation_times,
+            dims=dims,
+            bib_status=print_bib,
+            index_status=print_index,
+            reached_limit=reached_limit,
+            max_extra_compilations=max_extra_compilations,
+        )
 
     # 编译完成, 开始判断编译 XDV 文件
     if compiled_program == "XeLaTeX":  # 判断是否编译 xdv 文件
@@ -224,13 +258,6 @@ def RUN(
 
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
-
-    print(
-        _("文档整体: %(args1)s 编译 %(args2)s 次")
-        % {"args1": compiled_program, "args2": str(total_compilations)}
-    )
-    print(_("参考文献: ") + print_bib)
-    print(_("目录索引: ") + print_index)
 
     # 结束草稿模式
     MFO.draft_model(project_name, draft, False)
@@ -285,11 +312,6 @@ def LaTeXDiffRUN(
 
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
-
-    print(
-        _("文档整体: %(args1)s 编译 %(args2)s 次")
-        % {"args1": compiled_program, "args2": str(2)}
-    )
 
     # 结束草稿模式
     MFO.draft_model(project_name, draft, False)
