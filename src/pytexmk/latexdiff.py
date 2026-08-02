@@ -30,9 +30,10 @@ from pathlib import Path
 
 from rich import console
 
-from pytexmk.additional import MoveRemoveOperation, MySubProcess
-from pytexmk.auxiliary_fun import exit_pytexmk
+from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
+from pytexmk.lifecycle import exit_pytexmk
+from pytexmk.subprocess_runner import MySubProcess, SubprocessFailedError
 
 _ = set_language("latexdiff")
 
@@ -50,7 +51,7 @@ class LaTeXDiff_Aux:
         self.outdir = Path(outdir)
         self.auxdir = Path(auxdir)
 
-        self.MRO = MoveRemoveOperation()  # 初始化 MoveRemoveOperation 类对象
+        self.MRO = FileMoveRemoveManager()  # 初始化 FileMoveRemoveManager 类对象
         self.MSP = MySubProcess(outdir, auxdir, latexdiff=True)
 
     # --------------------------------------------------------------------------------
@@ -188,10 +189,9 @@ class LaTeXDiff_Aux:
             "latexdiff",
             old_tex_file + suffix,
             new_tex_file + suffix,
-            ">",
-            diff_tex_file + suffix,
             "--encoding=utf8",
         ]
+        output_path = diff_tex_file + suffix
 
         old_out_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_out]
         new_out_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_out]
@@ -201,4 +201,7 @@ class LaTeXDiff_Aux:
         new_aux_files = [f"{new_tex_file}{suffix}" for suffix in self.suffixes_aux]
         aux_files = old_aux_files + new_aux_files
 
-        self.MSP.run_command(command, out_files, aux_files, "latexdiff")
+        try:
+            self.MSP.run_command(command, out_files, aux_files, "latexdiff", stdout_path=output_path)
+        except SubprocessFailedError:
+            exit_pytexmk()
