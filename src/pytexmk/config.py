@@ -7,8 +7,8 @@ from typing import Any
 
 import tomli_w
 
-from pytexmk.auxiliary_fun import get_app_path
 from pytexmk.language import set_language
+from pytexmk.paths import get_app_path
 
 _ = set_language("config")
 
