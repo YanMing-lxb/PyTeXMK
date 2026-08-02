@@ -38,7 +38,12 @@ pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
 def __getattr__(name):
+    if name in {"cli_args", "cli_workflow", "check_version", "__main__"}:
+        import importlib
+        mod = importlib.import_module(f".cli.{name}", __name__)
+        return mod
     if name == "main":
-        from .__main__ import main
+        from .cli.__main__ import main
+
         return main
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
