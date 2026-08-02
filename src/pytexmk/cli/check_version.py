@@ -37,8 +37,8 @@ from packaging import version
 from platformdirs import user_cache_dir
 from rich import print
 
-from pytexmk.language import set_language
-from pytexmk.version import __version__, script_name
+from ..language import set_language
+from ..version import __version__, script_name
 
 _ = set_language("check_version")
 
@@ -148,7 +148,7 @@ class UpdateChecker:
     # --------------------------------------------------------------------------------
     def _get_latest_version(
         self,
-    ):  # TODO 将该函数放到线程中执行,获取线程信息,保存,并且在下次运行时检查这个显示是否已经执行结束,如果结束则不再执行,否则执行
+    ): 
 
         start_time = time.time()
 
