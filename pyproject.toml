@@ -57,9 +57,28 @@ dev = [
 [tool.setuptools.dynamic]
 version = {attr = "pytexmk.version.__version__"}
 
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pytexmk*"]
+namespaces = false
+
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.package-data]
-"pytexmk.data" = ["README.html","*.toml"]
-pytexmk = ["locale/en/LC_MESSAGES/*.mo"]
+# 根包：locale .mo 文件（中/英未来可扩展为 **）+ data 目录兜底
+"pytexmk" = [
+    "locale/en/LC_MESSAGES/*.mo",
+    "locale/**/*.mo",
+    "locale/**/*.pot",
+    "data/README.html",
+    "data/*.toml",
+]
+# 子包 pytexmk.data：data 目录下实际所有需要分发的资源
+"pytexmk.data" = [
+    "README.html",
+    "*.toml",
+]
 
 [tool.ruff]
 line-length = 120

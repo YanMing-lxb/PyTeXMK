@@ -1,5 +1,111 @@
 # CHANGELOG
 
+## v1.2.0 - 2026-08-02
+
+### 🏗 架构变更
+
+- **🔪 检测与编译拆 2 独立文件：新建 `detection.py`，`compile.py` 仅保留 subprocess 级编译执行；彻底消除薄转发（NFR-1 硬约束）**
+  - 新建 [src/pytexmk/detection.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/src/pytexmk/detection.py)，承载 `class CompilationDetector`：6 大 judgment 系列、prepare 系列、`run_full_detection`、`_normalize_aux_like`、`_count_citations` + 8 个正则常量（共 13 个检测方法整体从 `compile.py` 剪切迁移）
+  - [compile.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/src/pytexmk/compile.py) 仅保留编译执行逻辑，`CompileLaTeX.__init__` 中组合 `self.detector = CompilationDetector(...)`；禁止任何 `def prepare_LaTeX_output_files(self,*a,**kw): return self.detector.prepare_LaTeX_output_files(*a,**kw)` 形式的薄转发（薄转发 grep=0，零违反）
+  - [compile_engine.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/src/pytexmk/compile_engine.py) 6/6 检测调用点全部改写为 `compile_model.detector.*`（无 detector 的中间裸调用=0）
+- **🧱 `run.py` → `compile_engine.py`：单一职责明确，**不保留任何兼容层**（FR-9 硬约束）
+  - 兼容 wrapper `from .compile_engine import RUN as RUN` + `DeprecationWarning` 整体删除，不再维护旧 `pytexmk.run` 入口
+  - 所有 `from pytexmk.run import RUN` / `try:.*import.*except ImportError` 回退模式全部物理删除，唯一合法入口为 `from pytexmk.compile_engine import RUN, LaTeXDiffRUN`
+- **📂 文件操作类语义重命名：`MoveRemoveOperation` → `FileMoveRemoveManager`**，`move_specific_files` 新增返回实际移动文件数（预处理差异化日志的必要信息源）
+
+### 🎉 新增
+
+- **✅ 检测报告 6 条 [OK] 稳定文案**从固定「状态稳定」改为 **6 维度各自独立、用户可看懂的动态描述**（FR-5.2 动态化需求）：
+  - 文献检测 (bib) → 参考文献引用计数无变化，参考文献解析稳定
+  - 索引检测 (idx) → 索引词汇表内容未变动，索引生成稳定
+  - 目录变化 (toc) → 目录条目未发生变更，目录生成稳定
+  - 交叉引用 (aux) → 交叉引用锚点未发生变更，引用解析稳定
+  - 书签文件 (out) → PDF 书签条目未发生变更，书签生成稳定
+  - 日志信号 (log) → 未检测到需要重编译的 LaTeX 警告信号，本次迭代稳定
+- **🎨 Rich 美化报告：禁用 Table 网格，5 种颜色 + 粗体分层语义**
+  - 标题：洋红「【检测报告」」+ 黄色「(第 X 轮)」
+  - 维度名称青粗、`[OK]` 绿粗 + `[!!]` 黄粗 + 结论分支黄/绿粗 + 安全上限红粗
+  - 全程 0 import `rich.table`，视觉采用条目列表（无网格线）
+- **🪧 预处理 Banner 回归复古三行统一风格**
+  - 统一走 `ui_messages.print_message`（与「1 次 LuaLaTeX 编译」「完成所有编译」等其他 Banner 同源）
+  - 结构 `=*78 / X32|开始预处理|X32 / =*78`，中间文字 `[bold]` 粗体；左右各 32 个 `X`，半角空格 + 半角 `|`，**无全角括号**
+  - 物理删除「结束预处理」Banner（grep=0）
+- **🌐 国际化（i18n）全链路升级：5 模块 domain 对齐 + 100% `_()` 包装 + `xgettext` 自动抽取 .pot（Q1/Q2 硬约束）**
+  - 模块名与 `set_language("<module>")` 一一对应：compile_engine / detection / compile_report / cli_workflow / file_ops（5 模块）
+  - 翻译字符串 100% `_()` 包裹：ORDER 6×3=18 条（名称+stable+unstable）、检测报告标题、结论 2 句、累计次数、安全上限、预处理 Banner 中间 4 汉字、差异化 4 句文案全部 `_("…") %(占位符)s` 形式（禁用 f-string 内直接中文插值）
+  - .pot 抽取严格使用 `xgettext --language=Python --keyword=_`（系统 gettext 工具链，非 pybabel）；每个 .pot 首 10 行含 `# SOME DESCRIPTIVE TITLE.` 模板头 + 典型 msgid 上方带 `#: src/...:LINE` 自动定位行（xgettext 特征）
+  - Q2：**不生成任何 .mo**（避免 .mo 与最新 .pot 不同步）
+- **🧹 冗余代码清理（FR-10）**：静态扫描 + 肉眼扫描双轮 5 核心模块
+  - ruff `F401（未用 import）+ F841（未用本地变量）= 0` 问题（共清理 4 处：compile_engine `Path`/`console` 两 F401 + 1 处 F841 + detection `FileMoveRemoveManager` F401）
+  - 死注释 `# old:/# TODO.*remove/# 兼容保留/# 薄转发/# 旧实现` = 0
+  - `compile.py` 独立 `open(aux/out/toc/idx/...)` = 0（组合设计，compile 仅负责 subprocess，文件读取全部收敛于 `CompilationDetector` 属性缓存，避免二次 I/O）
+
+### 🐛 语义 / Bug 修复
+
+- **📏 结论行 actual_next 语义严格对齐：2→1→无需，永不兜底为 1**（FR-1 硬约束）
+  - 物理删除 `actual_next = next_extra_compilations if next_extra_compilations >= 1 else 1` 兜底语句；6 维全 0（all_zero）时直接走「无需额外执行 X 编译。」+「本次累计编译总次数：N 次」分支，**绝不打印「需额外进行 0 次」字样**
+  - `next_extra_compilations` = `max(6 维)` 原样透传（不做 +/- 1 调整），Cover-letter 实测：首轮检测 bib=1→需 1 次；再编译后全 0→无需+累计 2 次，与用户样例严格等价
+- **🎯 结论行编译名动态替换**：不再硬编码 PdfLaTeX，`standardize_name()` 内部映射大小写不敏感的 `xelatex→XeLaTeX / pdflatex→PdfLaTeX / lualatex→LuaLaTeX`，结论/累计/安全上限全部按实际编译程序展示
+- **🎫 初始化文案去重（AC-4 硬约束）**
+  - `compile_engine.RUN()` 内首次识别 aux_exist 的 6 行打印**整块物理删除**；仅 `cli_workflow.py:367` 保留 1 处「未检测到已有辅助文件，进行初始化」（全局 .py 命中=1，无重复）
+- **🔧 附带修复 Banner 行缺 f-prefix 隐性 Bug**：cli_workflow.py 预处理 Banner 第二行 `{'X' * 32}` 若缺 f-prefix 会被当作字面量输出；现已补齐，32 个 X 展开正确
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 单元测试：`pytest tests -q` → **9 passed**（0 failures / 0 skips）
+- 📝 Lint：`ruff check --select=F401,F841 src/pytexmk/compile_engine.py compile.py detection.py compile_report.py cli/cli_workflow.py` → **All checks passed!（0 问题）**
+- 🛠 Cover-letter LuaLaTeX 端到端：
+  - 第 1 次干净编译：先后【检测报告 (第 1 轮)】→【检测报告 (第 2 轮)】2 条，末尾「无需额外执行 LuaLaTeX 编译。」+「本次累计编译总次数：2 次」（2 次收敛）
+  - 第 2 次不清理：首次编译直接收敛（stdout 不含「需额外进行 N 次」字样），累计 1 次
+- 🧩 架构断言：`rg 'return self.detector.' compile.py` = 0（薄转发=0）；`rg 'try:.*import|except.*ImportError:' src/pytexmk/` = 0（零 fallback 兼容）；`rg 'DeprecationWarning' src/ tests/` = 0
+- 🧾 LOC 膨胀率闸：5 模块合计 1275 行 vs 基线 1263，**膨胀率 100.95% ≤ 105% 上限** ✅
+- 🌐 i18n 证据：`locale/en/` 5 个 `.pot`（`cli_workflow / compile_engine / compile_report / detection / file_ops`）全部 xgettext 头通过；典型 `msgid "文献检测"` 上方有 `#: src/pytexmk/compile_report.py:32` 定位行（非手写）
+
+---
+
+## v1.1.4 - 2026-08-01
+
+### 🏗 架构变更
+
+- **📦 按「凝聚度硬阈值」拆分出 `src/pytexmk/cli/` 子包（唯一达标的功能域）**
+  - 基于 23 模块静态拓扑调查：6 候选功能域中 **仅 cli 域** 满足「同域模块 ≥4 且 内部 import ≥3 且 耦合系数（外部/(内部+外部)）≥0.7」的子包拆分硬阈值，其余 5 域（core_run/domain_ops/infra/i18n/api）凝聚度不足，保持扁平避免过度工程
+  - 迁移 4 个业务模块：`__main__.py / cli_args.py / cli_workflow.py / check_version.py` → `src/pytexmk/cli/`，并在子包根放置 `cli/__init__.py`（空文件，setuptools 子包发现锚点）
+  - 新增根包 `src/pytexmk/__main__.py` 3 行薄转发（`from .cli.__main__ import main`），保持 `python -m pytexmk` 与 entry point `pytexmk = pytexmk:main` 对外行为 100% 等价
+  - i18n 域不变：cli 子包内 4 模块的 `set_language()` domain 字符串维持迁移前的 `__main__ / check_version`，翻译文件仍锚定在 `pytexmk/locale/**` 原相对路径
+
+- **🔗 打破静态 2 节点 SCC 环「`run.py ↔ cli_workflow.py`」→ import 图正式 DAG 化**
+  - 删除 `run.py:323` 一行薄 re-export：`from .cli.cli_workflow import run_workflow  # noqa: F401`（仅为 1 条反向导出引入的双向边，无任何实际功能）
+  - 结果：基于全仓 49 模块静态 import 行做 Tarjan SCC，**SCC 大小 ≥ 2 的分量数 = 0**，拓扑排序首次直接成功；5 条跨 5 域长 import 链 circular 烟检全部 exit=0
+
+- **📖 新增 `docs/architecture.md`（285 行，架构制度化）**
+  - 章节 1「分层依赖图」：ASCII 绘制 6 层向下依赖架构（Layer 0 API → Layer 1 CLI / Layer 2 Core-Run / Layer 3 Domain-Ops / Layer 4 Infra / Layer 5 I18N-UI），明确禁止任何向上引
+  - 章节 2「23 模块职责矩阵」：逐行列 No./文件名/行数/对外符号/一句话职责，cli 子包 4 个带 `[cli 子包]` 标签
+  - 章节 3「新功能放哪的决策树」：Q1~Q4 判定 + **规则 5 硬阈值重申**（≥4 模块 AND ≥3 内引 AND ≥0.7 耦合系数三者缺一不可，禁止为拆而拆）
+  - 章节 4「import 纪律（3 条）」：(a) 禁跨层上引（给出允许矩阵）；(b) 相对 import 点数规则表（cli 内部 `.X` / cli 回根包 `..X` / 根包进 cli `.cli.X`）；(c) 子包对外 API 必经子包 `__init__.py` 显式 re-export
+  - 效果：未来任何新增模块/子包拆分决策都有单一事实源，架构熵增速率可量化约束
+
+- **🧰 打包兼容修复：src-layout 下 setuptools 子包发现显式声明**
+  - `pyproject.toml` 新增 `[tool.setuptools.packages.find]`：`where = ["src"]` / `include = ["pytexmk*"]` / `namespaces = false`
+  - 修复前问题：默认 setuptools 对 `src/pytexmk/` src-layout 的子包目录识别不足，构建的 wheel 内完全缺失 `pytexmk/cli/__init__.py` 及 4 个业务模块
+  - 修复后验证：`uv run python -m build --wheel` 生成的 `pytexmk-1.1.4-py3-none-any.whl`，展开后包含 cli 子包 5 文件 + 11 个 locale `.mo` 文件（含 `__main__.mo / additional.mo / auxiliary_fun.mo / info_print.mo / run.mo` 等）
+
+### 🧪 测试骨架升级（为 2 次收敛验证提供可持续锚点）
+
+- **Cover-letter 用例 TeX 结构增强（可稳定触发 2 次 LuaLaTeX 收敛）**
+  - 原 TeX 过于简单导致 aux/out/log 三维首轮即稳定，达不到 2 次收敛锚点；现插入 `\section{Experience/Education/Skills/References}` 4 节，并在 `\label{sec:experience}` 定义前 8 行就出现 `\ref{sec:experience}` 前向引用，穿插 `\pageref{LastPage}×N` + `\cite{ref1,ref2,ref3}` + `\pageref{sec:refs}`
+  - 结果：`aux_changed / out_changed / log_has_warn / bib` 四维在第 1 轮检测报告中均为「⚠ 需额外编译」，第 2 轮全部转为「✓ 稳定」，最终统一报告结论稳定落在「无需额外编译，共完成 2 次 LuaLaTeX 编译」
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 单元测试：`pytest tests -q` → **9 passed**（0 failures / 0 skips，与上一版本锚点全同）
+- 📝 Lint：`ruff check src/pytexmk tests` → **All checks passed!**（0 errors / 0 warnings）
+- 🛠 Cover-letter LuaLaTeX 端到端：2 次收敛 / 完成横幅下方无三行冗余 / Build/Cover_Letter.pdf 生成
+- 📄 极简 LuaLaTeX 端到端（`\documentclass{article} hello`）：1 次编译 + 检测报告含「无需额外编译」+ 完成横幅下方无三行冗余
+- 🌐 Locale AC-6：`LANGUAGE=en uv run pytexmk --help` 中 `-l/--lualatex` help 文本命中英文关键词 ≥2 次（pytexmk/locale/en/LC_MESSAGES/__main__.mo 加载成功，无 fallback 中文）
+- ⚡ Import 冷启动耗时：卸载所有 `pytexmk.*` sys.modules 后重测 `cold import = 0.62 ms`（代理判据 ≤ 100 ms，远未触发 NFR-2 20% 阈值）
+- 📦 Build Wheel：1 个 whl 生成；内部 `pytexmk/cli/__init__.py` 存在；`pytexmk/locale/en/LC_MESSAGES/__main__.mo` 存在
+- 🔗 DAG 结构断言：Tarjan SCC ≥2 分量 = 0；5 条跨 5 域长 import circular 烟检全部 pass
+
 ## v1.1.3 - 2026-08-01
 
 ### 🎉 新增
