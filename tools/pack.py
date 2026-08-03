@@ -1,7 +1,6 @@
 import argparse
 import glob
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -34,14 +33,6 @@ def check_icon():
             console.print("请先运行 generate_icon.py 生成图标文件", style="warning")
             return False
     return ICON_FILE.exists()
-
-
-def get_binary_path(dist_dir: Path) -> Path:
-    if sys.platform == "win32":
-        bin_name = f"{PROJECT_NAME}.exe"
-    else:
-        bin_name = PROJECT_NAME
-    return dist_dir / PROJECT_NAME / bin_name
 
 
 def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Path) -> bool:
@@ -98,7 +89,7 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
         process_name="打包应用",
     )
 
-    return False
+    return success
 
 
 def clean_build():
