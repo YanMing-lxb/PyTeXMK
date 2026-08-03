@@ -57,9 +57,8 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
         "--onedir",
     ]
 
-    if sys.platform == "darwin":
-        args.append("--noupx")
-        console.print("ℹ️ macOS 平台已禁用 UPX 压缩", style="info")
+    args.append("--noupx")
+    console.print("ℹ️ 已禁用 UPX 压缩（避免系统 DLL NotCompressibleException 大段 WARNING）", style="info")
 
     icon_exists = check_icon()
     if icon_exists:
@@ -88,6 +87,32 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
         error_msg="打包失败",
         process_name="打包应用",
     )
+
+    if sys.platform == "win32":
+        bin_path = dist_dir / PROJECT_NAME / f"{PROJECT_NAME}.exe"
+    else:
+        bin_path = dist_dir / PROJECT_NAME / PROJECT_NAME
+
+    if success:
+        size_mb = bin_path.stat().st_size / (1024 * 1024) if bin_path.exists() else 0
+        if bin_path.is_file():
+            console.print(
+                f"✓ 构建产物已生成: {bin_path} ({size_mb:.2f} MB)",
+                style="success",
+            )
+        else:
+            console.print(
+                f"✗ 构建产物不存在: {bin_path}",
+                style="error",
+            )
+            success = False
+
+    warn_txt = ROOT_DIR / "build" / PROJECT_NAME / f"warn-{PROJECT_NAME}.txt"
+    if warn_txt.is_file():
+        console.print(
+            f"ℹ️ PyInstaller missing modules 报告已生成（已知全部为 POSIX/可选依赖条件导入，不影响 Windows 打包运行），路径：{warn_txt}",
+            style="info",
+        )
 
     return success
 
