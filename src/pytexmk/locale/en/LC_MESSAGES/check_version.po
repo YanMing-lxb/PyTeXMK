@@ -1,65 +1,68 @@
-# Translations template for PyTeXMK.
+# English translations for PyTeXMK.
 # Copyright (C) 2026 ORGANIZATION
 # This file is distributed under the same license as the PyTeXMK project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.1\n"
+"Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
 "POT-Creation-Date: 2026-08-03 18:00+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
 msgid "读取版本缓存文件中的版本号，缓存有效期: "
-msgstr ""
+msgstr "Reading version number from cache file, cache validity period: "
 
 msgid "版本缓存文件路径: "
-msgstr ""
+msgstr "Version cache file path: "
 
 msgid "加载缓存版本时出错: "
-msgstr ""
+msgstr "Error loading cached version: "
 
 msgid "更新版本缓存时出错: "
-msgstr ""
+msgstr "Error updating version cache: "
 
 msgid "通过 GitHub API 获取最新版本成功"
-msgstr ""
+msgstr "Successfully retrieved the latest version via GitHub API"
 
 #, python-format
 msgid "API速率限制，重置时间：%s"
-msgstr ""
+msgstr "API rate limit exceeded, reset time: %s"
 
 #, python-format
 msgid "请求失败，状态码：%d"
-msgstr ""
+msgstr "Request failed, status code: %d"
 
 msgid "响应数据解析失败"
-msgstr ""
+msgstr "Failed to parse response data"
 
 msgid "响应中缺少版本信息"
-msgstr ""
+msgstr "Version information missing in response"
 
 msgid "获取GitHub版本失败："
-msgstr ""
+msgstr "Failed to get GitHub version: "
 
 #, python-format
 msgid "请求耗时：%.2f秒"
-msgstr ""
+msgstr "Request time: %.2f seconds"
 
 msgid "有新版本可用: "
-msgstr ""
+msgstr "New version available: "
 
 msgid "当前版本: "
-msgstr ""
+msgstr "Current version: "
 
 #, python-format
 msgid "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
 msgstr ""
+"Please run [bold green]'pip install --upgrade %(args)s'[/bold green] to "
+"update"
 

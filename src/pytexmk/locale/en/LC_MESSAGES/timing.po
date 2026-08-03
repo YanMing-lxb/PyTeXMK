@@ -1,17 +1,18 @@
-# Translations template for PyTeXMK.
+# English translations for PyTeXMK.
 # Copyright (C) 2026 ORGANIZATION
 # This file is distributed under the same license as the PyTeXMK project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.1\n"
+"Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
 "POT-Creation-Date: 2026-08-03 18:00+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,32 +20,32 @@ msgstr ""
 
 #, python-format
 msgid "执行函数 %(args)s 时出错: "
-msgstr ""
+msgstr "Error executing function %(args)s: "
 
 msgid "LaTeX 编译时长"
-msgstr ""
+msgstr "LaTeX compilation duration"
 
 msgid "Python 运行时长"
-msgstr ""
+msgstr "Python runtime duration"
 
 msgid "PyTeXMK 运行时长"
-msgstr ""
+msgstr "PyTeXMK runtime duration"
 
 msgid "PyTeXMK 运行时长统计表"
-msgstr ""
+msgstr "PyTeXMK runtime duration statistics table"
 
 msgid "运行项目"
-msgstr ""
+msgstr "Item"
 
 msgid "运行时长"
-msgstr ""
+msgstr "Duration"
 
 msgid "PyTeXMK 运行时长: "
-msgstr ""
+msgstr "PyTeXMK runtime: "
 
 msgid "运行 LaTeX 程序数目: "
-msgstr ""
+msgstr "Number of LaTeX programs run: "
 
 msgid "打印运行时长统计表时出错: "
-msgstr ""
+msgstr "Error printing runtime statistics table: "
 

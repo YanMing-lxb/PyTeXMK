@@ -1,0 +1,126 @@
+# English translations for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-08-03 18:00+0800\n"
+"PO-Revision-Date: 2026-08-03 10:32+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid ""
+"\n"
+"PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）\n"
+msgstr ""
+"\n"
+"PyTeXMK - supports using magic comments to define the main file to "
+"compile, compiler, output directory, etc. (only searches the first 50 "
+"lines of the document)\n"
+
+msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
+msgstr "[i]LaTeX auxiliary compiler  ---- Yanming[/]"
+
+msgid ""
+"如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发现 BUG 请及时更新到最新版本，欢迎在 Github "
+"仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues"
+msgstr ""
+"To learn about magic comments and other detailed information, run with "
+"the -r option to read the README file. If you find a bug, please update "
+"to the latest version promptly. Feel free to submit an issue on the "
+"GitHub repository: https://github.com/YanMing-lxb/PyTeXMK/issues"
+
+msgid "显示 PyTeXMK 的版本号并退出"
+msgstr "Show PyTeXMK version number and exit"
+
+msgid "显示 PyTeXMK 的帮助信息并退出"
+msgstr "Show PyTeXMK help information and exit"
+
+msgid "显示README文件"
+msgstr "Show the README file"
+
+msgid "PdfLaTeX 进行编译"
+msgstr "Compile with PdfLaTeX"
+
+msgid "XeLaTeX 进行编译"
+msgstr "Compile with XeLaTeX"
+
+msgid "LuaLaTeX 进行编译"
+msgstr "Compile with LuaLaTeX"
+
+msgid "使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+msgstr ""
+"Compile using LaTeXDiff, generate a change comparison file. 'OLD_FILE' "
+"and 'NEW_FILE' can be omitted when the corresponding parameters are "
+"configured in the config file"
+
+msgid ""
+"使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 "
+"'NEW_FILE'"
+msgstr ""
+"Compile using LaTeXDiff, generate a change comparison file and compile "
+"the new file. 'OLD_FILE' and 'NEW_FILE' can be omitted when the "
+"corresponding parameters are configured in the config file"
+
+msgid "启用草稿模式进行编译，提高编译速度 (无图显示)"
+msgstr ""
+"Enable draft mode for compilation, improves compilation speed (no "
+"graphics displayed)"
+
+msgid "清除所有主文件的辅助文件"
+msgstr "Clean auxiliary files of all main files"
+
+msgid "清除所有主文件的辅助文件（包含根目录）和输出文件"
+msgstr ""
+"Clean auxiliary files (including root directory) and output files of all "
+"main files"
+
+msgid "清除所有带辅助文件后缀的文件"
+msgstr "Clean all files with auxiliary file extensions"
+
+msgid "清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件"
+msgstr ""
+"Clean all files with auxiliary file extensions (including root directory)"
+" and main file output files"
+
+msgid "非安静模式运行, 此模式下终端显示日志信息"
+msgstr "Run in non-quiet mode, terminal displays log information in this mode"
+
+msgid "显示 PyTeXMK 运行过程中的详细信息"
+msgstr "Show detailed information during PyTeXMK execution"
+
+msgid ""
+"尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R object 时, 可使用此参数尝试修复所有"
+" pdf 文件"
+msgstr ""
+"Attempt to repair all PDF files outside the root directory. When LaTeX "
+"compilation warns about invalid X X R object, use this option to attempt "
+"repairing all pdf files"
+
+msgid ""
+"尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置"
+" document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv "
+"即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 "
+"(注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"
+msgstr ""
+"Attempt to open the generated PDF file in a web browser or local PDF "
+"viewer after compilation finishes. (If you specify the main file on the "
+"command line, the -pv option must be placed after the document name and "
+"requires no arguments, example: pytexmk main -pv; if you do not need to "
+"specify the main file on the command line, simply enter -pv, example: "
+"pytexmk -pv). If [dark_cyan]FILE_NAME[/dark_cyan] is provided, the "
+"specified file is opened without compilation (note: only supports PDF "
+"files in the output directory, example: pytexmk -pv main)"
+
+msgid "待编译主文件名"
+msgstr "Main file name to compile"
+
