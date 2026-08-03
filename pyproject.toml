@@ -48,7 +48,6 @@ default = true
 
 [project.optional-dependencies]
 dev = [
-    "cython>=3.2.9",
     "pillow>=12.3.0",
     "pyinstaller>=6.21.0",
     "pytest>=9.1.1",
@@ -57,7 +56,6 @@ dev = [
 
 [dependency-groups]
 dev = [
-    "cython>=3.2.9",
     "pillow>=12.3.0",
     "pyinstaller>=6.21.0",
     "pytest>=9.1.1",

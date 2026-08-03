@@ -42,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras --dev
 
-      - name: Pack binary (onedir, Cython)
+      - name: Pack binary (onedir, source mode)
         run: uv run python tools/pack.py pack
 
       - name: Test binary

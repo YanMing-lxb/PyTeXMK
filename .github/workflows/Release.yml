@@ -18,6 +18,7 @@ permissions:
 jobs:
   build-binary:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
@@ -31,9 +32,7 @@ jobs:
             platform: macos
             bin_path: ./dist/pytexmk/pytexmk
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
+    timeout-minutes: 180
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -49,15 +48,39 @@ jobs:
           python-version-file: "pyproject.toml"
 
       - name: Install dependencies
+        shell: bash
         run: uv sync --locked --all-extras --dev
 
-      - name: Pack binary (onedir, Cython)
+      - name: Show versions for diagnostics
+        shell: bash
+        run: |
+          echo "--- Compiler ---"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cl.exe 2>&1 | head -n 3 || true
+          elif [ "${{ runner.os }}" = "Linux" ]; then
+            gcc -v 2>&1 | tail -n 1 || true
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            clang -v 2>&1 | tail -n 1 || true
+          fi
+          echo "--- Python ---"
+          python --version
+          echo "--- uv ---"
+          uv --version
+          echo "--- PyInstaller ---"
+          pyinstaller --version 2>&1 || true
+
+      - name: Pack binary (onedir, source mode)
+        timeout-minutes: 120
         run: uv run python tools/pack.py pack
 
       - name: Test binary
-        run: ${{ matrix.bin_path }} --help
+        shell: bash
+        timeout-minutes: 10
+        run: ${{ matrix.bin_path }} --version && ${{ matrix.bin_path }} --help >/dev/null
 
       - name: Prepare release zip
+        shell: bash
+        timeout-minutes: 10
         run: uv run python tools/zip_release.py ${{ matrix.platform }}
 
       - name: Upload binary artifact

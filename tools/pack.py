@@ -14,7 +14,6 @@ from config import (
     SRC_DATA_DIR,
     SRC_ENTRY_POINT,
     SRC_LOCALE_DIR,
-    SRCPYD_DIR,
     TOOLS_DIR,
     __team__,
     __version__,
@@ -47,6 +46,7 @@ def get_binary_path(dist_dir: Path) -> Path:
 
 def verify_pack(dist_dir: Path) -> bool:
     binary_path = get_binary_path(dist_dir)
+    version = __version__
 
     if not binary_path.exists():
         console.print(f"✗ 可执行文件未找到: {binary_path}", style="error")
@@ -64,19 +64,19 @@ def verify_pack(dist_dir: Path) -> bool:
             encoding="utf-8",
             errors="ignore",
         )
-        if result.returncode == 0:
+        combined_output = (result.stdout or "") + (result.stderr or "")
+        if result.returncode == 0 and version in combined_output:
             console.print("✓ 版本验证成功", style="success")
             return True
         else:
-            console.print(f"⚠️ 版本验证返回非零退出码: {result.returncode}", style="warning")
-            console.print(f"stderr: {result.stderr.strip()}", style="warning")
-            return True
+            console.print(f"✗ 版本验证失败（退出码 {result.returncode} 或未找到版本号 {version}）", style="error")
+            return False
     except subprocess.TimeoutExpired:
-        console.print("⚠️ 版本验证超时", style="warning")
-        return True
+        console.print(f"✗ 版本验证失败（超时 或未找到版本号 {version}）", style="error")
+        return False
     except Exception as e:
-        console.print(f"⚠️ 版本验证失败: {e}", style="warning")
-        return True
+        console.print(f"✗ 版本验证失败（{e} 或未找到版本号 {version}）", style="error")
+        return False
 
 
 def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Path) -> bool:
@@ -119,6 +119,7 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
     args.extend([
         "--hidden-import=tomllib",
         "--hidden-import=tomli_w",
+        f"--paths={str(ROOT_DIR)}",
         str(entry_point.resolve()),
     ])
 
@@ -142,7 +143,6 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
 def clean_build():
     delete_folder(ROOT_DIR / "build")
     delete_folder(ROOT_DIR / "dist")
-    delete_folder(ROOT_DIR / "srcpyd")
     delete_folder(ROOT_DIR / "staging")
     for spec in glob.glob(str(ROOT_DIR / "*.spec")):
         os.remove(spec)
@@ -153,10 +153,7 @@ def clean_build():
 def pack():
     parser = argparse.ArgumentParser(description=f"{__team__} - {PROJECT_NAME} 打包工具 v{__version__}")
     parser.add_argument("mode", nargs="?", default="pack", choices=["pack", "clean"], help="运行模式: pack(打包程序), clean(清理构建文件)")
-    parser.add_argument("--source", "-s", action="store_true", help="源码模式 - 直接从 src/pytexmk/ 打包（不使用 Cython 加密）")
     args = parser.parse_args()
-
-    use_cython = not args.source
 
     if args.mode == "clean":
         clean_result, clean_data = tracker.execute_with_timing(clean_build, "清理构建文件")
@@ -173,41 +170,17 @@ def pack():
 
     steps_result = []
 
-    if use_cython:
-        console.rule("[bold]🔐 Cython 加密模式 (onedir)[/]")
-        sys.path.insert(0, str(TOOLS_DIR))
-        from pydmk import pydmk
-
-        cython_success = False
-        try:
-            pydmk()
-            cython_success = True
-        except SystemExit as e:
-            cython_success = (e.code == 0)
-        except Exception:
-            cython_success = False
-
-        if not cython_success:
-            console.print("✗ Cython 编译失败", style="error")
-            tracker.generate_report()
-            sys.exit(1)
-
-        entry_point = SRCPYD_DIR / "__main__.py"
-        data_dir = SRCPYD_DIR / "data"
-        config_dir = SRCPYD_DIR / "config" if (SRCPYD_DIR / "config").exists() else None
-        locale_dir = SRCPYD_DIR / "locale"
-    else:
-        console.rule("[bold]📦 源码打包模式 (onedir)[/]")
-        entry_point = SRC_ENTRY_POINT
-        data_dir = SRC_DATA_DIR
-        config_dir = None
-        locale_dir = SRC_LOCALE_DIR
+    console.rule("[bold]📦 打包模式 (onedir)[/]")
+    entry_point = SRC_ENTRY_POINT
+    data_dir = SRC_DATA_DIR
+    config_dir = None
+    locale_dir = SRC_LOCALE_DIR
 
     if not entry_point.exists():
         console.print(f"✗ 入口文件不存在: {entry_point}", style="error")
         sys.exit(1)
 
-    mode_str = "Cython 加密" if use_cython else "源码"
+    mode_str = "源码"
     console.print(f"打包模式: onedir 目录 ({mode_str})", style="info")
     console.print(f"入口文件: {entry_point}", style="info")
 

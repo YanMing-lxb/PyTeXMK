@@ -3,7 +3,7 @@
 # ==============================================================================
 # 使用方法：make <目标>
 # 示例：
-#   make build   - 构建 Cython 加密的可执行程序
+#   make build   - 构建源码模式的可执行程序（onedir 目录）
 #   make clean   - 清理所有构建产物
 #   make whl     - 构建 wheel 和 sdist 分发包
 #   make help    - 显示所有可用目标及说明
@@ -23,8 +23,7 @@ endif
 # 显示可用目标列表（详细说明见 Makefile 中的注释）
 help:
 	@echo PyTeXMK - Available targets:
-	@echo   build    Build Cython-encrypted binary (onedir mode)
-	@echo   pydmk    Cython compile all .py to .pyd/.so
+	@echo   build    Build source-mode binary (onedir mode)
 	@echo   icon     Generate platform icons from logo
 	@echo   whl      Build Python distribution (wheel + sdist)
 	@echo   inswhl   Install locally built wheel
@@ -43,19 +42,9 @@ help:
 # 构建相关目标
 # ------------------------------------------------------------------------------
 
-# 构建 Cython 加密的可执行程序（onedir 目录模式）
-# - 默认使用 Cython 加密所有 Python 源码后再打包
-# - 如需源码模式打包（不加密），直接运行: uv run python ./tools/pack.py pack --source
-# - 产物输出到 dist/pytexmk/ 目录
+# 构建源码模式可执行程序（onedir 目录模式） - 产物：dist/pytexmk/
 build:
 	@uv run python ./tools/pack.py pack
-
-# 使用 Cython 编译所有 .py 文件为平台扩展模块（仅编译，不打包）
-# - Windows 生成 .pyd，Linux/macOS 生成 .so
-# - 编译产物输出到 srcpyd/ 目录
-# - 主要用于验证 Cython 编译是否正常，或单独使用加密后的源码
-pydmk:
-	@uv run python ./tools/pydmk.py
 
 # 从项目 logo 生成各平台特定的图标文件
 # - 输入: imgs/pytexmk-logo.png
@@ -86,7 +75,6 @@ inswhl:
 # 清理所有构建和打包产生的临时文件与目录
 # - 删除 build/ (PyInstaller 工作目录)
 # - 删除 dist/ (打包产物目录)
-# - 删除 srcpyd/ (Cython 编译产物目录)
 # - 删除 staging/ (CI 打包临时目录)
 # - 删除根目录下所有 .spec 文件 (PyInstaller 规格文件)
 clean:

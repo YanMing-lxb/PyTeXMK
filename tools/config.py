@@ -10,7 +10,6 @@ __team__ = "YanMing"
 PROJECT_NAME = "pytexmk"
 ROOT_DIR = Path(__file__).parent.parent
 SRC_DIR = ROOT_DIR / "src" / "pytexmk"
-SRCPYD_DIR = ROOT_DIR / "srcpyd"
 TOOLS_DIR = ROOT_DIR / "tools"
 SRC_ENTRY_POINT = SRC_DIR / "__main__.py"
 SRC_DATA_DIR = SRC_DIR / "data"
@@ -57,7 +56,6 @@ __all__ = [
     "PROJECT_NAME",
     "POT_DIR",
     "ROOT_DIR",
-    "SRCPYD_DIR",
     "SRC_DATA_DIR",
     "SRC_DIR",
     "SRC_ENTRY_POINT",

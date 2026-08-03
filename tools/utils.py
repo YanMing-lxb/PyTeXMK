@@ -1,9 +1,14 @@
+import os
+import queue
 import shutil
+import signal
 import subprocess
 import sys
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
+from platform import system
 from typing import Any
 
 from rich.console import Console
@@ -141,12 +146,46 @@ class PerformanceTracker:
 # ======================
 
 
+def _kill_process_tree(pid: int) -> None:
+    try:
+        if system() == "Windows":
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(pid)],
+                capture_output=True,
+                timeout=5,
+            )
+        else:
+            try:
+                import psutil
+
+                parent = psutil.Process(pid)
+                for child in parent.children(recursive=True):
+                    try:
+                        child.kill()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+                try:
+                    parent.kill()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            except ImportError:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+    except Exception:
+        pass
+
+
 def run_command(
     command: list,
     success_msg: str,
     error_msg: str,
     process_name: str = "执行命令",
     encoding: str = "utf-8",
+    timeout: int | None = None,
+    cwd: str | None = None,
+    env_extra: dict[str, str] | None = None,
 ) -> bool:
     """
     通用命令执行函数，用于运行系统命令并提供友好的控制台输出和状态提示
@@ -161,6 +200,12 @@ def run_command(
         命令执行失败时显示的错误消息前缀
     process_name : str, optional
         正在执行的操作名称，用于状态栏显示, by default "执行命令"
+    timeout : int, optional
+        超时时间（秒），None 表示不限制, by default None
+    cwd : str, optional
+        子进程工作目录, by default None
+    env_extra : dict[str, str], optional
+        额外的环境变量，会与当前环境合并, by default None
 
     Returns
     -------
@@ -172,11 +217,15 @@ def run_command(
     subprocess.CalledProcessError
         当子进程返回非零退出码时抛出此异常
     """
-    try:
-        console.print(f"[dim]执行命令: {' '.join(command)}[/]")  # 打印实际执行的命令
-        start_time = time.time()  # 记录开始时间
+    env = None
+    if env_extra is not None:
+        env = os.environ.copy()
+        env.update(env_extra)
 
-        # 启动子进程并实时捕获输出
+    try:
+        console.print(f"[dim]执行命令: {' '.join(command)}[/]")
+        start_time = time.time()
+
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE,
@@ -184,39 +233,90 @@ def run_command(
             text=True,
             bufsize=1,
             encoding=encoding,
-            errors="ignore",  # 忽略无法解码的字符
+            errors="ignore",
+            cwd=cwd,
+            env=env,
         )
 
-        # 显示动态状态提示，并实时打印命令输出
-        with console.status(f"[status]正在{process_name}..."):  # 动态状态提示
+        q: queue.Queue[str | None] = queue.Queue()
+
+        def _reader():
+            try:
+                for line in process.stdout:
+                    q.put(line)
+            finally:
+                q.put(None)
+
+        reader_thread = threading.Thread(target=_reader, daemon=True)
+        reader_thread.start()
+
+        deadline = None
+        if timeout is not None:
+            deadline = time.monotonic() + timeout
+
+        timed_out = False
+        with console.status(f"[status]正在{process_name}..."):
             while True:
-                output = process.stdout.readline()
-                if not output and process.poll() is not None:
+                remaining = None
+                if deadline is not None:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        timed_out = True
+                        break
+                try:
+                    line = q.get(timeout=0.1 if remaining is None else min(0.1, remaining))
+                except queue.Empty:
+                    if process.poll() is not None and q.empty():
+                        break
+                    continue
+                if line is None:
                     break
-                if output:
-                    console.print(f"[dim]{output.strip()}[/]")  # 实时打印命令输出
+                if line:
+                    console.print(f"[dim]{line.strip()}[/]")
+
+        if timed_out:
+            try:
+                _kill_process_tree(process.pid)
+            except Exception:
+                try:
+                    process.kill()
+                except Exception:
+                    pass
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+            reader_thread.join(timeout=2)
+            console.print(
+                f"✗ {error_msg}: 命令执行超时 / Command timed out after {timeout}s",
+                style="error",
+            )
+            return False
+
+        reader_thread.join(timeout=2)
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            pass
 
         if process.returncode == 0:
-            # 命令成功执行完成
             duration = time.time() - start_time
             if duration > 60:
                 format_duration = (
-                    f"{duration // 60:.0f}m {duration % 60:.1f}s"  # 转换为分钟和秒
+                    f"{duration // 60:.0f}m {duration % 60:.1f}s"
                 )
             else:
-                format_duration = f"{duration:.2f}s"  # 保留两位小数的秒表示
+                format_duration = f"{duration:.2f}s"
             console.print(
                 f"✓ {success_msg} [time](耗时: {format_duration})[/]", style="success"
             )
             return True
 
-        # 命令执行失败，抛出异常
         raise subprocess.CalledProcessError(
             process.returncode, command, f"退出码: {process.returncode}"
         )
 
     except subprocess.CalledProcessError as e:
-        # 捕获并处理异常，返回False表示执行失败
         console.print(f"✗ {error_msg}: {e}", style="error")
         return False
 
