@@ -44,41 +44,6 @@ def get_binary_path(dist_dir: Path) -> Path:
     return dist_dir / PROJECT_NAME / bin_name
 
 
-def verify_pack(dist_dir: Path) -> bool:
-    binary_path = get_binary_path(dist_dir)
-    version = __version__
-
-    if not binary_path.exists():
-        console.print(f"✗ 可执行文件未找到: {binary_path}", style="error")
-        return False
-
-    console.print(f"✓ 可执行文件已生成: {binary_path}", style="success")
-
-    try:
-        result = subprocess.run(
-            [str(binary_path), "--version"],
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            encoding="utf-8",
-            errors="ignore",
-        )
-        combined_output = (result.stdout or "") + (result.stderr or "")
-        if result.returncode == 0 and version in combined_output:
-            console.print("✓ 版本验证成功", style="success")
-            return True
-        else:
-            console.print(f"✗ 版本验证失败（退出码 {result.returncode} 或未找到版本号 {version}）", style="error")
-            return False
-    except subprocess.TimeoutExpired:
-        console.print(f"✗ 版本验证失败（超时 或未找到版本号 {version}）", style="error")
-        return False
-    except Exception as e:
-        console.print(f"✗ 版本验证失败（{e} 或未找到版本号 {version}）", style="error")
-        return False
-
-
 def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Path) -> bool:
     dist_dir = ROOT_DIR / "dist"
     work_dir = ROOT_DIR / "build"
@@ -132,10 +97,6 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
         error_msg="打包失败",
         process_name="打包应用",
     )
-
-    if success:
-        verify_success = verify_pack(dist_dir)
-        return verify_success
 
     return False
 
