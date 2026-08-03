@@ -8,7 +8,7 @@ from rich import print
 from pytexmk.language import set_language
 from pytexmk.lifecycle import exit_pytexmk
 
-_ = set_language("additional")
+_ = set_language("tex_project")
 
 
 class MainFileOperation:

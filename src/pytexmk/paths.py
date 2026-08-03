@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pytexmk.language import set_language
 
-_ = set_language("auxiliary_fun")
+_ = set_language("paths")
 
 
 def get_app_path():

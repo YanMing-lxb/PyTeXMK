@@ -5,7 +5,7 @@ from rich import print
 
 from pytexmk.language import set_language
 
-_ = set_language("auxiliary_fun")
+_ = set_language("lifecycle")
 
 
 def exit_pytexmk():

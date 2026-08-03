@@ -338,7 +338,7 @@ def run_workflow(args):
             runtime_dict[_("清除文件夹内辅助文件")] = runtime_remove_aux_auxdir
             runtime_remove_aux_root, _ret = time_count(MRO.remove_specific_files, aux_files, ".")
             runtime_dict[_("清除根目录内辅助文件")] = runtime_remove_aux_root
-            print(_("[bold green]已完成清除所有主文件的辅助文的件指令"))
+            print(_("[bold green]已完成清除所有主文件的辅助文件的指令"))
         elif args.Clean:
             runtime_remove_aux_auxdir, _ret = time_count(MRO.remove_specific_files, aux_files, auxdir)
             runtime_dict[_("清除文件夹内辅助文件")] = runtime_remove_aux_auxdir

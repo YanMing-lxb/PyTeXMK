@@ -33,7 +33,7 @@ from pathlib import Path
 # 定义系统语言检查函数
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
-    """根据系统区域设置配置 gettext，返回 _() 翻译函数。"""
+    """根据系统区域设置动态选择翻译；源码默认中文，zh→NullTranslations，其他按优先级查找 .mo。"""
     current_locale = locale.getdefaultlocale()
     if hasattr(sys, "_MEIPASS"):
         locale_path = Path(sys._MEIPASS) / "locale"
@@ -42,13 +42,32 @@ def set_language(lang_file):
     else:
         locale_path = Path(__file__).resolve().parent / "locale"
 
-    if current_locale[0].startswith("zh"):
+    raw = current_locale[0] or ""
+    if raw.startswith("zh"):
         translation = gettext.NullTranslations()
-    else:
-        translation = gettext.translation(
-            lang_file, localedir=locale_path, languages=["en"]
-        )
+        return translation.gettext
 
+    # 其他语言：精确 locale → 语言回退 → 最终兜底 en，按顺序生成去重 candidates
+    candidates: list[str] = []
+    if raw:
+        candidates.append(raw)
+        sep = "_" if "_" in raw else "-" if "-" in raw else None
+        if sep is not None:
+            candidates.append(raw.split(sep)[0])
+    candidates.append("en")
+    seen: set[str] = set()
+    languages: list[str] = [c for c in candidates if not (c in seen or seen.add(c))]
+
+    fallback = gettext.NullTranslations()
+    try:
+        translation = gettext.translation(
+            lang_file,
+            localedir=str(locale_path),
+            languages=languages,
+            fallback=fallback,
+        )
+    except Exception:
+        translation = fallback
     return translation.gettext
 
 

@@ -7,7 +7,7 @@ from rich import print
 
 from pytexmk.language import set_language
 
-_ = set_language("additional")
+_ = set_language("pdf_tools")
 
 
 class PdfFileOperation:

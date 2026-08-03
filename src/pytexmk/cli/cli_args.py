@@ -34,7 +34,7 @@ from ..language import set_language
 from ..ui_messages import magic_comment_desc_table
 from ..version import __version__, script_name
 
-_ = set_language("__main__")
+_ = set_language("cli_args")
 
 
 class CustomArgumentParser(argparse.ArgumentParser):

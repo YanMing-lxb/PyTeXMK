@@ -32,9 +32,10 @@ help:
 	@echo   all      Build all document formats
 	@echo   html     Build HTML documents
 	@echo   rst      Build RST documents
-	@echo   pot      Extract strings to .pot template
-	@echo   mo       Compile .po to .mo files
-	@echo   poup     Update translation files
+	@echo   pot      Extract msgid to POT templates (locale/templates/*.pot)
+	@echo   add-lang Interactive add a new locale code and init all .po files
+	@echo   update   Re-extract POT then merge into all existing locales' .po
+	@echo   mo       Compile all locales' .po to binary .mo
 	@echo   upload   Upload to PyPI
 	@echo   help     Show this help message
 
@@ -108,29 +109,33 @@ rst:
 	@uv run python ./tools/make.py rst
 
 # ------------------------------------------------------------------------------
-# 国际化 (i18n) 相关目标
+# 国际化 (i18n) 相关目标 —— 严格遵循 pybabel 官方 4 命令工作流
+# 工作流：pot (extract) → add-lang (init) → update (合并新 msgid) → mo (compile)
 # ------------------------------------------------------------------------------
 
-# 从 Python 源码中提取所有待翻译字符串，生成/更新 .pot 模板文件
-# - 扫描 src/pytexmk/ 下所有 .py 文件中的 _() 标记字符串
-# - 输出到 src/pytexmk/locale/en/LC_MESSAGES/*.pot
-# - .pot 文件是翻译的母版，供各语言 .po 文件参考
+# 1) pot：从 Python 源码的 _() 标记中提取 msgid，生成 POT 翻译模板（语言无关）
+#    · 仅扫 src/pytexmk/**/*.py
+#    · 输出到 src/pytexmk/locale/templates/<domain>.pot（gettext 标准：模板单独存放，不隶属于具体 locale）
 pot:
 	@uv run python ./tools/lang_tool.py pot
 
-# 将 .po 翻译文件编译为二进制 .mo 文件
-# - .mo 文件是程序运行时实际加载的翻译文件
-# - 输出到 src/pytexmk/locale/<lang>/LC_MESSAGES/*.mo
-# - 每次修改 .po 文件后都需要重新编译
+# 2) add-lang：交互式新增一种语言 —— 终端询问 locale code（如 en_US / ja_JP / fr_FR / zh_Hans）
+#    · 先确保 pot 最新；为所有 domain 生成对应的 .po 翻译文件
+#    · 若该语言已存在则不覆盖，改为提示使用 update
+add-lang:
+	@uv run python ./tools/lang_tool.py add-lang
+
+# 3) update：重新抽取 POT 模板，然后将新 msgid 合并到所有已存在 locale 的 .po 文件
+#    · 自动扫所有 locale（只要 locale/<x>/LC_MESSAGES/ 存在即视为一种语言）
+#    · 使用 pybabel update 合并，保留已填的 msgstr，不会被覆盖；缺的 domain 自动补 init
+#    · 合并完成后人工补空 msgstr，再跑 mo 编译
+update:
+	@uv run python ./tools/lang_tool.py update
+
+# 4) mo：将所有已存在 locale 的 .po 翻译文件编译为二进制 .mo（程序运行时 gettext 加载）
+#    · 某个 .po 缺只会 warning 跳过，不会抛错阻塞其他语言
 mo:
 	@uv run python ./tools/lang_tool.py mo
-
-# 更新翻译文件：将 pot 中新提取的字符串合并到现有 .po 文件
-# - 在新增功能或修改字符串后运行，保留已有翻译
-# - 使用 msgmerge 工具合并
-# - 运行后再编辑 .po 文件补充新翻译，最后执行 make mo
-poup:
-	@uv run python ./tools/lang_tool.py poup
 
 # ------------------------------------------------------------------------------
 # 发布相关目标

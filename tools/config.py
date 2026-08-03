@@ -24,6 +24,8 @@ CONFIG_DIR = SRC_DIR / "config"
 DATA_DIR = SRC_DATA_DIR
 VENV_NAME = ".venv"
 LANG_EN_DIR = SRC_DIR / "locale" / "en"
+BABEL_CFG_PATH = ROOT_DIR / "babel.cfg"
+POT_DIR = SRC_LOCALE_DIR / "templates"
 if sys.platform == "win32":
     ICON_FILE = ICO_PATH
 elif sys.platform == "darwin":
@@ -53,6 +55,7 @@ __all__ = [
     "LOGO_SOURCE",
     "PNG_PATH",
     "PROJECT_NAME",
+    "POT_DIR",
     "ROOT_DIR",
     "SRCPYD_DIR",
     "SRC_DATA_DIR",
@@ -63,4 +66,5 @@ __all__ = [
     "VENV_NAME",
     "__team__",
     "__version__",
+    "BABEL_CFG_PATH",
 ]

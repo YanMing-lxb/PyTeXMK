@@ -10,7 +10,7 @@ from pytexmk.ui_theme import console
 
 logger = logging.getLogger(__name__)
 
-_ = set_language("info_print")
+_ = set_language("ui_messages")
 
 
 def print_message(message, state=None):

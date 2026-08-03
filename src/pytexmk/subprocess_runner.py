@@ -7,7 +7,7 @@ from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
 from pytexmk.ui_theme import console
 
-_ = set_language("additional")
+_ = set_language("subprocess_runner")
 
 
 class SubprocessFailedError(Exception):
