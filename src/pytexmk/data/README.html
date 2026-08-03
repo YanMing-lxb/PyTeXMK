@@ -59,15 +59,17 @@ XeLaTeX/PdfLaTeX/LuaLaTeX；所有报告文案完整适配国际化 <code>_()</c
 总页数等收敛稳定</li>
 <li>🔮 <strong>魔法注释</strong>：通过 <code>% !TEX</code>
 注释指定编译引擎、主文件、输出目录等</li>
-<li>🌍 <strong>国际化</strong>：支持多语言界面；v1.2.0 起 <strong>5
-个核心业务模块（compile_engine / detection / compile_report /
-cli_workflow / file_ops）</strong> 的翻译 domain 与 set_language
-参数、locale 文件名 <strong>1:1 严格对齐</strong>；所有新增打印文案
-<strong>100% 用 <code>_("…") %(占位符)s</code>
-包装</strong>；<strong><code>.pot</code> 翻译模板统一用系统 xgettext
-自动抽取</strong>（非 pybabel / 非手写），保证 msgid
-上方自带源文件行号定位；按 Q2 约束不生成 <code>.mo</code>
-二进制，避免与最新 .pot 不同步</li>
+<li>🌍 <strong>国际化</strong>：支持多语言界面；<strong>默认界面语言为中文</strong>（源码字符串即中文），不强制默认英文；v1.2.1
+起全面采用 <strong>pybabel 官方工作流</strong>（<code>pybabel
+extract → init → update → compile</code>），不再使用
+xgettext / msgfmt；所有用户可见文案 100%
+<code>_()</code> 包装 + <code>%(name)s</code> 占位；<strong>3 组遗留共享域全部拆为独立域</strong>（lifecycle /
+paths、pdf_tools / subprocess_runner /
+tex_project、timing /
+ui_messages），与 set_language 参数、locale 文件名 1:1
+严格对齐；提供新增语言的交互式命令（<code>make lang-add</code>
+终端提问语言代码）、自动更新所有 pot/po 的 <code>make lang-update</code>、把 po 编译成 mo 的
+<code>make lang-mo</code>、以及重抽所有 pot 的 <code>make lang-poup</code></li>
 <li>🧹
 <strong>智能清理</strong>：支持多种清理模式，精确清理辅助文件</li>
 <li>🔍 <strong>日志解析</strong>：编译失败后自动解析 LaTeX
@@ -94,11 +96,13 @@ Banner 回归复古三行 <code>=*78 / X32|开始预处理|X32 / =*78</code>
 0/N 个辅助文件」「exist 0/N 个已有辅助文件」4
 场景<strong>差异化打印提示</strong>，避免无论是否实际迁移都两行固定输出的歧义；「未检测到已有辅助文件，进行初始化」文案<strong>全局只保留
 1 处</strong>，归属 <code>cli_workflow</code></li>
-<li>🚫 <strong>零兼容承诺 + 冗余清理</strong>：v1.2.0
+<li>🚫 <strong>零兼容承诺 + 冗余清理 + 永久去 Cython 加密</strong>：v1.2.1
 起<strong>不保留任何兼容层</strong>（彻底删除旧 <code>pytexmk.run</code>
-入口 / DeprecationWarning / try-import fallback）；对 5 个核心模块进行
-ruff F401/F841 静态扫描 + 死注释 +
-重复文件读取清理，确保架构熵增可控</li>
+入口 / DeprecationWarning / try-import fallback）；<strong>永久移除 Cython
+加密打包链路</strong>（删除 <code>tools/pydmk.py</code>、<code>srcpyd/</code>
+入口、<code>cython</code>
+依赖、三平台 GA 编译工具链安装步骤），打包流程<strong>永久只有「源码模式 onedir」一条路径</strong>；核心模块持续执行 ruff
+F401/F841 + 死注释清理，控制架构熵增速率</li>
 <li>🗺 <strong>架构决策制度化</strong>：新增 <a
 href="docs/architecture.md">docs/architecture.md</a>
 作为单一事实源，给出 6 层 ASCII 分层依赖图、23
@@ -439,7 +443,7 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 生成平台图标</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> icon</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建 Cython 加密的可执行程序（onedir 模式）</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建源码模式的可执行程序（onedir 目录）</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build</span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 清理构建产物</span></span>

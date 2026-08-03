@@ -1,6 +1,6 @@
 # PyTeXMK 架构设计文档
 
-> 本文档描述 PyTeXMK v1.1.3 版本的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
+> 本文档描述 PyTeXMK v1.2.1 版本的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
 > 本文档依据 `spec.md`（路径 A 推荐方案）编写，适用于当前 23 模块规模。
 
 ---
@@ -28,15 +28,15 @@ PyTeXMK 采用严格的 6 层向下依赖架构，Layer 0 为对外 API 顶层�
 ────────────────────────────────────────────────────────────────────
  Layer 2  Core-Run（扁平，编译收敛核心）
 ────────────────────────────────────────────────────────────────────
-    run.py              compile.py           detection.py          latexdiff.py
-  [RUN / LaTeXDiffRUN] [CompileLaTeX]  [CompilationDetector]   [LaTeXDiff Runner]
+ compile_engine.py     compile.py           detection.py          latexdiff.py
+ [RUN / LaTeXDiffRUN] [CompileLaTeX]  [CompilationDetector]   [LaTeXDiff Runner]
               │
               ▼ down
 ────────────────────────────────────────────────────────────────────
  Layer 3  Domain-Ops（扁平，领域操作）
 ────────────────────────────────────────────────────────────────────
   tex_project.py      file_ops.py     subprocess_runner.py   pdf_tools.py   ui_theme.py
- [MainFileOperation] [MoveRemoveOp]  [MySubProcess]         [PdfFileOp]    [custom_theme]
+ [MainFileOperation] [FileMoveRemoveManager] [MySubProcess]    [PdfFileOp]    [custom_theme]
               │
               ▼ down
 ────────────────────────────────────────────────────────────────────
@@ -71,7 +71,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 ## 章节 2：23 模块职责矩阵（含 [cli 子包] 标签）
 
 本矩阵列出 PyTeXMK 当前 23 个源模块（其中 4 个位于 `cli/` 子包内，标注 `[cli 子包]`），
-行号、行数为 v1.1.3 锚点的近似值，「对外关键符号」按该模块被外部 import 频率排序（前 5）。
+行号、行数为 v1.2.1 锚点的近似值，「对外关键符号」按该模块被外部 import 频率排序（前 5）。
 
 | No. | 文件名 | 行数（近似） | 对外关键符号（前 5） | 一句话职责 |
 |-----|--------|-------------|----------------------|-----------|
@@ -81,16 +81,16 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 | 04 | `cli/cli_args.py [cli 子包]` | 169 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：argparse 16 个参数定义、CustomHelpFormatter 等宽帮助、校验互斥组 |
 | 05 | `cli/cli_workflow.py [cli 子包]` | 330 | `run_workflow`, `doctor_check`, `show_config_display` | CLI 工作流调度：按运行模式（RUN / LaTeXDiff / --doctor / --show-config）分发到 Core-Run |
 | 06 | `cli/check_version.py [cli 子包]` | 203 | `UpdateChecker`, `check_pypi_update`, `get_cached_latest` | 版本检查：GitHub API 拉取最新版本号、本地文件缓存、~10 秒超时避免网络卡壳 |
-| 07 | `run.py` | 279 | `RUN`, `LaTeXDiffRUN` | 对外运行函数：`RUN` 编排主编译收敛循环（最多 8 次）、`LaTeXDiffRUN` 封装 latexdiff 流程 |
+| 07 | `compile_engine.py` | 279 | `RUN`, `LaTeXDiffRUN` | 对外运行函数：`RUN` 编排主编译收敛循环（最多 8 次）、`LaTeXDiffRUN` 封装 latexdiff 流程（v1.2.0 起 `run.py` 重命名为 `compile_engine.py`，旧名字无兼容层保留） |
 | 08 | `compile.py` | 165 | `CompileLaTeX`, `aux_move_to_dir` | 编译调度：`CompileLaTeX.__call__` 单次执行子进程 + 拉 log + 触发 6 维检测 + 搬 aux 目录 |
 | 09 | `detection.py` | 469 | `CompilationDetector`, `RERUN_LOG_PATTERNS`, `RERUN_AUX_PATTERNS` | 6 维检测策略：bib/toc/index/aux/out/log 六类正则 + 10 项检测方法，判断是否需要 rerun |
 | 10 | `latexdiff.py` | 178 | `run_latexdiff`, `diff_tex_with_commit`, `diff_tex_with_file` | LaTeXDiff 差异：调用 latexdiff 命令行、支持 Git 历史 commit 与两个本地文件两种对比模式 |
 | 11 | `tex_project.py` | 241 | `MainFileOperation`, `find_main_tex`, `parse_magic_comments`, `draft_mode_sanitize` | TeX 项目域：主文件检索（通配 main.tex + 魔法注释）、`% !TeX root` 解析、草稿模式安全过滤 |
-| 12 | `file_ops.py` | 84 | `MoveRemoveOperation`, `safe_move`, `safe_remove`, `clean_aux_files` | 纯文件操作：`shutil.move` / `unlink` 的安全封装（吞 FileNotFound、记录日志）、批量 aux 清理 |
+| 12 | `file_ops.py` | 84 | `FileMoveRemoveManager`, `safe_move`, `safe_remove`, `clean_aux_files` | 纯文件操作：`FileMoveRemoveManager` 封装移动/删除、`shutil.move` / `unlink` 的安全封装（吞 FileNotFound、记录日志）、批量 aux 清理（v1.2.0 起 `MoveRemoveOperation` 重命名为 `FileMoveRemoveManager`） |
 | 13 | `subprocess_runner.py` | 97 | `MySubProcess`, `SubprocessFailedError`, `run_command_capture`, `_format_duration` | 子进程执行：Popen 封装 stdout/stderr 捕获、自定义异常替代 `sys.exit`、耗时格式化 |
 | 14 | `pdf_tools.py` | 55 | `PdfFileOperation`, `open_pdf_viewer`, `compare_pdf_pages` | PDF 工具：跨平台 PDF 预览启动（Windows `start` / macOS `open` / Linux `xdg-open`） |
 | 15 | `ui_theme.py` | 13 | `custom_theme`, `console` | Rich UI 主题：`custom_theme` 三色常量（success=green/warning=yellow/error=red）、全局单例 `console` |
-| 16 | `version.py` | 29 | `__version__`, `__app_name__`, `script_name` | 版本常量：`1.2.0` 硬编码 + `PyTeXMK` 应用名，所有其他模块的版本号唯一来源 |
+| 16 | `version.py` | 29 | `__version__`, `__app_name__`, `script_name` | 版本常量：`1.2.1` 硬编码 + `PyTeXMK` 应用名，所有其他模块的版本号唯一来源 |
 | 17 | `paths.py` | 13 | `get_app_path`, `get_data_dir`, `get_config_dir` | 路径定位：`pkgutil.get_data` + 平台 `AppData`/`.config` 目录解析，locale/data/config 相对锚点 |
 | 18 | `lifecycle.py` | 9 | `exit_pytexmk`, `ExitCode` 枚举 | 生命周期退出：统一退出钩子（打印再见横幅、写 logger、刷新缓冲、`sys.exit`），禁止零散 `sys.exit` |
 | 19 | `logger_config.py` | 65 | `setup_logger`, `get_logger`, `LOG_FILE_PATH` | 日志配置：Rich 日志 handler + 文件 handler 双写、按日滚动、日志级别 CLI 参数切换 |
@@ -133,7 +133,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 │    - RUN 最大次数、收敛判断策略改动                       │
 │    - CompileLaTeX 单次调度、子进程参数封装               │
 │    - detection 检测维度新增 / latexdiff 预处理           │
-│    ├─ YES → 放 Layer 2 Core-Run 扁平组（run.py / compile.py │
+│    ├─ YES → 放 Layer 2 Core-Run 扁平组（compile_engine.py / compile.py │
 │    │        / detection.py / latexdiff.py 同级目录旁）     │
 │    └─ NO  → 继续 Q3                                        │
 └──────────────────────────────────────────────────────────┘
@@ -222,8 +222,8 @@ PyTeXMK 的 import 规则与分层架构严格对应。违反以下 3 条会直�
 
 | 所在层 | 允许 import 的层 | 禁止 import 的层 | 示例 |
 |--------|-----------------|-----------------|------|
-| **CLI（L1）** | L2 / L3 / L4 / L5（所有下层） | 无（L0 是自己的 API 壳） | `cli_workflow.py` 可以 `from ..run import RUN`（L1→L2） |
-| **Core-Run（L2）** | L3 / L4 / L5 | L0 / L1（禁止引 CLI） | `run.py` 可以 `from .language import set_language`（L2→L5），但不得 `from .cli.cli_workflow import X`（L2→L1 ❌） |
+| **CLI（L1）** | L2 / L3 / L4 / L5（所有下层） | 无（L0 是自己的 API 壳） | `cli_workflow.py` 可以 `from ..compile_engine import RUN`（L1→L2） |
+| **Core-Run（L2）** | L3 / L4 / L5 | L0 / L1（禁止引 CLI） | `compile_engine.py` 可以 `from .language import set_language`（L2→L5），但不得 `from .cli.cli_workflow import X`（L2→L1 ❌） |
 | **Domain-Ops（L3）** | L4 / L5 | L0 / L1 / L2 | `tex_project.py` 可以 `from .config import ConfigManager`（L3→L4），但不得引 L2 run/compile |
 | **Infra（L4）** | 仅允许 L5 | L0 / L1 / L2 / L3（禁止引任何上层/业务层） | `paths.py` 可以 `from .language import _`（L4→L5），但不得 `from .config import X`（L4→L4 允许同层，L4→L3 ❌） |
 | **I18N/UI（L5）** | 无（除 language 自己） | L0/L1/L2/L3/L4（最底层） | `language.py` 只依赖标准库 gettext，不得 import 任何业务层；`timing.py` 可引同层 L5 `language.py`（同层允许） |
@@ -241,9 +241,9 @@ PyTeXMK 的 import 规则与分层架构严格对应。违反以下 3 条会直�
 | 源位置 | 目标位置 | 正确点数 | 正确写法 | 错误写法（举例） |
 |--------|---------|---------|---------|----------------|
 | `cli/__main__.py`（cli 子包内） | `cli/cli_args.py`（同子包内） | `.` = 1 点 | `from .cli_args import parse_args` | `from cli_args import ...`（0 点绝对 ❌）<br>`from ..cli_args import ...`（2 点多了 ❌） |
-| `cli/cli_workflow.py`（cli 子包内） | `run.py`（根包扁平） | `..` = 2 点 | `from ..run import RUN` | `from .run import ...`（1 点少了 ❌）<br>`from pytexmk.run import ...`（绝对路径允许，但本项目推荐相对） |
+| `cli/cli_workflow.py`（cli 子包内） | `compile_engine.py`（根包扁平） | `..` = 2 点 | `from ..compile_engine import RUN` | `from .compile_engine import ...`（1 点少了 ❌）<br>`from pytexmk.compile_engine import ...`（绝对路径允许，但本项目推荐相对） |
 | `cli/check_version.py`（cli 子包内） | `language.py`（根包扁平） | `..` = 2 点 | `from ..language import set_language` | `from .language import ...`（1 点少了 ❌） |
-| 根包扁平 `run.py`（src/pytexmk/） | `cli/cli_workflow.py`（cli 子包） | `.cli.X` = 1 点进子包 | `from .cli.cli_workflow import run_workflow` | `from .cli_workflow import ...`（0 点子包不存在 ❌）<br>`from ..pytexmk.cli.cli_workflow import ...`（3 点升出去又回来 ❌） |
+| 根包扁平 `compile_engine.py`（src/pytexmk/） | `cli/cli_workflow.py`（cli 子包） | `.cli.X` = 1 点进子包 | `from .cli.cli_workflow import run_workflow` | `from .cli_workflow import ...`（0 点子包不存在 ❌）<br>`from ..pytexmk.cli.cli_workflow import ...`（3 点升出去又回来 ❌） |
 
 烟检命令（修改 import 后必须执行，保证点数无误）：
 ```bash

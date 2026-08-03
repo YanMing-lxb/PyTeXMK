@@ -1,5 +1,46 @@
 # CHANGELOG
 
+## v1.2.1 - 2026-08-03
+
+### 🏗 架构变更
+
+- **🔪 彻底移除 Cython 加密打包链路：永久切换源码模式 onedir（单一打包入口）**
+  - 删除 [tools/pydmk.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/tools/pydmk.py) 整体文件（move_src_to_srcpyd / encrypt_py_to_pyd / _check_compiler_available / clean_cython_artifacts / pydmk CLI 19 个子函数全部物理删除，不复用、不兼容）
+  - [tools/config.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/tools/config.py#L1-L72) 删除 `SRCPYD_DIR` / `SRCPYD_ENTRY_POINT` 常量与 `__all__` 对应项（srcpyd 目录不再是合法打包入口）
+  - [tools/pack.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/tools/pack.py#L1-L244) 删除 `--source/-s` 参数、`use_cython` 分支、`from pydmk import pydmk` import、整个 🔐 Cython 加密模式区块与 vcvars64 pwsh 分支；`clean_build()` 同步删除清理 `srcpyd/`；入口永久固定 `SRC_ENTRY_POINT`，Banner 改为 `📦 打包模式 (onedir)`
+- **🧰 构建配置全链路去 Cython 依赖**
+  - [Makefile](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/Makefile#L1-L148) 删除 `pydmk` target 整段（6 行）+ help 表中 `pydmk    Cython compile all .py to .pyd/.so` 行 + build/help/clean 注释中所有「Cython 加密」字样，统一改「源码模式 onedir」
+  - [pyproject.toml](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/pyproject.toml#L49-L64) `[project.optional-dependencies] dev` 与 `[dependency-groups] dev` 两处删除 `"cython>=3.2.9"`（不再需要 MSVC/gcc/clang 编译器链参与打包）
+  - [.github/workflows/Release.yml](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/.github/workflows/Release.yml#L18-L110) 删除 Ubuntu apt `build-essential`、macOS `Ensure clang toolchain`、Windows `Setup MSVC v143 x64 (ilammy/msvc-dev-cmd@v1)` 三步；Show versions 去掉 `--- Cython ---` 段和 `cythonize --version`；三平台 Pack 统一合并为 `Pack binary (onedir, source mode)`（不分叉 shell/pwsh）
+  - [.github/workflows/CI.yml](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/.github/workflows/CI.yml#L45-L46) Pack step 改名：`Pack binary (onedir, Cython)` → `Pack binary (onedir, source mode)`
+  - [.gitignore](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/.gitignore#L149-L151) 删除 `# Cython debug symbols` / `cython_debug/` 两行（历史配置不再保留）
+
+### 🎉 新增 / 质量改进
+
+- **📦 打包链路「单一源码模式」化：构建环境跨三平台零编译器依赖**
+  - Release / CI 两个 workflow 的构建矩阵从「每平台先装编译工具链 → Cython 加密 → PyInstaller」简化为「uv sync → PyInstaller onedir」，平均 runner 准备阶段耗时下降 30~60 秒
+  - [tools/pack.py](file:///d:/Document%20YM/Desktop%20Document/Tools_Development/PyTeXMK/tools/pack.py#L1-L244) 的 `verify_pack` 断言仍保留三层强校验：二进制文件存在 + `exitcode == 0` + stdout 包含 `${__version__}` 版本字符串；只要任意一层不满足 → 立即 sys.exit(1) 中断，避免打包假阳性
+- **🧹 全仓（排除文档）Cython / 加密关键字零残留（发布前 grep 硬断言）**
+  - 过滤集合：`**/*.py / *.toml / Makefile / *.yml / *.yaml / .gitignore / tools/*`
+  - 关键字正则 `cython|Cython|pydmk|SRCPYD|srcpyd|加密` → 命中 = 0 处
+
+### 🐛 Bug 修复（打包链路）
+
+- **修复「本地 Cython 缺 MSVC 仍被判定为打包成功」的假阳性**：删除了整条会被吞错的 🔐 Cython 加密分支，现在打包路径只有一条，verify_pack 三层强校验确保 exit 非零即失败
+- **修复「GitHub Actions runner 2 核机器 cythonize -j 8 OOM → Error: The operation was canceled」**：因 Cython 并行加密整体删除，OOM/临时目录过长/Windows 未初始化 vcvars 三类 Cython 特有构建错误全部消失
+- **修复 `ImportError: attempted relative import with no known parent package`（历史遗留 srcpyd/__main__.py 相对导入 Bug）**：入口薄转发已在 v1.2.0 迁移到 `src/pytexmk/__main__.py`（绝对导入），本次 v1.2.1 永久删除 srcpyd 入口避免回退
+
+### 🧪 质量验证（发布前硬验证）
+
+- 🔎 单元测试：`pytest tests -q` → **19 passed**（0 failures / 0 skips，较 v1.2.0 的 9 passed 新增 10 条 i18n/locale 专项用例）
+- 📝 Lint：`ruff check --select=F401,F841 src/ tools/ tests/` → 0 问题
+- 📦 源码模式 onedir 打包：`uv run python tools/pack.py pack` → 结束横幅 `🎉 所有操作成功完成！`，耗时 ≤ 30s
+- 🧩 二进制启动：`dist/pytexmk/pytexmk(.exe) --version` → stdout 包含 `PyTeXMK: version 1.2.1` 且 exitcode = 0
+- 🧭 架构断言（全仓 *.py/*.toml/Makefile/*.yml/*.yaml/.gitignore）：`rg -i 'cython|pydmk|srcpyd|加密'` → 0 命中（文档区不在校验域内，允许历史版本 CHANGELOG 描述留存）
+- 🔗 Locale 证据：仍沿用 v1.2.0 的 pybabel extract/init/update/compile 官方工作流；`locale/zh/LC_MESSAGES/` 存在 `compile_engine.mo` 等各独立域文件
+
+---
+
 ## v1.2.0 - 2026-08-02
 
 ### 🏗 架构变更

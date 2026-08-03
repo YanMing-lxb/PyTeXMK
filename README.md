@@ -53,7 +53,7 @@
 - 📋 **结构化编译检测报告**：将 6 维检测状态（参考文献/索引/目录/交叉引用/书签文件/日志 Rerun）与本轮结论整合为统一报告区块；报告采用 **Rich 5 色分层彩色（标题洋红、名称青粗、[OK]绿粗、[!!]黄粗、安全上限红粗）+ 粗体**，禁用表格网格，纯条目列表输出；**[OK] 状态不再千篇一律「状态稳定」，改为 6 维度各自独立的动态稳定文案**（如「参考文献引用计数无变化，参考文献解析稳定」「PDF 书签条目未发生变更，书签生成稳定」等）；结论行 actual_next 语义严格对齐（2→1→无需，绝不兜底为 1，绝不打印「需额外进行 0 次」），编译名称按实际引擎动态替换为 XeLaTeX/PdfLaTeX/LuaLaTeX；所有报告文案完整适配国际化 `_()` 包装
 - 🔁 **智能多次编译检测**：自动比较 aux/out 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、lastpage 总页数等收敛稳定
 - 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录等
-- 🌍 **国际化**：支持多语言界面；v1.2.0 起 **5 个核心业务模块（compile_engine / detection / compile_report / cli_workflow / file_ops）** 的翻译 domain 与 set_language 参数、locale 文件名 **1:1 严格对齐**；所有新增打印文案 **100% 用 `_("…") %(占位符)s` 包装**；**`.pot` 翻译模板统一用系统 xgettext 自动抽取**（非 pybabel / 非手写），保证 msgid 上方自带源文件行号定位；按 Q2 约束不生成 `.mo` 二进制，避免与最新 .pot 不同步
+- 🌍 **国际化**：支持多语言界面；**默认界面语言为中文**（源码字符串即中文），不强制默认英文；v1.2.1 起全面采用 **pybabel 官方工作流**（`pybabel extract → init → update → compile`），不再使用 xgettext / msgfmt；所有用户可见文案 100% `_()` 包装 + `%(name)s` 占位；**3 组遗留共享域全部拆为独立域**（lifecycle / paths、pdf_tools / subprocess_runner / tex_project、timing / ui_messages），与 set_language 参数、locale 文件名 1:1 严格对齐；提供新增语言的交互式命令（`make lang-add` 终端提问语言代码）、自动更新所有 pot/po 的 `make lang-update`、把 po 编译成 mo 的 `make lang-mo`、以及重抽所有 pot 的 `make lang-poup`
 - 🧹 **智能清理**：支持多种清理模式，精确清理辅助文件
 - 🔍 **日志解析**：编译失败后自动解析 LaTeX 日志，定位错误
 - 📝 **LaTeXDiff**：支持 LaTeX 文件差异对比
@@ -62,7 +62,7 @@
 - 🪓 **检测与编译彻底解耦（零薄转发）**：新建独立 `detection.py` 模块承载全部 6 维检测逻辑与 `CompilationDetector` 类，`compile.py` 仅保留 subprocess 级编译执行；强制采用组合关系调用（`compile_model.detector.*`），**严禁任何薄转发方法**（`return self.detector.xxx(...)` = 0），单一职责与可维护性拉满
 - 🧱 **分层架构 + DAG 无环 import**：基于 23 模块静态拓扑调查的「凝聚度硬阈值」拆分出唯一达标的 `cli/` 子包（`__main__ / cli_args / cli_workflow / check_version`），其余 19 模块保持扁平避免过度工程；同时打破 `run ↔ cli_workflow` 静态 2 节点 SCC 环，import 图正式 DAG 化（SCC≥2 分量 = 0），从结构上消除循环依赖隐患
 - 🪧 **预处理 Banner + 预处理日志差异化**：预处理控制台 Banner 回归复古三行 `=*78 / X32|开始预处理|X32 / =*78` 风格，与项目其他 Banner **统一走 `ui_messages.print_message`**；删除「结束预处理」横幅；预处理段按「move 0/N 个辅助文件」「exist 0/N 个已有辅助文件」4 场景**差异化打印提示**，避免无论是否实际迁移都两行固定输出的歧义；「未检测到已有辅助文件，进行初始化」文案**全局只保留 1 处**，归属 `cli_workflow`
-- 🚫 **零兼容承诺 + 冗余清理**：v1.2.0 起**不保留任何兼容层**（彻底删除旧 `pytexmk.run` 入口 / DeprecationWarning / try-import fallback）；对 5 个核心模块进行 ruff F401/F841 静态扫描 + 死注释 + 重复文件读取清理，确保架构熵增可控
+- 🚫 **零兼容承诺 + 冗余清理 + 永久去 Cython 加密**：v1.2.1 起**不保留任何兼容层**（彻底删除旧 `pytexmk.run` 入口 / DeprecationWarning / try-import fallback）；**永久移除 Cython 加密打包链路**（删除 `tools/pydmk.py`、`srcpyd/` 入口、`cython` 依赖、三平台 GA 编译工具链安装步骤），打包流程**永久只有「源码模式 onedir」一条路径**；核心模块持续执行 ruff F401/F841 + 死注释清理，控制架构熵增速率
 - 🗺 **架构决策制度化**：新增 [docs/architecture.md](docs/architecture.md) 作为单一事实源，给出 6 层 ASCII 分层依赖图、23 模块职责矩阵、新功能放哪的 Q1~Q4 决策树 + 规则 5「子包拆分硬阈值（≥4 模块 AND ≥3 内引 AND ≥0.7 耦合系数）」、以及 3 条 import 纪律，约束架构熵增速率
 
 ---
@@ -270,7 +270,7 @@ uv build
 # 生成平台图标
 make icon
 
-# 构建 Cython 加密的可执行程序（onedir 模式）
+# 构建源码模式的可执行程序（onedir 目录）
 make build
 
 # 清理构建产物
