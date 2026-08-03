@@ -1,0 +1,65 @@
+# Translations template for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-08-03 10:31+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "读取版本缓存文件中的版本号，缓存有效期: "
+msgstr ""
+
+msgid "版本缓存文件路径: "
+msgstr ""
+
+msgid "加载缓存版本时出错: "
+msgstr ""
+
+msgid "更新版本缓存时出错: "
+msgstr ""
+
+msgid "通过 GitHub API 获取最新版本成功"
+msgstr ""
+
+#, python-format
+msgid "API速率限制，重置时间：%s"
+msgstr ""
+
+#, python-format
+msgid "请求失败，状态码：%d"
+msgstr ""
+
+msgid "响应数据解析失败"
+msgstr ""
+
+msgid "响应中缺少版本信息"
+msgstr ""
+
+msgid "获取GitHub版本失败："
+msgstr ""
+
+#, python-format
+msgid "请求耗时：%.2f秒"
+msgstr ""
+
+msgid "有新版本可用: "
+msgstr ""
+
+msgid "当前版本: "
+msgstr ""
+
+#, python-format
+msgid "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
+msgstr ""
+

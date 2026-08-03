@@ -1,0 +1,79 @@
+# English translations for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-08-03 10:31+0800\n"
+"PO-Revision-Date: 2026-08-03 10:32+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "PyTeXMK 配置模块已初始化"
+msgstr "PyTeXMK config module initialized"
+
+msgid "用户主目录路径: "
+msgstr "User home directory path: "
+
+msgid "获取用户主目录路径失败: "
+msgstr "Failed to get user home directory path: "
+
+msgid "配置文件不存在: "
+msgstr "Config file does not exist: "
+
+msgid "成功加载配置文件: "
+msgstr "Successfully loaded config file: "
+
+msgid "加载配置文件失败: "
+msgstr "Failed to load config file: "
+
+msgid "正在创建默认配置文件: "
+msgstr "Creating default config file: "
+
+msgid "创建默认配置文件失败: "
+msgstr "Failed to create default config file: "
+
+msgid "配置文件存在以下问题:"
+msgstr "Config file has the following issues:"
+
+msgid "多余配置项: "
+msgstr "Extra config items: "
+
+msgid "缺少配置项: "
+msgstr "Missing config items: "
+
+msgid "是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "
+msgstr "Do you want to add missing config items and remove extra ones? (yes/no or y/n): "
+
+msgid "已补全配置项: "
+msgstr "Added config items: "
+
+msgid "已删除配置项: "
+msgstr "Removed config items: "
+
+msgid "配置文件更新成功: "
+msgstr "Config file updated successfully: "
+
+msgid "配置文件更新失败: "
+msgstr "Failed to update config file: "
+
+msgid "请稍后手动修改配置文件"
+msgstr "Please manually edit the config file later"
+
+msgid "无效输入，请输入如下选项: yes/no 或 y/n"
+msgstr "Invalid input, please enter one of: yes/no or y/n"
+
+msgid "未找到项目配置文件, 使用用户配置"
+msgstr "Project config file not found, using user config"
+
+msgid "配置文件加载完成"
+msgstr "Config file loading complete"

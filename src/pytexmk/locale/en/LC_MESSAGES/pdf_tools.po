@@ -1,0 +1,46 @@
+# English translations for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-08-03 10:31+0800\n"
+"PO-Revision-Date: 2026-08-03 10:32+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "未设置 PDF 查看器,使用默认 PDF 查看器"
+msgstr "No PDF viewer set, using default PDF viewer"
+
+msgid "设置 PDF 查看器: "
+msgstr "PDF viewer set: "
+
+msgid "文件路径: "
+msgstr "File path: "
+
+msgid "打开文件失败: "
+msgstr "Failed to open file: "
+
+msgid "当前路径下没有 PDF 文件"
+msgstr "No PDF file found in current directory"
+
+msgid "找到 PDF 文件数目: "
+msgstr "Number of PDF files found: "
+
+msgid "修复成功: "
+msgstr "Repair successful: "
+
+msgid "修复失败: "
+msgstr "Repair failed: "
+
+msgid "[bold green]修复 PDF 结束[/bold green]"
+msgstr "[bold green]PDF repair finished[/bold green]"

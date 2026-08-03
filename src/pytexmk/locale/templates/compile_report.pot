@@ -1,0 +1,107 @@
+# Translations template for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-08-03 10:31+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "打印分隔线时出错: "
+msgstr ""
+
+msgid "文献检测"
+msgstr ""
+
+msgid "参考文献引用计数无变化，参考文献解析稳定"
+msgstr ""
+
+msgid "需要额外执行编译以解析生成参考文献"
+msgstr ""
+
+msgid "索引检测"
+msgstr ""
+
+msgid "索引词汇表内容未变动，索引生成稳定"
+msgstr ""
+
+msgid "索引文件存在变动，需要重新编译索引"
+msgstr ""
+
+msgid "目录变化"
+msgstr ""
+
+msgid "目录条目未发生变更，目录生成稳定"
+msgstr ""
+
+msgid "目录内容发生变动，需要重新生成目录"
+msgstr ""
+
+msgid "交叉引用"
+msgstr ""
+
+msgid "交叉引用锚点未发生变更，引用解析稳定"
+msgstr ""
+
+msgid "辅助文件已发生变更，需再次编译解析引用关系"
+msgstr ""
+
+msgid "书签文件"
+msgstr ""
+
+msgid "PDF 书签条目未发生变更，书签生成稳定"
+msgstr ""
+
+msgid "PDF 书签信息发生变动，需要重新生成书签"
+msgstr ""
+
+msgid "日志信号"
+msgstr ""
+
+msgid "未检测到需要重编译的 LaTeX 警告信号，本次迭代稳定"
+msgstr ""
+
+msgid "日志检测到重编译警告，要求多次迭代编译"
+msgstr ""
+
+msgid "检测报告"
+msgstr ""
+
+msgid "第"
+msgstr ""
+
+msgid "轮"
+msgstr ""
+
+msgid "结论："
+msgstr ""
+
+#, python-format
+msgid "无需额外执行 %(prog)s 编译。"
+msgstr ""
+
+#, python-format
+msgid "本次累计编译总次数：%(total)s 次"
+msgstr ""
+
+#, python-format
+msgid "需额外进行 %(next)s 次 %(prog)s 编译。"
+msgstr ""
+
+#, python-format
+msgid "已达 %(max_extra)s 次额外编译安全上限，停止调度。"
+msgstr ""
+
+msgid "打印编译检测报告时出错: "
+msgstr ""
+
