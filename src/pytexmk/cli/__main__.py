@@ -26,8 +26,7 @@ Description  :
 
 from pytexmk.cli.check_version import UpdateChecker
 from pytexmk.cli.cli_args import parse_args
-
-from ..language import set_language
+from pytexmk.language import set_language
 
 UC = UpdateChecker(1, 6)
 _ = set_language("__main__")
