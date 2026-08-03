@@ -67,7 +67,7 @@ def print_compile_report(
                 mark = "[bold green][√][/bold green]"
                 detail = f"[green]{stable_msg}[/green]"
             else:
-                mark = "[bold yellow]\[x][/bold yellow]"
+                mark = r"[bold yellow]\[x][/bold yellow]"
                 detail = f"[yellow]{unstable_msg}[/yellow]"
             console.print(
                 f" [bold cyan]{name:<{NAME_WIDTH}s}[/bold cyan]"
