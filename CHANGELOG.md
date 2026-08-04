@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v1.2.2 - 2026-08-04
+
+### 🐛 Bug 修复
+
+- **修复 `uv build` / `uv build --wheel` 构建时 setuptools `Package 'pytexmk.data' is absent from the packages configuration` 警告**：为 `src/pytexmk/data/`、`src/pytexmk/locale/`、`src/pytexmk/locale/templates/` 补充 `__init__.py`，将隐式命名空间包转为显式包，setuptools `find_packages()` 可正确发现并纳入 wheel/sdist
+
+### 🧪 质量验证
+
+- 📦 `uv build` 全量构建验证：源码分发包 (tar.gz) + wheel 均成功生成，setuptools 包发现零警告（`pytexmk.data` / `pytexmk.locale.templates` 已通过 `__init__.py` 显式注册）
+
+---
+
 ## v1.2.1 - 2026-08-03
 
 ### 🏗 架构变更
