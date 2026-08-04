@@ -233,11 +233,11 @@ wheels = [
 
 [[package]]
 name = "pytexlogs"
-version = "0.1.0"
+version = "0.3.0"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/18/32/656daab66f16833d9469f82f1fe5fb10d05a90be8f992da49dd7e9919fb7/pytexlogs-0.1.0.tar.gz", hash = "sha256:395385341db5fabdfc3362003187ce1d091391a2d81b195b944fde6242ec8afc", size = 47554, upload-time = "2026-07-31T05:52:15.843Z" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d6/53/af513a5fa8a7505da7352b4953e82030d57f0a9b7b3f2d03d171202543e8/pytexlogs-0.3.0.tar.gz", hash = "sha256:f6d94035d3fdb7d5968c7d66a135b3d001a42884053a817eb4156d95631bd11b", size = 70280, upload-time = "2026-08-04T07:45:35.722Z" }
 wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/68/eb/be547d1b097a4a050155c7229ff91e51134e29586e0a43c63d3dcf9cd4c7/pytexlogs-0.1.0-py3-none-any.whl", hash = "sha256:609ca0d738c7b4eece540220a7bd0888aad26c9325fbb6549217b36297869d5d", size = 54890, upload-time = "2026-07-31T05:52:14.557Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/67/e8/4a47ea611b034ca816cf093298eebbcc84e9e4c5916f7f79169aeec09abf/pytexlogs-0.3.0-py3-none-any.whl", hash = "sha256:6d040704fb149e3cf57e1df8f570a50bcd835db342d4f2e7b2c9ea1f8133b96d", size = 74261, upload-time = "2026-08-04T07:45:34.519Z" },
 ]
 
 [[package]]
