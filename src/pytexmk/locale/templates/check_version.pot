@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.1\n"
+"Project-Id-Version: PyTeXMK 1.2.2\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-08-03 18:00+0800\n"
+"POT-Creation-Date: 2026-08-09 21:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,57 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+msgid "请运行 [bold green]'winget upgrade --id YanMing-lxb.PyTeXMK -e'[/bold green] 进行更新"
+msgstr ""
+
+#, python-format
+msgid "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
+msgstr ""
+
+#, python-format
+msgid "请运行 [bold green]'uv tool upgrade %(args)s'[/bold green] 进行更新"
+msgstr ""
+
+#, python-format
+msgid "💡 如果你尚未安装 uv，也可使用 pip 作为备选：[bold green]pip install --upgrade %(args)s[/bold green]"
+msgstr ""
+
+msgid "当前为手动安装（从 GitHub Release 下载的 zip 解压版），请前往以下地址下载新版 zip 覆盖旧目录："
+msgstr ""
+
+msgid "💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]"
+msgstr ""
+
+msgid "已检测到新版本，可根据你的安装方式选择以下任一命令更新："
+msgstr ""
+
+msgid "[bold]Windows winget[/bold]:  [bold green]winget upgrade --id YanMing-lxb.PyTeXMK -e[/bold green]"
+msgstr ""
+
+#, python-format
+msgid "[bold]PyPI pip[/bold]:      [bold green]pip install --upgrade %(args)s[/bold green]"
+msgstr ""
+
+#, python-format
+msgid "[bold]uv tool[/bold]:       [bold green]uv tool upgrade %(args)s[/bold green]"
+msgstr ""
+
+#, python-format
+msgid "[bold]手动下载[/bold]:      [bold blue]%(url)s[/bold blue]"
+msgstr ""
+
+#, python-format
+msgid "[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade %(args)s[/bold green]"
+msgstr ""
+
+#, python-format
+msgid "[bold]uv tool[/bold]:           [bold green]uv tool upgrade %(args)s[/bold green]"
+msgstr ""
+
+#, python-format
+msgid "[bold]手动下载[/bold]:           [bold blue]%(url)s[/bold blue]"
+msgstr ""
 
 msgid "读取版本缓存文件中的版本号，缓存有效期: "
 msgstr ""
@@ -57,9 +108,5 @@ msgid "有新版本可用: "
 msgstr ""
 
 msgid "当前版本: "
-msgstr ""
-
-#, python-format
-msgid "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
 msgstr ""
 
