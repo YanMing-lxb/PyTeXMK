@@ -22,21 +22,21 @@ endif
 # ------------------------------------------------------------------------------
 # 显示可用目标列表（详细说明见 Makefile 中的注释）
 help:
-	@echo PyTeXMK - Available targets:
-	@echo   build    Build source-mode binary (onedir mode)
-	@echo   icon     Generate platform icons from logo
-	@echo   whl      Build Python distribution (wheel + sdist)
-	@echo   inswhl   Install locally built wheel
-	@echo   clean    Clean all build artifacts
-	@echo   all      Build all document formats
-	@echo   html     Build HTML documents
-	@echo   rst      Build RST documents
-	@echo   pot      Extract msgid to POT templates (locale/templates/*.pot)
-	@echo   add-lang Interactive add a new locale code and init all .po files
-	@echo   update   Re-extract POT then merge into all existing locales' .po
-	@echo   mo       Compile all locales' .po to binary .mo
-	@echo   upload   Upload to PyPI
-	@echo   help     Show this help message
+	@echo PyTeXMK - 可用目标：
+	@echo   build    构建源码模式可执行文件（单目录打包）
+	@echo   icon     根据标志图生成各平台图标
+	@echo   whl      构建 Python 分发包（wheel 包 + sdist 源码包）
+	@echo   inswhl   安装本地编译生成的 wheel 包
+	@echo   clean    清理所有构建产物
+	@echo   all      构建全部格式文档
+	@echo   html     构建 HTML 文档
+	@echo   rst      构建 RST 文档
+	@echo   pot      提取文本字符串至 POT 模板文件（locale/templates/*.pot）
+	@echo   add-lang 交互式新增语言代码并初始化全部 .po 文件
+	@echo   update   重新提取 POT，合并更新到所有已有语言的 .po 文件
+	@echo   mo       将所有语言的 .po 文件编译为二进制 .mo 文件
+	@echo   upload   上传包至 PyPI
+	@echo   help     显示本帮助信息
 
 # ------------------------------------------------------------------------------
 # 构建相关目标
