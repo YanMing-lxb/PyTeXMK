@@ -47,6 +47,7 @@ WINGET_PACKAGE_IDENTIFIER = "YanMing-lxb.PyTeXMK"
 WINGET_PUBLISHER = "YanMing-lxb"
 
 __all__ = [
+    "BABEL_CFG_PATH",
     "CONFIG_DIR",
     "DATA_DIR",
     "ENTRY_POINT",
@@ -56,8 +57,8 @@ __all__ = [
     "LANG_EN_DIR",
     "LOGO_SOURCE",
     "PNG_PATH",
-    "PROJECT_NAME",
     "POT_DIR",
+    "PROJECT_NAME",
     "ROOT_DIR",
     "SRC_DATA_DIR",
     "SRC_DIR",
@@ -65,9 +66,8 @@ __all__ = [
     "SRC_LOCALE_DIR",
     "TOOLS_DIR",
     "VENV_NAME",
-    "__team__",
-    "__version__",
-    "BABEL_CFG_PATH",
     "WINGET_PACKAGE_IDENTIFIER",
     "WINGET_PUBLISHER",
+    "__team__",
+    "__version__",
 ]
