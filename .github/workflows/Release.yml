@@ -291,7 +291,8 @@ jobs:
   # JOB: publish-to-winget —— 官方 wingetcreate 发布到 microsoft/winget-pkgs
   # 流程：不重新打包，而是按 GitHub Release 上 windows zip 的 URL，让官方
   # wingetcreate 自行下载→算 SHA→生成 en-US 清单→校验→提交 PR。
-  # 关键取舍：continue-on-error:true —— winget 失败不得阻断整体 Release。
+  # 关键取舍：不再 continue-on-error —— winget 发布失败会让整个 workflow 红标，
+  #          确保发布问题能立即暴露（首次需人工审核合并，但提交失败必须可见）。
   # 令牌：secrets.WINGET_GITHUB_TOKEN → 注入为 WINGET_CREATE_GITHUB_TOKEN 环境变量
   #       （wingetcreate 的标准读取变量），token 永不进命令行、不打日志。
   # 依赖：needs [build-binary, publish-to-github-release] 保证 windows zip 已上传，
@@ -302,7 +303,6 @@ jobs:
     runs-on: windows-latest
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
     needs: [build-binary, publish-to-github-release]
-    continue-on-error: true
     permissions:
       contents: read
     timeout-minutes: 15
@@ -353,16 +353,6 @@ jobs:
           uv --version
           winget --version || true
 
-      # 从 tag "v1.2.2" 去 v 得版本号 "1.2.2"，写入 GITHUB_ENV。
-      - name: Extract version
-        shell: pwsh
-        run: |
-          $env:TAG_NAME = "${{ github.ref_name }}"
-          $env:VERSION  = $env:TAG_NAME -replace '^v', ''
-          echo "TAG_NAME=$env:TAG_NAME"     | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          echo "VERSION=$env:VERSION"       | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          "VERSION=$env:VERSION"
-
       # best-effort 安装 wingetcreate：成功更好；失败不阻断——publish.py 内部
       # 还会再尝试定位一次（PATH/环境变量/覆盖路径）。
       - name: Install wingetcreate (best-effort)
@@ -382,6 +372,9 @@ jobs:
       # 真正的 winget 发布：由 publish.py 组装并执行
       #   wingetcreate update YanMing-lxb.PyTeXMK -u <zip-url> -v <ver> --submit --no-open
       # 包不存在时自动回退 wingetcreate new。token 从 WINGET_CREATE_GITHUB_TOKEN 读取。
+      # 版本号无需手动指定：publish.py 会自动取 config.__version__（src/pytexmk/version.py），
+      # 与程序版本号保持单一来源一致；release-tag 自动为 v<version>。
+      # publish.py 成功时会解析 wingetcreate 输出的 PR 链接并写入 GITHUB_STEP_SUMMARY。
       - name: Publish via wingetcreate
         shell: pwsh
-        run: uv run python tools/winget/publish.py --version $env:VERSION --release-tag $env:TAG_NAME
+        run: uv run python tools/winget/publish.py

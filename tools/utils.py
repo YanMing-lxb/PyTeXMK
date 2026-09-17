@@ -153,6 +153,7 @@ def _kill_process_tree(pid: int) -> None:
                 ["taskkill", "/F", "/T", "/PID", str(pid)],
                 capture_output=True,
                 timeout=5,
+                check=False
             )
         else:
             try:
@@ -173,8 +174,8 @@ def _kill_process_tree(pid: int) -> None:
                     os.kill(pid, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
-    except Exception:
-        pass
+    except Exception as e:
+        console.print(f"⚠ 终止进程树失败 (pid={pid}): {e}", style="warning")
 
 
 def run_command(
@@ -277,11 +278,12 @@ def run_command(
         if timed_out:
             try:
                 _kill_process_tree(process.pid)
-            except Exception:
+            except Exception as e:
+                console.print(f"⚠ 终止超时进程树失败: {e}", style="warning")
                 try:
                     process.kill()
-                except Exception:
-                    pass
+                except Exception as e2:
+                    console.print(f"⚠ 强制终止进程失败: {e2}", style="warning")
             try:
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:

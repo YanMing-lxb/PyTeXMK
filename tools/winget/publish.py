@@ -17,8 +17,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import WINGET_PACKAGE_IDENTIFIER  # noqa: E402
-from utils import console  # noqa: E402
+from config import WINGET_PACKAGE_IDENTIFIER, __version__
+from utils import console
 
 _SANITIZE_PATTERNS = [
     re.compile(r"ghp_[A-Za-z0-9]{36}"),
@@ -59,6 +59,7 @@ def _install_wingetcreate_best_effort() -> None:
         text=True,
         encoding="utf-8",
         errors="ignore",
+        check=False,
     )
     if result.returncode == 0:
         console.print("✓ wingetcreate 安装成功", style="success")
@@ -87,6 +88,7 @@ def _run(cmd: list[str]) -> subprocess.CompletedProcess:
         encoding="utf-8",
         errors="ignore",
         env=env,
+        check=False,  # 不抛异常，由调用方根据 returncode 自行判断成功与否
     )
     if result.stdout:
         console.print(_sanitize_log(result.stdout.rstrip()))
@@ -100,15 +102,44 @@ def _should_fallback(result: subprocess.CompletedProcess) -> bool:
     return any(marker in combined.lower() for marker in _FALLBACK_MARKERS)
 
 
+# 匹配 wingetcreate 输出中 winget-pkgs 的 PR 链接
+_PULL_URL_RE = re.compile(r"https://github\.com/microsoft/winget-pkgs/pull/[0-9]+")
+
+
+def _write_pr_summary(result: subprocess.CompletedProcess) -> None:
+    """解析 wingetcreate 输出中的 PR 链接，写入 GitHub Actions 的 Step Summary。
+    便于人工（尤其首次审核）第一时间打开 PR 跟进。仅在 CI 环境（GITHUB_STEP_SUMMARY 存在）时生效。
+    """
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary:
+        return  # 本地运行，跳过
+    combined = (result.stdout or "") + " " + (result.stderr or "")
+    match = _PULL_URL_RE.search(combined)
+    if not match:
+        console.print(
+            "⚠ 未能从 wingetcreate 输出解析到 PR 链接，可在日志中搜索 winget-pkgs",
+            style="warning",
+        )
+        return
+    try:
+        Path(summary).write_text(
+            f"### Winget-pkgs PR（待人工审核）\n\n- {match.group(0)}\n",
+            encoding="utf-8",
+        )
+        console.print(f"✓ 已将 PR 链接写入 Step Summary: {match.group(0)}", style="info")
+    except OSError as e:
+        console.print(f"⚠ 写入 Step Summary 失败: {e}", style="warning")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="PyTeXMK Winget 发布工具（基于官方 wingetcreate）")
     parser.add_argument(
-        "--version", required=True,
-        help='semver 版本号，不带 v 前缀 (如 "1.3.0")',
+        "--version", default=None,
+        help='semver 版本号，不带 v 前缀；缺省自动使用 config.__version__（默认推荐）',
     )
     parser.add_argument(
-        "--release-tag", required=True,
-        help='GitHub Release tag，带 v 前缀 (如 "v1.3.0")',
+        "--release-tag", default=None,
+        help='GitHub Release tag，带 v 前缀；缺省自动为 v<version>',
     )
     parser.add_argument(
         "--wingetcreate-path", type=str, default=None,
@@ -120,13 +151,19 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    # 版本统一来源：默认自动取 config.__version__（由 src/pytexmk/version.py 定义），
+    # 命令行参数仅作为显式覆盖手段，日常发布无需手动指定。
+    version = args.version or __version__
+    release_tag = args.release_tag or f"v{version}"
+    console.print(f"版本: {version}  (来源: {args.version and '命令行' or 'config.__version__'})", style="info")
+
     if not args.dry_run:
         # 读取 token（仅在 argparse 之后执行，保证 --help 永远成功）
         _read_token()
 
     installer_url = (
         f"https://github.com/YanMing-lxb/PyTeXMK/releases/download/"
-        f"{args.release_tag}/pytexmk-{args.version}-windows-x64.zip"
+        f"{release_tag}/pytexmk-{version}-windows-x64.zip"
     )
     console.print(f"Installer URL: {installer_url}", style="info")
 
@@ -140,7 +177,7 @@ def main() -> int:
             try:
                 _install_wingetcreate_best_effort()
                 wingetcreate = _find_wingetcreate(args.wingetcreate_path)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - best-effort 安装，失败降级处理
                 console.print(_sanitize_log(f"⚠ 安装 wingetcreate 异常: {e}"), style="warning")
                 wingetcreate = None
             if wingetcreate is None:
@@ -150,12 +187,12 @@ def main() -> int:
     # 优先 update（包已存在）；失败且命中未安装标记时回退 new
     update_cmd = [
         wingetcreate, "update", WINGET_PACKAGE_IDENTIFIER,
-        "-u", installer_url, "-v", args.version,
+        "-u", installer_url, "-v", version,
         "--submit", "--no-open",
     ]
     new_cmd = [
         wingetcreate, "new", installer_url,
-        "-v", args.version, "--submit", "--no-open",
+        "-v", version, "--submit", "--no-open",
     ]
 
     if args.dry_run:
@@ -170,6 +207,7 @@ def main() -> int:
 
     if result.returncode == 0:
         console.print("✓ winget 清单更新并提交成功 (wingetcreate update)", style="success")
+        _write_pr_summary(result)
         return 0
 
     if not _should_fallback(result):
@@ -182,6 +220,7 @@ def main() -> int:
 
     if result.returncode == 0:
         console.print("✓ winget 清单创建并提交成功 (wingetcreate new)", style="success")
+        _write_pr_summary(result)
         return 0
 
     console.print(f"✗ wingetcreate 提交失败 (exit={result.returncode})", style="error")
@@ -195,13 +234,13 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         console.print("\n⚠️ 用户中断操作 (Ctrl+C)，程序已终止", style="warning")
         sys.exit(1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - __main__ 最外层兜底，打印异常后退出
         console.print("\n💥 发生未知异常！", style="error")
         console.print(_sanitize_log(f"异常类型: {type(e).__name__}"), style="error")
         console.print(_sanitize_log(f"异常内容: {e!s}"), style="error")
         try:
             console.print_exception()
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001 - traceback 打印失败的防御性兜底
+            console.print(_sanitize_log(f"(打印堆栈失败: {type(e).__name__}: {e})"), style="dim")
         sys.exit(1)
     sys.exit(sys.exit_code)

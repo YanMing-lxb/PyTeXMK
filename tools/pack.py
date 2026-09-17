@@ -13,7 +13,6 @@ from config import (
     SRC_DATA_DIR,
     SRC_ENTRY_POINT,
     SRC_LOCALE_DIR,
-    TOOLS_DIR,
     __team__,
     __version__,
 )
@@ -29,7 +28,8 @@ def check_icon():
             from generate_icon import main as generate_icon_main
             console.print("正在生成图标文件...", style="status")
             generate_icon_main()
-        except Exception:
+        except Exception as e:
+            console.print(f"⚠️ 生成图标文件异常: {e}", style="warning")
             console.print("请先运行 generate_icon.py 生成图标文件", style="warning")
             return False
     return ICON_FILE.exists()
@@ -74,7 +74,7 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
     args.extend([
         "--hidden-import=tomllib",
         "--hidden-import=tomli_w",
-        f"--paths={str(ROOT_DIR)}",
+        f"--paths={ROOT_DIR!s}",
         str(entry_point.resolve()),
     ])
 

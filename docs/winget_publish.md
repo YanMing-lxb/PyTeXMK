@@ -62,69 +62,70 @@
 
 ### 强烈建议首次手动提交
 
-首次提交流程涉及较多人机交互（机器人打标签、要求回复、可能需要补充信息），**强烈建议手动提交而非依赖自动化工作流**，便于第一时间响应审核反馈：
+首次提交流程涉及较多人机交互（机器人打标签、要求回复、可能需要补充信息），**强烈建议手动提交而非依赖自动化工作流**，便于第一时间响应审核反馈。
+
+> **发布方式说明**：winget 发布没有本地入口，`publish.py` 只被 GitHub Action（`Release.yml` 的 `publish-to-winget` job）调用，且版本号自动取 `config.__version__`（即 `src/pytexmk/version.py`），无需手动指定。**首次提交时，最简单的方式是直接把 `publish-to-winget` job 里的步骤在本地手动跑一遍 wingetcreate**（见下），或临时对该 job 触发一次。
 
 #### 手动提交步骤
 
-**Step 1：使用官方 wingetcreate 生成清单并提交**
+**Step 1：本地手动执行 wingetcreate（推荐，响应最快）**
 
-发布已统一到官方 `wingetcreate` 一条命令（`winget create` 或 `winget update`），清单由 wingetcreate 自动生成，仅维护 en-US 单语言，不再依赖手写模板。
+`publish.py` 本身是 CI 专用，但它的核心逻辑只需一条 wingetcreate 命令，首版可以开发者在本地手动执行，得到 PR 后即时响应审核：
 
 ```bash
-# 确保已发布 GitHub Release 并带上 v 前缀 tag 后执行
-WINGET_CREATE_GITHUB_TOKEN=<你的PAT> uv run python tools/winget/publish.py \
-  --version 1.3.0 \
-  --release-tag v1.3.0
+# 首次：使用对应 Release 资产的 URL 与版本号
+WINGET_CREATE_GITHUB_TOKEN=<你的PAT> wingetcreate new \
+  https://github.com/YanMing-lxb/PyTeXMK/releases/download/v<ver>/pytexmk-<ver>-windows-x64.zip \
+  -v <ver> --submit --no-open
 ```
 
-`publish.py` 会调用 `wingetcreate update ... -u <installer-url> -v <version> --submit --no-open` 生成清单并直接提交 PR 到 `microsoft/winget-pkgs`；若包尚不存在，则回退执行 `wingetcreate new`。
-
-installer URL 严格为：
-```
-https://github.com/YanMing-lxb/PyTeXMK/releases/download/v1.3.0/pytexmk-1.3.0-windows-x64.zip
-```
-
-**本工具不支持本地 zip 渲染清单**：清单内容由 wingetcreate 依据 Release 资产自动生成（含 SHA256、InstallerType 等）。
-
-**如需补充 zh-CN 中文本地化**，需人工追加一条 wingetcreate 命令（默认清单仅 en-US 单语言）：
-```bash
-wingetcreate update-locale YanMing-lxb.PyTeXMK -l zh-CN
-```
+- `<ver>` 与 Release 资产里的版本一致，例如 `1.3.0`
+- wingetcreate 会下载 zip → 计算 SHA256 → 生成 en-US 清单 → 校验 → 提交 PR 到 `microsoft/winget-pkgs`（自动 fork + 建分支 + 提 PR）
+- 若包**已存在于** winget-pkgs（后续更新版），改用 `update` 而非 `new`：
+  ```bash
+  WINGET_CREATE_GITHUB_TOKEN=<你的PAT> wingetcreate update YanMing-lxb.PyTeXMK \
+    -u https://github.com/YanMing-lxb/PyTeXMK/releases/download/v<ver>/pytexmk-<ver>-windows-x64.zip \
+    -v <ver> --submit --no-open
+  ```
+- Token 也可以不与命令平级写，改为设置环境变量后执行；不要写进命令行历史、脚本或日志
 
 **Step 2：本地 winget validate 校验（可选）**
 
-发布脚本会直接提交 PR，由 winget-pkgs 的 Azure-Pipelines 自动校验；若想在本地预检，可先在本地目录生成清单后单独校验：
+wingetcreate 提交前会自动校验；若想在提交前单独预检，可以让 wingetcreate 先生成到本地目录再校验：
 
 ```powershell
-# 安装 winget（Windows 10 1809+ / Windows 11 默认自带）
+# 先确认 winget 可用
 winget --version
 
+# 让 wingetcreate 生成清单到本地目录（不加 --submit），便于检查
+wingetcreate new <URL> -v <ver>
+
 # 校验清单（指向版本目录，不是单个文件）
-winget validate "build/winget/manifests/y/YanMing-lxb/PyTeXMK/1.3.0"
+winget validate "manifests/y/YanMing-lxb/PyTeXMK/<ver>"
 ```
 
-预期输出：`Manifest validation succeeded.` 若失败请参考「主题 3」排查。
+预期输出：`Manifest validation succeeded.` 若失败请参考「3 清单验证失败常见排查思路」。
 
-**Step 3：Fork + 分支 + 提交 PR（手动兜底）**
+**Step 3：手动 Fork + 分支 + 提交 PR（完全自助兜底）**
 
-虽然已改用 wingetcreate 自动提 PR，若仍需完全手动提交，可参考以下步骤：
+若希望完全不依赖 wingetcreate 自动提 PR，可手工完成：
 
 1. 浏览器访问 [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) → 右上角 **Fork** 到自己账号
 2. 克隆 fork 到本地：`git clone https://github.com/<你的用户名>/winget-pkgs.git`
-3. 新建分支：`git checkout -b pytexmk-1.3.0`
+3. 新建分支：`git checkout -b pytexmk-<ver>`
 4. 将 wingetcreate 生成（或手动编写）的 YAML 复制到 fork 的对应路径：
    ```
-   winget-pkgs/manifests/y/YanMing-lxb/PyTeXMK/1.3.0/
+   winget-pkgs/manifests/y/YanMing-lxb/PyTeXMK/<ver>/
    ```
-   （首次提交需逐层新建 `y/` / `YanMing-lxb/` / `PyTeXMK/` / `1.3.0/` 目录）
+   （首次提交需逐层新建 `y/` / `YanMing-lxb/` / `PyTeXMK/` / `<ver>/` 目录）
 5. commit + push：
    ```bash
-   git add manifests/y/YanMing-lxb/PyTeXMK/1.3.0/
-   git commit -m "New package: YanMing-lxb.PyTeXMK version 1.3.0"
-   git push origin pytexmk-1.3.0
+   git add manifests/y/YanMing-lxb/PyTeXMK/<ver>/
+   git commit -m "New package: YanMing-lxb.PyTeXMK version <ver>"
+   git push origin pytexmk-<ver>
    ```
 6. 浏览器打开 fork 仓库 → 点击 **Compare & pull request** → 提 PR 到上游 `microsoft/winget-pkgs:master`
-7. PR 标题建议：`New package: YanMing-lxb.PyTeXMK v1.3.0`
+7. PR 标题建议：`New package: YanMing-lxb.PyTeXMK v<ver>`
 
 ### 机器人可能打的标签与应对
 
@@ -155,7 +156,7 @@ winget validate "build/winget/manifests/y/YanMing-lxb/PyTeXMK/1.3.0"
   Get-FileHash "pytexmk-1.3.0-windows-x64.zip" -Algorithm SHA256 | Select-Object Hash
   ```
 - 对比 `YanMing-lxb.PyTeXMK.installer.yaml` 中 `InstallerSha256` 字段
-- **根因 A**：执行 `publish.py`（wingetcreate）时 GitHub Release 资产尚未上传完成 → Release workflow 中 `needs: [publish-to-github-release]` 已保证时序，本地手动执行时请等待 Release 页面 Assets 列表加载稳定后再执行
+- **根因 A**：执行 wingetcreate（CI 由 `publish.py` 调起）时 GitHub Release 资产尚未上传完成 → Release workflow 中 `needs: [publish-to-github-release]` 已保证时序，本地手动执行时请等待 Release 页面 Assets 列表加载稳定后再执行
 - **根因 B**：Release 资产被覆盖重新上传 → 重新发布
 
 ### 2. RelativeFilePath 错误

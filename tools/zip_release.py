@@ -33,13 +33,13 @@ def zip_release(platform: str) -> bool:
 
     console.rule(f"[bold]📦 发布打包 - {platform}[/]")
 
-    console.print(f"正在验证 dist 目录...", style="status")
+    console.print("正在验证 dist 目录...", style="status")
     if not dist_dir.exists():
         console.print(f"✗ dist 目录不存在: {dist_dir}", style="error")
         return False
     console.print(f"✓ dist 目录已确认: {dist_dir}", style="success")
 
-    console.print(f"正在验证可执行文件...", style="status")
+    console.print("正在验证可执行文件...", style="status")
     exe_name = get_executable_name(platform)
     exe_path = dist_dir / exe_name
     if not exe_path.exists():
@@ -47,24 +47,24 @@ def zip_release(platform: str) -> bool:
         return False
     console.print(f"✓ 可执行文件已确认: {exe_path}", style="success")
 
-    console.print(f"正在清理旧文件...", style="status")
+    console.print("正在清理旧文件...", style="status")
     if zip_path.exists():
         zip_path.unlink()
         console.print(f"已删除旧的压缩包: {zip_path}", style="info")
     if staging_dir.exists():
         shutil.rmtree(staging_dir)
         console.print(f"已删除旧的临时目录: {staging_dir}", style="info")
-    console.print(f"✓ 清理完成", style="success")
+    console.print("✓ 清理完成", style="success")
 
-    console.print(f"正在创建临时目录...", style="status")
+    console.print("正在创建临时目录...", style="status")
     staging_app_dir.mkdir(parents=True, exist_ok=True)
     console.print(f"✓ 临时目录已创建: {staging_app_dir}", style="success")
 
-    console.print(f"正在复制文件...", style="status")
+    console.print("正在复制文件...", style="status")
     shutil.copytree(dist_dir, staging_app_dir, dirs_exist_ok=True)
-    console.print(f"✓ 文件复制完成", style="success")
+    console.print("✓ 文件复制完成", style="success")
 
-    console.print(f"正在创建压缩包...", style="status")
+    console.print("正在创建压缩包...", style="status")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for file_path in staging_app_dir.rglob("*"):
             if file_path.is_file():
@@ -72,12 +72,12 @@ def zip_release(platform: str) -> bool:
                 zf.write(file_path, arcname)
     console.print(f"✓ 压缩包已创建: {zip_path}", style="success")
 
-    console.print(f"正在清理临时目录...", style="status")
+    console.print("正在清理临时目录...", style="status")
     shutil.rmtree(staging_dir)
-    console.print(f"✓ 临时目录已删除", style="success")
+    console.print("✓ 临时目录已删除", style="success")
 
     file_size = zip_path.stat().st_size
-    console.print(f"\n🎉 发布打包成功！", style="success")
+    console.print("\n🎉 发布打包成功！", style="success")
     console.print(f"压缩包路径: {zip_path}", style="info")
     console.print(f"文件大小: {format_size(file_size)}", style="info")
 
