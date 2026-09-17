@@ -69,23 +69,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # Windows runner 默认代码页非 UTF-8，PyTeXMK 输出含中文，务必切到 UTF-8，
-      # 并把 UTF-8 环境变量写入 GITHUB_ENV，供后续 step 继承。
+      # Windows runner 默认代码页非 UTF-8，PyTeXMK 输出含中文，务必切到 UTF-8。
+      # 复用本地 composite action（.github/actions/set-utf8），与 winget job 保持一致。
       - name: Set Windows runner to UTF-8 codepage
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          chcp 65001
-          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-          [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
-          $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-          $env:PYTHONUTF8 = "1"
-          $env:PYTHONIOENCODING = "utf-8:replace"
-          "PYTHONUTF8=1" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          "PYTHONIOENCODING=utf-8:replace" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          chcp
-          echo "PYTHONUTF8=$env:PYTHONUTF8"
-          echo "PYTHONIOENCODING=$env:PYTHONIOENCODING"
+        uses: ./.github/actions/set-utf8
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9.0.0
@@ -134,18 +122,13 @@ jobs:
         timeout-minutes: 10
         run: ${{ matrix.bin_path }} --version && ${{ matrix.bin_path }} --help >/dev/null
 
-      # Windows：显式 UTF-8 下做同样的冒烟测试（防止中文输出乱码导致的假失败）。
-      - name: Test binary (Windows — UTF-8 codepage explicitly)
+      # Windows：前面的 set-utf8 step 已配置 UTF-8 代码页与环境变量，
+      # 这里只需执行冒烟测试（--version / --help），防止中文输出乱码导致的假失败。
+      - name: Test binary (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         timeout-minutes: 10
         run: |
-          chcp 65001
-          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-          [Console]::InputEncoding  = [System.Text.UTF8Encoding]::new($false)
-          $OutputEncoding         = [System.Text.UTF8Encoding]::new($false)
-          $env:PYTHONUTF8           = '1'
-          $env:PYTHONIOENCODING     = 'utf-8:replace'
           & "${{ matrix.bin_path }}" --version
           & "${{ matrix.bin_path }}" --help | Out-Null
           if ($LASTEXITCODE -ne 0) { throw "Binary smoke test failed, exit=$LASTEXITCODE" }
@@ -221,9 +204,6 @@ jobs:
           name: python-package-distributions
           path: dist/
 
-      - name: List dist directory contents
-        run: ls -R dist/
-
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.14.1
         with:
@@ -257,9 +237,6 @@ jobs:
           pattern: pytexmk-binary-*
           path: dist/
           merge-multiple: true
-
-      - name: List dist directory contents
-        run: ls -R dist/
 
       # 从 git ref 的 "refs/tags/v1.2.2" 解析出纯版本 tag "v1.2.2"。
       - name: Extract tag name
@@ -323,19 +300,7 @@ jobs:
 
       # 与 build-binary 相同的 UTF-8 处理（发布脚本含中文输出）。
       - name: Set Windows runner to UTF-8 codepage
-        shell: pwsh
-        run: |
-          chcp 65001
-          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-          [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
-          $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
-          $env:PYTHONUTF8 = "1"
-          $env:PYTHONIOENCODING = "utf-8:replace"
-          "PYTHONUTF8=1" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          "PYTHONIOENCODING=utf-8:replace" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
-          chcp
-          echo "PYTHONUTF8=$env:PYTHONUTF8"
-          echo "PYTHONIOENCODING=$env:PYTHONIOENCODING"
+        uses: ./.github/actions/set-utf8
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9.0.0
@@ -382,8 +347,10 @@ jobs:
 
       # 真正的 winget 发布：由 publish.py 组装并执行
       #   wingetcreate update YanMing-lxb.PyTeXMK -u <zip-url> -v <ver> --submit --no-open
-      # 包不存在时自动回退 wingetcreate new。token 从 WINGET_CREATE_GITHUB_TOKEN 读取。
-      # 版本号无需手动指定：publish.py 会自动取 config.__version__（src/pytexmk/version.py），
+      # 包不存在（首次发布）时不再自动回退 new（new 是交互式向导，CI 无人值守跑不通），
+      # 而是打印首次手动发布指引并返回 78（EX_CONFIG）温和结束。首次清单入库后，
+      # 后续版本均由 update 全自动发布。
+      # 版本号无需手动指定：publish.py 自动取 config.__version__（src/pytexmk/version.py），
       # 与程序版本号保持单一来源一致；release-tag 自动为 v<version>。
       # publish.py 成功时会解析 wingetcreate 输出的 PR 链接并写入 GITHUB_STEP_SUMMARY。
       - name: Publish via wingetcreate

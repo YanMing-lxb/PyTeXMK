@@ -184,21 +184,23 @@ def main() -> int:
                 console.print("✗ 未找到 wingetcreate，发布中止", style="error")
                 return 1
 
-    # 优先 update（包已存在）；失败且命中未安装标记时回退 new
+    # 优先 update（包已存在分支持续自动发布）；失败且命中未安装标记时，
+    # 不再回退 new —— new 是交互式向导，无法在 CI 无人值守下完成首次提交，
+    # 且 winget-pkgs 首次提交本就需人工审核。此时打印首次发布指引并温和退出。
     update_cmd = [
         wingetcreate, "update", WINGET_PACKAGE_IDENTIFIER,
         "-u", installer_url, "-v", version,
         "--submit", "--no-open",
     ]
+    # 首次发布需手动执行；这里仅作提示用途，展示应如何使用 new。
     new_cmd = [
-        wingetcreate, "new", installer_url,
-        "-v", version, "--submit", "--no-open",
+        wingetcreate, "new", installer_url, "--no-open",
     ]
 
     if args.dry_run:
         console.print("────────────────── dry-run（不执行）──────────────────", style="info")
         console.print(_sanitize_log(f"[dim]update: {' '.join(update_cmd)}[/]"))
-        console.print(_sanitize_log(f"[dim]fallback(new): {' '.join(new_cmd)}[/]"))
+        console.print(_sanitize_log(f"[dim]首次发布参考 (new): {' '.join(new_cmd)}[/]"))
         console.print("⚠ 真实发布需要：wingetcreate 可用 + WINGET_CREATE_GITHUB_TOKEN 注入", style="warning")
         return 0
 
@@ -214,17 +216,26 @@ def main() -> int:
         console.print(f"✗ wingetcreate update 失败 (exit={result.returncode})", style="error")
         return result.returncode or 1
 
-    console.print("⚠ update 提示包可能不存在，回退执行 wingetcreate new...", style="warning")
-    console.print(_sanitize_log(f"[dim]执行命令: {' '.join(new_cmd)}[/]"))
-    result = _run(new_cmd)
-
-    if result.returncode == 0:
-        console.print("✓ winget 清单创建并提交成功 (wingetcreate new)", style="success")
-        _write_pr_summary(result)
-        return 0
-
-    console.print(f"✗ wingetcreate 提交失败 (exit={result.returncode})", style="error")
-    return result.returncode or 1
+    # 首次发布：包在 winget-pkgs 尚不存在，update 无法定位。
+    # new 是交互式向导，不适合在 CI 无人值守跑；首次提交还需 winget-pkgs 人工审核。
+    # 因此这里明确引导用户走手动首次提交流程，并以非致命状态结束本次 winget 步骤。
+    console.print(
+        "⚠ 包在 winget-pkgs 中尚不存在（首次发布），update 无法定位现有清单。",
+        style="warning",
+    )
+    console.print(
+        "  首次提交需要手动执行 wingetcreate new 并在 PR 中回应人工审核。",
+        style="info",
+    )
+    console.print(
+        "  请参考仓库 docs/winget_publish.md（主题2：首次提交人工审核说明）完成首次手动提交。",
+        style="info",
+    )
+    console.print(
+        "  首次清单入库后，后续版本将由本 CI 的 update 步骤自动发布。",
+        style="info",
+    )
+    return 78  # 非致命状态码（EX_CONFIG），表示“需要人工介入完成首次提交”
 
 
 if __name__ == "__main__":
