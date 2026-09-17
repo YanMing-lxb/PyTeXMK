@@ -115,22 +115,11 @@ def html():
     console.log(f"生成 HTML 并移动到 {target_html}")
 
 
-def winget_manifest():
-    console.log(
-        "winget 发布已统一到 tools/winget/publish.py（基于官方 wingetcreate）。"
-    )
-    console.log(
-        "真实用法（需已发布对应 GitHub Release）：\n"
-        "  uv run python tools/winget/publish.py --version <VERSION> --release-tag v<VERSION>"
-    )
-
-
 def main():
     targets = {
         "upload": upload,
         "inswhl": inswhl,
         "html": html,
-        "winget-manifest": winget_manifest,
     }
 
     if len(sys.argv) < 2 or sys.argv[1] not in targets:
