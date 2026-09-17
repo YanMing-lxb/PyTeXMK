@@ -263,6 +263,7 @@ dev = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "babel" },
     { name = "pillow" },
     { name = "pyinstaller" },
     { name = "pytest" },
@@ -277,7 +278,7 @@ requires-dist = [
     { name = "pyinstaller", marker = "extra == 'dev'", specifier = ">=6.21.0" },
     { name = "pypdf", specifier = ">=6.14.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.1.1" },
-    { name = "pytexlogs", specifier = ">=0.1.0" },
+    { name = "pytexlogs", specifier = ">=0.3.0" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "rich-argparse", specifier = ">=1.8.0" },
     { name = "tomli-w", specifier = ">=1.2.0" },
@@ -286,6 +287,7 @@ provides-extras = ["dev"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "babel", specifier = ">=2.18" },
     { name = "pillow", specifier = ">=12.3.0" },
     { name = "pyinstaller", specifier = ">=6.21.0" },
     { name = "pytest", specifier = ">=9.1.1" },
