@@ -28,7 +28,7 @@ def check_icon():
             from generate_icon import main as generate_icon_main
             console.print("正在生成图标文件...", style="status")
             generate_icon_main()
-        except Exception as e:
+        except (ImportError, OSError) as e:
             console.print(f"⚠️ 生成图标文件异常: {e}", style="warning")
             console.print("请先运行 generate_icon.py 生成图标文件", style="warning")
             return False
@@ -183,7 +183,9 @@ def main():
     except KeyboardInterrupt:
         console.print("\n⚠️ 用户中断操作 (Ctrl+C)，程序已终止", style="warning")
         sys.exit(1)
-    except Exception as e:
+    except BaseException as e:
+        if isinstance(e, SystemExit):
+            raise
         console.print("\n💥 发生未知异常！", style="error")
         console.print(f"异常类型: {type(e).__name__}", style="error")
         console.print(f"异常内容: {e!s}", style="error")
