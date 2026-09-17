@@ -5,14 +5,14 @@
 ### 🎉 新增
 
 - 🪟 **新增 winget 发布渠道**：Windows 10 1809+ / Windows 11 用户可通过 `winget install --id YanMing-lxb.PyTeXMK -e` 一键安装 PyTeXMK，无需 Python 环境；清单由官方 wingetcreate 直接生成（仅 en-US 单语言），InstallerType=zip + NestedInstallerType=portable，安装后 `pytexmk` 命令自动加入 PATH
-- 🔄 **Release 工作流新增 publish-to-winget job**：打 tag 发布（非 dry_run）时统一调用官方 `wingetcreate` 直接生成清单并提交 PR 到 `microsoft/winget-pkgs`；job 配置 `continue-on-error: true`，winget 发布失败不阻断 GitHub Release / PyPI 正常发布
-- 🔒 **Token 安全三重保护**：仅从 `WINGET_CREATE_GITHUB_TOKEN` 环境变量读取 PAT（不在 argparse/run 命令行传递）、所有日志统一过 `_sanitize_log` 正则清洗（`ghp_`/`github_pat_`/URL token 段替换为 `<REDACTED>`）、wingetcreate 同样从环境变量读取 token
+- 🔄 **Release 工作流新增 publish-to-winget job**：打 tag 发布（非 dry_run）时在 job 内**直接内联官方 wingetcreate**（curl 下载 + `wingetcreate update --submit`）生成清单并提交 PR 到 `microsoft/winget-pkgs`；不再依赖本地发布脚本。winget 发布失败会让 job 红标，确保发布问题可立即暴露（首次提交需人工审核合并）
+- 🔒 **Token 安全**：仅从环境变量 `WINGET_CREATE_GITHUB_TOKEN` 读取 PAT（CI 由 `secrets.WINGET_GITHUB_TOKEN` 注入），wingetcreate 同从该环境变量读取，token **不进入命令行参数/argv**，也不会落日志
 - 📚 **新增 docs/winget_publish.md 开发者文档**：涵盖 PAT 申请步骤、首次提交人工审核说明、清单验证失败排查思路，便于长期维护
 
 ### 🧪 质量改进
 
-- 🧩 新增 `tools/winget/publish.py`：统一调用官方 `wingetcreate` 直接生成并提交 winget 清单；移除 4 份手写 YAML 模板与 `generate_manifest.py`、`submit_pr.py` 纯 git 回退链路
-- 🧹 简化 `make.py` 的 `winget-manifest` target：不再本地 zip 渲染，改指向真实 `publish.py` 用法提示
+- 🧹 移除发布脚本 `tools/winget/publish.py`：winget 更新改为在 `Release.yml` 的 `publish-to-winget` job 内**直接内联 wingetcreate**（版本号由 tag 推导，不需要 checkout/uv/python），并移除此前的 4 份手写 YAML 模板相关讨论与 `generate_manifest.py`、`submit_pr.py` 纯 git 回退链路
+- 🧹 简化 `make.py`：移除本地 `winget-manifest` target，winget 发布完全交由 CI（`publish-to-winget` job）内联 wingetcreate
 
 ---
 

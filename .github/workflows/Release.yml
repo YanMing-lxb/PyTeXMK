@@ -273,14 +273,17 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # JOB: publish-to-winget —— 官方 wingetcreate 发布到 microsoft/winget-pkgs
-  # 流程：不重新打包，而是按 GitHub Release 上 windows zip 的 URL，让官方
-  # wingetcreate 自行下载→算 SHA→生成 en-US 清单→校验→提交 PR。
-  # 关键取舍：不再 continue-on-error —— winget 发布失败会让整个 workflow 红标，
+  # 流程：不重新打包，也不跑本地脚本。直接用 curl 下载官方 wingetcreate，
+  #       再以内联命令完成 下载→算 SHA→生成 en-US 清单→校验→提交 PR。
+  # 关键取舍：不使用 continue-on-error —— winget 发布失败会让整个 workflow 红标，
   #          确保发布问题能立即暴露（首次需人工审核合并，但提交失败必须可见）。
   # 令牌：secrets.WINGET_GITHUB_TOKEN → 注入为 WINGET_CREATE_GITHUB_TOKEN 环境变量
   #       （wingetcreate 的标准读取变量），token 永不进命令行、不打日志。
-  # 依赖：needs [build-binary, publish-to-github-release] 保证 windows zip 已上传，
-  #       否则 URL 无有效资产可下载。
+  # 依赖：needs [build-binary, publish-to-github-release] 保证 windows zip 已上传
+  #       （--urls 指向的资产必然存在），否则 URL 无有效资产可下载。
+  # 版本号：tag 触发时 github.ref_name 即 v<version>，剥离前导 v 即为版本号；
+  #       与 src/pytexmk/version.py（config.__version__）保持一致的前提是
+  #       make upload 以 v<version> 打 tag（既有约定），无需重复配置。
   # ---------------------------------------------------------------------------
   publish-to-winget:
     name: Publish to WinGet
@@ -289,70 +292,39 @@ jobs:
     needs: [build-binary, publish-to-github-release]
     permissions:
       contents: read
+      pull-requests: write   # wingetcreate 以 token 向 winget-pkgs 提交 PR 需要
     timeout-minutes: 15
     env:
       WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
-      PYTHONUTF8: "1"
-      PYTHONIOENCODING: "utf-8:replace"
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      # 与 build-binary 相同的 UTF-8 处理（发布脚本含中文输出）。
-      - name: Set Windows runner to UTF-8 codepage
-        uses: ./.github/actions/set-utf8
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
-        with:
-          enable-cache: true
-
-      - name: Set up Python
-        uses: actions/setup-python@v7.0.0
-        with:
-          python-version-file: "pyproject.toml"
-
-      # 仅需运行 tools/winget/publish.py（纯 stdlib），--no-dev 足够，装更快。
-      - name: Install dependencies
-        shell: bash
-        run: uv sync --locked --no-dev
-
-      # 诊断：确认 python/uv/winget 版本（winget 用于本机校验清单）。
-      - name: Show versions for diagnostics (winget job)
-        shell: bash
-        run: |
-          python --version
-          uv --version
-          winget --version || true
-
-      # best-effort 安装 wingetcreate：成功更好；失败不阻断——publish.py 内部
-      # 还会再尝试定位一次（PATH/环境变量/覆盖路径）。
-      # 注意：wingetcreate 的版本查询是子命令 `version`（不是 `--version` 标志），
-      # 传 `--version` 会被当作无效参数导致非零退出。这里用正确的子命令，
-      # 并显式把 $LASTEXITCODE 归零，确保诊断步骤绝不把 job 标红。
-      - name: Install wingetcreate (best-effort)
+      # 由 tag 推导版本与安装源 URL（内联实现，不需要 checkout/uv/python）。
+      - name: Derive version and installer URL
         shell: pwsh
         run: |
-          try {
-            winget install --exact --id Microsoft.WingetCreate --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
-          } catch {
-            Write-Warning "winget install failed: $_"
-          }
-          if (Get-Command wingetcreate -ErrorAction SilentlyContinue) {
-            wingetcreate version
-          } else {
-            Write-Warning "wingetcreate 不可用，发布步骤将再次尝试定位"
-          }
-          $LASTEXITCODE = 0
+          $tag = $env:GITHUB_REF_NAME          # 例如 v1.2.3
+          $ver = $tag.Substring(1)             # 剥离前导 v -> 1.2.3
+          "PACKAGE_ID=YanMing-lxb.PyTeXMK" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          "PACKAGE_VERSION=$ver" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          "INSTALLER_URL=https://github.com/YanMing-lxb/PyTeXMK/releases/download/$tag/pytexmk-$ver-windows-x64.zip" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          Write-Host "Release tag: $tag"
+          Write-Host "Installer URL: https://github.com/YanMing-lxb/PyTeXMK/releases/download/$tag/pytexmk-$ver-windows-x64.zip"
 
-      # 真正的 winget 发布：由 publish.py 组装并执行
-      #   wingetcreate update YanMing-lxb.PyTeXMK -u <zip-url> -v <ver> --submit --no-open
-      # 包不存在（首次发布）时不再自动回退 new（new 是交互式向导，CI 无人值守跑不通），
-      # 而是打印首次手动发布指引并返回 78（EX_CONFIG）温和结束。首次清单入库后，
+      # 下载官方 wingetcreate（微软 aka.ms 地址，附带 wingetcreate.exe）。
+      - name: Download wingetcreate
+        shell: pwsh
+        run: curl.exe -JLO https://aka.ms/wingetcreate/latest
+
+      # 真正的 winget 发布：内联执行 wingetcreate update --submit。
+      # 包不存在（首次发布）时 update 会失败：new 是交互式向导，CI 无人值守跑不通，
+      # 因此这里打印首次手动发布指引并抛错使 job 红标。首次清单入库后，
       # 后续版本均由 update 全自动发布。
-      # 版本号无需手动指定：publish.py 自动取 config.__version__（src/pytexmk/version.py），
-      # 与程序版本号保持单一来源一致；release-tag 自动为 v<version>。
-      # publish.py 成功时会解析 wingetcreate 输出的 PR 链接并写入 GITHUB_STEP_SUMMARY。
-      - name: Publish via wingetcreate
+      - name: Submit package to winget-pkgs
         shell: pwsh
-        run: uv run python tools/winget/publish.py
+        run: |
+          .\wingetcreate.exe update $env:PACKAGE_ID --version $env:PACKAGE_VERSION --urls $env:INSTALLER_URL --submit
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "首次发布：包尚未入库，CI 无法无人值守执行交互式 new。"
+            Write-Host "请手动执行 wingetcreate new 并按 docs/winget_publish.md 完成首次提交与人工审核；"
+            Write-Host "首次清单入库后，后续版本由本 job 自动 update。"
+            throw "winget update 失败, exit=$LASTEXITCODE"
+          }

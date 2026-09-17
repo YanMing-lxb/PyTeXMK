@@ -52,7 +52,7 @@
 - **🔴 绝对不要** 在任何 Issue 评论、PR 描述、截图、CI 日志、本地调试脚本中粘贴该 token 的明文值（即使是 "测试用临时 token" 也不行）
 - GitHub 会自动扫描公网内容中的 PAT，一旦检测到泄漏会立即 revoke 并邮件通知，但仍应主动防范
 - 若**怀疑泄漏**：立即进入 Developer settings → 对应 token 点击 **Revoke** → 重新生成 → 更新仓库 Secret
-- 日志安全：`tools/winget/publish.py` 中所有子进程日志统一经过 `_sanitize_log()` 正则清洗，会把 `ghp_` / `github_pat_` / URL query 中的 token 段替换为 `<REDACTED>`，token 从环境变量 `WINGET_CREATE_GITHUB_TOKEN` 读取，不走命令行参数（wingetcreate 同样从该环境变量读取，不会出现在 argv 中）
+- 日志安全：token 一律通过环境变量 `WINGET_CREATE_GITHUB_TOKEN` 注入（CI 里来自 `secrets.WINGET_GITHUB_TOKEN`），wingetcreate 从该环境变量读取，**不会出现在命令行参数/argv**，因此也不会落日志；本地执行时不要把它写进命令行历史或脚本
 
 ---
 
@@ -64,13 +64,13 @@
 
 首次提交流程涉及较多人机交互（机器人打标签、要求回复、可能需要补充信息），**强烈建议手动提交而非依赖自动化工作流**，便于第一时间响应审核反馈。
 
-> **发布方式说明**：winget 发布没有本地入口，`publish.py` 只被 GitHub Action（`Release.yml` 的 `publish-to-winget` job）调用，且版本号自动取 `config.__version__`（即 `src/pytexmk/version.py`），无需手动指定。**首次提交时，最简单的方式是直接把 `publish-to-winget` job 里的步骤在本地手动跑一遍 wingetcreate**（见下），或临时对该 job 触发一次。
+> **发布方式说明**：winget 发布没有本地入口，`publish-to-winget` job 在 `Release.yml` 内**直接内联 wingetcreate**（不再有单独的发布脚本）。它由 CI 打 tag 时自动触发，版本号从 tag（`github.ref_name`，即 `v<version>`）推导，与 `src/pytexmk/version.py` 保持一致（`make upload` 以 `v<version>` 打 tag），无需手动指定。**首次提交时，最简单的方式是把 wingetcreate 在本地手动跑一遍**（见下），或临时对该 job 触发一次。
 
 #### 手动提交步骤
 
 **Step 1：本地手动执行 wingetcreate（推荐，响应最快）**
 
-`publish.py` 本身是 CI 专用，但它的核心逻辑只需一条 wingetcreate 命令，首版可以开发者在本地手动执行，得到 PR 后即时响应审核：
+CI 的 `publish-to-winget` job 内联的其实就这么一条 wingetcreate 命令；首次发布需要人工响应审核，所以首版由开发者在本地手动执行，得到 PR 后即时响应审核：
 
 ```bash
 # 首次：使用对应 Release 资产的 URL 与版本号
@@ -156,7 +156,7 @@ winget validate "manifests/y/YanMing-lxb/PyTeXMK/<ver>"
   Get-FileHash "pytexmk-1.3.0-windows-x64.zip" -Algorithm SHA256 | Select-Object Hash
   ```
 - 对比 `YanMing-lxb.PyTeXMK.installer.yaml` 中 `InstallerSha256` 字段
-- **根因 A**：执行 wingetcreate（CI 由 `publish.py` 调起）时 GitHub Release 资产尚未上传完成 → Release workflow 中 `needs: [publish-to-github-release]` 已保证时序，本地手动执行时请等待 Release 页面 Assets 列表加载稳定后再执行
+- **根因 A**：执行 wingetcreate（CI 由 `publish-to-winget` job 内联调起）时 GitHub Release 资产尚未上传完成 → Release workflow 中 `needs: [publish-to-github-release]` 已保证时序，本地手动执行时请等待 Release 页面 Assets 列表加载稳定后再执行
 - **根因 B**：Release 资产被覆盖重新上传 → 重新发布
 
 ### 2. RelativeFilePath 错误
