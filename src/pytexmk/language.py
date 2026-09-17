@@ -66,7 +66,7 @@ def set_language(lang_file):
             languages=languages,
             fallback=fallback,
         )
-    except Exception:
+    except (FileNotFoundError, OSError, ValueError):
         translation = fallback
     return translation.gettext
 

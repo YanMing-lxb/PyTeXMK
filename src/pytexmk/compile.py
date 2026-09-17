@@ -31,8 +31,8 @@ Description  :
     subprocess_runner / file_ops / version / pytexlogs / detection。
 """
 
-import shlex
 import logging
+import shlex
 
 import pytexlogs
 

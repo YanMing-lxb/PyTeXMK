@@ -304,11 +304,10 @@ class CompilationDetector:
         ):
             with open(index_aux_infile, "r", encoding="utf-8") as fobj:
                 file_content = fobj.read()
-            if file_content is not None:
-                if (
-                    str(index_aux_content_dict_old[index_aux_infile]) != file_content
-                ):
-                    make_index = True
+            if file_content is not None and (
+                str(index_aux_content_dict_old[index_aux_infile]) != file_content
+            ):
+                make_index = True
         else:
             make_index = True
         return make_index

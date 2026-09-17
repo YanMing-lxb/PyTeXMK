@@ -8,7 +8,6 @@ _ = set_language("file_ops")
 
 
 class FileMoveRemoveManager:
-    """架构 Task3：类名从 Move​Remove​Operation 升级为 FileMoveRemoveManager（语义更清晰，单一职责=文件移动+删除的 manager）。"""
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 

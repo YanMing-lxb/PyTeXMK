@@ -58,7 +58,7 @@ def print_compile_report(
 
         console.print(
             "[bold magenta][" + _("检测报告") + "][/bold magenta] "
-            f"[yellow](" + _("第") + " " + str(round_index) + " " + _("轮") + ")[/yellow] "
+            "[yellow](" + _("第") + " " + str(round_index) + " " + _("轮") + ")[/yellow] "
         )
 
         for name, tag, (stable_msg, unstable_msg) in ORDER:
@@ -80,22 +80,22 @@ def print_compile_report(
 
         if all_zero:
             console.print(
-                f"[bold magenta]" + _("结论：") + "[/bold magenta] "
-                f"[green]" + _("无需额外执行 %(prog)s 编译。") % {"prog": actual_program} + "[/green]"
+                "[bold magenta]" + _("结论：") + "[/bold magenta] "
+                "[green]" + _("无需额外执行 %(prog)s 编译。") % {"prog": actual_program} + "[/green]"
             )
             console.print(
-                f"[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
+                "[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
             )
         else:
             actual_next = next_extra_compilations
             console.print(
-                f"[bold magenta]" + _("结论：") + "[/bold magenta] "
-                f"[yellow]" + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": actual_next, "prog": actual_program} + "[/yellow]"
+                "[bold magenta]" + _("结论：") + "[/bold magenta] "
+                "[yellow]" + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": actual_next, "prog": actual_program} + "[/yellow]"
             )
 
         if reached_limit:
             console.print(
-                f"[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
+                "[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
             )
     except Exception as e:  # noqa: BLE001
         logger.error(_("打印编译检测报告时出错: ") + str(e))
