@@ -88,7 +88,7 @@ def magic_comment_desc_table():
 
         for i, (key, value) in enumerate(magic_comment_desc_dic.items()):
             table.add_row(f"{i + 1}", key, value)
-
-        return table
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(_("打印魔法注释说明表时出错: ") + str(e))
+    else:
+        return table
