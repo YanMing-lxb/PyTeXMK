@@ -17,9 +17,9 @@ total_len = 78
 
 def time_count(fun, *args, **kwargs):
     try:
-        time_start = datetime.datetime.now()  # noqa: DTZ005
+        time_start = datetime.datetime.now(tz=datetime.UTC)
         fun_return = fun(*args, **kwargs)
-        time_end = datetime.datetime.now()  # noqa: DTZ005
+        time_end = datetime.datetime.now(tz=datetime.UTC)
         time_run = (time_end - time_start).total_seconds()
         return round(time_run, 4), fun_return
     except Exception as e:  # noqa: BLE001
@@ -37,7 +37,7 @@ def get_text_len(text):
 
 def time_print(start_time, runtime_dict):
     try:
-        end_time = datetime.datetime.now()  # noqa: DTZ005
+        end_time = datetime.datetime.now(tz=datetime.UTC)
         run_time = end_time - start_time
         total_seconds = run_time.total_seconds()
         hours, remainder = divmod(int(total_seconds), 3600)
