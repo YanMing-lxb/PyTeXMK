@@ -49,7 +49,7 @@ if sys.platform == "win32":
         # 已经是 UTF-8 了就不重复处理
         try:
             current_encoding = (getattr(stream, "encoding", None) or "").lower().replace("_", "-")
-        except Exception:
+        except AttributeError:
             current_encoding = ""
         if current_encoding in {"utf-8", "utf8"}:
             return stream
@@ -58,9 +58,10 @@ if sys.platform == "win32":
         try:
             if readable and writable or writable or readable:
                 stream.reconfigure(encoding="utf-8", errors="replace")
-            return stream
-        except Exception:
+        except (AttributeError, io.UnsupportedOperation):
             pass
+        else:
+            return stream
 
         # reconfigure 失败（比如 PyInstaller bootloader 下 stream 已被代理）→ 降级
         try:
@@ -75,19 +76,12 @@ if sys.platform == "win32":
         )
         return new_stream
 
-    try:
-        sys.stdout = _force_utf8("stdout", sys.stdout, readable=False, writable=True)
-        sys.stderr = _force_utf8("stderr", sys.stderr, readable=False, writable=True)
-        sys.stdin  = _force_utf8("stdin",  sys.stdin,  readable=True,  writable=False)
-        # argparse / click 等库会从 sys.stdout 取 encoding，确保它们也感知到 UTF-8
-        try:
-            import builtins
-            builtins.print = print  # no-op，确保上面的 reassign 生效
-        except Exception:
-            pass
-    except Exception:
-        # 兜底：任何异常都不能阻止程序启动
-        pass
+    sys.stdout = _force_utf8("stdout", sys.stdout, readable=False, writable=True)
+    sys.stderr = _force_utf8("stderr", sys.stderr, readable=False, writable=True)
+    sys.stdin  = _force_utf8("stdin",  sys.stdin,  readable=True,  writable=False)
+    # argparse / click 等库会从 sys.stdout 取 encoding，确保它们也感知到 UTF-8
+    import builtins
+    builtins.print = print  # no-op，确保上面的 reassign 生效
 
 from pytexmk.cli.check_version import UpdateChecker
 from pytexmk.cli.cli_args import parse_args
