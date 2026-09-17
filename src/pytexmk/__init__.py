@@ -46,4 +46,4 @@ def __getattr__(name):
         from .cli.__main__ import main
 
         return main
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    raise AttributeError(f"{__name__!r}.{name!r}")
