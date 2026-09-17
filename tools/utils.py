@@ -100,19 +100,14 @@ class PerformanceTracker:
 
             duration = time.time() - start_time  # 计算执行耗时
             status = "成功" if result else "失败"  # 根据函数返回值判断执行结果
-
-            # 返回函数执行结果和执行详情
-            return result, {"name": step_name, "duration": duration, "status": status}
-
-        except Exception as e:
-            # 捕获所有异常，并计算耗时
+        except (KeyboardInterrupt, OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired,
+                ImportError, ValueError, AttributeError, TypeError, RuntimeError) as e:
+            # step wrapper: must not let one step fail entire report
             duration = time.time() - start_time
-
-            # 输出异常信息
             console.print(f"❌ [{step_name}] 执行异常 - 耗时: {duration}, 错误: {e!s}")
-
-            # 返回 False 和异常状态
             return False, {"name": step_name, "duration": duration, "status": "异常"}
+        else:
+            return result, {"name": step_name, "duration": duration, "status": status}
 
     def generate_report(self) -> None:
         """
@@ -174,7 +169,7 @@ def _kill_process_tree(pid: int) -> None:
                     os.kill(pid, signal.SIGKILL)
                 except ProcessLookupError:
                     pass
-    except Exception as e:
+    except (subprocess.SubprocessError, OSError, AttributeError) as e:
         console.print(f"⚠ 终止进程树失败 (pid={pid}): {e}", style="warning")
 
 
@@ -278,11 +273,11 @@ def run_command(
         if timed_out:
             try:
                 _kill_process_tree(process.pid)
-            except Exception as e:
+            except (OSError, subprocess.SubprocessError) as e:
                 console.print(f"⚠ 终止超时进程树失败: {e}", style="warning")
                 try:
                     process.kill()
-                except Exception as e2:
+                except OSError as e2:
                     console.print(f"⚠ 强制终止进程失败: {e2}", style="warning")
             try:
                 process.wait(timeout=5)
@@ -347,10 +342,11 @@ def delete_folder(folder_path):
     try:
         shutil.rmtree(path)  # 删除整个目录树
         print(f"✓ 已删除文件夹：{path}")
-        return True
-    except Exception as e:
+    except OSError as e:
         print(f"✗ 删除失败：{e}")
         return False
+    else:
+        return True
 
 
 if __name__ == "__main__":
