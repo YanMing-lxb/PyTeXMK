@@ -35,6 +35,13 @@ permissions:
   contents: write
   id-token: write
 
+# 防重复发布：以 ref（tag 或分支）作为并发组键。
+# 同一 tag/分支被多次触发（如重复 push tag、手动连点 Run workflow）时，
+# 新触发会先取消仍在进行的旧触发，避免同一版本并行跑两套全量 Release。
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # ---------------------------------------------------------------------------
   # JOB: build-binary —— 三平台编译可执行二进制并打发布 zip
@@ -355,6 +362,9 @@ jobs:
 
       # best-effort 安装 wingetcreate：成功更好；失败不阻断——publish.py 内部
       # 还会再尝试定位一次（PATH/环境变量/覆盖路径）。
+      # 注意：wingetcreate 的版本查询是子命令 `version`（不是 `--version` 标志），
+      # 传 `--version` 会被当作无效参数导致非零退出。这里用正确的子命令，
+      # 并显式把 $LASTEXITCODE 归零，确保诊断步骤绝不把 job 标红。
       - name: Install wingetcreate (best-effort)
         shell: pwsh
         run: |
@@ -364,10 +374,11 @@ jobs:
             Write-Warning "winget install failed: $_"
           }
           if (Get-Command wingetcreate -ErrorAction SilentlyContinue) {
-            wingetcreate --version
+            wingetcreate version
           } else {
             Write-Warning "wingetcreate 不可用，发布步骤将再次尝试定位"
           }
+          $LASTEXITCODE = 0
 
       # 真正的 winget 发布：由 publish.py 组装并执行
       #   wingetcreate update YanMing-lxb.PyTeXMK -u <zip-url> -v <ver> --submit --no-open
