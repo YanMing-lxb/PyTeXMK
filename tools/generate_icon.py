@@ -19,7 +19,7 @@ ICO_SIZES = (16, 32, 48, 64, 128, 256)
 def _read_png_dimensions(data: bytes) -> tuple[int, int]:
     """Read width and height from PNG IHDR chunk."""
     if data[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ValueError("Not a valid PNG file")
+        raise ValueError()
     width = struct.unpack(">I", data[16:20])[0]
     height = struct.unpack(">I", data[20:24])[0]
     return width, height
@@ -74,7 +74,6 @@ def generate_ico() -> Path:
             resized.save(buf, format="PNG")
             png_datas.append((size, buf.getvalue()))
         ICO_PATH.write_bytes(_ico_pack(png_datas))
-        return ICO_PATH
     except ImportError:
         print("  [warn] Pillow not available, generating single-size ICO")
         png_data = LOGO_SOURCE.read_bytes()
@@ -102,6 +101,8 @@ def generate_ico() -> Path:
 
         ICO_PATH.write_bytes(header + entry + png_data)
         return ICO_PATH
+    else:
+        return ICO_PATH
 
 
 def generate_png() -> Path:
@@ -112,9 +113,10 @@ def generate_png() -> Path:
         img = Image.open(LOGO_SOURCE).convert("RGBA")
         resized = img.resize((256, 256), Image.LANCZOS)
         resized.save(PNG_PATH, format="PNG")
-        return PNG_PATH
     except ImportError:
         shutil.copy2(LOGO_SOURCE, PNG_PATH)
+        return PNG_PATH
+    else:
         return PNG_PATH
 
 
@@ -204,7 +206,7 @@ def main() -> None:
     try:
         png = generate_png()
         print(f"  -> {png} ({png.stat().st_size} bytes)")
-    except Exception as e:
+    except (OSError, ValueError, AttributeError) as e:
         print(f"  [error] PNG generation failed: {e}")
         sys.exit(1)
 
@@ -212,7 +214,7 @@ def main() -> None:
     try:
         ico = generate_ico()
         print(f"  -> {ico} ({ico.stat().st_size} bytes)")
-    except Exception as e:
+    except (OSError, ValueError, AttributeError) as e:
         print(f"  [error] ICO generation failed: {e}")
         sys.exit(1)
 
