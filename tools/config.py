@@ -38,7 +38,7 @@ def _read_version():
     match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', version_file.read_text(encoding="utf-8"))
     if match:
         return match.group(1)
-    raise RuntimeError(f"无法从 {version_file} 中解析 __version__")
+    raise RuntimeError()
 
 
 __version__ = _read_version()
