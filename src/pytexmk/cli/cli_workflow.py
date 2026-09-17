@@ -38,7 +38,7 @@ def run_workflow(args):
         }
         return standard_names.get(compiled_program.lower(), compiled_program)
 
-    start_time = datetime.datetime.now()  # noqa: DTZ005
+    start_time = datetime.datetime.now(tz=datetime.UTC)
 
     MFO = MainFileOperation()
     MRO = FileMoveRemoveManager()
