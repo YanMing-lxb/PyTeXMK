@@ -10,6 +10,7 @@ def run_workflow(args):
 
     from pytexmk.cli.check_version import UpdateChecker
 
+    from ..compile_engine import RUN, LaTeXDiffRUN
     from ..config import ConfigParser
     from ..file_ops import FileMoveRemoveManager
     from ..language import set_language
@@ -18,7 +19,6 @@ def run_workflow(args):
     from ..logger_config import setup_logger
     from ..paths import get_app_path
     from ..pdf_tools import PdfFileOperation
-    from ..compile_engine import RUN, LaTeXDiffRUN
     from ..tex_project import MainFileOperation
     from ..timing import time_count, time_print
     from ..ui_messages import print_message
@@ -27,6 +27,7 @@ def run_workflow(args):
     _ = set_language("cli_workflow")
 
     from pathlib import Path
+
     from pytexmk.ui_theme import console
 
     def standardize_name(compiled_program):
