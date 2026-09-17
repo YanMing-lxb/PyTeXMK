@@ -65,10 +65,11 @@ class ConfigParser:
             with open(path, "rb") as f:
                 config = tomllib.load(f)
             self.logger.info(_("成功加载配置文件: ") + str(path))
-            return config
-        except Exception as e:  # noqa: BLE001
+        except (OSError, tomllib.TOMLDecodeError) as e:
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
             return None
+        else:
+            return config
 
     def _init_default_config(self, path: Path, config_file: str):
         """生成默认配置文件。
