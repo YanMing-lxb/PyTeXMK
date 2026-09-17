@@ -56,11 +56,7 @@ if sys.platform == "win32":
 
         # 优先走 Python 3.7+ 的 TextIOWrapper.reconfigure（更干净，不破坏 isatty）
         try:
-            if readable and writable:
-                stream.reconfigure(encoding="utf-8", errors="replace")
-            elif writable:
-                stream.reconfigure(encoding="utf-8", errors="replace")
-            elif readable:
+            if readable and writable or writable or readable:
                 stream.reconfigure(encoding="utf-8", errors="replace")
             return stream
         except Exception:
