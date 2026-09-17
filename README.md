@@ -90,6 +90,16 @@ pip install pytexmk
 uv pip install pytexmk
 ```
 
+### Windows winget 安装（推荐）
+
+Windows 10 1809+ / Windows 11 用户可使用 [winget](https://learn.microsoft.com/zh-cn/windows/package-manager/) 一键安装（无需 Python 环境）：
+
+```powershell
+winget install --id YanMing-lxb.PyTeXMK -e
+```
+
+> 提示：若已完成 moniker 注册，可简写为 `winget install pytexmk`。
+
 ### 升级
 
 ```bash

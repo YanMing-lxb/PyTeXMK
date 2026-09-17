@@ -36,6 +36,7 @@ help:
 	@echo   update   Re-extract POT then merge into all existing locales' .po
 	@echo   mo       Compile all locales' .po to binary .mo
 	@echo   upload   Upload to PyPI
+	@echo   winget-manifest    Pack + zip Windows release + generate local winget manifests
 	@echo   help     Show this help message
 
 # ------------------------------------------------------------------------------
@@ -134,3 +135,9 @@ mo:
 # - 上传前请确保已运行 make whl 构建产物
 upload:
 	@uv run python ./tools/make.py upload
+
+# winget 发布已统一到 tools/winget/publish.py（基于官方 wingetcreate）
+# 真实用法：uv run python tools/winget/publish.py --version <VERSION> --release-tag v<VERSION>
+.PHONY: winget-manifest
+winget-manifest:
+	uv run python ./tools/make.py winget-manifest

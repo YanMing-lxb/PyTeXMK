@@ -26,11 +26,14 @@ Description  :
 
 import json
 import logging
+import os
+import sys
 import time
 import tomllib
 import urllib.request
 from datetime import timedelta
 from pathlib import Path
+from typing import Literal
 
 import tomli_w
 from packaging import version
@@ -43,6 +46,170 @@ from ..version import __version__, script_name
 _ = set_language("check_version")
 
 API_URL = f"https://api.github.com/repos/YanMing-lxb/{script_name}/releases/latest"
+
+
+def _detect_install_method() -> Literal["winget", "pip", "uv", "onedir", "unknown"]:
+    """检测当前 PyTeXMK 的安装方式，返回 5 种枚举值之一.
+
+    检测优先级（高→低）:
+        winget > pip > uv > onedir > unknown
+
+    注意：整个函数必须被 try/except 包裹，任何异常都静默返回 "unknown"，绝不抛异常。
+    """
+    try:
+        # 1) winget 检测（仅 Windows）
+        if os.name == "nt":
+            try:
+                mod_path = str(Path(__file__).resolve())
+            except Exception:  # noqa: BLE001
+                mod_path = ""
+            if "YanMing-lxb.PyTeXMK" in mod_path and ("WinGet" in mod_path or "winget" in mod_path.lower()):
+                return "winget"
+            # 可选增强：检查 LOCALAPPDATA winget 链接目录
+            localappdata = os.environ.get("LOCALAPPDATA", "")
+            if localappdata:
+                try:
+                    pkg_root = Path(localappdata) / "Microsoft" / "WinGet" / "Packages"
+                    if pkg_root.is_dir():
+                        for pkg_dir in pkg_root.glob("YanMing-lxb.PyTeXMK_*"):
+                            link = pkg_dir / "Links" / "pytexmk.exe"
+                            if link.exists():
+                                try:
+                                    # 若链接目标路径与当前 sys.executable 相同（忽略大小写），判定为 winget
+                                    target = str(link.resolve()).lower()
+                                    exe = str(Path(sys.executable).resolve()).lower() if hasattr(sys, "executable") else ""
+                                    if target and exe and (target == exe or target.replace(".exe", "") == exe.replace(".exe", "")):
+                                        return "winget"
+                                except Exception:  # noqa: BLE001
+                                    pass
+                except Exception:  # noqa: BLE001
+                    pass
+
+        # 2) pip 检测：路径中包含 site-packages 或 dist-packages
+        try:
+            parts = Path(__file__).resolve().parts
+        except Exception:  # noqa: BLE001
+            parts = ()
+        if "site-packages" in parts or "dist-packages" in parts:
+            return "pip"
+
+        # 3) uv 检测：路径中同时含 "uv" 与 "tools" 两个部分，或存在 .uv-tool 标记文件
+        if "uv" in parts and "tools" in parts:
+            return "uv"
+        try:
+            parents = Path(__file__).resolve().parents
+        except Exception:  # noqa: BLE001
+            parents = []
+        for p in parents:
+            try:
+                if (p / ".uv-tool").exists():
+                    return "uv"
+            except Exception:  # noqa: BLE001
+                continue
+
+        # 4) onedir 检测：PyInstaller frozen 或 base_library.zip
+        if hasattr(sys, "frozen") and getattr(sys, "frozen"):
+            return "onedir"
+        try:
+            if hasattr(sys, "executable") and Path(sys.executable).parent.joinpath("base_library.zip").is_file():
+                return "onedir"
+        except Exception:  # noqa: BLE001
+            pass
+
+        # 5) 以上均不满足
+        return "unknown"
+    except Exception:  # noqa: BLE001
+        return "unknown"
+
+
+def _build_upgrade_message(method: str) -> list[str]:
+    """根据安装方式生成升级提示文案行列表（每条即一行输出，含 rich 标签）.
+
+    Args:
+        method: 来自 _detect_install_method 的返回值，之一：
+            "winget" | "pip" | "uv" | "onedir" | "unknown"
+    Returns:
+        list[str]：一行或多行升级提示字符串，已包含 rich 样式标记。
+    """
+    lines: list[str] = []
+    release_url = "https://github.com/YanMing-lxb/PyTeXMK/releases/latest"
+
+    if method == "winget":
+        lines.append(_("请运行 [bold green]'winget upgrade --id YanMing-lxb.PyTeXMK -e'[/bold green] 进行更新"))
+
+    elif method == "pip":
+        lines.append(
+            _("请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新")
+            % {"args": script_name}
+        )
+
+    elif method == "uv":
+        lines.append(
+            _("请运行 [bold green]'uv tool upgrade %(args)s'[/bold green] 进行更新")
+            % {"args": script_name}
+        )
+        lines.append(
+            _("💡 如果你尚未安装 uv，也可使用 pip 作为备选：[bold green]pip install --upgrade %(args)s[/bold green]")
+            % {"args": script_name}
+        )
+
+    elif method == "onedir":
+        lines.append(
+            _("当前为手动安装（从 GitHub Release 下载的 zip 解压版），请前往以下地址下载新版 zip 覆盖旧目录：")
+        )
+        lines.append(f"[bold blue]{release_url}[/bold blue]")
+        lines.append("")  # 空行，视觉分隔
+        lines.append(
+            _("💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]")
+        )
+
+    elif method == "unknown":
+        lines.append(
+            _("已检测到新版本，可根据你的安装方式选择以下任一命令更新：")
+        )
+        if os.name == "nt":
+            # Windows 4 渠道：winget / pip / uv / 手动下载
+            lines.append(
+                _("[bold]Windows winget[/bold]:  [bold green]winget upgrade --id YanMing-lxb.PyTeXMK -e[/bold green]")
+            )
+            lines.append(
+                _("[bold]PyPI pip[/bold]:      [bold green]pip install --upgrade %(args)s[/bold green]")
+                % {"args": script_name}
+            )
+            lines.append(
+                _("[bold]uv tool[/bold]:       [bold green]uv tool upgrade %(args)s[/bold green]")
+                % {"args": script_name}
+            )
+            lines.append(
+                _("[bold]手动下载[/bold]:      [bold blue]%(url)s[/bold blue]")
+                % {"url": release_url}
+            )
+        else:
+            # Linux/mac 3 渠道：pip / uv / 手动下载
+            lines.append(
+                _("[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade %(args)s[/bold green]")
+                % {"args": script_name}
+            )
+            lines.append(
+                _("[bold]uv tool[/bold]:           [bold green]uv tool upgrade %(args)s[/bold green]")
+                % {"args": script_name}
+            )
+            lines.append(
+                _("[bold]手动下载[/bold]:           [bold blue]%(url)s[/bold blue]")
+                % {"url": release_url}
+            )
+
+    else:
+        # 未知 method（理论不会出现），降级为 unknown 标题 + 通用 pip
+        lines.append(
+            _("已检测到新版本，可根据你的安装方式选择以下任一命令更新：")
+        )
+        lines.append(
+            _("[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade %(args)s[/bold green]")
+            % {"args": script_name}
+        )
+
+    return lines
 
 
 class UpdateChecker:
@@ -229,11 +396,9 @@ class UpdateChecker:
                 + _("当前版本: ")
                 + f"[bold red]{current_version}[/bold red]"
             )
-            print(
-                _(
-                    "请运行 [bold green]'pip install --upgrade %(args)s'[/bold green] 进行更新"
-                )
-                % {"args": script_name}
-            )
+            method = _detect_install_method()
+            lines = _build_upgrade_message(method)
+            for line in lines:
+                print(line)
         else:
             print(_("当前版本: ") + f"[bold green]{current_version}[/bold green]")

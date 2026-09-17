@@ -1,3 +1,23 @@
+# =============================================================================
+# PyTeXMK Release 工作流
+# -----------------------------------------------------------------------------
+# 产物与发布渠道总览（打包产物只构建一次，无重复打包步骤）：
+#
+#   [build-binary]        → 三平台 PyInstaller onedir 可执行 + 打 zip
+#       └─ windows zip    → 作为 winget 的安装源（GitHub Release 资产 URL）
+#   [build-package]       → sdist + wheel（pip/PyPI 源码与二进制发行）
+#   [publish-to-pypi]     → 把 sdist+wheel 发布到 PyPI
+#   [publish-to-github-release] → 把「sdist+wheel + 三平台 zip」一并发到 GitHub Release
+#   [publish-to-winget]   → 引用 GitHub Release 上的 windows zip URL，
+#                          用官方 wingetcreate 下载算 SHA、生成 en-US 清单、
+#                          校验并提交 PR 到 microsoft/winget-pkgs（不重复打包）
+#
+# 打包是否冗余：build-binary 产二进制 zip，build-package 产可 pip 安装的
+# sdist/wheel，两者是不同形态的发行物（二进制 vs 源码/纯 pip），不是同一件事
+# 的两个副本；GitHub Release 同时附带两者是有意为之。winget job 不再本地打包，
+# 直接按 URL 引用已经传好的 windows zip。
+# =============================================================================
+
 name: Release PyTeXMK
 
 on:
@@ -16,6 +36,11 @@ permissions:
   id-token: write
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # JOB: build-binary —— 三平台编译可执行二进制并打发布 zip
+  # 产物: dist/pytexmk/（onedir 目录）+ pytexmk-<version>-<platform>-x64.zip
+  # 关键: 仅此一处编译二进制；windows 平台的 zip 会被 winget 作为安装源。
+  # ---------------------------------------------------------------------------
   build-binary:
     strategy:
       fail-fast: false
@@ -37,6 +62,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # Windows runner 默认代码页非 UTF-8，PyTeXMK 输出含中文，务必切到 UTF-8，
+      # 并把 UTF-8 环境变量写入 GITHUB_ENV，供后续 step 继承。
       - name: Set Windows runner to UTF-8 codepage
         if: runner.os == 'Windows'
         shell: pwsh
@@ -63,10 +90,13 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
+      # --all-extras --dev: 编译二进制需要完整的运行/构建/开发依赖树
+      # （与普通开发环境一致，保证 PyInstaller 能收集到全部动态依赖）。
       - name: Install dependencies
         shell: bash
         run: uv sync --locked --all-extras --dev
 
+      # 纯诊断输出：确认本机编译器/Python/uv/PyInstaller 版本，便于排查打包问题。
       - name: Show versions for diagnostics
         shell: bash
         run: |
@@ -85,16 +115,19 @@ jobs:
           echo "--- PyInstaller ---"
           pyinstaller --version 2>&1 || true
 
+      # 唯一的二进制编译入口：PyInstaller onedir 模式 → dist/pytexmk/。
       - name: Pack binary (onedir, source mode)
         timeout-minutes: 120
         run: uv run python tools/pack.py pack
 
+      # 非 Windows：二进制冒烟测试（--version / --help）。
       - name: Test binary
         if: runner.os != 'Windows'
         shell: bash
         timeout-minutes: 10
         run: ${{ matrix.bin_path }} --version && ${{ matrix.bin_path }} --help >/dev/null
 
+      # Windows：显式 UTF-8 下做同样的冒烟测试（防止中文输出乱码导致的假失败）。
       - name: Test binary (Windows — UTF-8 codepage explicitly)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -110,17 +143,26 @@ jobs:
           & "${{ matrix.bin_path }}" --help | Out-Null
           if ($LASTEXITCODE -ne 0) { throw "Binary smoke test failed, exit=$LASTEXITCODE" }
 
+      # 把已打包的 dist/pytexmk/ 目录压成 <package>-<ver>-<platform>-x64.zip。
+      # 只做压缩，不重新编译（zip_release.py 仅拷贝已生成的 onedir）。
+      # Windows 平台的这个 zip 就是 winget 清单里的安装源 URL。
       - name: Prepare release zip
         shell: bash
         timeout-minutes: 10
         run: uv run python tools/zip_release.py ${{ matrix.platform }}
 
+      # 上传 zip 为 artifact，供 publish-to-github-release 汇总发布，
+      # 也便于 winget job 之后的阶段按需取用。
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7.0.1
         with:
           name: pytexmk-binary-${{ matrix.os }}
           path: pytexmk-*.zip
 
+  # ---------------------------------------------------------------------------
+  # JOB: build-package —— 构建 pip 发行包（sdist + wheel）
+  # 产物: dist/*(whl + tar.gz)。它喂给两个下游：PyPI 发布 + GitHub Release 源码附赠。
+  # ---------------------------------------------------------------------------
   build-package:
     runs-on: ubuntu-latest
     steps:
@@ -140,6 +182,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-extras
 
+      # uv build → 一次性产出 sdist(.tar.gz) 与 wheel(.whl)。
       - name: Build package
         run: uv build
 
@@ -149,6 +192,10 @@ jobs:
           name: python-package-distributions
           path: dist/
 
+  # ---------------------------------------------------------------------------
+  # JOB: publish-to-pypi —— 发布到 PyPI
+  # 仅在打 tag 且非 dry_run 时运行；用 Trusted Publishing（id-token）免 token。
+  # ---------------------------------------------------------------------------
   publish-to-pypi:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
@@ -175,6 +222,11 @@ jobs:
         with:
           packages-dir: dist/
 
+  # ---------------------------------------------------------------------------
+  # JOB: publish-to-github-release —— 汇总并发布 GitHub Release
+  # 拉取「sdist+wheel」与「三平台二进制 zip」，一起挂到 v<version> 的 Release 上。
+  # 这是 winget 安装源的发布者（windows zip 在这里被传上去）。
+  # ---------------------------------------------------------------------------
   publish-to-github-release:
     name: Publish to GitHub Release
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
@@ -184,12 +236,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # 拉取 pip 发行包（sdist+wheel），用于附在 Release 上。
       - name: Download package distributions
         uses: actions/download-artifact@v8
         with:
           name: python-package-distributions
           path: dist/
 
+      # 拉取三平台二进制 zip，合并进同一个 dist/ 目录。
       - name: Download all binary artifacts
         uses: actions/download-artifact@v8
         with:
@@ -200,9 +254,11 @@ jobs:
       - name: List dist directory contents
         run: ls -R dist/
 
+      # 从 git ref 的 "refs/tags/v1.2.2" 解析出纯版本 tag "v1.2.2"。
       - name: Extract tag name
         run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
 
+      # 从 CHANGELOG.md 里按 "## v1.2.2" 标题抽取对应版本的发布说明。
       - name: Generate Changelog
         run: |
           changelog=$(cat CHANGELOG.md)
@@ -220,6 +276,7 @@ jobs:
           fi
           echo "$version_content" > CHANGELOG.txt
 
+      # 创建 GitHub Release：上传 sdist+wheel+三平台 zip，附上文/更新说明。
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v3.0.0
         with:
@@ -229,3 +286,102 @@ jobs:
           files: dist/*
           draft: false
           prerelease: false
+
+  # ---------------------------------------------------------------------------
+  # JOB: publish-to-winget —— 官方 wingetcreate 发布到 microsoft/winget-pkgs
+  # 流程：不重新打包，而是按 GitHub Release 上 windows zip 的 URL，让官方
+  # wingetcreate 自行下载→算 SHA→生成 en-US 清单→校验→提交 PR。
+  # 关键取舍：continue-on-error:true —— winget 失败不得阻断整体 Release。
+  # 令牌：secrets.WINGET_GITHUB_TOKEN → 注入为 WINGET_CREATE_GITHUB_TOKEN 环境变量
+  #       （wingetcreate 的标准读取变量），token 永不进命令行、不打日志。
+  # 依赖：needs [build-binary, publish-to-github-release] 保证 windows zip 已上传，
+  #       否则 URL 无有效资产可下载。
+  # ---------------------------------------------------------------------------
+  publish-to-winget:
+    name: Publish to WinGet
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
+    needs: [build-binary, publish-to-github-release]
+    continue-on-error: true
+    permissions:
+      contents: read
+    timeout-minutes: 15
+    env:
+      WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8:replace"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # 与 build-binary 相同的 UTF-8 处理（发布脚本含中文输出）。
+      - name: Set Windows runner to UTF-8 codepage
+        shell: pwsh
+        run: |
+          chcp 65001
+          [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+          [Console]::InputEncoding = [System.Text.UTF8Encoding]::new($false)
+          $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+          $env:PYTHONUTF8 = "1"
+          $env:PYTHONIOENCODING = "utf-8:replace"
+          "PYTHONUTF8=1" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          "PYTHONIOENCODING=utf-8:replace" | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          chcp
+          echo "PYTHONUTF8=$env:PYTHONUTF8"
+          echo "PYTHONIOENCODING=$env:PYTHONIOENCODING"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version-file: "pyproject.toml"
+
+      # 仅需运行 tools/winget/publish.py（纯 stdlib），--no-dev 足够，装更快。
+      - name: Install dependencies
+        shell: bash
+        run: uv sync --locked --no-dev
+
+      # 诊断：确认 python/uv/winget 版本（winget 用于本机校验清单）。
+      - name: Show versions for diagnostics (winget job)
+        shell: bash
+        run: |
+          python --version
+          uv --version
+          winget --version || true
+
+      # 从 tag "v1.2.2" 去 v 得版本号 "1.2.2"，写入 GITHUB_ENV。
+      - name: Extract version
+        shell: pwsh
+        run: |
+          $env:TAG_NAME = "${{ github.ref_name }}"
+          $env:VERSION  = $env:TAG_NAME -replace '^v', ''
+          echo "TAG_NAME=$env:TAG_NAME"     | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          echo "VERSION=$env:VERSION"       | Out-File -Encoding utf8 -Append $env:GITHUB_ENV
+          "VERSION=$env:VERSION"
+
+      # best-effort 安装 wingetcreate：成功更好；失败不阻断——publish.py 内部
+      # 还会再尝试定位一次（PATH/环境变量/覆盖路径）。
+      - name: Install wingetcreate (best-effort)
+        shell: pwsh
+        run: |
+          try {
+            winget install --exact --id Microsoft.WingetCreate --silent --accept-package-agreements --accept-source-agreements 2>&1 | Out-Null
+          } catch {
+            Write-Warning "winget install failed: $_"
+          }
+          if (Get-Command wingetcreate -ErrorAction SilentlyContinue) {
+            wingetcreate --version
+          } else {
+            Write-Warning "wingetcreate 不可用，发布步骤将再次尝试定位"
+          }
+
+      # 真正的 winget 发布：由 publish.py 组装并执行
+      #   wingetcreate update YanMing-lxb.PyTeXMK -u <zip-url> -v <ver> --submit --no-open
+      # 包不存在时自动回退 wingetcreate new。token 从 WINGET_CREATE_GITHUB_TOKEN 读取。
+      - name: Publish via wingetcreate
+        shell: pwsh
+        run: uv run python tools/winget/publish.py --version $env:VERSION --release-tag $env:TAG_NAME

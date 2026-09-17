@@ -57,7 +57,7 @@ def print_compile_report(
         actual_program = standardize_name(raw_program)
 
         console.print(
-            f"[bold magenta][" + _("检测报告") + "][/bold magenta] "
+            "[bold magenta][" + _("检测报告") + "][/bold magenta] "
             f"[yellow](" + _("第") + " " + str(round_index) + " " + _("轮") + ")[/yellow] "
         )
 

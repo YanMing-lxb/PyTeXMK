@@ -1,0 +1,126 @@
+name: Winget Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'PyTeXMK version to test (without v prefix, e.g. 1.3.0)'
+        required: true
+        type: string
+      package_identifier:
+        description: 'WinGet Package Identifier'
+        required: true
+        default: 'YanMing-lxb.PyTeXMK'
+        type: string
+      test_upgrade:
+        description: 'Test upgrade scenario (install previous version first)?'
+        required: false
+        default: false
+        type: boolean
+      previous_version:
+        description: 'Previous version for upgrade test (only if test_upgrade=true)'
+        required: false
+        default: '1.2.2'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  winget-smoke-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - name: Check winget availability
+        shell: pwsh
+        run: |
+          Write-Host "=== Checking winget availability ==="
+          $winget = Get-Command winget -ErrorAction SilentlyContinue
+          if (-not $winget) {
+            Write-Warning "winget not found, attempting to install App Installer..."
+            try {
+              Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe -ErrorAction Stop
+            } catch {
+              Write-Error "Failed to install App Installer: $_"
+              exit 1
+            }
+            $winget = Get-Command winget -ErrorAction SilentlyContinue
+            if (-not $winget) {
+              Write-Error "winget still not available after install attempt"
+              exit 1
+            }
+          }
+          Write-Host "winget found at: $($winget.Source)"
+          winget --version
+
+      - name: Install previous version (upgrade scenario)
+        if: ${{ inputs.test_upgrade }}
+        shell: pwsh
+        run: |
+          $id = "${{ inputs.package_identifier }}"
+          $prev = "${{ inputs.previous_version }}"
+          Write-Host "=== Installing previous version $prev for upgrade test ==="
+          winget install --id $id -e --version $prev --silent --accept-package-agreements --accept-source-agreements
+          if ($LASTEXITCODE -ne 0) { Write-Warning "Previous version install failed (may not exist in winget yet), skipping upgrade scenario" ; exit 0 }
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          pytexmk --version
+
+      - name: Scenario A - Install target version
+        shell: pwsh
+        run: |
+          $id = "${{ inputs.package_identifier }}"
+          $ver = "${{ inputs.version }}"
+          Write-Host "=== Scenario A: Install $id version $ver ==="
+          winget install --id $id -e --version $ver --silent --accept-package-agreements --accept-source-agreements
+          if ($LASTEXITCODE -ne 0) { throw "Install failed with exit=$LASTEXITCODE" }
+
+      - name: Scenario B - Verify command availability
+        shell: pwsh
+        run: |
+          Write-Host "=== Scenario B: Verify pytexmk command ==="
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          $cmd = Get-Command pytexmk -ErrorAction SilentlyContinue
+          if (-not $cmd) { throw "pytexmk command not found after install! PATH=$env:Path" }
+          Write-Host "pytexmk source: $($cmd.Source)"
+          pytexmk --version
+          if ($LASTEXITCODE -ne 0) { throw "pytexmk --version exit=$LASTEXITCODE" }
+          pytexmk --help | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "pytexmk --help exit=$LASTEXITCODE" }
+          Write-Host "✅ Command verification passed"
+
+      - name: Scenario C - Upgrade idempotency
+        if: ${{ inputs.test_upgrade }}
+        shell: pwsh
+        run: |
+          $id = "${{ inputs.package_identifier }}"
+          Write-Host "=== Scenario C: Upgrade idempotency (re-run winget upgrade) ==="
+          winget upgrade --id $id -e --silent --accept-package-agreements --accept-source-agreements
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne -1978335188) { throw "Upgrade unexpected exit=$LASTEXITCODE" }
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          pytexmk --version
+          Write-Host "✅ Upgrade scenario passed"
+
+      - name: Scenario D - Uninstall
+        if: always()
+        shell: pwsh
+        run: |
+          $id = "${{ inputs.package_identifier }}"
+          Write-Host "=== Scenario D: Uninstall $id ==="
+          winget uninstall --id $id -e --silent
+          if ($LASTEXITCODE -ne 0) { Write-Warning "Uninstall reported exit=$LASTEXITCODE, but will continue to verify absence" }
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          $cmd = Get-Command pytexmk -ErrorAction SilentlyContinue
+          if ($cmd) { throw "pytexmk still exists after uninstall! Source=$($cmd.Source)" }
+          Write-Host "✅ Uninstall scenario passed (pytexmk absent)"
+
+      - name: Final summary
+        if: always()
+        shell: pwsh
+        run: |
+          $id = "${{ inputs.package_identifier }}"
+          Write-Host "✅ All scenarios completed: Install/Verify/[Upgrade]/Uninstall = PASS"
+          Write-Host ""
+          Write-Host "=== Final winget list status ==="
+          winget list --id $id

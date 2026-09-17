@@ -43,6 +43,9 @@ def _read_version():
 
 __version__ = _read_version()
 
+WINGET_PACKAGE_IDENTIFIER = "YanMing-lxb.PyTeXMK"
+WINGET_PUBLISHER = "YanMing-lxb"
+
 __all__ = [
     "CONFIG_DIR",
     "DATA_DIR",
@@ -65,4 +68,6 @@ __all__ = [
     "__team__",
     "__version__",
     "BABEL_CFG_PATH",
+    "WINGET_PACKAGE_IDENTIFIER",
+    "WINGET_PUBLISHER",
 ]
