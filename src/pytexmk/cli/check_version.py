@@ -44,6 +44,7 @@ from ..language import set_language
 from ..version import __version__, script_name
 
 _ = set_language("check_version")
+_log = logging.getLogger(__name__)
 
 API_URL = f"https://api.github.com/repos/YanMing-lxb/{script_name}/releases/latest"
 
@@ -54,72 +55,63 @@ def _detect_install_method() -> Literal["winget", "pip", "uv", "onedir", "unknow
     检测优先级（高→低）:
         winget > pip > uv > onedir > unknown
 
-    注意：整个函数必须被 try/except 包裹，任何异常都静默返回 "unknown"，绝不抛异常。
+    注意：任何异常都静默返回 "unknown"，绝不抛异常。
     """
+    # 1) winget 检测（仅 Windows）
+    if os.name == "nt":
+        try:
+            mod_path = str(Path(__file__).resolve())
+        except OSError:
+            mod_path = ""
+        if "YanMing-lxb.PyTeXMK" in mod_path and ("WinGet" in mod_path or "winget" in mod_path.lower()):
+            return "winget"
+        # 可选增强：检查 LOCALAPPDATA winget 链接目录
+        localappdata = os.environ.get("LOCALAPPDATA", "")
+        if localappdata:
+            try:
+                pkg_root = Path(localappdata) / "Microsoft" / "WinGet" / "Packages"
+                if pkg_root.is_dir():
+                    for pkg_dir in pkg_root.glob("YanMing-lxb.PyTeXMK_*"):
+                        link = pkg_dir / "Links" / "pytexmk.exe"
+                        if link.exists():
+                            try:
+                                # 若链接目标路径与当前 sys.executable 相同（忽略大小写），判定为 winget
+                                target = str(link.resolve()).lower()
+                                exe = str(Path(sys.executable).resolve()).lower() if hasattr(sys, "executable") else ""
+                                if target and exe and (target == exe or target.replace(".exe", "") == exe.replace(".exe", "")):
+                                    return "winget"
+                            except OSError:
+                                _log.debug("winget link resolve failed")
+            except (OSError, AttributeError):
+                _log.debug("winget pkg root probe failed")
+
+    # 2) pip 检测：路径中包含 site-packages 或 dist-packages
     try:
-        # 1) winget 检测（仅 Windows）
-        if os.name == "nt":
-            try:
-                mod_path = str(Path(__file__).resolve())
-            except Exception:  # noqa: BLE001
-                mod_path = ""
-            if "YanMing-lxb.PyTeXMK" in mod_path and ("WinGet" in mod_path or "winget" in mod_path.lower()):
-                return "winget"
-            # 可选增强：检查 LOCALAPPDATA winget 链接目录
-            localappdata = os.environ.get("LOCALAPPDATA", "")
-            if localappdata:
-                try:
-                    pkg_root = Path(localappdata) / "Microsoft" / "WinGet" / "Packages"
-                    if pkg_root.is_dir():
-                        for pkg_dir in pkg_root.glob("YanMing-lxb.PyTeXMK_*"):
-                            link = pkg_dir / "Links" / "pytexmk.exe"
-                            if link.exists():
-                                try:
-                                    # 若链接目标路径与当前 sys.executable 相同（忽略大小写），判定为 winget
-                                    target = str(link.resolve()).lower()
-                                    exe = str(Path(sys.executable).resolve()).lower() if hasattr(sys, "executable") else ""
-                                    if target and exe and (target == exe or target.replace(".exe", "") == exe.replace(".exe", "")):
-                                        return "winget"
-                                except Exception:  # noqa: BLE001
-                                    pass
-                except Exception:  # noqa: BLE001
-                    pass
+        parts = Path(__file__).resolve().parts
+    except OSError:
+        parts = ()
+    if "site-packages" in parts or "dist-packages" in parts:
+        return "pip"
 
-        # 2) pip 检测：路径中包含 site-packages 或 dist-packages
-        try:
-            parts = Path(__file__).resolve().parts
-        except Exception:  # noqa: BLE001
-            parts = ()
-        if "site-packages" in parts or "dist-packages" in parts:
-            return "pip"
-
-        # 3) uv 检测：路径中同时含 "uv" 与 "tools" 两个部分，或存在 .uv-tool 标记文件
-        if "uv" in parts and "tools" in parts:
+    # 3) uv 检测：路径中同时含 "uv" 与 "tools" 两个部分，或存在 .uv-tool 标记文件
+    if "uv" in parts and "tools" in parts:
+        return "uv"
+    try:
+        parents = Path(__file__).resolve().parents
+    except OSError:
+        parents = []
+    for p in parents:
+        if (p / ".uv-tool").exists():
             return "uv"
-        try:
-            parents = Path(__file__).resolve().parents
-        except Exception:  # noqa: BLE001
-            parents = []
-        for p in parents:
-            try:
-                if (p / ".uv-tool").exists():
-                    return "uv"
-            except Exception:  # noqa: BLE001
-                continue
 
-        # 4) onedir 检测：PyInstaller frozen 或 base_library.zip
-        if hasattr(sys, "frozen") and getattr(sys, "frozen"):
-            return "onedir"
-        try:
-            if hasattr(sys, "executable") and Path(sys.executable).parent.joinpath("base_library.zip").is_file():
-                return "onedir"
-        except Exception:  # noqa: BLE001
-            pass
+    # 4) onedir 检测：PyInstaller frozen 或 base_library.zip
+    if hasattr(sys, "frozen") and sys.frozen:
+        return "onedir"
+    if hasattr(sys, "executable") and Path(sys.executable).parent.joinpath("base_library.zip").is_file():
+        return "onedir"
 
-        # 5) 以上均不满足
-        return "unknown"
-    except Exception:  # noqa: BLE001
-        return "unknown"
+    # 5) 以上均不满足
+    return "unknown"
 
 
 def _build_upgrade_message(method: str) -> list[str]:
@@ -332,7 +324,7 @@ class UpdateChecker:
 
                 # 增加版本号格式校验
                 if "tag_name" not in data:
-                    raise ValueError("Invalid GitHub API response")
+                    raise ValueError()
 
                 latest_version = data["tag_name"].lstrip("v")  # 去除可能存在的v前缀
                 parsed_version = version.parse(latest_version)
