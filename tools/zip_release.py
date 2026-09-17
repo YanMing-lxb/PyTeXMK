@@ -96,7 +96,9 @@ def main():
     except KeyboardInterrupt:
         console.print("\n⚠️ 用户中断操作 (Ctrl+C)，程序已终止", style="warning")
         sys.exit(1)
-    except Exception as e:
+    except BaseException as e:
+        if isinstance(e, SystemExit):
+            raise
         console.print("\n💥 发生未知异常！", style="error")
         console.print(f"异常类型: {type(e).__name__}", style="error")
         console.print(f"异常内容: {e!s}", style="error")
