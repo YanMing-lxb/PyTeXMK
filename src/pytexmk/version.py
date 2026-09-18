@@ -29,4 +29,4 @@ Description  :
 
 script_name = "PyTeXMK"
 __app_name__ = script_name
-__version__ = "1.2.3"
+__version__ = "1.3.4"
