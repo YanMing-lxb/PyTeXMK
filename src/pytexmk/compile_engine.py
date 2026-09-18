@@ -72,20 +72,27 @@ def RUN(
     MFO.draft_model(project_name, draft, True)
 
     abbreviations_num = (
-        "1st", "2nd", "3rd", "4th", "5th", "6th",
-        "7th", "8th", "9th", "10th", "11th", "12th", "13th",
+        "1st",
+        "2nd",
+        "3rd",
+        "4th",
+        "5th",
+        "6th",
+        "7th",
+        "8th",
+        "9th",
+        "10th",
+        "11th",
+        "12th",
+        "13th",
     )
     # 编译前的准备工作
-    compile_model = CompileLaTeX(
-        project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet
-    )
+    compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
 
     runtime_read, return_read = time_count(
         compile_model.detector.prepare_LaTeX_output_files,
     )  # 读取 LaTeX 文件
-    cite_counter, toc_file, index_aux_content_dict_old = (
-        return_read  # 获取 read_LaTeX_files 函数得到的参数
-    )
+    cite_counter, toc_file, index_aux_content_dict_old = return_read  # 获取 read_LaTeX_files 函数得到的参数
     runtime_dict[_("检测辅助文件")] = runtime_read
 
     aux_content_old, out_content_old = compile_model.detector.prepare_aux_out_snapshots()
@@ -113,9 +120,7 @@ def RUN(
     # 编译参考文献
     if bib_engine and Latex_compilation_times_bib != 0:
         print_message(_("%(args)s 编译文献") % {"args": bib_engine}, "running")
-        runtime_bib, _ret = time_count(
-            compile_model.compile_bib, bib_engine
-        )  # 编译参考文献
+        runtime_bib, _ret = time_count(compile_model.compile_bib, bib_engine)  # 编译参考文献
         name_target_bib = bib_engine
         runtime_dict[_("%(args)s 编译") % {"args": name_target_bib}] = runtime_bib
 
@@ -125,9 +130,7 @@ def RUN(
             print_message(_("%(args)s 编译") % {"args": cmd[0]}, "running")
             runtime_index, return_index = time_count(compile_model.compile_index, cmd)
             name_target_index = return_index  # 获取 compile_index 函数得到的参数
-            runtime_dict[_("%(args)s 编译") % {"args": name_target_index}] = (
-                runtime_index
-            )
+            runtime_dict[_("%(args)s 编译") % {"args": name_target_index}] = runtime_index
 
     total_compilations = 1
     current_times = 1
@@ -150,39 +153,29 @@ def RUN(
         total_compilations += 1
 
         # 本轮编译前：更新基线并保存快照
-        cite_counter, toc_file, index_aux_content_dict_old = (
-            compile_model.detector.prepare_LaTeX_output_files()
-        )
+        cite_counter, toc_file, index_aux_content_dict_old = compile_model.detector.prepare_LaTeX_output_files()
         aux_content_old, out_content_old = compile_model.detector.prepare_aux_out_snapshots()
 
         # 执行本轮 LaTeX 编译
         print_message(
-            _("%(args1)s 次 %(args2)s 编译")
-            % {"args1": str(current_times), "args2": compiled_program},
+            _("%(args1)s 次 %(args2)s 编译") % {"args1": str(current_times), "args2": compiled_program},
             "running",
         )
         runtime_Latex, _ret = time_count(
             compile_model.compile_tex,
         )
-        runtime_dict[f"{compiled_program} {abbreviations_num[current_times - 1]}"] = (
-            runtime_Latex
-        )
+        runtime_dict[f"{compiled_program} {abbreviations_num[current_times - 1]}"] = runtime_Latex
 
         # 本轮编译后：run_full_detection 聚合 6 维检测
-        dims, Latex_compilation_times, _bib_eng, index_run_cmds, _tbib = (
-            compile_model.detector.run_full_detection(
-                cite_counter_old=cite_counter,
-                toc_file_old=toc_file,
-                index_aux_content_old=index_aux_content_dict_old,
-                aux_content_old=aux_content_old,
-                out_content_old=out_content_old,
-            )
+        dims, Latex_compilation_times, _bib_eng, index_run_cmds, _tbib = compile_model.detector.run_full_detection(
+            cite_counter_old=cite_counter,
+            toc_file_old=toc_file,
+            index_aux_content_old=index_aux_content_dict_old,
+            aux_content_old=aux_content_old,
+            out_content_old=out_content_old,
         )
 
-        reached_limit = (
-            (current_times - 1) >= max_extra_compilations
-            and Latex_compilation_times > 0
-        )
+        reached_limit = (current_times - 1) >= max_extra_compilations and Latex_compilation_times > 0
         print_compile_separator()
         print_compile_report(
             round_index=current_times,
@@ -231,9 +224,7 @@ def LaTeXDiffRUN(
 
     abbreviations_num = ("1st", "2nd")
     # 编译前的准备工作
-    compile_model = CompileLaTeX(
-        project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet
-    )
+    compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
 
     # 首次编译 LaTeX 文档
     print_message(_("1 次 %(args)s 编译") % {"args": compiled_program}, "running")
