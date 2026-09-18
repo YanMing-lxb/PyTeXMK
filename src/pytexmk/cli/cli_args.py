@@ -181,6 +181,34 @@ def parse_args(uc=None):
             "尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; 如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF 文件, 示例: pytexmk -pv main)"
         ),
     )
+    parser.add_argument(
+        "-s",
+        "--subproject",
+        metavar="NAME",
+        help=_(
+            "从根配置 \\[subprojects\\] 中选中一个子项目并在其目录编译；可与待编译主文件名共存"
+        ),
+    )
+    parser.add_argument(
+        "-ls",
+        "--list-subprojects",
+        action="store_true",
+        help=_(
+            "扫描子项目并展示清单；若根 .pytexmkrc 存在则整体替换 \\[subprojects\\] 段"
+        ),
+    )
+    parser.add_argument(
+        "-i", "--init", action="store_true", help=_("生成根项目 .pytexmkrc 配置文件")
+    )
+    parser.add_argument(
+        "-iu",
+        "--init-user",
+        action="store_true",
+        help=_("生成用户级 ~/.pytexmkrc 配置文件"),
+    )
+    parser.add_argument(
+        "-f", "--force", action="store_true", help=_("配合 -i/-iu 强制覆盖已存在的配置文件")
+    )
     parser.add_argument("document", nargs="?", help=_("待编译主文件名"))
 
     args = parser.parse_args()
