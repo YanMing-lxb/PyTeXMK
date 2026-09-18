@@ -293,6 +293,26 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 <td><code>-pv</code>, <code>--pdf-preview</code></td>
 <td>编译后预览 PDF 文件</td>
 </tr>
+<tr>
+<td><code>-s</code>, <code>--subproject</code></td>
+<td>从根配置中选中一个子项目并在其目录编译</td>
+</tr>
+<tr>
+<td><code>-ls</code>, <code>--list-subprojects</code></td>
+<td>扫描子项目并展示清单（自动同步根配置的子项目段）</td>
+</tr>
+<tr>
+<td><code>-i</code>, <code>--init</code></td>
+<td>生成根项目 <code>.pytexmkrc</code> 配置文件</td>
+</tr>
+<tr>
+<td><code>-iu</code>, <code>--init-user</code></td>
+<td>生成用户级 <code>~/.pytexmkrc</code> 配置文件</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--force</code></td>
+<td>配合 <code>-i</code>/<code>-iu</code> 强制覆盖已存在的配置文件</td>
+</tr>
 </tbody>
 </table>
 <p><strong>参数说明</strong></p>
@@ -311,6 +331,15 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 <code>-d</code></strong>：支持在参考文献和符号索引中显示修改痕迹，编译过程中会提示选择风格（1-显示修改
 / 2-不显示修改）。</li>
 </ul>
+<h3 id="多子项目编译">多子项目编译</h3>
+<p>PyTeXMK 支持在一个项目根目录下管理多个相互独立的子项目并逐一编译。</p>
+<ol>
+<li>在根目录执行 <code>pytexmk -i</code> 生成根配置 <code>.pytexmkrc</code>，需要覆盖已有配置时加 <code>-f</code>：<code>pytexmk -i -f</code>；也可用 <code>-iu</code> 生成用户级 <code>~/.pytexmkrc</code>。</li>
+<li>执行 <code>pytexmk -ls</code> 扫描并展示子项目清单；若根 <code>.pytexmkrc</code> 存在，会自动整体替换其中的子项目段（<code>[subprojects]</code>）并写入扫描到的子项目条目，而扫描规则段 <code>[project_scan]</code> 不被改动。</li>
+<li>使用 <code>pytexmk -s 子项目名</code> 选中一个子项目，并在其目录下进行编译，也可与待编译主文件名共存：<code>pytexmk -s 子项目名 main</code>；清理作用域同样生效，如 <code>pytexmk -s 子项目名 -c</code>。</li>
+</ol>
+<p>子项目调用时，其目录下的本地 <code>.pytexmkrc</code> 会被忽略，以根配置为准（<code>-vb</code> 会打印一行提示）；用户单独进入子项目目录运行时本地 rc 生效（向后兼容）。</p>
+<p>配置说明：<code>[project_scan]</code> 为子项目扫描规则段（默认 <code>depth=3</code>、<code>exclude</code> 排除清单），仅用于 <code>-ls</code>/<code>-s</code> 扫描且不会被修改；<code>[subprojects]</code> 为子项目清单段，由 <code>-s</code> 选中使用，并会被 <code>-ls</code> 整体替换为扫描结果。</p>
 <h3 id="魔法注释">魔法注释</h3>
 <p>PyTeXMK 支持使用魔法注释来自定义编译行为（仅检索文档前 50 行）。</p>
 <table>
@@ -385,14 +414,15 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 </blockquote>
 <h3 id="配置文件说明">配置文件说明</h3>
 <p>PyTeXMK
-支持两级配置文件：<strong>系统配置</strong>和<strong>项目配置</strong>。</p>
+支持两级配置文件：<strong>用户级配置</strong>和<strong>项目级配置</strong>。正常运行<strong>不再自动生成</strong>配置文件，需要时用
+<code>-iu</code>（用户级）或 <code>-i</code>（项目级）手动生成。</p>
 <ul>
-<li><strong>系统配置</strong>：首次运行时自动生成，位于用户主目录下
+<li><strong>用户级配置</strong>：<code>pytexmk -iu</code> 手动生成，位于用户主目录下
 <code>.pytexmkrc</code></li>
-<li><strong>项目配置</strong>：项目首次运行时自动生成，位于当前工作目录下
+<li><strong>项目级配置</strong>：<code>pytexmk -i</code> 手动生成，位于当前工作目录下
 <code>.pytexmkrc</code></li>
 </ul>
-<p>自动生成的配置文件中包含详细注释，可根据需要进行修改。</p>
+<p>生成的配置文件中包含详细注释，可根据需要进行修改。</p>
 <p><strong>配置文件路径</strong></p>
 <table>
 <thead>
@@ -404,18 +434,18 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 </thead>
 <tbody>
 <tr>
-<td>系统配置</td>
+<td>用户级配置</td>
 <td><code>C:\Users\用户名\.pytexmkrc</code></td>
 <td><code>~/.pytexmkrc</code></td>
 </tr>
 <tr>
-<td>项目配置</td>
+<td>项目级配置</td>
 <td>当前目录 <code>.pytexmkrc</code></td>
 <td>当前目录 <code>.pytexmkrc</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>优先级</strong>：项目配置 &gt; 系统配置</p>
+<p><strong>优先级</strong>：项目级配置 &gt; 用户级配置 &gt; 内置默认；缺失配置用内置默认静默运行，键不匹配仅警告、不写盘。</p>
 <hr />
 <h2 id="开发与构建">🛠 开发与构建</h2>
 <h3 id="环境要求">环境要求</h3>
