@@ -3,6 +3,7 @@
 
 def run_workflow(args):
     import datetime
+    import os
     import webbrowser
 
     import pytexlogs
@@ -15,7 +16,10 @@ def run_workflow(args):
     from ..file_ops import FileMoveRemoveManager
     from ..language import set_language
     from ..latexdiff import LaTeXDiff_Aux
-    from ..lifecycle import exit_pytexmk
+    from ..lifecycle import (
+        EXIT_PROJECT_NOT_FOUND,
+        exit_pytexmk,
+    )
     from ..logger_config import setup_logger
     from ..paths import get_app_path
     from ..pdf_tools import PdfFileOperation
@@ -102,12 +106,54 @@ def run_workflow(args):
             exit_pytexmk()
 
     logger.info("-" * 70)
+    # —— 初始化 / 子项目清单子命令（不进入编译流程）——
+    if args.init:
+        if CP.init_project_config(args.force):
+            print(_("[bold green]已生成根项目配置文件 [/bold green]") + str(Path.cwd() / ".pytexmkrc"))
+        exit_pytexmk()
+    if args.init_user:
+        if CP.init_user_config(args.force):
+            print(_("[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"))
+        exit_pytexmk()
+    if args.list_subprojects:
+        from ..subproject_scanner import (
+            discover_subprojects,
+            print_subproject_table,
+            write_subprojects_to_rc,
+        )
+
+        root_path = Path.cwd()
+        entries = discover_subprojects(root_path, CP.load_config(root_path))
+        rc_path = root_path / ".pytexmkrc"
+        if rc_path.exists():
+            write_subprojects_to_rc(rc_path, entries)
+            print(_("[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]"))
+        else:
+            print(_("[yellow]未找到根 .pytexmkrc ,请先运行 pytexmk -i 后再运行 -ls[/yellow]"))
+        print_subproject_table(entries)
+        exit_pytexmk()
+
+    # —— 解析本次运行上下文（根配置权威；-s 进入子项目 root）——
+    from ..context import ContextResolver, ProjectNotFoundError
+
+    try:
+        ctx = ContextResolver(CP).resolve(args)
+    except ProjectNotFoundError as e:
+        logger.error(_("未找到子项目: ") + f"[bold cyan]{e.args[0]}[/bold cyan]")
+        logger.warning(_("请先运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"))
+        exit_pytexmk(EXIT_PROJECT_NOT_FOUND)
+
+    config_dict = ctx.config
+    if ctx.subproject and args.verbose:
+        logger.info(_("子项目调用: 忽略子项目目录下的本地 .pytexmkrc, 以根配置为准"))
+
+    # 进入工作根目录：用户终端 cwd 不变，编译流程在子项目/根目录内执行
+    os.chdir(ctx.work_root)
+
+    logger.info("-" * 70)
     tex_files_in_root = MFO.get_suffix_files_in_dir(".", ".tex")
     main_files_in_root = MFO.find_tex_commands(tex_files_in_root)
     all_magic_comments = MFO.search_magic_comments(main_files_in_root, magic_comments_keys)
-
-    logger.info("-" * 70)
-    config_dict = CP.init_config_file()
 
     if config_dict["default_file"]:
         default_file = config_dict["default_file"]
