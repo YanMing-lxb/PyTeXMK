@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-08-09 21:13+0800\n"
+"POT-Creation-Date: 2026-09-18 17:47+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,8 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-msgid "文件名中不能存在路径"
-msgstr "File name must not contain a path"
+msgid "不支持绝对路径: "
+msgstr "Absolute paths are not supported: "
+
+msgid "路径不能越过项目根目录: "
+msgstr "Path cannot go beyond the project root directory: "
 
 #, python-format
 msgid "文件类型非 %(args)s: "
@@ -139,4 +142,7 @@ msgstr "Permission error: cannot read or write file: "
 
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
+
+#~ msgid "文件名中不能存在路径"
+#~ msgstr "File name must not contain a path"
 

@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.0\n"
+"Project-Id-Version: PyTeXMK 1.3.4\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
 "POT-Creation-Date: 2026-09-18 17:47+0800\n"
-"PO-Revision-Date: 2026-08-03 10:32+0800\n"
+"PO-Revision-Date: 2026-09-18 16:21+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -18,10 +18,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#, python-format
-msgid "文件不存在或无法读取,跳过文件: %(args)s"
-msgstr "File does not exist or cannot be read, skipping file: %(args)s"
+msgid "扫描到的子项目清单"
+msgstr "Detected subprojects"
 
-msgid "未找到辅助文件: "
-msgstr "No auxiliary files found: "
+msgid "名称"
+msgstr "Name"
+
+msgid "相对路径"
+msgstr "Relative path"
 

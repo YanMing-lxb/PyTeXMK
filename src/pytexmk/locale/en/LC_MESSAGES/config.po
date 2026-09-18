@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-08-09 21:13+0800\n"
+"POT-Creation-Date: 2026-09-18 17:47+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -21,14 +21,8 @@ msgstr ""
 msgid "PyTeXMK 配置模块已初始化"
 msgstr "PyTeXMK config module initialized"
 
-msgid "用户主目录路径: "
-msgstr "User home directory path: "
-
 msgid "获取用户主目录路径失败: "
 msgstr "Failed to get user home directory path: "
-
-msgid "配置文件不存在: "
-msgstr "Config file does not exist: "
 
 msgid "成功加载配置文件: "
 msgstr "Successfully loaded config file: "
@@ -36,47 +30,74 @@ msgstr "Successfully loaded config file: "
 msgid "加载配置文件失败: "
 msgstr "Failed to load config file: "
 
-msgid "正在创建默认配置文件: "
-msgstr "Creating default config file: "
+msgid "已合并项目配置文件: "
+msgstr "Merged project config file: "
 
-msgid "创建默认配置文件失败: "
-msgstr "Failed to create default config file: "
-
-msgid "配置文件存在以下问题:"
-msgstr "Config file has the following issues:"
-
-msgid "多余配置项: "
-msgstr "Extra config items: "
-
-msgid "缺少配置项: "
-msgstr "Missing config items: "
-
-msgid "是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "
-msgstr ""
-"Do you want to add missing config items and remove extra ones? (yes/no or"
-" y/n): "
-
-msgid "已补全配置项: "
-msgstr "Added config items: "
-
-msgid "已删除配置项: "
-msgstr "Removed config items: "
-
-msgid "配置文件更新成功: "
-msgstr "Config file updated successfully: "
-
-msgid "配置文件更新失败: "
-msgstr "Failed to update config file: "
-
-msgid "请稍后手动修改配置文件"
-msgstr "Please manually edit the config file later"
-
-msgid "无效输入，请输入如下选项: yes/no 或 y/n"
-msgstr "Invalid input, please enter one of: yes/no or y/n"
-
-msgid "未找到项目配置文件, 使用用户配置"
-msgstr "Project config file not found, using user config"
+msgid "未找到项目配置文件, 使用用户配置与默认配置"
+msgstr "Project config file not found, using user config and default config"
 
 msgid "配置文件加载完成"
 msgstr "Config file loading complete"
+
+msgid "配置文件已存在, 如需覆盖请添加 -f 参数: "
+msgstr "Config file already exists, add -f parameter to overwrite: "
+
+msgid "已创建配置文件: "
+msgstr "Created config file: "
+
+msgid "创建配置文件失败: "
+msgstr "Failed to create config file: "
+
+msgid "无法确定用户主目录, 无法生成用户配置文件"
+msgstr ""
+"Cannot determine the user home directory, cannot generate the user config"
+" file"
+
+#~ msgid "用户主目录路径: "
+#~ msgstr "User home directory path: "
+
+#~ msgid "配置文件不存在: "
+#~ msgstr "Config file does not exist: "
+
+#~ msgid "正在创建默认配置文件: "
+#~ msgstr "Creating default config file: "
+
+#~ msgid "创建默认配置文件失败: "
+#~ msgstr "Failed to create default config file: "
+
+#~ msgid "配置文件存在以下问题:"
+#~ msgstr "Config file has the following issues:"
+
+#~ msgid "多余配置项: "
+#~ msgstr "Extra config items: "
+
+#~ msgid "缺少配置项: "
+#~ msgstr "Missing config items: "
+
+#~ msgid "是否要补全缺少的配置项并删除多余的配置项？(yes/no 或 y/n): "
+#~ msgstr ""
+#~ "Do you want to add missing config"
+#~ " items and remove extra ones? (yes/no"
+#~ " or y/n): "
+
+#~ msgid "已补全配置项: "
+#~ msgstr "Added config items: "
+
+#~ msgid "已删除配置项: "
+#~ msgstr "Removed config items: "
+
+#~ msgid "配置文件更新成功: "
+#~ msgstr "Config file updated successfully: "
+
+#~ msgid "配置文件更新失败: "
+#~ msgstr "Failed to update config file: "
+
+#~ msgid "请稍后手动修改配置文件"
+#~ msgstr "Please manually edit the config file later"
+
+#~ msgid "无效输入，请输入如下选项: yes/no 或 y/n"
+#~ msgstr "Invalid input, please enter one of: yes/no or y/n"
+
+#~ msgid "未找到项目配置文件, 使用用户配置"
+#~ msgstr "Project config file not found, using user config"
 

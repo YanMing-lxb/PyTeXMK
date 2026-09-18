@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.2\n"
+"Project-Id-Version: PyTeXMK 1.3.4\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-08-09 21:13+0800\n"
+"POT-Creation-Date: 2026-09-18 17:47+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,6 +35,27 @@ msgid "README.html 文件未找到: "
 msgstr ""
 
 msgid "打开 README 文件出错: "
+msgstr ""
+
+msgid "[bold green]已生成根项目配置文件 [/bold green]"
+msgstr ""
+
+msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
+msgstr ""
+
+msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]"
+msgstr ""
+
+msgid "[yellow]未找到根 .pytexmkrc ,请先运行 pytexmk -i 后再运行 -ls[/yellow]"
+msgstr ""
+
+msgid "未找到子项目: "
+msgstr ""
+
+msgid "请先运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"
+msgstr ""
+
+msgid "子项目调用: 忽略子项目目录下的本地 .pytexmkrc, 以根配置为准"
 msgstr ""
 
 msgid "通过配置文件设置默认文件为: "
