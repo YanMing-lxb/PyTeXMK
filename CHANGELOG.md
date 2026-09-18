@@ -1,6 +1,29 @@
 # CHANGELOG
 
-## v1.2.3 - Unreleased
+## v1.3.4 - 2026-09-18
+
+### 🎉 新增
+
+- 📚 **多子项目编译**：新增 `-s/--subproject`、`-ls/--list-subprojects`、`-i/--init`、`-iu/--init-user`、`-f/--force` 子命令，支持在一个项目根目录下管理并逐一编译多个相互独立的子项目
+  - `-s/--subproject <名称>`：从根 `.pytexmkrc` 的 `[subprojects]` 段选中一个子项目并进入其 root 编译/清理；进程内部切换工作根，**不改变用户终端 cwd**，可与位置参数 `document` 共存（如 `pytexmk -s 子项目 main`）；alias 未命中时报错并提示先运行 `-ls`，以「项目不存在」退出码退出
+  - `-ls/--list-subprojects`：按根配置 `[project_scan]` 规则扫描并表格展示子项目清单；若根 `.pytexmkrc` 存在，会将 `[subprojects]` 段**整体替换**为扫描结果（结果幂等，含用户手写内容一并覆盖），`[project_scan]` 段**不被改动**；若 rc 不存在则提示先运行 `-i`、不写盘
+  - `-i/--init`：生成根项目 `.pytexmkrc`；`-iu/--init-user`：生成用户级 `~/.pytexmkrc`
+  - `-f/--force`：仅配合 `-i/-iu` 覆盖已存在文件；目标已存在且未加 `-f` 时提示且不写入
+
+### ⚠️ 破坏性变更（BREAKING）
+
+- **移除 `project_config_auto_init` 配置键**：正常运行**不再自动生成配置文件、不再有 `input()` 交互**
+- 配置为纯读取合并，优先级：内置默认 ← 用户级 rc ← 项目级 rc；缺失配置用内置默认静默运行，键不匹配仅警告、不写盘
+- 用户级 `~/.pytexmkrc` 不再自动生成，改用 `-iu` 手动生成
+
+### ⚡ 性能优化
+
+- **子项目发现器重写**：`discover_subprojects` 改用 `Path.walk(top_down=True)` 单遍遍历 + `dirnames[:]` 原地剪枝（排除/超深/动态黑名单/命中目录零下钻），免重复 glob/readdir，`-ls` 明显更快；全程 pathlib
+- **主文件判定提速**：改为共享 `has_magic`（一次字节读前 16KB，检查 `\documentclass`/`\begin{document}`，避免 utf-8 全量解码与逐行迭代），发现器与编译期 `find_tex_commands` 共用
+
+### 🚦 退出码
+
+- **退出码细分**：区分「项目不存在 / 配置加载失败 / 编译失败」三类错误（`EXIT_PROJECT_NOT_FOUND=3`、`EXIT_CONFIG_ERROR=4`、`EXIT_COMPILE_FAILED=5`），正常=0、通用错误=1
 
 ### 🎉 新增
 

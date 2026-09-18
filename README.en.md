@@ -180,6 +180,11 @@ PyTeXMK supports the following options:
 | `-vb`, `--verbose` | Show detailed PyTeXMK runtime information |
 | `-pr`, `--pdf-repair` | Repair all PDF files outside the root directory |
 | `-pv`, `--pdf-preview` | Preview PDF file after compilation |
+| `-s`, `--subproject` | Select a subproject from root config `[subprojects]` and compile in its directory |
+| `-ls`, `--list-subprojects` | Scan subprojects and show the list (auto-syncs the root `[subprojects]` section) |
+| `-i`, `--init` | Generate a root project `.pytexmkrc` config file |
+| `-iu`, `--init-user` | Generate a user-level `~/.pytexmkrc` config file |
+| `-f`, `--force` | With `-i`/`-iu`, force overwrite an existing config file |
 
 **Parameter notes**
 
@@ -187,6 +192,36 @@ PyTeXMK supports the following options:
 - **`-d` / `-dc`**: Example: `pytexmk -d old_tex_file new_tex_file`. The generated diff file is named `LaTeXDiff.tex`.
 - **`-pv`**: Opens a browser or local PDF viewer after compilation. Example: `pytexmk main -pv` or `pytexmk -pv`.
 - **`-dc` / `-d`**: Supports showing change traces in references and symbol indexes. You will be prompted to choose a style during compilation (1-show changes / 2-hide changes).
+
+### Multi-Subproject Compilation
+
+PyTeXMK lets you manage and compile multiple independent subprojects under a single project root.
+
+Options `-s` / `-ls` / `-i` / `-iu` / `-f`:
+
+| Option | Description |
+| --- | --- |
+| `-s`, `--subproject <name>` | Select a subproject from the `[subprojects]` section of the root `.pytexmkrc` and compile/clean in its directory; the process switches its working root internally, **without changing your terminal cwd**, and it can coexist with a main-file argument (e.g. `pytexmk -s sub main`); if the alias is not found it errors, prompts you to run `-ls` first, and exits with the "project not found" code |
+| `-ls`, `--list-subprojects` | Scan subprojects using the root `[project_scan]` rules and show the list as a table; if the root `.pytexmkrc` exists, the `[subprojects]` section is **replaced entirely** with the scan result (idempotent), while the `[project_scan]` section is left untouched; if no rc exists it prompts you to run `-i` first and writes nothing |
+| `-i`, `--init` | Generate a root project `.pytexmkrc` config file |
+| `-iu`, `--init-user` | Generate a user-level `~/.pytexmkrc` config file |
+| `-f`, `--force` | Only used with `-i`/`-iu` to overwrite existing files; if the target already exists without `-f`, it prompts and writes nothing |
+
+**Typical workflow**
+
+1. Run `pytexmk -i` in the root to generate the root `.pytexmkrc` (add `-f` to overwrite an existing one); use `-iu` for a global user-level config
+2. Run `pytexmk -ls` to scan and show the subproject list (it automatically updates the `[subprojects]` section in the root config)
+3. Select a subproject with `pytexmk -s subproject` and compile; it can coexist with a main file via `pytexmk -s subproject main`; cleaning scope also applies, e.g. `pytexmk -s subproject -c`
+
+**Configuration**
+
+- `[project_scan]`: subproject scanning rules section (default `depth=3`, with an `exclude` list). Used only by `-ls`/`-s` scanning; scan parameters always come from the root config. Neither `-ls` nor `-s` overwrites or modifies this section
+- `[subprojects]`: the subproject list section used by `-s`; `-ls` replaces it entirely with the scan result
+
+**Local rc scope**
+
+- When invoked with `-s` from the root, any local `.pytexmkrc` under the subproject directory is ignored (`-vb` prints a one-line note); the root config is the absolute source
+- When you `cd` into the subproject directory and run it standalone, the local rc applies (backward compatible)
 
 ### Magic Comments
 
@@ -228,12 +263,12 @@ PyTeXMK supports magic comments to customize compilation behavior (searches firs
 
 ### Configuration File
 
-PyTeXMK supports two levels of configuration: **user config** and **project config**.
+PyTeXMK supports two levels of configuration: **user config** and **project config**. Normal runs **no longer auto-generate** config files; generate them manually with `-iu` (user level) or `-i` (project level).
 
-- **User config**: Auto-generated on first run, located in user home as `.pytexmkrc`
-- **Project config**: Auto-generated on first run in project, located in working directory as `.pytexmkrc`
+- **User config**: generated manually with `pytexmk -iu`, located as `.pytexmkrc` in your user home
+- **Project config**: generated manually with `pytexmk -i`, located as `.pytexmkrc` in the working directory
 
-Auto-generated config files include detailed comments. Modify as needed.
+Generated config files include detailed comments. Modify as needed.
 
 **Config File Paths**
 
@@ -242,7 +277,7 @@ Auto-generated config files include detailed comments. Modify as needed.
 | User config | `C:\Users\username\.pytexmkrc` | `~/.pytexmkrc` |
 | Project config | `./.pytexmkrc` | `./.pytexmkrc` |
 
-**Priority**: Project config > User config
+**Priority**: Project config > User config > built-in defaults; missing config is silently handled with built-in defaults, and mismatched keys only warn without writing to disk.
 
 ---
 
