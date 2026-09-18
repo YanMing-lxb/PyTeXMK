@@ -7,6 +7,7 @@ from rich import print
 
 from pytexmk.language import set_language
 from pytexmk.lifecycle import exit_pytexmk
+from pytexmk.subproject_scanner import has_magic
 
 _ = set_language("tex_project")
 
@@ -19,18 +20,31 @@ class MainFileOperation:
         self, main_files: list, check_project_name: str, suffix: str
     ) -> str:
         path_obj = Path(check_project_name)
+
+        # 放开相对路径，但禁止绝对路径与“..”越界
+        if path_obj.is_absolute():
+            self.logger.error(_("不支持绝对路径: ") + f"[bold cyan]{check_project_name}")
+            exit_pytexmk()
+        if ".." in path_obj.parts:
+            self.logger.error(_("路径不能越过项目根目录: ") + f"[bold cyan]{check_project_name}")
+            exit_pytexmk()
+
         base_name = path_obj.stem
         file_extension = path_obj.suffix
 
-        if path_obj.parent != Path(""):
-            self.logger.error(_("文件名中不能存在路径"))
+        if file_extension and file_extension != suffix:
+            self.logger.error(
+                _("文件类型非 %(args)s: ") % {"args": suffix}
+                + f"[bold cyan]{check_project_name}{suffix}"
+            )
             exit_pytexmk()
 
-        if file_extension == suffix and base_name in main_files:
-            return base_name
+        if base_name in main_files:
+            return check_project_name.rstrip(suffix) if check_project_name.endswith(suffix) else check_project_name
 
-        if not file_extension and base_name in main_files:
-            return base_name
+        # 带子目录的相对路径：允许直接命中文件本身
+        if path_obj.exists():
+            return str(path_obj).rstrip(suffix) if str(path_obj).endswith(suffix) else str(path_obj)
 
         self.logger.error(
             _("文件类型非 %(args)s: ") % {"args": suffix}
@@ -65,26 +79,11 @@ class MainFileOperation:
         main_tex_files = []
         for file_name in tex_files_in_root:
             try:
-                with open(
-                    Path(file_name).with_suffix(".tex"), "r", encoding="utf-8"
-                ) as file:
-                    is_main_file = False
-
-                    for i in range(200):
-                        line = file.readline()
-
-                        if line.strip().startswith("%") or not line.strip():
-                            continue
-
-                        if r"\documentclass" in line or r"\begin{document}" in line:
-                            is_main_file = True
-                            break
-
-                    if is_main_file:
-                        main_tex_files.append(file_name)
-                        self.logger.info(
-                            _("通过特征命令检索到主文件: ") + str(file_name)
-                        )
+                if has_magic(Path(file_name).with_suffix(".tex")):
+                    main_tex_files.append(file_name)
+                    self.logger.info(
+                        _("通过特征命令检索到主文件: ") + str(file_name)
+                    )
             except Exception as e:  # noqa: BLE001
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
 
