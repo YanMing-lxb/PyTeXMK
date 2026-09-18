@@ -62,6 +62,7 @@ class MySubProcess:
                         text=True,
                         bufsize=1,
                         encoding="utf-8",
+                        cwd=Path.cwd(),
                     )
                     with console.status(f"[status]正在{program_name}..."):
                         process.wait()
@@ -73,6 +74,7 @@ class MySubProcess:
                     text=True,
                     bufsize=1,
                     encoding="utf-8",
+                    cwd=Path.cwd(),
                 )
                 with console.status(f"[status]正在{program_name}..."):
                     while True:
