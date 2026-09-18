@@ -1,25 +1,36 @@
-default_file = "main" # 主文件名
-compiled_program = "XeLaTeX" # 编译器
-non_quiet = false # 非静默模式
-project_config_auto_init = true # 是否自动创建项目配置文件
+# ============================================================
+# PyTeXMK 用户级配置文件示例 (~/.pytexmkrc)
+# 由 `pytexmk -iu` 手动生成；已存在时需配合 `-f` 才会覆盖。
+# 全部为可选配置；缺失时使用内置默认值静默运行。
+# ============================================================
 
-[pdf]
-pdf_preview_status = true # PDF预览, 指编译结束后是否打开PDF文件
-pdf_viewer = "default" # PDF查看器: default为默认PDF查看器
+# 主文件名（不包含扩展名）
+default_file = "main"
 
+# 编译器：XeLaTeX / PdfLaTeX / LuaLaTeX
+compiled_program = "XeLaTeX"
+
+# 非静默模式（true 表示终端显示日志信息）
+non_quiet = false
+
+# ---- 目录 ------------------------------------------------------
 [folder]
-auxdir = "./Auxiliary/" # 辅助文件夹
-outdir = "./Build/" # 输出文件夹
+auxdir = "./Auxiliary/"   # 辅助文件目录
+outdir = "./Build/"       # 输出 PDF 目录
 
-# 索引配置
+# ---- PDF 预览 --------------------------------------------------
+[pdf]
+pdf_preview_status = true   # 编译结束后是否打开 PDF
+pdf_viewer = "default"      # default 为默认阅读器
+
+# ---- 索引 ------------------------------------------------------
 [index]
-index_style_file = "nomencl.ist"  # 输入样式文件：如果是文件名则输入文件名, 否则输入文件后缀 (例如：glossaries 宏包需要输入 .ist; nomencl 宏包则需要输入nomencl.ist)
-input_suffix = ".nlo"  # 输入文件后缀
-output_suffix = ".nls"  # 输出文件后缀
-# glossaries 宏包和 nomencl 宏包无需配置 [index]
+index_style_file = "nomencl.ist"  # 输入样式文件
+input_suffix = ".nlo"             # 输入文件后缀
+output_suffix = ".nls"            # 输出文件后缀
 
-# LaTeX差异配置
+# ---- LaTeXDiff -------------------------------------------------
 [latexdiff]
-old_tex_file = "old_file"  # 旧TeX文件
-new_tex_file = "new_file"  # 新TeX文件
-diff_tex_file = "LaTeXDiff"  # 差异TeX文件
+old_tex_file = "old_file"
+new_tex_file = "new_file"
+diff_tex_file = "LaTeXDiff"
