@@ -62,6 +62,7 @@ class MySubProcess:
                         text=True,
                         bufsize=1,
                         encoding="utf-8",
+                        errors="replace",
                         cwd=Path.cwd(),
                     )
                     with console.status(f"[status]正在{program_name}..."):
@@ -74,6 +75,7 @@ class MySubProcess:
                     text=True,
                     bufsize=1,
                     encoding="utf-8",
+                    errors="replace",
                     cwd=Path.cwd(),
                 )
                 with console.status(f"[status]正在{program_name}..."):

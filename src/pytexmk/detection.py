@@ -32,6 +32,7 @@ Description  :
     file_ops / logger / timing / Path / language。
 """
 
+import locale
 import logging
 import re
 from collections import defaultdict
@@ -65,12 +66,28 @@ RERUN_LOG_PATTERNS = [
 ]
 
 
+def _read_file_content(path: str | Path) -> str:
+    """容错读取 LaTeX 辅助文件内容，避免因编码不同导致编译检测崩溃。
+
+    中文字典类文档（如 CTeX/cct 的 GBK 方案）生成的 .aux/.toc/.out 等
+    辅助文件常为本地编码（Windows 中文环境为 cp936），并非 UTF-8。此处
+    优先严格按 UTF-8 解码，失败则退回系统本地编码，最后再以
+    errors="replace" 兜底，保证检测阶段的快照与重读永不因解码异常中断。
+    """
+    data = Path(path).read_bytes()
+    for enc in ("utf-8", locale.getpreferredencoding(False)):
+        try:
+            return data.decode(enc)
+        except (UnicodeDecodeError, LookupError):
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
 def _count_citations(file_name):
     _ = set_language("detection")
     counter = defaultdict(int)
 
-    with open(file_name, "r", encoding="utf-8") as aux_file:
-        aux_content = aux_file.read()
+    aux_content = _read_file_content(file_name)
     match = BIBER_CITE_PATTERN.search(aux_content)
     if match:
         for match in BIBER_CITE_PATTERN.finditer(aux_content):
@@ -126,8 +143,7 @@ class CompilationDetector:
             index_aux_content_dict_old = {}
         toc_file_path = Path(f"{self.project_name}.toc")
         if toc_file_path.exists():
-            with open(toc_file_path, "r", encoding="utf-8") as fobj:
-                toc_file = fobj.read()
+            toc_file = _read_file_content(toc_file_path)
         else:
             toc_file = ""
 
@@ -137,8 +153,7 @@ class CompilationDetector:
         _ = set_language("detection")
         cite_counter = {}
         file_name = f"{self.project_name}.aux"
-        with open(file_name, "r", encoding="utf-8") as fobj:
-            main_aux_content = fobj.read()
+        main_aux_content = _read_file_content(file_name)
         cite_counter[file_name] = _count_citations(file_name)
 
         for match in re.finditer(r"\\@input\{(.*.aux)\}", main_aux_content):
@@ -166,8 +181,7 @@ class CompilationDetector:
                 Path(f"{self.project_name}{ext}").exists()
                 for ext in [".glo", ".acn", ".slo"]
             ):
-                with open(file_name, "r", encoding="utf-8") as fobj:
-                    main_aux = fobj.read()
+                main_aux = _read_file_content(file_name)
                 pattern = r"\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}"
                 for match in re.finditer(
                     pattern, main_aux
@@ -179,10 +193,9 @@ class CompilationDetector:
                         Path(f"{self.project_name}{ext_i}").exists()
                         and Path(f"{self.project_name}{ext_o}").exists()
                     ):
-                        with open(
-                            Path(f"{self.project_name}{ext_o}"), "r", encoding="utf-8"
-                        ) as fobj:
-                            index_ext_i_content = fobj.read()
+                        index_ext_i_content = _read_file_content(
+                            Path(f"{self.project_name}{ext_o}")
+                        )
                         index_aux_content_dict_old[f"{self.project_name}.{ext_i}"] = (
                             index_ext_i_content
                         )
@@ -190,10 +203,9 @@ class CompilationDetector:
                 Path(f"{self.project_name}.nlo").exists()
                 and Path(f"{self.project_name}.nls").exists()
             ):
-                with open(
-                    Path(f"{self.project_name}.nlo"), "r", encoding="utf-8"
-                ) as fobj:
-                    index_ext_i_content = fobj.read()
+                index_ext_i_content = _read_file_content(
+                    Path(f"{self.project_name}.nlo")
+                )
                 index_aux_content_dict_old[f"{self.project_name}.nlo"] = (
                     index_ext_i_content
                 )
@@ -202,10 +214,9 @@ class CompilationDetector:
                 Path(f"{self.project_name}.idx").exists()
                 and Path(f"{self.project_name}.ind").exists()
             ):
-                with open(
-                    Path(f"{self.project_name}.idx"), "r", encoding="utf-8"
-                ) as fobj:
-                    index_ext_i_content = fobj.read()
+                index_ext_i_content = _read_file_content(
+                    Path(f"{self.project_name}.idx")
+                )
                 index_aux_content_dict_old[f"{self.project_name}.idx"] = (
                     index_ext_i_content
                 )
@@ -220,9 +231,8 @@ class CompilationDetector:
             ".toc"
         )
         if file_name.exists():
-            with open(file_name, "r", encoding="utf-8") as fobj:
-                if fobj.read() != toc_file:
-                    return True
+            if _read_file_content(file_name) != toc_file:
+                return True
 
     def bib_judgment(self, old_cite_counter):
         _ = set_language("detection")
@@ -231,8 +241,7 @@ class CompilationDetector:
         Latex_compilation_times = 0
         aux_file_path = Path(f"{self.project_name}.aux")
         if aux_file_path.exists():
-            with aux_file_path.open("r", encoding="utf-8") as fobj:
-                aux_content = fobj.read()
+            aux_content = _read_file_content(aux_file_path)
             match_biber = BIBER_PATTERN.search(
                 aux_content
             )
@@ -244,12 +253,9 @@ class CompilationDetector:
                     bcf_file_path = Path(
                         f"{self.project_name}.bcf"
                     )
-                    with bcf_file_path.open(
-                        "r", encoding="utf-8"
-                    ) as fobj:
-                        match_biber_bib = BIBER_BIB_PATTERN.search(
-                            fobj.read()
-                        )
+                    match_biber_bib = BIBER_BIB_PATTERN.search(
+                        _read_file_content(bcf_file_path)
+                    )
                     if match_biber_bib:
                         self.bib_file = match_biber_bib.group(1)
                         bib_engine = "biber"
@@ -302,8 +308,7 @@ class CompilationDetector:
         elif (
             Path(index_aux_infile).exists() and Path(index_aux_outfile).exists()
         ):
-            with open(index_aux_infile, "r", encoding="utf-8") as fobj:
-                file_content = fobj.read()
+            file_content = _read_file_content(index_aux_infile)
             if file_content is not None and (
                 str(index_aux_content_dict_old[index_aux_infile]) != file_content
             ):
@@ -322,8 +327,7 @@ class CompilationDetector:
             Path(f"{self.project_name}{ext}").exists()
             for ext in [".glo", ".acn", ".slo"]
         ):
-            with open(file_name, "r", encoding="utf-8") as fobj:
-                main_aux = fobj.read()
+            main_aux = _read_file_content(file_name)
             pattern = r"\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}"
             for match in re.finditer(
                 pattern, main_aux
@@ -381,8 +385,7 @@ class CompilationDetector:
         for aux_path in aux_paths:
             try:
                 if aux_path.exists():
-                    with open(aux_path, "r", encoding="utf-8") as fobj:
-                        aux_content_old = fobj.read()
+                    aux_content_old = _read_file_content(aux_path)
                     break
             except (OSError, UnicodeDecodeError):
                 aux_content_old = ""
@@ -394,8 +397,7 @@ class CompilationDetector:
         for out_path in out_paths:
             try:
                 if out_path.exists():
-                    with open(out_path, "r", encoding="utf-8") as fobj:
-                        out_content_old = fobj.read()
+                    out_content_old = _read_file_content(out_path)
                     break
             except (OSError, UnicodeDecodeError):
                 out_content_old = ""
@@ -446,8 +448,7 @@ class CompilationDetector:
         for aux_path in aux_paths:
             try:
                 if aux_path.exists():
-                    with open(aux_path, "r", encoding="utf-8") as fobj:
-                        current = fobj.read()
+                    current = _read_file_content(aux_path)
                     break
             except (OSError, UnicodeDecodeError):
                 return False
@@ -463,8 +464,7 @@ class CompilationDetector:
         for out_path in out_paths:
             try:
                 if out_path.exists():
-                    with open(out_path, "r", encoding="utf-8") as fobj:
-                        current = fobj.read()
+                    current = _read_file_content(out_path)
                     break
             except (OSError, UnicodeDecodeError):
                 return False
@@ -485,8 +485,7 @@ class CompilationDetector:
         for candidate in candidate_paths:
             try:
                 if candidate.exists():
-                    with open(candidate, "r", encoding="utf-8") as fobj:
-                        log_content = fobj.read()
+                    log_content = _read_file_content(candidate)
                     break
             except (OSError, UnicodeDecodeError):
                 log_content = ""

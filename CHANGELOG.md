@@ -65,6 +65,10 @@
 - 🧹 移除发布脚本 `tools/winget/publish.py`：winget 更新改为在 `Release.yml` 的 `publish-to-winget` job 内**直接内联 wingetcreate**（版本号由 tag 推导，不需要 checkout/uv/python），并移除此前的 4 份手写 YAML 模板相关讨论与 `generate_manifest.py`、`submit_pr.py` 纯 git 回退链路
 - 🧹 简化 `make.py`：移除本地 `winget-manifest` target，winget 发布完全交由 CI（`publish-to-winget` job）内联 wingetcreate
 
+### 🛠️ 完善
+
+- 🐛 **修复 GBK 编码辅助文件导致的编译检测崩溃**：中文字典类文档（CTeX/cct 的 GBK 方案）生成的 `.aux`/`.toc`/`.out`/`.bcf` 等辅助文件为本地编码而非 UTF-8，`detection.py` 中硬编码 `encoding="utf-8"` 逐字节解码会抛出 `UnicodeDecodeError`，使 `run_full_detection` 报错并返回 `None`，进一步在 `compile_engine` 解包时崩溃。新增容错读取函数 `_read_file_content`（优先 UTF-8 严格解码，失败退回系统本地编码 cp936，最后以 `errors="replace"` 兜底），并将全部辅助文件快照读取统一改走该函数，保证「快照—重读」解码一致、永不因编码异常中断检测
+
 ---
 
 ## v1.2.2 - 2026-08-04
