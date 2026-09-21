@@ -99,14 +99,23 @@ class MySubProcess:
                 raise subprocess.CalledProcessError(process.returncode, command)
 
         except subprocess.CalledProcessError as e:
+            self.MRO.move_specific_files(aux_files, ".", self.auxdir)
+            self.MRO.move_specific_files(out_files, ".", self.outdir)
+            
+            log_prompt = f"{self.auxdir}{self.project_name + '.log' if not self.latexdiff else '/'}"
+            if not self.latexdiff:
+                _log_path = Path(log_prompt)
+                try:
+                    if _log_path.exists():
+                        line_count = sum(1 for _ in _log_path.open("rb"))
+                        log_prompt = f"{log_prompt}:{line_count}"
+                except OSError:
+                    pass
             self.logger.error(
                 _("%(args)s 编译失败,请查看日志文件以获取详细信息: ")
                 % {"args": program_name}
-                + f"{self.auxdir}{self.project_name + '.log' if not self.latexdiff else '/'}"
+                + log_prompt
             )
-
-            self.MRO.move_specific_files(aux_files, ".", self.auxdir)
-            self.MRO.move_specific_files(out_files, ".", self.outdir)
 
             stdout = "".join(stdout_lines)
             raise SubprocessFailedError(

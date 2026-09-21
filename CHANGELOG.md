@@ -19,7 +19,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2026-07-24 22:39:23 +0800
- * LastEditTime : 2026-09-18 21:12:59 +0800
+ * LastEditTime : 2026-09-21 13:16:43 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -49,21 +49,12 @@
 - **子项目发现器重写**：`discover_subprojects` 改用 `Path.walk(top_down=True)` 单遍遍历 + `dirnames[:]` 原地剪枝（排除/超深/动态黑名单/命中目录零下钻），免重复 glob/readdir，`-ls` 明显更快；全程 pathlib
 - **主文件判定提速**：改为共享 `has_magic`（一次字节读前 16KB，检查 `\documentclass`/`\begin{document}`，避免 utf-8 全量解码与逐行迭代），发现器与编译期 `find_tex_commands` 共用
 
-### 🚦 退出码
-
-- **退出码细分**：区分「项目不存在 / 配置加载失败 / 编译失败」三类错误（`EXIT_PROJECT_NOT_FOUND=3`、`EXIT_CONFIG_ERROR=4`、`EXIT_COMPILE_FAILED=5`），正常=0、通用错误=1
-
 ### 🎉 新增
 
 - 🪟 **新增 winget 发布渠道**：Windows 10 1809+ / Windows 11 用户可通过 `winget install --id YanMing-lxb.PyTeXMK -e` 一键安装 PyTeXMK，无需 Python 环境；清单由官方 wingetcreate 直接生成（仅 en-US 单语言），InstallerType=zip + NestedInstallerType=portable，安装后 `pytexmk` 命令自动加入 PATH
 - 🔄 **Release 工作流新增 publish-to-winget job**：打 tag 发布（非 dry_run）时在 job 内**直接内联官方 wingetcreate**（curl 下载 + `wingetcreate update --submit`）生成清单并提交 PR 到 `microsoft/winget-pkgs`；不再依赖本地发布脚本。winget 发布失败会让 job 红标，确保发布问题可立即暴露（首次提交需人工审核合并）
 - 🔒 **Token 安全**：仅从环境变量 `WINGET_CREATE_GITHUB_TOKEN` 读取 PAT（CI 由 `secrets.WINGET_GITHUB_TOKEN` 注入），wingetcreate 同从该环境变量读取，token **不进入命令行参数/argv**，也不会落日志
 - 📚 **新增 docs/winget_publish.md 开发者文档**：涵盖 PAT 申请步骤、首次提交人工审核说明、清单验证失败排查思路，便于长期维护
-
-### 🧪 质量改进
-
-- 🧹 移除发布脚本 `tools/winget/publish.py`：winget 更新改为在 `Release.yml` 的 `publish-to-winget` job 内**直接内联 wingetcreate**（版本号由 tag 推导，不需要 checkout/uv/python），并移除此前的 4 份手写 YAML 模板相关讨论与 `generate_manifest.py`、`submit_pr.py` 纯 git 回退链路
-- 🧹 简化 `make.py`：移除本地 `winget-manifest` target，winget 发布完全交由 CI（`publish-to-winget` job）内联 wingetcreate
 
 ### 🛠️ 完善
 
