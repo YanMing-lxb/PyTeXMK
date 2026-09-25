@@ -2,12 +2,11 @@
 
 import os
 
-from rich import print
-
 from ..config import ConfigParser
 from ..language import set_language
-from ..lifecycle import EXIT_PROJECT_NOT_FOUND, exit_pytexmk
+from ..lifecycle import EXIT_ERROR, EXIT_PROJECT_NOT_FOUND, exit_pytexmk
 from ..tex_project import standardize_name
+from ..ui_theme import console
 from .cli_state import (
     MAGIC_COMMENT_KEYS,
     PREVIEW_AFTER_COMPILE,
@@ -32,8 +31,8 @@ def build(args, cp: ConfigParser, logger) -> WorkflowState:
     try:
         ctx = ContextResolver(cp).resolve(args)
     except ProjectNotFoundError as e:
-        logger.error(_("未找到子项目: ") + f"[bold cyan]{e.args[0]}[/bold cyan]")
-        logger.warning(_("请先运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"))
+        logger.error(str(e))
+        logger.warning(_("可运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"))
         exit_pytexmk(EXIT_PROJECT_NOT_FOUND)
 
     state.config_dict = ctx.config
@@ -92,14 +91,14 @@ def apply_magic_comments(state: WorkflowState) -> None:
         state.compiled_program = "LuaLaTeX"
     elif state.magic_comments.get("program"):
         state.compiled_program = standardize_name(state.magic_comments["program"])
-        print(_("通过魔法注释设置程序为: ") + f"[bold cyan]{state.compiled_program}")
+        console.print(_("通过魔法注释设置程序为: ") + f"[bold cyan]{state.compiled_program}")
 
     if state.magic_comments.get("outdir"):
         state.outdir = state.magic_comments["outdir"]
-        print(_("通过魔法注释设置输出目录: ") + f"[bold cyan]{state.outdir}[/bold cyan]")
+        console.print(_("通过魔法注释设置输出目录: ") + f"[bold cyan]{state.outdir}[/bold cyan]")
     if state.magic_comments.get("auxdir"):
         state.auxdir = state.magic_comments["auxdir"]
-        print(_("通过魔法注释设置辅助目录: ") + f"[bold cyan]{state.auxdir}[/bold cyan]")
+        console.print(_("通过魔法注释设置辅助目录: ") + f"[bold cyan]{state.auxdir}[/bold cyan]")
 
     state.out_files = [f"{state.project_name}{suffix}" for suffix in SUFFIXES_OUT]
     state.aux_files = [f"{state.project_name}{suffix}" for suffix in SUFFIXES_AUX]
@@ -179,22 +178,25 @@ def _resolve_latexdiff_target(state: WorkflowState) -> None:
     """校验并解析 LaTeXDiff 的两个待比较 TeX 文件（命令行优先，其次配置文件）。"""
     args, logger = state.args, state.logger
 
-    if args.LaTeXDiff == [] or args.LaTeXDiff_compile == []:
-        print(_("命令行未指定 LaTeXDiff 相关参数"))
-        if state.new_tex_file and state.old_tex_file:
-            print(_("根据配置文件设置 LaTeXDiff 新 TeX 文件为: ") + f"[bold cyan]{state.new_tex_file}")
-            print(_("根据配置文件设置 LaTeXDiff 旧 TeX 文件为: ") + f"[bold cyan]{state.old_tex_file}")
-        else:
-            logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
-            exit_pytexmk()
-
-    if args.LaTeXDiff and len(args.LaTeXDiff) != 2 or args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) != 2:
-        logger.error(_("请同时指定 LaTeXDiff 所需的新旧 TeX 文件"))
-        exit_pytexmk()
-    if args.LaTeXDiff and len(args.LaTeXDiff) == 2:
+    if args.LaTeXDiff is not None and len(args.LaTeXDiff) != 2:
+        logger.error(_("LaTeXDiff 需恰好 2 个文件名，当前收到 %(n)s 个") % {"n": len(args.LaTeXDiff)})
+        exit_pytexmk(EXIT_ERROR)
+    if args.LaTeXDiff_compile is not None and len(args.LaTeXDiff_compile) != 2:
+        logger.error(_("LaTeXDiff-compile 需恰好 2 个文件名，当前收到 %(n)s 个") % {"n": len(args.LaTeXDiff_compile)})
+        exit_pytexmk(EXIT_ERROR)
+    if args.LaTeXDiff is not None and len(args.LaTeXDiff) == 2:
         state.old_tex_file, state.new_tex_file = args.LaTeXDiff
-    if args.LaTeXDiff_compile and len(args.LaTeXDiff_compile) == 2:
+    elif args.LaTeXDiff_compile is not None and len(args.LaTeXDiff_compile) == 2:
         state.old_tex_file, state.new_tex_file = args.LaTeXDiff_compile
+    else:
+        # 命令行未指定, 尝试从配置文件读取
+        console.print(_("命令行未指定 LaTeXDiff 相关参数"))
+        if state.new_tex_file and state.old_tex_file:
+            console.print(_("根据配置文件设置 LaTeXDiff 新 TeX 文件为: ") + f"[bold cyan]{state.new_tex_file}")
+            console.print(_("根据配置文件设置 LaTeXDiff 旧 TeX 文件为: ") + f"[bold cyan]{state.old_tex_file}")
+        else:
+            logger.error(_("请在命令行或配置文件中指定新旧两个 TeX 文件"))
+            exit_pytexmk(EXIT_ERROR)
 
     state.old_tex_file = state.mfo.check_project_name(state.main_files_in_root, state.old_tex_file, ".tex")
     state.new_tex_file = state.mfo.check_project_name(state.main_files_in_root, state.new_tex_file, ".tex")
