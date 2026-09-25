@@ -104,12 +104,11 @@ def RUN(
         aux_content_old=aux_content_old,
         out_content_old=out_content_old,
     )
-    dims, Latex_compilation_times, bib_engine, index_run_cmds, Latex_compilation_times_bib = return_detect
-    runtime_dict[_("编译文献判定")] = runtime_detect
-    runtime_dict[_("编译索引判定")] = runtime_detect
+    dims, latex_compilation_times, bib_engine, index_run_cmds, latex_compilation_times_bib = return_detect
+    runtime_dict[_("编译状态检测")] = runtime_detect
 
     # 编译参考文献
-    if bib_engine and Latex_compilation_times_bib != 0:
+    if bib_engine and latex_compilation_times_bib != 0:
         print_message(_("%(args)s 编译文献") % {"args": bib_engine}, "running")
         runtime_bib, _ret = time_count(compile_model.compile_bib, bib_engine)  # 编译参考文献
         name_target_bib = bib_engine
@@ -129,7 +128,7 @@ def RUN(
     print_compile_separator()
     print_compile_report(
         round_index=1,
-        next_extra_compilations=Latex_compilation_times,
+        next_extra_compilations=latex_compilation_times,
         total_compilations=1,
         dims=dims,
         compiled_program=standardize_name(compiled_program),
@@ -138,7 +137,7 @@ def RUN(
     )
 
     # 进行额外的 LaTeX 编译（迭代收敛直到所有维度均返回 0，或达到安全上限）
-    while Latex_compilation_times > 0 and (current_times - 1) < max_extra_compilations:
+    while latex_compilation_times > 0 and (current_times - 1) < max_extra_compilations:
         current_times += 1
         total_compilations += 1
 
@@ -156,8 +155,7 @@ def RUN(
         )
         runtime_dict[f"{compiled_program} {abbreviations_num[current_times - 1]}"] = runtime_Latex
 
-        # 本轮编译后：run_full_detection 聚合 6 维检测
-        dims, Latex_compilation_times, _bib_eng, index_run_cmds, _tbib = compile_model.detector.run_full_detection(
+        dims, latex_compilation_times, _bib_eng, index_run_cmds, _tbib = compile_model.detector.run_full_detection(
             cite_counter_old=cite_counter,
             toc_file_old=toc_file,
             index_aux_content_old=index_aux_content_dict_old,
@@ -165,11 +163,11 @@ def RUN(
             out_content_old=out_content_old,
         )
 
-        reached_limit = (current_times - 1) >= max_extra_compilations and Latex_compilation_times > 0
+        reached_limit = (current_times - 1) >= max_extra_compilations and latex_compilation_times > 0
         print_compile_separator()
         print_compile_report(
             round_index=current_times,
-            next_extra_compilations=Latex_compilation_times,
+            next_extra_compilations=latex_compilation_times,
             total_compilations=total_compilations,
             dims=dims,
             compiled_program=standardize_name(compiled_program),
