@@ -85,7 +85,7 @@ def _normalize_windows_locale(raw: str) -> str:
     return raw
 
 
-def _get_locale_lang() -> str:
+def get_locale_lang() -> str:
     """获取系统 locale 的语言前缀（如 zh_CN → zh）。
 
     优先读取 LANGUAGE / LC_ALL / LC_CTYPE / LANG 环境变量（POSIX 标准）；
@@ -116,7 +116,7 @@ def _get_locale_lang() -> str:
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
     """根据系统区域设置动态选择翻译；源码默认中文，zh→NullTranslations，其他按优先级查找 .mo。"""
-    raw = _get_locale_lang()
+    raw = get_locale_lang()
     if hasattr(sys, "_MEIPASS"):
         locale_path = Path(sys._MEIPASS) / "locale"
     elif getattr(sys, "frozen", False):

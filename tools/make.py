@@ -95,24 +95,37 @@ def upload():
 
 
 def html():
-    readme_md = Path("README.md")
-    readme_html = Path("README.html")
     target_dir = Path("src/pytexmk/data")
 
-    run_command(
-        command=["pandoc", str(readme_md), "-o", str(readme_html)],
-        success_msg="README.html 生成成功",
-        error_msg="README.html 生成失败",
-        process_name="生成 README.html",
-    )
+    readmes: list[tuple[str, str]] = [
+        ("README.md", "README.html"),      # 中文 → README.html
+        ("README.en.md", "README.en.html"), # 英文 → README.en.html
+    ]
 
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
         console.log(f"已创建目录: {target_dir}")
 
-    target_html = target_dir / "README.html"
-    shutil.move(str(readme_html), str(target_html))
-    console.log(f"生成 HTML 并移动到 {target_html}")
+    for src_name, dst_name in readmes:
+        src_md = Path(src_name)
+        dst_html = Path(dst_name)
+
+        if not src_md.exists():
+            console.log(f"⚠️  源文件 {src_md} 不存在，跳过")
+            continue
+
+        run_command(
+            command=["pandoc", str(src_md), "-o", str(dst_html)],
+            success_msg=f"{dst_name} 生成成功",
+            error_msg=f"{dst_name} 生成失败",
+            process_name=f"生成 {dst_name}",
+        )
+
+        target_path = target_dir / dst_name
+        if target_path.exists():
+            target_path.unlink()  # 移除旧文件（shutil.move 不覆盖）
+        shutil.move(str(dst_html), str(target_path))
+        console.log(f"✅ 已移动到 {target_path}")
 
 
 def main():

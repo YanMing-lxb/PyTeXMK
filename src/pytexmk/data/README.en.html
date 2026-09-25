@@ -1,0 +1,650 @@
+<div data-align="center">
+<img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/pytexmk-logo.png?raw=true" alt="PyTeXMK Logo" width="128" height="128">
+<h1>
+PyTeXMK
+</h1>
+<p>
+LaTeX Auxiliary Compilation Command Line Program
+</p>
+<p>
+<a href="https://pypi.python.org/pypi/pytexmk/">
+<img src="https://img.shields.io/pypi/v/pytexmk.svg?color=blue" alt="PyPI version">
+</a> <a href="https://pypi.org/project/pytexmk/">
+<img src="https://img.shields.io/pypi/dm/pytexmk.svg?label=PyPI%20downloads" alt="PyPI Downloads">
+</a> <a href="https://github.com/YanMing-lxb/PyTeXMK/releases/latest">
+<img src="https://img.shields.io/github/release/YanMing-lxb/PyTeXMK.svg?color=blueviolet&label=release" alt="GitHub release">
+</a> <a href="https://github.com/YanMing-lxb/PyTeXMK/blob/main/LICENSE">
+<img src="https://img.shields.io/badge/license-GPLv3-aff" alt="License">
+</a> <a href="#">
+<img src="https://img.shields.io/badge/OS-Linux%20%7C%20Windows%20%7C%20macOS-pink.svg" alt="OS">
+</a>
+</p>
+<p>
+<a href="https://github.com/YanMing-lxb/PyTeXMK/issues">
+<img src="https://img.shields.io/github/issues/YanMing-lxb/PyTeXMK" alt="Issues">
+</a> <a href="https://github.com/YanMing-lxb/PyTeXMK">
+<img src="https://img.shields.io/github/last-commit/YanMing-lxb/PyTeXMK" alt="Last Commit">
+</a> <a href="https://github.com/YanMing-lxb/PyTeXMK">
+<img src="https://img.shields.io/github/repo-size/YanMing-lxb/PyTeXMK" alt="Repo Size">
+</a> <a href="https://star-history.com/#YanMing-lxb/PyTeXMK&Date">
+<img src="https://img.shields.io/github/stars/YanMing-lxb/PyTeXMK?style=social" alt="Stars">
+</a>
+</p>
+<p>
+<a href="README.md">简体中文</a> · <a href="README.en.md">English</a>
+</p>
+</div>
+<hr />
+<h2 id="features">✨ Features</h2>
+<ul>
+<li>🚀 <strong>Multi-engine support</strong>: XeLaTeX, PdfLaTeX, and
+LuaLaTeX compilation engines</li>
+<li>📚 <strong>Bibliography</strong>: bibtex, biblatex,
+thebibliography</li>
+<li>📑 <strong>Index support</strong>: glossaries
+(incl. glossaries-extra + bib2gls + biber), nomencl, makeidx</li>
+<li>📋 <strong>Structured Compile-Detection Report</strong>: Aggregates
+the 6 detection dimensions (bibliography / index / TOC / cross-refs /
+bookmark file / log Rerun signals) and the per-pass conclusion into a
+single report block. The report uses <strong>Rich 5-color layered
+styling (title magenta, name cyan-bold, [OK] green-bold, [!!]
+yellow-bold, safety cap red-bold)</strong>. <strong>Table grids are
+DISABLED</strong>; only plain entry lists are rendered. The old generic
+4-character “stable” message is replaced with <strong>6
+dimension-specific independent stable messages</strong> (e.g. “Citation
+count unchanged, bibliography parsing is stable”, “PDF bookmark entries
+unchanged, bookmark generation is stable”). The <code>actual_next</code>
+conclusion semantics strictly follow <code>2 → 1 → not needed</code>,
+<strong>never</strong> fall back to 1, <strong>never</strong> print “0
+extra passes required”; the compiler name is dynamically replaced with
+XeLaTeX / PdfLaTeX / LuaLaTeX based on the actual engine. All report
+strings are fully wrapped with <code>_()</code> for i18n</li>
+<li>🔁 <strong>Smart multi-pass detection</strong>: Automatically
+compares aux/out file contents and parses Rerun warnings in logs to
+ensure cross-references, hyperref bookmarks, lastpage total page counts,
+etc. converge stably</li>
+<li>🔮 <strong>Magic comments</strong>: Specify engine, main file,
+output directory via <code>% !TEX</code> comments; regex hardened so
+TeX-escaped percent signs <code>\%</code> in inline code are no longer
+misidentified as magic comment markers</li>
+<li>🌍 <strong>Internationalization</strong>: Multi-language interface
+support. <strong>The default UI language is Chinese</strong> (source
+strings are in Chinese); we no longer force-en as the default. Since
+<strong>v1.2.1</strong>, the whole i18n pipeline officially switches to
+the <strong>Babel (<code>pybabel</code>) standard workflow</strong>:
+<code>pybabel extract → init → update → compile</code> (the previous
+<code>xgettext / msgfmt</code> toolchain is dropped entirely). All
+user-facing strings are wrapped with <code>_()</code> +
+<code>%(placeholder)s</code> placeholders. The <strong>3 legacy
+shared-domain groups are fully split into independent domains</strong>
+(<code>lifecycle</code> / <code>paths</code>, <code>pdf_tools</code> /
+<code>subprocess_runner</code> / <code>tex_project</code>,
+<code>timing</code> / <code>ui_messages</code>), in 1:1 strict alignment
+with <code>set_language(...)</code> parameters and <code>.pot/.po</code>
+file names. A set of Makefile helpers is provided:
+<code>make lang-add</code> (interactively prompts for a new language
+code), <code>make lang-update</code> (auto-updates every pot/po),
+<code>make lang-mo</code> (compiles po → mo for every domain), and
+<code>make lang-poup</code> (re-extracts all .pot templates with
+pybabel)</li>
+<li>🧹 <strong>Smart cleanup</strong>: Multiple clean modes for precise
+auxiliary file removal</li>
+<li>🔍 <strong>Log parsing</strong>: Auto-parse LaTeX logs on failure to
+locate errors</li>
+<li>📝 <strong>LaTeXDiff</strong>: LaTeX file diff comparison
+support</li>
+<li>⚙️ <strong>Configuration files</strong>: User-level and
+project-level configuration</li>
+<li>🔔 <strong>Version check</strong>: Automatic update checks for new
+versions</li>
+<li>🪓 <strong>Detection vs. compilation fully decoupled (zero
+thin-forwarders)</strong>: The standalone <code>detection.py</code>
+module now owns all 6-dimensional detection logic plus
+<code>class CompilationDetector</code>, while <code>compile.py</code>
+only keeps subprocess-level compilation execution. Callers
+<strong>must</strong> use the composition chain
+(<code>compile_model.detector.*</code>); <strong>any thin forwarder
+method of the form <code>return self.detector.xxx(...)</code> is
+strictly forbidden</strong> (count = 0), maximizing
+single-responsibility and maintainability</li>
+<li>🧱 <strong>Layered architecture + DAG acyclic imports</strong>:
+Based on the “cohesion hard threshold” derived from the 23-module static
+topology survey, only the eligible <code>cli/</code> subpackage is split
+(<code>__main__ / cli_args / cli_workflow / check_version</code>), while
+the other 19 modules remain flat to avoid over-engineering; the static
+2-node SCC cycle <code>run ↔︎ cli_workflow</code> is broken, so the
+import graph is formally a DAG (SCC size ≥ 2 count = 0), structurally
+eliminating circular dependency risks</li>
+<li>🪧 <strong>Preprocessing Banner + differential preprocessing
+logs</strong>: The preprocessing console banner returns to the classic
+three-line <code>=*78 / X32|开始预处理|X32 / =*78</code> style, routed
+through <strong>the unified
+<code>ui_messages.print_message</code></strong> so it visually matches
+every other banner in the project; the “End preprocessing” banner is
+physically removed; the preprocessing block now prints different hints
+for 4 scenarios (move 0/N auxiliary files + exist 0/N existing auxiliary
+files) to avoid the ambiguous always-two-lines output regardless of
+actual migration. The message “未检测到已有辅助文件，进行初始化” is kept
+in <strong>exactly 1 global location</strong> in
+<code>cli_workflow</code></li>
+<li>🚫 <strong>Zero-compatibility promise + dead code cleanup +
+permanent removal of Cython encryption</strong>: Since
+<strong>v1.2.1</strong>, <strong>zero compatibility layers are
+retained</strong> (the old <code>pytexmk.run</code> entry /
+<code>DeprecationWarning</code> / try-import fallbacks are physically
+removed). The <strong>entire Cython encryption pipeline is permanently
+dropped</strong>: we removed <code>tools/pydmk.py</code>, the
+<code>srcpyd/</code> packaging entry, the <code>cython</code>
+dependency, and all three-platform build-toolchain installation steps in
+GitHub Actions workflows; the packaging pipeline now runs exactly
+<strong>one permanent code path: “source mode onedir”</strong> via
+<code>make build</code>. A dual pass of <code>ruff F401/F841</code>
+static scan + dead-comment removal keeps running on core modules to
+control entropy</li>
+<li>🗺 <strong>Architecture decision institutionalization</strong>: Added
+<a href="docs/architecture.md">docs/architecture.md</a> as the single
+source of truth, providing a 6-layer ASCII layered dependency graph, a
+23-module responsibility matrix, a Q1-Q4 decision tree for where to
+place new features + Rule 5 “Subpackage split hard threshold (≥4 modules
+AND ≥3 internal imports AND ≥0.7 coupling coefficient)”, and 3 import
+disciplines to constrain architectural entropy growth</li>
+</ul>
+<hr />
+<h2 id="preview">📸 Preview</h2>
+<div data-align="center">
+<p><img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show1.png?raw=true" alt="PyTeXMK Preview 1" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+<img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/show2.png?raw=true" alt="PyTeXMK Preview 2" width="45%" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"></p>
+</div>
+<hr />
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="installation">Installation</h3>
+<p>The official version of PyTeXMK is published on <a
+href="https://pypi.org/project/pytexmk/">PyPI</a> and can be easily
+installed via pip or uv:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Install with pip</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install pytexmk</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Install with uv (recommended)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install pytexmk</span></code></pre></div>
+<h3 id="windows-winget-install-recommended">Windows winget install
+(recommended)</h3>
+<p>For Windows 10 1809+ / Windows 11 users, install via <a
+href="https://learn.microsoft.com/en-us/windows/package-manager/">winget</a>
+in one command (no Python environment required):</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>winget install <span class="op">--</span>id YanMing-lxb<span class="op">.</span><span class="fu">PyTeXMK</span></span></code></pre></div>
+<blockquote>
+<p>Tip: Once moniker is registered, the short form
+<code>winget install pytexmk</code> will also work.</p>
+</blockquote>
+<h3 id="upgrade">Upgrade</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pip</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pytexmk</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># uv</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--upgrade</span> pytexmk</span></code></pre></div>
+<h3 id="basic-usage">Basic Usage</h3>
+<p>Run in your LaTeX project root directory:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile with default configuration</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile a specific main file</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> main.tex</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile with XeLaTeX</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-x</span> main.tex</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean auxiliary files</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-c</span></span></code></pre></div>
+<blockquote>
+<p><strong>Note</strong>: PyTeXMK only supports TeX files encoded in
+UTF-8.</p>
+</blockquote>
+<hr />
+<h2 id="default-configuration">⚙️ Default Configuration</h2>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compiler</td>
+<td><code>XeLaTeX</code></td>
+<td>Options: XeLaTeX, PdfLaTeX, LuaLaTeX</td>
+</tr>
+<tr>
+<td>Main file</td>
+<td><code>main.tex</code></td>
+<td>LaTeX main file to compile</td>
+</tr>
+<tr>
+<td>Output dir</td>
+<td><code>Build</code></td>
+<td>Compilation result directory</td>
+</tr>
+<tr>
+<td>Auxiliary dir</td>
+<td><code>Auxiliary</code></td>
+<td>Auxiliary files directory</td>
+</tr>
+<tr>
+<td>Compile mode</td>
+<td>batch mode</td>
+<td>Silent compilation, no verbose output</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Tip</strong>: All parameters can be customized in config
+files, see <a href="#configuration-file">Configuration File</a>.</p>
+<p>VSCode users: set
+<code>"latex-workshop.latex.outDir": "./Build"</code> in
+<code>settings.json</code> so LaTeX-Workshop can find the PDF.</p>
+</blockquote>
+<hr />
+<h2 id="usage">📖 Usage</h2>
+<h3 id="compilation-commands">Compilation Commands</h3>
+<p>PyTeXMK supports the following options:</p>
+<p><strong>Positional arguments</strong></p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>document</code></td>
+<td>The filename to be compiled</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Optional arguments</strong></p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td>Show help message</td>
+</tr>
+<tr>
+<td><code>-v</code>, <code>--version</code></td>
+<td>Show program version</td>
+</tr>
+<tr>
+<td><code>-p</code>, <code>--PdfLaTeX</code></td>
+<td>Compile with PdfLaTeX</td>
+</tr>
+<tr>
+<td><code>-x</code>, <code>--XeLaTeX</code></td>
+<td>Compile with XeLaTeX</td>
+</tr>
+<tr>
+<td><code>-l</code>, <code>--LuaLaTeX</code></td>
+<td>Compile with LuaLaTeX</td>
+</tr>
+<tr>
+<td><code>-d</code>, <code>--LaTeXDiff</code></td>
+<td>Generate diff comparison file with LaTeXDiff</td>
+</tr>
+<tr>
+<td><code>-dc</code>, <code>--LaTexDiff-compile</code></td>
+<td>Generate diff file and compile new file</td>
+</tr>
+<tr>
+<td><code>-dr</code>, <code>--draft</code></td>
+<td>Enable draft mode (no images, faster compilation)</td>
+</tr>
+<tr>
+<td><code>-c</code>, <code>--clean</code></td>
+<td>Clean auxiliary files of the main file</td>
+</tr>
+<tr>
+<td><code>-C</code>, <code>--Clean</code></td>
+<td>Clean auxiliary files (including root) and output files</td>
+</tr>
+<tr>
+<td><code>-ca</code>, <code>--clean-any</code></td>
+<td>Clean all files with auxiliary suffixes</td>
+</tr>
+<tr>
+<td><code>-Ca</code>, <code>--Clean-any</code></td>
+<td>Clean all auxiliary files (including root) and main output</td>
+</tr>
+<tr>
+<td><code>-nq</code>, <code>--non_quiet</code></td>
+<td>Non-quiet mode, show compilation process</td>
+</tr>
+<tr>
+<td><code>-vb</code>, <code>--verbose</code></td>
+<td>Show detailed PyTeXMK runtime information</td>
+</tr>
+<tr>
+<td><code>-pr</code>, <code>--pdf-repair</code></td>
+<td>Repair all PDF files outside the root directory</td>
+</tr>
+<tr>
+<td><code>-pv</code>, <code>--pdf-preview</code></td>
+<td>Preview PDF file after compilation</td>
+</tr>
+<tr>
+<td><code>-s</code>, <code>--subproject</code></td>
+<td>Select a subproject from root config <code>[subprojects]</code> and
+compile in its directory</td>
+</tr>
+<tr>
+<td><code>-ls</code>, <code>--list-subprojects</code></td>
+<td>Scan subprojects and show the list (auto-syncs the root
+<code>[subprojects]</code> section)</td>
+</tr>
+<tr>
+<td><code>-i</code>, <code>--init</code></td>
+<td>Generate a root project <code>.pytexmkrc</code> config file</td>
+</tr>
+<tr>
+<td><code>-iu</code>, <code>--init-user</code></td>
+<td>Generate a user-level <code>~/.pytexmkrc</code> config file</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--force</code></td>
+<td>With <code>-i</code>/<code>-iu</code>, force overwrite an existing
+config file</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Parameter notes</strong></p>
+<ul>
+<li><strong><code>-pr</code></strong>: When LaTeX compilation produces
+warnings like <code>invalid X X R object at offset XXXXX</code>, use
+this option to attempt repairing all PDF files. This warning is
+typically caused by corrupted PDF image files.</li>
+<li><strong><code>-d</code> / <code>-dc</code></strong>: Example:
+<code>pytexmk -d old_tex_file new_tex_file</code>. The generated diff
+file is named <code>LaTeXDiff.tex</code>.</li>
+<li><strong><code>-pv</code></strong>: Opens a browser or local PDF
+viewer after compilation. Example: <code>pytexmk main -pv</code> or
+<code>pytexmk -pv</code>.</li>
+<li><strong><code>-dc</code> / <code>-d</code></strong>: Supports
+showing change traces in references and symbol indexes. You will be
+prompted to choose a style during compilation (1-show changes / 2-hide
+changes).</li>
+</ul>
+<h3 id="multi-subproject-compilation">Multi-Subproject Compilation</h3>
+<p>PyTeXMK lets you manage and compile multiple independent subprojects
+under a single project root.</p>
+<p>Options <code>-s</code> / <code>-ls</code> / <code>-i</code> /
+<code>-iu</code> / <code>-f</code>:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-s</code>, <code>--subproject &lt;name&gt;</code></td>
+<td>Select a subproject from the <code>[subprojects]</code> section of
+the root <code>.pytexmkrc</code> and compile/clean in its directory; the
+process switches its working root internally, <strong>without changing
+your terminal cwd</strong>, and it can coexist with a main-file argument
+(e.g. <code>pytexmk -s sub main</code>); if the alias is not found it
+errors, prompts you to run <code>-ls</code> first, and exits with the
+“project not found” code</td>
+</tr>
+<tr>
+<td><code>-ls</code>, <code>--list-subprojects</code></td>
+<td>Scan subprojects using the root <code>[project_scan]</code> rules
+and show the list as a table; if the root <code>.pytexmkrc</code>
+exists, the <code>[subprojects]</code> section is <strong>replaced
+entirely</strong> with the scan result (idempotent), while the
+<code>[project_scan]</code> section is left untouched; if no rc exists
+it prompts you to run <code>-i</code> first and writes nothing</td>
+</tr>
+<tr>
+<td><code>-i</code>, <code>--init</code></td>
+<td>Generate a root project <code>.pytexmkrc</code> config file</td>
+</tr>
+<tr>
+<td><code>-iu</code>, <code>--init-user</code></td>
+<td>Generate a user-level <code>~/.pytexmkrc</code> config file</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--force</code></td>
+<td>Only used with <code>-i</code>/<code>-iu</code> to overwrite
+existing files; if the target already exists without <code>-f</code>, it
+prompts and writes nothing</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Typical workflow</strong></p>
+<ol type="1">
+<li>Run <code>pytexmk -i</code> in the root to generate the root
+<code>.pytexmkrc</code> (add <code>-f</code> to overwrite an existing
+one); use <code>-iu</code> for a global user-level config</li>
+<li>Run <code>pytexmk -ls</code> to scan and show the subproject list
+(it automatically updates the <code>[subprojects]</code> section in the
+root config)</li>
+<li>Select a subproject with <code>pytexmk -s subproject</code> and
+compile; it can coexist with a main file via
+<code>pytexmk -s subproject main</code>; cleaning scope also applies,
+e.g. <code>pytexmk -s subproject -c</code></li>
+</ol>
+<p><strong>Configuration</strong></p>
+<ul>
+<li><code>[project_scan]</code>: subproject scanning rules section
+(default <code>depth=3</code>, with an <code>exclude</code> list). Used
+only by <code>-ls</code>/<code>-s</code> scanning; scan parameters
+always come from the root config. Neither <code>-ls</code> nor
+<code>-s</code> overwrites or modifies this section</li>
+<li><code>[subprojects]</code>: the subproject list section used by
+<code>-s</code>; <code>-ls</code> replaces it entirely with the scan
+result</li>
+</ul>
+<p><strong>Local rc scope</strong></p>
+<ul>
+<li>When invoked with <code>-s</code> from the root, any local
+<code>.pytexmkrc</code> under the subproject directory is ignored
+(<code>-vb</code> prints a one-line note); the root config is the
+absolute source</li>
+<li>When you <code>cd</code> into the subproject directory and run it
+standalone, the local rc applies (backward compatible)</li>
+</ul>
+<h3 id="magic-comments">Magic Comments</h3>
+<p>PyTeXMK supports magic comments to customize compilation behavior
+(searches first 50 lines only).</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Magic Comment</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>% !TEX program = &lt;XeLaTeX&gt;</code></td>
+<td>Specify compilation type</td>
+<td><code>% !TEX program = PdfLaTeX</code></td>
+</tr>
+<tr>
+<td><code>% !TEX root = &lt;main_file&gt;</code></td>
+<td>Specify main file to compile</td>
+<td><code>% !TEX root = test_file</code></td>
+</tr>
+<tr>
+<td><code>% !TEX outdir = &lt;output_dir&gt;</code></td>
+<td>Specify output directory</td>
+<td><code>% !TEX outdir = output</code></td>
+</tr>
+<tr>
+<td><code>% !TEX auxdir = &lt;aux_dir&gt;</code></td>
+<td>Specify auxiliary files directory</td>
+<td><code>% !TEX auxdir = auxfiles</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note</strong>: Magic comments only work in the main file, not
+in sub-files.</p>
+</blockquote>
+<h3 id="main-file-compilation-type-selection-logic">Main File &amp;
+Compilation Type Selection Logic</h3>
+<details>
+<summary>
+<b>📂 Main File Selection Logic</b>
+</summary>
+<ol type="1">
+<li>Command-line argument specifies main file → compile that file
+(e.g. <code>pytexmk &lt;main-file&gt;</code>, extension optional)</li>
+<li>Only one <code>.tex</code> file in current directory → use that
+file</li>
+<li>Magic comment <code>% !TEX root</code> exists → use the specified
+file</li>
+<li>Search for <code>\documentclass[]{}</code> or
+<code>\begin{document}</code> (first 200 lines only)</li>
+<li>Default main file name <code>main.tex</code> → try that</li>
+<li>All above fail → output error and exit</li>
+</ol>
+</details>
+<details>
+<summary>
+<b>⚙️ Compilation Type Selection Logic</b>
+</summary>
+<ol type="1">
+<li>Command-line option <code>-p</code> / <code>-x</code> /
+<code>-l</code> → highest priority</li>
+<li>Magic comment <code>% !TEX program</code> → use comment value</li>
+<li>None specified → use default <code>XeLaTeX</code></li>
+</ol>
+</details>
+<blockquote>
+<p>Output directory priority: <code>% !TEX outdir</code> magic comment
+&gt; default <code>Build</code></p>
+</blockquote>
+<h3 id="configuration-file">Configuration File</h3>
+<p>PyTeXMK supports two levels of configuration: <strong>user
+config</strong> and <strong>project config</strong>. Normal runs
+<strong>no longer auto-generate</strong> config files; generate them
+manually with <code>-iu</code> (user level) or <code>-i</code> (project
+level).</p>
+<ul>
+<li><strong>User config</strong>: generated manually with
+<code>pytexmk -iu</code>, located as <code>.pytexmkrc</code> in your
+user home</li>
+<li><strong>Project config</strong>: generated manually with
+<code>pytexmk -i</code>, located as <code>.pytexmkrc</code> in the
+working directory</li>
+</ul>
+<p>Generated config files include detailed comments. Modify as
+needed.</p>
+<p><strong>Config File Paths</strong></p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Windows</th>
+<th>Linux / macOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User config</td>
+<td><code>C:\Users\username\.pytexmkrc</code></td>
+<td><code>~/.pytexmkrc</code></td>
+</tr>
+<tr>
+<td>Project config</td>
+<td><code>./.pytexmkrc</code></td>
+<td><code>./.pytexmkrc</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Priority</strong>: Project config &gt; User config &gt;
+built-in defaults; missing config is silently handled with built-in
+defaults, and mismatched keys only warn without writing to disk.</p>
+<hr />
+<h2 id="development-build">🛠 Development &amp; Build</h2>
+<h3 id="requirements">Requirements</h3>
+<ul>
+<li>Python 3.14+</li>
+<li><a href="https://github.com/astral-sh/uv">uv</a> (recommended) or
+pip</li>
+</ul>
+<h3 id="development-setup">Development Setup</h3>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clone the repository</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/YanMing-lxb/PyTeXMK.git</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> PyTeXMK</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Install development dependencies</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync <span class="at">--all-extras</span> <span class="at">--dev</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Run development version</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytexmk <span class="at">--help</span></span></code></pre></div>
+<h3 id="build-distribution">Build Distribution</h3>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build wheel and sdist</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> build</span></code></pre></div>
+<h3 id="build-binary">Build Binary</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate platform icons</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> icon</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build source-mode executable (onedir layout)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Clean build artifacts</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span></code></pre></div>
+<blockquote>
+<p><strong>make on Windows</strong> requires separate setup. See <a
+href="docs/Window%20下使用%20make.md">Using make on Windows</a>.</p>
+</blockquote>
+<h3 id="code-linting">Code Linting</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check src/</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format src/</span></code></pre></div>
+<hr />
+<h2 id="license">📄 License</h2>
+<p>This project is open-sourced under the <a href="LICENSE">GPLv3</a>
+license.</p>
+<hr />
+<h2 id="changelog">📝 Changelog</h2>
+<p>For detailed changelog, please refer to <a
+href="CHANGELOG.md">CHANGELOG.md</a>.</p>
+<hr />
+<h2 id="star-history">⭐ Star History</h2>
+<p><a href="https://star-history.com/#YanMing-lxb/PyTeXMK&amp;Date"><img
+src="https://api.star-history.com/svg?repos=YanMing-lxb/PyTeXMK&amp;type=Date"
+alt="Star History Chart" /></a></p>
+<hr />
+<div data-align="center">
+<p><strong>If you find this project helpful, please give it a Star ⭐ to
+show your support!</strong></p>
+</div>

@@ -4,7 +4,7 @@ import webbrowser
 from pathlib import Path
 
 from ..config import ConfigParser
-from ..language import set_language
+from ..language import get_locale_lang, set_language
 from ..lifecycle import exit_pytexmk
 from ..paths import get_app_path
 from ..subproject_scanner import (
@@ -46,17 +46,40 @@ def handle(args, cp: ConfigParser, logger) -> None:
 
 
 def _open_readme(logger) -> None:
-    """打开本地 README.html；出错只记录日志，不中断退出流程。"""
+    """根据系统语言打开对应的本地 README.html；出错只记录日志，不中断退出流程。
+
+    中文系统 → README.html，其他语言 → README.en.html，目标文件不存在时 fallback 到另一个。
+    """
     try:
         app_path = get_app_path()
-        readme_path = app_path / "data" / "README.html"
-        if readme_path.exists():
-            console.print(_("[bold green]正在打开 README 文件...[/bold green]"))
-            local_path = f"file://{readme_path.resolve().as_posix()}"
-            logger.info(_("README 本地路径: %(args)s") % {"args": local_path})
-            webbrowser.open(local_path)
+        data_dir = app_path / "data"
+
+        # 根据系统语言优先选择对应的 README
+        locale_lang = get_locale_lang()
+        if locale_lang.startswith("zh"):
+            preferred = "README.html"
+            fallback = "README.en.html"
         else:
-            logger.error(_("README.html 文件未找到: ") + str(readme_path))
+            preferred = "README.en.html"
+            fallback = "README.html"
+
+        # 优先尝试首选文件，不存在则回退到另一个
+        readme_path = data_dir / preferred
+        if not readme_path.exists():
+            fallback_path = data_dir / fallback
+            if fallback_path.exists():
+                readme_path = fallback_path
+            else:
+                logger.error(
+                    _("README.html / README.en.html 文件均未找到，目录: %(args)s")
+                    % {"args": str(data_dir)}
+                )
+                return
+
+        console.print(_("[bold green]正在打开 README 文件...[/bold green]"))
+        local_path = f"file://{readme_path.resolve().as_posix()}"
+        logger.info(_("README 本地路径: %(args)s") % {"args": local_path})
+        webbrowser.open(local_path)
     except Exception as e:  # noqa: BLE001
         logger.error(_("打开 README 文件出错: ") + str(e))
 
