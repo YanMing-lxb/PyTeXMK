@@ -25,8 +25,34 @@ Description  :
 
 import gettext
 import locale
+import os
 import sys
 from pathlib import Path
+
+
+def _get_locale_lang() -> str:
+    """获取系统 locale 的语言前缀（如 zh_CN -> zh）。
+
+    优先读取 LC_ALL / LC_CTYPE / LANG / LANGUAGE 环境变量，
+    兜底回退到 locale.getlocale()。避免使用 Python 3.15 将移除的
+    locale.getdefaultlocale()。
+    """
+    for env_var in ("LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG"):
+        val = os.environ.get(env_var)
+        if val:
+            # LANGUAGE 可能是 "zh_CN:zh:en_US:en"，取第一个
+            first = val.split(":")[0]
+            # 去除编码后缀（zh_CN.UTF-8 -> zh_CN）
+            lang = first.split(".")[0]
+            # 去除 @ 修饰符（ca_ES@valencia -> ca_ES）
+            lang = lang.split("@")[0]
+            if lang and lang != "C":
+                return lang
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except locale.Error:
+        pass
+    return locale.getlocale()[0] or ""
 
 
 # --------------------------------------------------------------------------------
@@ -34,7 +60,7 @@ from pathlib import Path
 # --------------------------------------------------------------------------------
 def set_language(lang_file):
     """根据系统区域设置动态选择翻译；源码默认中文，zh→NullTranslations，其他按优先级查找 .mo。"""
-    current_locale = locale.getdefaultlocale()
+    raw = _get_locale_lang()
     if hasattr(sys, "_MEIPASS"):
         locale_path = Path(sys._MEIPASS) / "locale"
     elif getattr(sys, "frozen", False):
@@ -42,7 +68,6 @@ def set_language(lang_file):
     else:
         locale_path = Path(__file__).resolve().parent / "locale"
 
-    raw = current_locale[0] or ""
     if raw.startswith("zh"):
         translation = gettext.NullTranslations()
         return translation.gettext
