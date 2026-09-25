@@ -50,11 +50,12 @@ BIBER_BIB_PATTERN = re.compile(
 )
 BIBTEX_BIB_PATTERN = re.compile(r"\\bibdata\{(.*)\}")
 
-BIBER_CITE_PATTERN = re.compile(
-    r"\\abx@aux@cite{.*?}\{(.*)\}"
+# 三种引用命令：Biber / BibTeX / thebibliography
+_CITE_PATTERNS = (
+    re.compile(r"\\abx@aux@cite{.*?}\{(.*)\}"),   # Biber
+    re.compile(r"\\citation\{(.*)\}"),             # BibTeX
+    re.compile(r"\\bibcite\{(.*?)\}"),             # thebibliography
 )
-BIBTEX_CITE_PATTERN = re.compile(r"\\citation\{(.*)\}")
-THEBIB_CITE_PATTERN = re.compile(r"\\bibcite\{(.*?)\}")
 
 RERUN_LOG_PATTERNS = [
     re.compile(r"LaTeX Warning: There were undefined references\."),
@@ -84,25 +85,12 @@ def _read_file_content(path: str | Path) -> str:
 
 
 def _count_citations(file_name):
-    _ = set_language("detection")
     counter = defaultdict(int)
 
     aux_content = _read_file_content(file_name)
-    match = BIBER_CITE_PATTERN.search(aux_content)
-    if match:
-        for match in BIBER_CITE_PATTERN.finditer(aux_content):
-            name = match.groups()[0]
-            counter[name] += 1
-    match = BIBTEX_CITE_PATTERN.search(aux_content)
-    if match:
-        for match in BIBTEX_CITE_PATTERN.finditer(aux_content):
-            name = match.groups()[0]
-            counter[name] += 1
-    match = THEBIB_CITE_PATTERN.search(aux_content)
-    if match:
-        for match in THEBIB_CITE_PATTERN.finditer(aux_content):
-            name = match.groups()[0]
-            counter[name] += 1
+    for pattern in _CITE_PATTERNS:
+        for match in pattern.finditer(aux_content):
+            counter[match.group(1)] += 1
     return counter
 
 
@@ -133,7 +121,6 @@ class CompilationDetector:
         self.out = ""
 
     def prepare_LaTeX_output_files(self):
-        _ = set_language("detection")
         aux_file_path = Path(f"{self.project_name}.aux")
         if aux_file_path.exists():
             cite_counter = self._generate_citation_counter()
@@ -150,7 +137,6 @@ class CompilationDetector:
         return cite_counter, toc_file, index_aux_content_dict_old
 
     def _generate_citation_counter(self):
-        _ = set_language("detection")
         cite_counter = {}
         file_name = f"{self.project_name}.aux"
         main_aux_content = _read_file_content(file_name)
@@ -170,7 +156,6 @@ class CompilationDetector:
         return cite_counter
 
     def _index_aux_content_get(self):
-        _ = set_language("detection")
         file_name = Path(
             f"{self.project_name}.aux"
         )
@@ -199,9 +184,9 @@ class CompilationDetector:
                         index_aux_content_dict_old[f"{self.project_name}.{ext_i}"] = (
                             index_ext_i_content
                         )
-            if Path(f"{self.project_name}.nlo").exists() and (
-                Path(f"{self.project_name}.nlo").exists()
-                and Path(f"{self.project_name}.nls").exists()
+            if all(
+                Path(f"{self.project_name}{ext}").exists()
+                for ext in [".nlo", ".nls"]
             ):
                 index_ext_i_content = _read_file_content(
                     Path(f"{self.project_name}.nlo")
@@ -210,9 +195,9 @@ class CompilationDetector:
                     index_ext_i_content
                 )
 
-            if Path(f"{self.project_name}.idx").exists() and (
-                Path(f"{self.project_name}.idx").exists()
-                and Path(f"{self.project_name}.ind").exists()
+            if all(
+                Path(f"{self.project_name}{ext}").exists()
+                for ext in [".idx", ".ind"]
             ):
                 index_ext_i_content = _read_file_content(
                     Path(f"{self.project_name}.idx")
@@ -226,16 +211,12 @@ class CompilationDetector:
         return index_aux_content_dict_old
 
     def toc_changed_judgment(self, toc_file):
-        _ = set_language("detection")
         file_name = Path(self.project_name).with_suffix(
             ".toc"
         )
-        if file_name.exists():
-            if _read_file_content(file_name) != toc_file:
-                return True
+        return file_name.exists() and _read_file_content(file_name) != toc_file
 
     def bib_judgment(self, old_cite_counter):
-        _ = set_language("detection")
         bib_engine = None
         target_name_bib = None
         Latex_compilation_times = 0
@@ -299,7 +280,6 @@ class CompilationDetector:
     def _index_changed_judgment(
         self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile
     ):
-        _ = set_language("detection")
         make_index = False
         if re.search(
             f"No file {index_aux_infile}.", self.out
@@ -318,7 +298,6 @@ class CompilationDetector:
         return make_index
 
     def index_judgment(self, index_aux_content_dict_old):
-        _ = set_language("detection")
         file_name = Path(
             f"{self.project_name}.aux"
         )
@@ -374,7 +353,6 @@ class CompilationDetector:
         return run_index_list_cmd
 
     def prepare_aux_out_snapshots(self):
-        _ = set_language("detection")
         aux_content_old = ""
         out_content_old = ""
 
@@ -406,7 +384,6 @@ class CompilationDetector:
 
     @staticmethod
     def _normalize_aux_like(content: str) -> str:
-        _ = set_language("detection")
         if not content:
             return ""
         stripped_lines: list[str] = []
@@ -439,7 +416,6 @@ class CompilationDetector:
         return "\n".join(stripped_lines)
 
     def aux_changed_judgment(self, aux_content_old):
-        _ = set_language("detection")
         aux_paths = [
             Path(f"{self.project_name}.aux"),
             Path(self.auxdir) / f"{self.project_name}.aux",
@@ -455,7 +431,6 @@ class CompilationDetector:
         return self._normalize_aux_like(current) != self._normalize_aux_like(aux_content_old)
 
     def out_changed_judgment(self, out_content_old):
-        _ = set_language("detection")
         out_paths = [
             Path(f"{self.project_name}.out"),
             Path(self.auxdir) / f"{self.project_name}.out",
@@ -471,7 +446,6 @@ class CompilationDetector:
         return self._normalize_aux_like(current) != self._normalize_aux_like(out_content_old)
 
     def log_has_rerun_warnings(self, log_path=None):
-        _ = set_language("detection")
         log_content = ""
 
         if log_path is not None:
