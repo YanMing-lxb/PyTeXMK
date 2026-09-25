@@ -1,0 +1,37 @@
+% !TEX program = LuaLaTeX
+% LuaLaTeX 引擎测试
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[colorlinks]{hyperref}
+\usepackage{graphicx}
+
+\title{LuaLaTeX 引擎测试}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{LuaLaTeX 特性}
+
+LuaLaTeX 是 PdfLaTeX 和 XeLaTeX 的替代引擎，内嵌 Lua 脚本引擎。
+本文件测试 PyTeXMK 对 LuaLaTeX 的编译调度。
+
+\subsection{交叉引用}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.4\textwidth]{example-image-a}
+    \caption{LuaLaTeX 测试图}
+    \label{fig:lualatex}
+\end{figure}
+
+见图 \ref{fig:lualatex}。
+
+\subsection{Lua 脚本嵌入}
+
+\directlua{tex.print("LuaLaTeX 输出: Hello from Lua!")}
+
+\end{document}

@@ -1,0 +1,20 @@
+% !TEX program = PdfLaTeX
+% PdfLaTeX + biber + biblatex 测试
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\usepackage[colorlinks]{hyperref}
+
+\addbibresource{biblatex-reference.bib}
+
+\begin{document}
+
+\section{PdfLaTeX + BibLaTeX + Biber}
+
+本文档测试 PdfLaTeX 引擎配合 biblatex+biber 后端。
+
+引用 Lamport \cite{lamport1986latex} 和 Knuth \cite{knuth1986texbook}。
+
+\printbibliography
+
+\end{document}

@@ -1,0 +1,36 @@
+% !TEX program = XeLaTeX
+% glossaries + xindy 后端测试
+% 覆盖 detection.py 中 _resolve_glossaries_backend 和 _detect_xindy_language 路径
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[xindy,style=long,nonumberlist]{glossaries}
+
+\newglossaryentry{xindy}{
+    name={Xindy},
+    description={一个功能强大的索引和术语表处理引擎，支持多语言}
+}
+
+\newglossaryentry{makeindex}{
+    name={MakeIndex},
+    description={传统的 LaTeX 索引处理程序}
+}
+
+\newglossaryentry{biber}{
+    name={Biber},
+    description={biblatex 的默认后端，处理 .bcf 文件}
+}
+
+\makeglossaries
+
+\begin{document}
+
+\section{Xindy 后端测试}
+
+这个文档测试 glossaries 包使用 xindy 作为索引后端的情况。
+
+Xindy \gls{xindy} 比 MakeIndex \gls{makeindex} 更强大，支持多语言排序。
+Biber \gls{biber} 则是 biblatex 的后端。
+
+\printglossaries
+
+\end{document}

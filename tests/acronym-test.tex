@@ -1,0 +1,23 @@
+% !TEX program = XeLaTeX
+% acronym 包测试（另一个独立缩写包，与 acro/glossaries 都无关）
+% 覆盖 detection.py 中 acronym 包 rerun 警告匹配
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[footnote]{acronym}
+
+\begin{document}
+
+\begin{acronym}
+    \acro{API}{Application Programming Interface}
+    \acro{SDK}{Software Development Kit}
+    \acro{IDE}{Integrated Development Environment}
+    \acro{CLI}{Command-Line Interface}
+\end{acronym}
+
+\section{acronym 包测试}
+
+acronym 包是另一个独立的首字母缩写包。
+开发中常用 API \ac{API} 和 SDK \ac{SDK}。
+IDE \ac{IDE} 和 CLI \ac{CLI} 是两种常见的开发工具界面。
+
+\end{document}

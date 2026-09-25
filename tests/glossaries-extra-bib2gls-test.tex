@@ -1,0 +1,33 @@
+% !TEX program = XeLaTeX
+% glossaries-extra + bib2gls + biber 测试
+% 覆盖 detection.py 中 BIB2GLS_AUX_PATTERN / BIB2GLS_BCF_PATTERN 检测
+% 注意：bib2gls 的术语表条目由 biber 处理（不是 makeindex/xindy），
+%       PyTeXMK 的 bib2gls_mode 标记在 bib_judgment 中设置，
+%       但术语表的实际处理仍然由 glossaries 规则触发 makeindex（这是已知的局限）。
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[backend=biber,style=authoryear]{biblatex}
+\usepackage[record,section=paragraph]{glossaries-extra}
+
+\addbibresource{glossaries-bib2gls-test.bib}
+
+% 加载 bib 中的 glossary 条目（entryset={glossary} 的条目）
+\GlsXtrLoadResources[
+    src={glossaries-bib2gls-test},
+    type=glossary,
+    sort=letter-nocase
+]
+
+\begin{document}
+
+\section{glossaries-extra + bib2gls}
+
+这个文档使用 bib2gls（glossaries-extra 的后端），
+它把术语表条目写在 .bib 文件里，由 biber 统一处理。
+
+\gls{cpu} 和 \gls{ram} 是计算机的基本组件。
+
+\printglossary
+\printbibliography
+
+\end{document}

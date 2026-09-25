@@ -1,0 +1,17 @@
+% !TEX program = XeLaTeX
+% 子项目 1：简单单文件 + bibtex
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[colorlinks]{hyperref}
+
+\begin{document}
+
+\section{子项目 1}
+
+这是 subproject 测试中的第一个子项目。
+引用 \cite{lamport1986latex} 和 \cite{knuth1986texbook}。
+
+\bibliographystyle{plain}
+\bibliography{../bibtex-reference}
+
+\end{document}

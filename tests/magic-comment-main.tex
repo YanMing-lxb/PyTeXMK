@@ -1,0 +1,25 @@
+% !TEX program = XeLaTeX
+% !TEX outdir = magic-out
+% !TEX auxdir = magic-aux
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage[colorlinks]{hyperref}
+
+\title{魔法注释测试}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section{主文件内容}
+
+本文档测试 PyTeXMK 的三种魔法注释（program / outdir / auxdir）。
+
+\include{magic-comment-test}
+
+\end{document}

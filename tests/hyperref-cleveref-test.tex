@@ -1,0 +1,31 @@
+% !TEX program = XeLaTeX
+% hyperref + cleveref 测试
+% 覆盖 detection.py 中 out 维度检测、hyperref/cleveref rerun 警告匹配
+\documentclass{article}
+\usepackage{ctex}
+\usepackage[colorlinks]{hyperref}
+\usepackage{cleveref}
+\usepackage{lastpage}
+
+\title{Hyperref + Cleveref 测试}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{交叉引用}
+
+本文档用于测试 hyperref 生成的 .out 文件和 cleveref 的 rerun 警告。
+\begin{equation}
+    \label{eq:main}
+    E = mc^2
+\end{equation}
+
+公式 \cref{eq:main} 是爱因斯坦著名的质能方程。
+
+\section{页码引用}
+
+当前页是第 \thepage{} 页，总共 \pageref{LastPage} 页。
+
+\end{document}

@@ -1,0 +1,42 @@
+% !TEX program = XeLaTeX
+% glossaries 多类型测试（main + acronym + symbols + 自定义）
+% 覆盖 detection.py 中 _NGLOSSARY_PATTERN 多类型发现路径
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{glossaries}
+
+% 先创建术语表类型，再定义条目
+\makeglossaries
+
+% 术语表条目
+\newglossaryentry{latex}{
+    name={\LaTeX},
+    description={一种基于 TeX 的高质量排版系统},
+    sort={latex}
+}
+\newglossaryentry{tex}{
+    name={\TeX},
+    description={由 Donald Knuth 设计的数学排版系统},
+    sort={tex}
+}
+
+% 首字母缩写条目（glossaries 内置 acronym 类型）
+\newacronym{fsm}{FSM}{有限状态机}
+\newacronym{cfg}{CFG}{上下文无关文法}
+\newacronym{nlp}{NLP}{自然语言处理}
+
+% 打印所有术语表（glossaries 会自动发现 main + acronym 两套）
+\begin{document}
+
+\section{多术语表测试}
+
+本文档同时包含主术语表和缩写表，测试 glossaries 多类型发现能力。
+
+\LaTeX \gls{latex} 和 \TeX \gls{tex} 是常用的排版系统。
+在计算机科学中，有限状态机 \acrshort{fsm}、上下文无关文法 \acrfull{cfg}
+和自然语言处理 \gls{nlp} 都是重要概念。
+
+\printglossary
+\printglossary[type=\acronymtype]
+
+\end{document}

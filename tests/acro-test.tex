@@ -1,0 +1,34 @@
+% !TEX program = XeLaTeX
+% acro 包测试（独立缩写管理系统）
+% 覆盖 detection.py 中 acro 包 rerun 警告匹配
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{acro}
+
+\DeclareAcronym{html}{
+    short = HTML,
+    long  = HyperText Markup Language
+}
+\DeclareAcronym{css}{
+    short = CSS,
+    long  = Cascading Style Sheets
+}
+\DeclareAcronym{svg}{
+    short = SVG,
+    long  = Scalable Vector Graphics
+}
+
+\begin{document}
+
+\section{acro 包测试}
+
+acro 是一个独立的首字母缩写包，不依赖 glossaries。
+使用 \texttt{\textbackslash acuse\{\}} 命令来使用已声明的缩写。
+首次出现：\acuse{html}。后续：\acuse{html}。
+还有 CSS \acuse{css} 和 SVG \acuse{svg}。
+
+\section{缩写列表}
+
+\printacronyms
+
+\end{document}

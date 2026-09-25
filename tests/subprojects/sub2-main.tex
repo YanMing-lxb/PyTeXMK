@@ -1,0 +1,24 @@
+% !TEX program = XeLaTeX
+% 子项目 2：多文件结构 + makeindex + nomencl
+\documentclass{article}
+\usepackage{ctex}
+\usepackage{makeidx}
+\usepackage{nomencl}
+\usepackage[colorlinks]{hyperref}
+
+\makeindex
+\makenomenclature
+
+\begin{document}
+
+\section{子项目 2 — 多文件}
+
+本文档测试 \texttt{pytexmk -s sub2} 子项目编译。
+
+\input{chapters/intro}
+\input{chapters/content}
+
+\printnomenclature
+\printindex
+
+\end{document}
