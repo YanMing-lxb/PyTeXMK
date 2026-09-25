@@ -69,8 +69,3 @@ def set_language(lang_file):
     except (FileNotFoundError, OSError, ValueError):
         translation = fallback
     return translation.gettext
-
-
-def get_gettext(lang_file: str):
-    """set_language 的别名：返回翻译函数。"""
-    return set_language(lang_file)
