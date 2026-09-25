@@ -36,21 +36,12 @@ Description  :
 from pytexmk.compile import CompileLaTeX
 from pytexmk.compile_report import print_compile_report, print_compile_separator
 from pytexmk.language import set_language
-from pytexmk.tex_project import MainFileOperation
+from pytexmk.tex_project import MainFileOperation, standardize_name
 from pytexmk.timing import time_count
 from pytexmk.ui_messages import print_message
 
 _ = set_language("compile_engine")
 MFO = MainFileOperation()  # 实例化 MainFileOperation 类
-
-
-def standardize_name(compiled_program):
-    standard_names = {
-        "xelatex": "XeLaTeX",
-        "pdflatex": "PdfLaTeX",
-        "lualatex": "LuaLaTeX",
-    }
-    return standard_names.get(compiled_program.lower(), compiled_program)
 
 
 # --------------------------------------------------------------------------------
@@ -128,9 +119,8 @@ def RUN(
     if index_run_cmds:  # 存在目录索引编译命令
         for cmd in index_run_cmds:
             print_message(_("%(args)s 编译") % {"args": cmd[0]}, "running")
-            runtime_index, return_index = time_count(compile_model.compile_index, cmd)
-            name_target_index = return_index  # 获取 compile_index 函数得到的参数
-            runtime_dict[_("%(args)s 编译") % {"args": name_target_index}] = runtime_index
+            runtime_index, _ret = time_count(compile_model.compile_index, cmd)
+            runtime_dict[_("%(args)s 编译") % {"args": cmd[0]}] = runtime_index
 
     total_compilations = 1
     current_times = 1
