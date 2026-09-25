@@ -38,9 +38,9 @@ from typing import Literal
 import tomli_w
 from packaging import version
 from platformdirs import user_cache_dir
-from rich import print
 
 from ..language import set_language
+from ..ui_theme import console
 from ..version import __version__, script_name
 
 _ = set_language("check_version")
@@ -324,7 +324,7 @@ class UpdateChecker:
 
                 # 增加版本号格式校验
                 if "tag_name" not in data:
-                    raise ValueError()
+                    raise ValueError(_("GitHub release 响应中缺少 tag_name 字段"))
 
                 latest_version = data["tag_name"].lstrip("v")  # 去除可能存在的v前缀
                 parsed_version = version.parse(latest_version)
@@ -382,7 +382,7 @@ class UpdateChecker:
         current_version = version.parse(__version__)
 
         if current_version < latest_version:
-            print(
+            console.print(
                 _("有新版本可用: ")
                 + f"[bold green]{latest_version}[/bold green] "
                 + _("当前版本: ")
@@ -391,6 +391,6 @@ class UpdateChecker:
             method = _detect_install_method()
             lines = _build_upgrade_message(method)
             for line in lines:
-                print(line)
+                console.print(line)
         else:
-            print(_("当前版本: ") + f"[bold green]{current_version}[/bold green]")
+            console.print(_("当前版本: ") + f"[bold green]{current_version}[/bold green]")
