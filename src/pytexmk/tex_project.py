@@ -25,9 +25,7 @@ class MainFileOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    def check_project_name(
-        self, main_files: list, check_project_name: str, suffix: str
-    ) -> str:
+    def check_project_name(self, main_files: list, check_project_name: str, suffix: str) -> str:
         path_obj = Path(check_project_name)
 
         # 放开相对路径，但禁止绝对路径与".."越界
@@ -43,8 +41,7 @@ class MainFileOperation:
 
         if file_extension and file_extension != suffix:
             self.logger.error(
-                _("文件类型非 %(args)s: ") % {"args": suffix}
-                + f"[bold cyan]{check_project_name}{suffix}"
+                _("文件类型非 %(args)s: ") % {"args": suffix} + f"[bold cyan]{check_project_name}{suffix}"
             )
             exit_pytexmk(EXIT_ERROR)
 
@@ -55,9 +52,7 @@ class MainFileOperation:
         if path_obj.exists():
             return str(path_obj).rstrip(suffix) if str(path_obj).endswith(suffix) else str(path_obj)
 
-        self.logger.error(
-            _("未找到主文件 %(args)s") % {"args": f"[bold cyan]{check_project_name}{suffix}[/bold cyan]"}
-        )
+        self.logger.error(_("未找到主文件 %(args)s") % {"args": f"[bold cyan]{check_project_name}{suffix}[/bold cyan]"})
         exit_pytexmk(EXIT_ERROR)
 
     def get_suffix_files_in_dir(self, dir: str, suffix: str) -> list:
@@ -70,13 +65,9 @@ class MainFileOperation:
                 self.logger.info(_("搜索到: ") + f"{base_name}{suffix}")
 
             if suffix_files_in_dir:
-                self.logger.info(
-                    f"{suffix}" + _("文件数目: ") + str(len(suffix_files_in_dir))
-                )
+                self.logger.info(f"{suffix}" + _("文件数目: ") + str(len(suffix_files_in_dir)))
             else:
-                self.logger.error(
-                    _("文件不存在于当前路径下, 请检查终端显示路径是否是项目路径")
-                )
+                self.logger.error(_("文件不存在于当前路径下, 请检查终端显示路径是否是项目路径"))
                 self.logger.warning(_("当前终端路径: ") + str(current_path))
                 exit_pytexmk(EXIT_ERROR)
         except OSError as e:
@@ -91,18 +82,14 @@ class MainFileOperation:
             try:
                 if has_magic(Path(file_name).with_suffix(".tex")):
                     main_tex_files.append(file_name)
-                    self.logger.info(
-                        _("通过特征命令检索到主文件: ") + str(file_name)
-                    )
+                    self.logger.info(_("通过特征命令检索到主文件: ") + str(file_name))
             except (OSError, UnicodeDecodeError) as e:
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
 
         if main_tex_files:
             self.logger.info(_("发现主文件数量: ") + str(len(main_tex_files)))
         else:
-            self.logger.error(
-                _("终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!")
-            )
+            self.logger.error(_("终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!"))
             self.logger.warning(_("当前终端路径: ") + str(Path.cwd()))
             exit_pytexmk(EXIT_ERROR)
         return main_tex_files
@@ -120,15 +107,13 @@ class MainFileOperation:
                         if line_number > 50:
                             break
                         for magic_comment_key in magic_comment_keys:
-                            pattern = rf"%(?:\s*)!TEX {re.escape(magic_comment_key)}(?:\s*)=(?:\s*)(.*?)(?=\s|%|$)"
-                            match_result = re.search(
-                                pattern, line_content, re.IGNORECASE
+                            pattern = (
+                                rf"(?<!\\)%(?:\s*)!TEX {re.escape(magic_comment_key)}(?:\s*)=(?:\s*)(.*?)(?=\s|%|$)"
                             )
+                            match_result = re.search(pattern, line_content, re.IGNORECASE)
                             if match_result:
                                 matched_comment_value = match_result.group(1).strip()
-                                file_magic_comments[file_path][magic_comment_key] = (
-                                    matched_comment_value
-                                )
+                                file_magic_comments[file_path][magic_comment_key] = matched_comment_value
                                 break
             except (OSError, UnicodeDecodeError) as e:
                 self.logger.error(_("打开文件失败: ") + f"{file_path} --> {e}")
@@ -152,81 +137,50 @@ class MainFileOperation:
 
         if args_document:
             project_name = args_document
-            project_name = self.check_project_name(
-                main_files_in_root, project_name, ".tex"
-            )
-            console.print(
-                _("通过命令行命令指定待编译主文件为: ") + f"[bold cyan]{project_name}"
-            )
+            project_name = self.check_project_name(main_files_in_root, project_name, ".tex")
+            console.print(_("通过命令行命令指定待编译主文件为: ") + f"[bold cyan]{project_name}")
             return project_name
 
         if len(main_files_in_root) == 1:
             project_name = main_files_in_root[0]
-            console.print(
-                _("通过根目录下唯一主文件指定待编译主文件为: ")
-                + f"[bold cyan]{project_name}.tex"
-            )
+            console.print(_("通过根目录下唯一主文件指定待编译主文件为: ") + f"[bold cyan]{project_name}.tex")
             return project_name
 
         if "root" in all_magic_comments:
             self.logger.info(_("魔法注释 % !TEX root 在当前根目录下主文件中有被定义"))
             if len(all_magic_comments["root"]) == 1:
-                file_path, root_value = next(
-                    iter(all_magic_comments["root"].items())
-                )
-                self.logger.info(
-                    _("魔法注释 % !TEX root 只存在于: ") + f"{file_path}.tex"
-                )
-                check_file = self.check_project_name(
-                    main_files_in_root, root_value, ".tex"
-                )
+                file_path, root_value = next(iter(all_magic_comments["root"].items()))
+                self.logger.info(_("魔法注释 % !TEX root 只存在于: ") + f"{file_path}.tex")
+                check_file = self.check_project_name(main_files_in_root, root_value, ".tex")
                 if file_path == check_file:
                     project_name = check_file
-                    console.print(
-                        _("通过魔法注释 % !TEX root 指定待编译主文件为: ")
-                        + f"[bold cyan]{project_name}.tex"
-                    )
+                    console.print(_("通过魔法注释 % !TEX root 指定待编译主文件为: ") + f"[bold cyan]{project_name}.tex")
                     return project_name
                 else:
                     self.logger.warning(
-                        _(
-                            "魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: "
-                        )
+                        _("魔法注释 % !TEX root 指定的文件名与当前文件名不同, 无法确定主文件: ")
                         + f"[bold red]{check_file}.tex[/bold red], [bold green]{file_path}.tex[/bold green] "
                     )
             elif len(all_magic_comments["root"]) > 1:
                 self.logger.warning(
-                    _(
-                        "魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释确定待编译主文件"
-                    )
+                    _("魔法注释 % !TEX root 在当前根目录下的多个主文件中同时被定义, 无法根据魔法注释确定待编译主文件")
                 )
 
         if not project_name:
-            self.logger.info(
-                _(
-                    "无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"
-                )
-            )
+            self.logger.info(_("无法根据魔法注释判断出待编译主文件, 尝试根据默认主文件名指定待编译主文件"))
             for file in main_files_in_root:
                 if file == default_file:
                     project_name = file
                     console.print(
-                        _('通过默认文件名 "%(args)s.tex" 指定待编译主文件为: ')
-                        % {"args": default_file}
+                        _('通过默认文件名 "%(args)s.tex" 指定待编译主文件为: ') % {"args": default_file}
                         + f"[bold cyan]{project_name}.tex"
                     )
                     return project_name
                 else:
-                    self.logger.info(
-                        _('当前根目录下不存在名为 "%(args)s.tex" 的文件')
-                        % {"args": default_file}
-                    )
+                    self.logger.info(_('当前根目录下不存在名为 "%(args)s.tex" 的文件') % {"args": default_file})
 
         if not project_name:
-            self.logger.error(
-                _("无法进行编译, 当前根目录下存在多个主文件: ")
-                + ", ".join(main_files_in_root)
-            )
+            self.logger.error(_("无法进行编译, 当前根目录下存在多个主文件: ") + ", ".join(main_files_in_root))
             self.logger.warning(
                 _(
                     '请修改待编译主文件名为默认文件名 "%(args)s.tex" 或在文件中加入魔法注释 "%% !TEX root = [待编译主文件名]" 或在终端输入 "pytexmk [待编译主文件名]" 进行编译, 或删除当前根目录下多余的 tex 文件'
@@ -246,9 +200,7 @@ class MainFileOperation:
         file_name = f"{project_name}.tex"
         file_path = Path(file_name)
 
-        pattern = re.compile(
-            r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[([^\]]*)\])?\{([^\}]*)\}"
-        )
+        pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[([^\]]*)\])?\{([^\}]*)\}")
 
         def _replace_draft(match):
             options = match.group(1) or ""
@@ -269,14 +221,11 @@ class MainFileOperation:
 
             if modified_content != content:
                 file_path.write_text(modified_content, encoding="utf-8")
-                self.logger.info(
-                    _("启用草稿模式") if draft_judgement else _("关闭草稿模式")
-                )
+                self.logger.info(_("启用草稿模式") if draft_judgement else _("关闭草稿模式"))
                 if draft_judgement:
                     file_size = file_path.stat().st_size / 1024**2
                     self.logger.info(
-                        _("处理文件: %(args)s, 文件大小: %(size).3f MB")
-                        % {"args": file_name, "size": file_size}
+                        _("处理文件: %(args)s, 文件大小: %(size).3f MB") % {"args": file_name, "size": file_size}
                     )
             else:
                 self.logger.info(_("未匹配到内容, 文件未修改."))
