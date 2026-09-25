@@ -1,13 +1,40 @@
-"""PyTeXMK CLI LaTeXDiff 流程：新旧 TeX 文件对比与差异编译。"""
+'''
+ =======================================================================
+ ·······································································
+ ·······································································
+ ····Y88b···d88P················888b·····d888·d8b·······················
+ ·····Y88b·d88P·················8888b···d8888·Y8P·······················
+ ······Y88o88P··················88888b·d88888···························
+ ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
+ ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
+ ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
+ ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
+ ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
+ ·······························································888·····
+ ··························································Y8b·d88P·····
+ ···························································"Y88P"······
+ ·······································································
+ =======================================================================
 
-from rich import print
+ -----------------------------------------------------------------------
+Author       : 焱铭
+Date         : 2026-09-25 17:13:51 +0800
+LastEditTime : 2026-09-25 18:56:55 +0800
+Github       : https://github.com/YanMing-lxb/
+FilePath     : /PyTeXMK/src/pytexmk/cli/cli_latexdiff.py
+Description  : 
+ -----------------------------------------------------------------------
+'''
+
+"""PyTeXMK CLI LaTeXDiff 流程：新旧 TeX 文件对比与差异编译。"""
 
 from ..compile_engine import RUN, LaTeXDiffRUN
 from ..language import set_language
 from ..latexdiff import LaTeXDiff_Aux
-from ..lifecycle import exit_pytexmk
+from ..lifecycle import EXIT_COMPILE_FAILED, EXIT_ERROR, exit_pytexmk
 from ..timing import time_count
 from ..ui_messages import print_message
+from ..ui_theme import console
 from .cli_state import SUFFIXES_AUX, SUFFIXES_OUT, WorkflowState
 
 _ = set_language("cli_workflow")
@@ -24,12 +51,12 @@ def run(args, state: WorkflowState) -> None:
     logger = state.logger
 
     if not state.old_tex_file or not state.new_tex_file:
-        logger.error(_("请指定在命令行或配置文件中指定两个新旧 TeX 文件"))
-        exit_pytexmk()
+        logger.error(_("请在命令行或配置文件中指定新旧两个 TeX 文件"))
+        exit_pytexmk(EXIT_ERROR)
 
     if state.old_tex_file == state.new_tex_file:
         logger.error(_("不能对同一个文件进行比较, 请检查文件名是否正确"))
-        exit_pytexmk()
+        exit_pytexmk(EXIT_ERROR)
 
     print_message(_("LaTeXDiff 预处理"), "additional")
 
@@ -54,40 +81,69 @@ def run(args, state: WorkflowState) -> None:
 
     try:
         print_message(_("LaTeXDiff 运行"), "running")
-        aux_suffixes_exit = []
+        aux_suffixes_exit: list[str] = []
         if latex_diff_style == "1":
             for aux_suffix in _DIFF_AUX_SUFFIXES:
-                aux_file_exit = lda.aux_files_both_exist(state.old_tex_file, state.new_tex_file, aux_suffix)
-                aux_suffixes_exit.append(aux_file_exit) if aux_file_exit else None
+                aux_file_exit = lda.aux_files_both_exist(
+                    state.old_tex_file, state.new_tex_file, aux_suffix
+                )
+                if aux_file_exit is not None:
+                    aux_suffixes_exit.append(aux_file_exit)
             for aux_suffix in aux_suffixes_exit:
                 runtime_compile_LaTeXDiff, _ret = time_count(
-                    lda.compile_LaTeXDiff, state.old_tex_file, state.new_tex_file, state.diff_tex_file, aux_suffix
+                    lda.compile_LaTeXDiff,
+                    state.old_tex_file,
+                    state.new_tex_file,
+                    state.diff_tex_file,
+                    aux_suffix,
                 )
 
         runtime_compile_LaTeXDiff, _ret = time_count(
-            lda.compile_LaTeXDiff, old_tex_file_flatten, new_tex_file_flatten, state.diff_tex_file, ".tex"
+            lda.compile_LaTeXDiff,
+            old_tex_file_flatten,
+            new_tex_file_flatten,
+            state.diff_tex_file,
+            ".tex",
         )
         state.runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
 
         print_message(_("LaTeXDiff 后处理"), "additional")
-        print(_("删除 Flatten 后的文件..."))
+        console.print(_("删除 Flatten 后的文件..."))
         runtime_remove_flatten_root, _ret = time_count(
-            state.mro.remove_specific_files, [f"{old_tex_file_flatten}.tex", f"{new_tex_file_flatten}.tex"], "."
+            state.mro.remove_specific_files,
+            [f"{old_tex_file_flatten}.tex", f"{new_tex_file_flatten}.tex"],
+            ".",
         )
         state.runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
 
-        if args.LaTeXDiff_compile or args.LaTeXDiff_compile == []:
-            out_files = [f"{state.diff_tex_file}{suffix}" for suffix in SUFFIXES_OUT]
+        if args.LaTeXDiff_compile:
+            out_files = [
+                f"{state.diff_tex_file}{suffix}" for suffix in SUFFIXES_OUT
+            ]
             print_message(_("开始预处理命令"), "additional")
             if latex_diff_style == "1":
                 LaTeXDiffRUN(
-                    state.runtime_dict, state.diff_tex_file, state.compiled_program, out_files, state.aux_files,
-                    state.outdir, state.auxdir, state.non_quiet, args.draft,
+                    state.runtime_dict,
+                    state.diff_tex_file,
+                    state.compiled_program,
+                    out_files,
+                    state.aux_files,
+                    state.outdir,
+                    state.auxdir,
+                    state.non_quiet,
+                    args.draft,
                 )
             elif latex_diff_style == "2":
                 RUN(
-                    state.runtime_dict, state.diff_tex_file, state.compiled_program, out_files, state.aux_files,
-                    state.outdir, state.auxdir, state.non_quiet, args.draft,
+                    state.runtime_dict,
+                    state.diff_tex_file,
+                    state.compiled_program,
+                    out_files,
+                    state.aux_files,
+                    state.outdir,
+                    state.auxdir,
+                    state.non_quiet,
+                    args.draft,
                 )
             else:
                 logger.error(
@@ -99,12 +155,14 @@ def run(args, state: WorkflowState) -> None:
                 )
             print_message(_("开始后处理"), "additional")
 
-            print(_("移动结果文件到输出目录..."))
-            runtime_move_out_outdir, _ret = time_count(state.mro.move_specific_files, out_files, ".", state.outdir)
+            console.print(_("移动结果文件到输出目录..."))
+            runtime_move_out_outdir, _ret = time_count(
+                state.mro.move_specific_files, out_files, ".", state.outdir
+            )
             state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
     except Exception as e:  # noqa: BLE001
         logger.error(_("LaTeXDiff 编译出错: ") + str(e))
-        exit_pytexmk()
+        exit_pytexmk(EXIT_COMPILE_FAILED)
     finally:
         runtime_move_matched_files, _ret = time_count(
             state.mro.move_matched_files, state.aux_regex_files, ".", state.auxdir
@@ -118,4 +176,4 @@ def _require_aux_files(lda: LaTeXDiff_Aux, tex_file: str, logger) -> None:
         logger.info(_("%(args)s 的辅助文件存在") % {"args": tex_file})
     else:
         logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": tex_file})
-        exit_pytexmk()
+        exit_pytexmk(EXIT_ERROR)
