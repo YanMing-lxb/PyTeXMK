@@ -69,7 +69,8 @@ def setup_logger(verbose):
         return logger
 
     level = logging.INFO if verbose else logging.WARNING
-    print(_("启用 PyTeXMK 详细日志输出...") if verbose else "")
+    if verbose:
+        print(_("启用 PyTeXMK 详细日志输出..."))
 
     handler = RichHandler(
         show_level=True, show_time=False, markup=True, show_path=False
