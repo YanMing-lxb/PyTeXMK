@@ -49,7 +49,10 @@ def print_compile_report(
     )
 
     for name, tag, (stable_msg, unstable_msg) in ORDER:
-        val = dims.get(tag, 0)
+        val = dims.get(tag, -1)
+        if val < 0:
+            # 项目未使用该功能模块，跳过报告输出，避免误导性的"稳定"提示
+            continue
         if val == 0:
             mark = "[bold green][√][/bold green]"
             detail = f"[green]{stable_msg}[/green]"
@@ -63,7 +66,9 @@ def print_compile_report(
 
     console.print()
 
-    all_zero = all(dims.get(tag, 0) == 0 for _, tag, _ in ORDER)
+    # all_zero 只判断启用维度（val >= 0）的状态，未启用维度不参与
+    active_vals = [dims.get(tag, -1) for _, tag, _ in ORDER if dims.get(tag, -1) >= 0]
+    all_zero = all(v == 0 for v in active_vals) if active_vals else True
 
     if all_zero:
         console.print(
