@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,54 +18,109 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#, python-format
-msgid "PyTeXMK 版本: %(args)s"
-msgstr "PyTeXMK version: %(args)s"
+msgid "清除所有的辅助文件"
+msgstr "Cleaning all auxiliary files"
 
-msgid "[bold green]PyTeXMK 开始运行...\n"
-msgstr "[bold green]PyTeXMK starting...\n"
+msgid "清除文件夹内输出文件"
+msgstr "Cleaning output files in folder"
 
-msgid "[bold green]正在打开 README 文件..."
-msgstr "[bold green]Opening README file..."
-
-#, python-format
-msgid "README 本地路径: %(args)s"
-msgstr "README local path: %(args)s"
-
-msgid "README.html 文件未找到: "
-msgstr "README.html file not found: "
-
-msgid "打开 README 文件出错: "
-msgstr "Error opening README file: "
-
-msgid "[bold green]已生成根项目配置文件 [/bold green]"
-msgstr "[bold green]Root project config file generated [/bold green]"
-
-msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
-msgstr "[bold green]User config file ~/.pytexmkrc generated[/bold green]"
-
-msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]"
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]"
 msgstr ""
-"[bold green]Updated the \\[subprojects\\] section in .pytexmkrc[/bold "
+"[bold green]Finished cleaning all auxiliary-extension files and main file "
+"outputs[/bold green]"
+
+msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]"
+msgstr ""
+"[bold green]Finished cleaning all auxiliary-extension files[/bold green]"
+
+msgid "修复 PDF 文件"
+msgstr "Repairing PDF files"
+
+msgid "清除文件夹内辅助文件"
+msgstr "Cleaning auxiliary files in folder"
+
+msgid "清除根目录内辅助文件"
+msgstr "Cleaning auxiliary files in root directory"
+
+msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]"
+msgstr ""
+"[bold green]Finished cleaning auxiliary and output files of all main files"
+"[/bold green]"
+
+msgid "[bold green]已完成清除所有主文件的辅助文件的指令[/bold green]"
+msgstr ""
+"[bold green]Finished cleaning auxiliary files of all main files[/bold "
 "green]"
 
-msgid "[yellow]未找到根 .pytexmkrc ,请先运行 pytexmk -i 后再运行 -ls[/yellow]"
-msgstr ""
-"[yellow]No root .pytexmkrc found, please run pytexmk -i first before "
-"running -ls[/yellow]"
+msgid "开始预处理"
+msgstr "Starting preprocessing"
 
-msgid "未找到子项目: "
-msgstr "Subproject not found: "
+msgid "辅助文件->根目录"
+msgstr "Auxiliary files -> root directory"
 
-msgid "请先运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"
+msgid "未检测到已有辅助文件，进行初始化"
+msgstr "No existing auxiliary files detected, initializing"
+
+#, python-format
+msgid "已检测到 %(n)s 个已有辅助文件"
+msgstr "Detected %(n)s existing auxiliary files"
+
+msgid "没有检测到可迁移的辅助文件"
+msgstr "No migratable auxiliary files detected"
+
+#, python-format
+msgid "已移动 %(n)s 个辅助文件到项目根目录"
+msgstr "Moved %(n)s auxiliary files to project root directory"
+
+msgid "开始后处理"
+msgstr "Starting post-processing"
+
+msgid "移动结果文件到输出目录..."
+msgstr "Moving result files to output directory..."
+
+msgid "结果文件->输出目录"
+msgstr "Result files -> output directory"
+
+msgid "移动辅助文件到辅助目录..."
+msgstr "Moving auxiliary files to auxiliary directory..."
+
+msgid "辅助文件->辅助目录"
+msgstr "Auxiliary files -> auxiliary directory"
+
+msgid "警告：检测到上次编译可能被中断，辅助文件可能不完整。"
 msgstr ""
-"Please run pytexmk -ls to sync the subproject list, or check the root "
-"config's \\[subprojects\\] section"
+"Warning: the previous compilation may have been interrupted; auxiliary "
+"files may be incomplete."
+
+msgid "建议先运行 [bold cyan]pytexmk -c[/bold cyan] 清理后再重试。[/yellow]"
+msgstr ""
+"It is recommended to run [bold cyan]pytexmk -c[/bold cyan] to clean up "
+"first, then retry.[/yellow]"
+
+msgid "可运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"
+msgstr ""
+"Run pytexmk -ls to sync the subproject list, or check the \\[subprojects"
+"\\] section in the root config"
 
 msgid "子项目调用: 忽略子项目目录下的本地 .pytexmkrc, 以根配置为准"
 msgstr ""
 "Subproject invocation: ignore the local .pytexmkrc under the subproject "
 "directory, root config takes precedence"
+
+msgid "非安静模式运行"
+msgstr "Running in non-quiet mode"
+
+msgid "提取魔法注释: "
+msgstr "Extracting magic comments: "
+
+msgid "通过魔法注释设置程序为: "
+msgstr "Program set via magic comment: "
+
+msgid "通过魔法注释设置输出目录: "
+msgstr "Output directory set via magic comment: "
+
+msgid "通过魔法注释设置辅助目录: "
+msgstr "Auxiliary directory set via magic comment: "
 
 msgid "通过配置文件设置默认文件为: "
 msgstr "Default file set via config file: "
@@ -88,15 +143,6 @@ msgstr "PDF preview set via config file: "
 msgid "通过配置文件设置 PDF 预览器为: "
 msgstr "PDF viewer set via config file: "
 
-msgid "通过配置文件设置索引文件名为: "
-msgstr "Index file name set via config file: "
-
-msgid "通过配置文件设置索引输入文件后缀为: "
-msgstr "Index input file extension set via config file: "
-
-msgid "通过配置文件设置索引输出文件后缀为: "
-msgstr "Index output file extension set via config file: "
-
 msgid "通过配置文件设置 LaTeXDiff 旧文件为: "
 msgstr "LaTeXDiff old file set via config file: "
 
@@ -106,8 +152,13 @@ msgstr "LaTeXDiff new file set via config file: "
 msgid "通过配置文件设置 LaTeXDiff 对比文件为: "
 msgstr "LaTeXDiff comparison file set via config file: "
 
-msgid "非安静模式运行"
-msgstr "Running in non-quiet mode"
+#, python-format
+msgid "LaTeXDiff 需恰好 2 个文件名，当前收到 %(n)s 个"
+msgstr "LaTeXDiff requires exactly 2 file names, received %(n)s"
+
+#, python-format
+msgid "LaTeXDiff-compile 需恰好 2 个文件名，当前收到 %(n)s 个"
+msgstr "LaTeXDiff-compile requires exactly 2 file names, received %(n)s"
 
 msgid "命令行未指定 LaTeXDiff 相关参数"
 msgstr "No LaTeXDiff-related parameters specified on the command line"
@@ -118,39 +169,39 @@ msgstr "LaTeXDiff new TeX file set via config file: "
 msgid "根据配置文件设置 LaTeXDiff 旧 TeX 文件为: "
 msgstr "LaTeXDiff old TeX file set via config file: "
 
-msgid "请指定在命令行或配置文件中指定两个新旧 TeX 文件"
-msgstr "Please specify both old and new TeX files via command line or config file"
-
-msgid "请同时指定 LaTeXDiff 所需的新旧 TeX 文件"
-msgstr "Please specify both old and new TeX files required by LaTeXDiff"
-
-msgid "提取魔法注释: "
-msgstr "Extracting magic comments: "
-
-msgid "通过魔法注释设置程序为: "
-msgstr "Program set via magic comment: "
-
-msgid "通过魔法注释设置输出目录: "
-msgstr "Output directory set via magic comment: "
-
-msgid "通过魔法注释设置辅助目录: "
-msgstr "Auxiliary directory set via magic comment: "
-
-msgid "清除所有的辅助文件"
-msgstr "Cleaning all auxiliary files"
-
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令"
+msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
 msgstr ""
-"[bold green]Completed command to clean all files with auxiliary file "
-"extensions"
+"Please specify both the old and new TeX files via the command line or "
+"config file"
 
-msgid "清除文件夹内输出文件"
-msgstr "Cleaning output files in folder"
+msgid "[bold green]已生成根项目配置文件 [/bold green]"
+msgstr "[bold green]Root project config file generated [/bold green]"
 
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令"
+msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
+msgstr "[bold green]User config file ~/.pytexmkrc generated[/bold green]"
+
+msgid "[bold green]正在打开 README 文件...[/bold green]"
+msgstr "[bold green]Opening README file...[/bold green]"
+
+#, python-format
+msgid "README 本地路径: %(args)s"
+msgstr "README local path: %(args)s"
+
+msgid "README.html 文件未找到: "
+msgstr "README.html file not found: "
+
+msgid "打开 README 文件出错: "
+msgstr "Error opening README file: "
+
+msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]"
 msgstr ""
-"[bold green]Completed command to clean all files with auxiliary file "
-"extensions and main file output files"
+"[bold green]Updated the \\[subprojects\\] section in .pytexmkrc[/bold "
+"green]"
+
+msgid "[yellow]未找到根 .pytexmkrc , 请先运行 pytexmk -i 后再运行 -ls[/yellow]"
+msgstr ""
+"[yellow]Root .pytexmkrc not found, please run pytexmk -i first before "
+"running -ls[/yellow]"
 
 msgid "不能对同一个文件进行比较, 请检查文件名是否正确"
 msgstr ""
@@ -159,14 +210,6 @@ msgstr ""
 
 msgid "LaTeXDiff 预处理"
 msgstr "LaTeXDiff preprocessing"
-
-#, python-format
-msgid "%(args)s 的辅助文件存在"
-msgstr "Auxiliary files for %(args)s exist"
-
-#, python-format
-msgid "%(args)s 的辅助文件不存在, 请检查编译"
-msgstr "Auxiliary files for %(args)s do not exist, please check compilation"
 
 msgid "全辅助文件->根目录"
 msgstr "All auxiliary files -> root directory"
@@ -203,58 +246,21 @@ msgstr ""
 "  1 - Show changes in bibliography/symbol descriptions\n"
 "  2 - Do not show changes in bibliography/symbol descriptions"
 
-msgid "开始后处理"
-msgstr "Starting post-processing"
-
-msgid "移动结果文件到输出目录..."
-msgstr "Moving result files to output directory..."
-
-msgid "结果文件->输出目录"
-msgstr "Result files -> output directory"
-
 msgid "LaTeXDiff 编译出错: "
 msgstr "LaTeXDiff compilation error: "
 
-msgid "辅助文件->辅助目录"
-msgstr "Auxiliary files -> auxiliary directory"
-
-msgid "清除文件夹内辅助文件"
-msgstr "Cleaning auxiliary files in folder"
-
-msgid "清除根目录内辅助文件"
-msgstr "Cleaning auxiliary files in root directory"
-
-msgid "[bold green]已完成清除所有主文件的辅助文件的指令"
-msgstr "[bold green]Completed command to clean auxiliary files of all main files"
-
-msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令"
-msgstr ""
-"[bold green]Completed command to clean auxiliary files and output files "
-"of all main files"
-
-msgid "修复 PDF 文件"
-msgstr "Repairing PDF files"
-
-msgid "开始预处理"
-msgstr "Starting preprocessing"
-
-msgid "辅助文件->根目录"
-msgstr "Auxiliary files -> root directory"
-
-msgid "未检测到已有辅助文件，进行初始化"
-msgstr "No existing auxiliary files detected, initializing"
+#, python-format
+msgid "%(args)s 的辅助文件存在"
+msgstr "Auxiliary files for %(args)s exist"
 
 #, python-format
-msgid "已检测到 %(n)s 个已有辅助文件"
-msgstr "Detected %(n)s existing auxiliary files"
-
-msgid "没有检测到可迁移的辅助文件"
-msgstr "No migratable auxiliary files detected"
+msgid "%(args)s 的辅助文件不存在, 请检查编译"
+msgstr "Auxiliary files for %(args)s do not exist, please check compilation"
 
 #, python-format
-msgid "已移动 %(n)s 个辅助文件到项目根目录"
-msgstr "Moved %(n)s auxiliary files to project root directory"
+msgid "PyTeXMK 版本: %(version)s"
+msgstr "PyTeXMK version: %(version)s"
 
-msgid "移动辅助文件到辅助目录..."
-msgstr "Moving auxiliary files to auxiliary directory..."
+msgid "[bold green]PyTeXMK 开始运行...[/bold green]"
+msgstr "[bold green]PyTeXMK starting...[/bold green]"
 

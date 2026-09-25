@@ -1,5 +1,6 @@
 """用例：check_project_name 路径约束——禁止绝对路径与 `..` 越界。"""
 import pytest
+
 from pytexmk.tex_project import MainFileOperation
 
 

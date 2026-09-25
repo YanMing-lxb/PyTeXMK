@@ -1,5 +1,4 @@
 """用例 1 & 4：子项目发现排除规则/层深，以及 -ls 幂等写回并保留块外内容。"""
-import pytest
 from pytexmk.subproject_scanner import (
     discover_subprojects,
     entries_to_subprojects,

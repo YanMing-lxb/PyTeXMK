@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -28,13 +28,17 @@ msgstr "Path cannot go beyond the project root directory: "
 msgid "文件类型非 %(args)s: "
 msgstr "File type is not %(args)s: "
 
+#, python-format
+msgid "未找到主文件 %(args)s"
+msgstr "Main file %(args)s not found"
+
 msgid "搜索到: "
 msgstr "Found: "
 
 msgid "文件数目: "
 msgstr "Number of files: "
 
-msgid "文件不存在于当前路径下，请检查终端显示路径是否是项目路径"
+msgid "文件不存在于当前路径下, 请检查终端显示路径是否是项目路径"
 msgstr ""
 "File does not exist in the current directory, please verify that the "
 "terminal path is the project directory"
@@ -45,6 +49,9 @@ msgstr "Current terminal path: "
 msgid "文件搜索失败: "
 msgstr "File search failed: "
 
+msgid "文件搜索正则错误: "
+msgstr "File search regex error: "
+
 msgid "通过特征命令检索到主文件: "
 msgstr "Main file detected via characteristic commands: "
 
@@ -54,7 +61,7 @@ msgstr "Failed to open file: "
 msgid "发现主文件数量: "
 msgstr "Number of main files found: "
 
-msgid "终端路径下不存在主文件!请检查终端显示路径是否是项目路径!"
+msgid "终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!"
 msgstr ""
 "No main file found in the terminal directory! Please verify that the "
 "terminal path is the project directory!"
@@ -107,13 +114,13 @@ msgstr "Cannot compile, multiple main files exist in the current root directory:
 
 #, python-format
 msgid ""
-"请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 \"% !TEX root = [待编译主文件名]\""
-" 或在终端输入 \"pytexmk [待编译主文件名]\" 进行编译, 或删除当前根目录下多余的 tex 文件"
+"请修改待编译主文件名为默认文件名 \"%(args)s.tex\" 或在文件中加入魔法注释 \"%% !TEX root = "
+"[待编译主文件名]\" 或在终端输入 \"pytexmk [待编译主文件名]\" 进行编译, 或删除当前根目录下多余的 tex 文件"
 msgstr ""
-"Please rename the main file to compile to the default name "
-"\"%(args)s.tex\", or add the magic comment \"% !TEX root = [main file "
-"name]\" in the file, or run \"pytexmk [main file name]\" in the terminal "
-"to compile, or remove excess tex files from the current root directory"
+"Please rename the main file to compile to the default name \"%(args)s.tex"
+"\", add the magic comment \"%% !TEX root = [main file name]\" to the "
+"file, run \"pytexmk [main file name]\" in the terminal to compile, or "
+"remove the extra tex files from the current root directory"
 
 msgid "当前根目录是: "
 msgstr "Current root directory: "
@@ -143,6 +150,6 @@ msgstr "Permission error: cannot read or write file: "
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
 
-#~ msgid "文件名中不能存在路径"
-#~ msgstr "File name must not contain a path"
+msgid "草稿模式正则匹配出错: "
+msgstr "Error matching draft mode regex: "
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -45,51 +45,68 @@ msgstr ""
 
 msgid "当前为手动安装（从 GitHub Release 下载的 zip 解压版），请前往以下地址下载新版 zip 覆盖旧目录："
 msgstr ""
+"Manual installation detected (zip extracted from a GitHub Release). "
+"Please download the new zip from the address below and overwrite the old "
+"directory: "
 
 msgid ""
 "💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-"
 "lxb.PyTeXMK -e[/bold green]"
 msgstr ""
+"💡 Recommended: switch to winget auto-update installation (Windows only): "
+"[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]"
 
 msgid "已检测到新版本，可根据你的安装方式选择以下任一命令更新："
 msgstr ""
+"A new version is available. Choose one of the following commands to "
+"update, based on your installation method: "
 
 msgid ""
 "[bold]Windows winget[/bold]:  [bold green]winget upgrade --id YanMing-"
 "lxb.PyTeXMK -e[/bold green]"
 msgstr ""
+"[bold]Windows winget[/bold]:  [bold green]winget upgrade --id YanMing-"
+"lxb.PyTeXMK -e[/bold green]"
 
 #, python-format
 msgid ""
 "[bold]PyPI pip[/bold]:      [bold green]pip install --upgrade "
 "%(args)s[/bold green]"
 msgstr ""
+"[bold]PyPI pip[/bold]:      [bold green]pip install --upgrade "
+"%(args)s[/bold green]"
 
 #, python-format
 msgid ""
 "[bold]uv tool[/bold]:       [bold green]uv tool upgrade %(args)s[/bold "
 "green]"
 msgstr ""
+"[bold]uv tool[/bold]:       [bold green]uv tool upgrade %(args)s[/bold "
+"green]"
 
 #, python-format
 msgid "[bold]手动下载[/bold]:      [bold blue]%(url)s[/bold blue]"
-msgstr ""
+msgstr "[bold]Manual download[/bold]:      [bold blue]%(url)s[/bold blue]"
 
 #, python-format
 msgid ""
 "[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade "
 "%(args)s[/bold green]"
 msgstr ""
+"[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade "
+"%(args)s[/bold green]"
 
 #, python-format
 msgid ""
 "[bold]uv tool[/bold]:           [bold green]uv tool upgrade "
 "%(args)s[/bold green]"
 msgstr ""
+"[bold]uv tool[/bold]:           [bold green]uv tool upgrade "
+"%(args)s[/bold green]"
 
 #, python-format
 msgid "[bold]手动下载[/bold]:           [bold blue]%(url)s[/bold blue]"
-msgstr ""
+msgstr "[bold]Manual download[/bold]:           [bold blue]%(url)s[/bold blue]"
 
 msgid "读取版本缓存文件中的版本号，缓存有效期: "
 msgstr "Reading version number from cache file, cache validity period: "
@@ -102,6 +119,9 @@ msgstr "Error loading cached version: "
 
 msgid "更新版本缓存时出错: "
 msgstr "Error updating version cache: "
+
+msgid "GitHub release 响应中缺少 tag_name 字段"
+msgstr "The GitHub release response is missing the tag_name field"
 
 msgid "通过 GitHub API 获取最新版本成功"
 msgstr "Successfully retrieved the latest version via GitHub API"

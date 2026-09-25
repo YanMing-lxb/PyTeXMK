@@ -1,6 +1,5 @@
 """用例 3 & 5：配置合并优先级、缺失配置静默兜底且不落盘。"""
-import pytest
-from pytexmk.config import DEFAULT_CONFIG, ConfigParser, _merge_dict
+from pytexmk.config import DEFAULT_CONFIG, _merge_dict
 
 
 def test_merge_dict_override_and_fallback():

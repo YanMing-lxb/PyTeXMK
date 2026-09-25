@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.3.4\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: 2026-09-18 16:21+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -17,4 +17,12 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
+
+#, python-format
+msgid "，可用别名: %(s)s"
+msgstr ", available aliases: %(s)s"
+
+#, python-format
+msgid "未找到子项目: %(name)s"
+msgstr "Subproject not found: %(name)s"
 

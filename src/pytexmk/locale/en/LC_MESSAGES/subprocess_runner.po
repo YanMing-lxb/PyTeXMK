@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -22,6 +22,26 @@ msgid "[bold]运行命令: [/bold]"
 msgstr "[bold]Running command: [/bold]"
 
 #, python-format
-msgid "%(args)s 编译失败,请查看日志文件以获取详细信息: "
-msgstr "%(args)s compilation failed, please check the log file for details: "
+msgid "[yellow]收到中断信号，正在终止 %(prog)s...[/yellow]"
+msgstr "[yellow]Interrupt signal received, terminating %(prog)s...[/yellow]"
+
+#, python-format
+msgid "[√] 运行 %(prog)s 成功 [time](耗时: %(dur)s)[/]"
+msgstr "[√] Ran %(prog)s successfully [time](took: %(dur)s)[/]"
+
+#, python-format
+msgid "%(prog)s 编译失败, 请查看日志文件以获取详细信息: %(log)s"
+msgstr ""
+"%(prog)s compilation failed, see the log file for details: %(log)s"
+
+#, python-format
+msgid "%(prog)s 执行超时: "
+msgstr "%(prog)s execution timed out: "
+
+msgid "执行超时"
+msgstr "Execution timed out"
+
+#, python-format
+msgid "%(prog)s 无法启动: %(err)s"
+msgstr "%(prog)s failed to start: %(err)s"
 

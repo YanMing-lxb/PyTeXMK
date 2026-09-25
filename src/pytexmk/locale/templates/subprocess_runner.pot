@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.3.4\n"
+"Project-Id-Version: PyTeXMK 1.2.5\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-18 17:47+0800\n"
+"POT-Creation-Date: 2026-09-25 19:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,6 +21,25 @@ msgid "[bold]运行命令: [/bold]"
 msgstr ""
 
 #, python-format
-msgid "%(args)s 编译失败,请查看日志文件以获取详细信息: "
+msgid "[yellow]收到中断信号，正在终止 %(prog)s...[/yellow]"
+msgstr ""
+
+#, python-format
+msgid "[√] 运行 %(prog)s 成功 [time](耗时: %(dur)s)[/]"
+msgstr ""
+
+#, python-format
+msgid "%(prog)s 编译失败, 请查看日志文件以获取详细信息: %(log)s"
+msgstr ""
+
+#, python-format
+msgid "%(prog)s 执行超时: "
+msgstr ""
+
+msgid "执行超时"
+msgstr ""
+
+#, python-format
+msgid "%(prog)s 无法启动: %(err)s"
 msgstr ""
 
