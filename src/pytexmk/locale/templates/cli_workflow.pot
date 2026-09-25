@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.5\n"
+"Project-Id-Version: PyTeXMK 1.2.6\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:26+0800\n"
+"POT-Creation-Date: 2026-09-25 21:59+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -162,14 +162,15 @@ msgstr ""
 msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
 msgstr ""
 
+#, python-format
+msgid "README.html / README.en.html 文件均未找到，目录: %(args)s"
+msgstr ""
+
 msgid "[bold green]正在打开 README 文件...[/bold green]"
 msgstr ""
 
 #, python-format
 msgid "README 本地路径: %(args)s"
-msgstr ""
-
-msgid "README.html 文件未找到: "
 msgstr ""
 
 msgid "打开 README 文件出错: "

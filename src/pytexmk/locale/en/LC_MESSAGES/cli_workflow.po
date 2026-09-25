@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:26+0800\n"
+"POT-Creation-Date: 2026-09-25 21:59+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -179,15 +179,16 @@ msgstr "[bold green]Root project config file generated [/bold green]"
 msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
 msgstr "[bold green]User config file ~/.pytexmkrc generated[/bold green]"
 
+#, python-format
+msgid "README.html / README.en.html 文件均未找到，目录: %(args)s"
+msgstr ""
+
 msgid "[bold green]正在打开 README 文件...[/bold green]"
 msgstr "[bold green]Opening README file...[/bold green]"
 
 #, python-format
 msgid "README 本地路径: %(args)s"
 msgstr "README local path: %(args)s"
-
-msgid "README.html 文件未找到: "
-msgstr "README.html file not found: "
 
 msgid "打开 README 文件出错: "
 msgstr "Error opening README file: "
@@ -262,4 +263,7 @@ msgstr "PyTeXMK version: %(version)s"
 
 msgid "[bold green]PyTeXMK 开始运行...[/bold green]"
 msgstr "[bold green]PyTeXMK starting...[/bold green]"
+
+#~ msgid "README.html 文件未找到: "
+#~ msgstr "README.html file not found: "
 
