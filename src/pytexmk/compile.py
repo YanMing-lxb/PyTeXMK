@@ -81,6 +81,15 @@ class CompileLaTeX:
             MRO=self.MRO,
         )
 
+    def _on_subprocess_failure(self):
+        """统一处理 SubprocessFailedError：打印日志分析、退出 PyTeXMK。"""
+        pytexlogs.run_log_pipeline(
+            self.project_name, self.auxdir, root_file=None,
+            pytexmk_version=__version__,
+            ref_tracker_translate_fn=set_language("log_parser"),
+        )
+        exit_pytexmk()
+
     def compile_tex(self):
 
         command = [
@@ -103,12 +112,7 @@ class CompileLaTeX:
                 command, self.out_files, self.aux_files, self.compiled_program
             )
         except SubprocessFailedError:
-            pytexlogs.run_log_pipeline(
-                self.project_name, self.auxdir, root_file=None,
-                pytexmk_version=__version__,
-                ref_tracker_translate_fn=set_language("log_parser"),
-            )
-            exit_pytexmk()
+            self._on_subprocess_failure()
 
     def compile_bib(self, bib_engine):
         command = [bib_engine, self.project_name]
@@ -119,26 +123,14 @@ class CompileLaTeX:
         try:
             self.MSP.run_command(command, self.out_files, self.aux_files, bib_engine)
         except SubprocessFailedError:
-            pytexlogs.run_log_pipeline(
-                self.project_name, self.auxdir, root_file=None,
-                pytexmk_version=__version__,
-                ref_tracker_translate_fn=set_language("log_parser"),
-            )
-            exit_pytexmk()
+            self._on_subprocess_failure()
 
     def compile_index(self, cmd):
-        name_target = f"{cmd[0]}"
         command = shlex.split(cmd[1])
         try:
             self.MSP.run_command(command, self.out_files, self.aux_files, cmd[0])
         except SubprocessFailedError:
-            pytexlogs.run_log_pipeline(
-                self.project_name, self.auxdir, root_file=None,
-                pytexmk_version=__version__,
-                ref_tracker_translate_fn=set_language("log_parser"),
-            )
-            exit_pytexmk()
-        return name_target
+            self._on_subprocess_failure()
 
     def compile_xdv(self):
         command = ["dvipdfmx", "-V", "2.0", f"{self.project_name}"]
@@ -147,9 +139,4 @@ class CompileLaTeX:
         try:
             self.MSP.run_command(command, self.out_files, self.aux_files, "dvipdfmx")
         except SubprocessFailedError:
-            pytexlogs.run_log_pipeline(
-                self.project_name, self.auxdir, root_file=None,
-                pytexmk_version=__version__,
-                ref_tracker_translate_fn=set_language("log_parser"),
-            )
-            exit_pytexmk()
+            self._on_subprocess_failure()
