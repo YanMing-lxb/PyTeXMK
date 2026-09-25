@@ -1,6 +1,7 @@
 import logging
 
 from pytexmk.language import set_language
+from pytexmk.tex_project import standardize_name
 from pytexmk.timing import total_len
 from pytexmk.ui_theme import console
 
@@ -10,15 +11,6 @@ _ = set_language("compile_report")
 
 DIVIDER_CHAR = "-"
 DIVIDER_STYLE = "cyan bold"
-
-
-def standardize_name(compiled_program):
-    standard_names = {
-        "xelatex": "XeLaTeX",
-        "pdflatex": "PdfLaTeX",
-        "lualatex": "LuaLaTeX",
-    }
-    return standard_names.get(compiled_program.lower(), compiled_program)
 
 
 def print_compile_separator(divider_char: str = DIVIDER_CHAR, style: str = DIVIDER_STYLE) -> None:
