@@ -251,7 +251,7 @@ class CompilationDetector:
     def bib_judgment(self, old_cite_counter):
         bib_engine = None
         target_name_bib = None
-        Latex_compilation_times = 0
+        latex_compilation_times = 0
         aux_file_path = Path(f"{self.project_name}.aux")
         if aux_file_path.exists():
             aux_content = _read_file_content(aux_file_path)
@@ -272,7 +272,7 @@ class CompilationDetector:
                     if match_biber_bib:
                         self.bib_file = match_biber_bib.group(1)
                         bib_engine = "biber"
-                        Latex_compilation_times = 2
+                        latex_compilation_times = 2
 
                 elif match_bibtex:
                     match_bibtex_bib = BIBTEX_BIB_PATTERN.search(
@@ -281,17 +281,17 @@ class CompilationDetector:
                     if match_bibtex_bib:
                         self.bib_file = match_bibtex_bib.group(1)
                         bib_engine = "bibtex"
-                        Latex_compilation_times = 2
+                        latex_compilation_times = 2
 
                 target_name_bib = bib_engine
 
                 bib_file_path = Path(self.bib_file)
                 if not bib_file_path.exists() and bib_engine is not None:
-                    Latex_compilation_times = 2
+                    latex_compilation_times = 2
 
                 new_cite_counter = self._generate_citation_counter()
                 if old_cite_counter == new_cite_counter:
-                    Latex_compilation_times = 0
+                    latex_compilation_times = 0
 
                 if (
                     re.search(
@@ -299,15 +299,15 @@ class CompilationDetector:
                     )
                     or re.search("LaTeX Warning: Citation .* undefined", self.out)
                 ):
-                    Latex_compilation_times = 2
+                    latex_compilation_times = 2
 
             elif re.search(r"\\bibcite", aux_content):
                 new_cite_counter = self._generate_citation_counter()
-                Latex_compilation_times = 0 if old_cite_counter == new_cite_counter else 1
+                latex_compilation_times = 0 if old_cite_counter == new_cite_counter else 1
 
         else:
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
-        return bib_engine, Latex_compilation_times, target_name_bib
+        return bib_engine, latex_compilation_times, target_name_bib
 
     def _index_changed_judgment(
         self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile
@@ -315,9 +315,9 @@ class CompilationDetector:
         """判断单次索引是否需要重跑。
 
         三种情况返回 True：
-          1. self.out 中出现 "No file {index_aux_infile}." → 从未跑过索引
-          2. 当前输入文件存在且内容与快照不同 → 发生了变化
-          3. 其他（输入/输出文件缺失）→ 视为首次，需要跑
+            1. self.out 中出现 "No file {index_aux_infile}." → 从未跑过索引
+            2. 当前输入文件存在且内容与快照不同 → 发生了变化
+            3. 其他（输入/输出文件缺失）→ 视为首次，需要跑
 
         .get() 兜底：当快照 dict 里没有 key 时（快照阶段没捕获到该文件），
         视为快照内容与任何值都不同 → 触发重跑。
