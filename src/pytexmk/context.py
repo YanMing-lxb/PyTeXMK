@@ -9,7 +9,20 @@ _ = set_language("context")
 
 
 class ProjectNotFoundError(Exception):
-    """子项目名称未命中根配置 [subprojects] 时抛出。"""
+    """子项目名称未命中根配置 [subprojects] 时抛出。
+
+    参数:
+        name: 用户输入的错误别名
+        available: 当前 [subprojects] 中已存在的可用别名列表（大写不敏感匹配）
+    """
+
+    def __init__(self, name: str, available: list[str] | None = None):
+        self.name = name
+        self.available = available or []
+        suggestions = ""
+        if self.available:
+            suggestions = _("，可用别名: %(s)s") % {"s": ", ".join(sorted(self.available))}
+        super().__init__(_("未找到子项目: %(name)s") % {"name": name} + suggestions)
 
 
 @dataclass
@@ -17,11 +30,11 @@ class ProjectContext:
     """一次 PyTeXMK 运行所需的统一上下文。
 
     字段说明：
-      root       : 项目根目录（即用户终端当前目录），用 resolve() 归一化。
-      work_root  : 实际工作根目录。普通编译 == root；`-s` 子项目编译时为该子项目目录。
-      config     : 纯读取合并后的原始配置 dict（优先级 默认<-用户rc<-项目rc）。
-      subprojects: 子项目别名 -> 绝对 Path 映射（来自根 [subprojects]）。
-      subproject : 本次 `-s` 选中的别名，None 表示桌面/根项目编译。
+        root       : 项目根目录（即用户终端当前目录），用 resolve() 归一化。
+        work_root  : 实际工作根目录。普通编译 == root；`-s` 子项目编译时为该子项目目录。
+        config     : 纯读取合并后的原始配置 dict（优先级 默认<-用户rc<-项目rc）。
+        subprojects: 子项目别名 -> 绝对 Path 映射（来自根 [subprojects]）。
+        subproject : 本次 `-s` 选中的别名，None 表示桌面/根项目编译。
     """
 
     root: Path
@@ -80,7 +93,7 @@ class ContextResolver:
             name = args.subproject
             target = subprojects.get(name)
             if target is None:
-                raise ProjectNotFoundError(name)
+                raise ProjectNotFoundError(name, list(subprojects.keys()))
             subproject = name
             work_root = target
 
