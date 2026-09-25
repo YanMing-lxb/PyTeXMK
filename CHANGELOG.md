@@ -19,7 +19,7 @@
  *  -----------------------------------------------------------------------
  * Author       : 焱铭
  * Date         : 2026-07-24 22:39:23 +0800
- * LastEditTime : 2026-09-21 13:16:43 +0800
+ * LastEditTime : 2026-09-25 23:50:00 +0800
  * Github       : https://github.com/YanMing-lxb/
  * FilePath     : /PyTeXMK/CHANGELOG.md
  * Description  : 
@@ -27,6 +27,60 @@
  -->
 
 # CHANGELOG
+
+## v1.2.5 - 2026-09-25
+
+### 🏗 架构变更
+
+- **CLI 工作流拆分（方案 C）**：`cli/cli_workflow.py` 从 437 行单函数瘦身至 30 行薄入口，具体实现下沉到 4 个叶子模块 + 1 个共享状态容器：
+  - `cli_state.py`（叶子模块，不 import 任何其他 cli_*）：`WorkflowState` dataclass 承载 20+ 运行时变量 + `PREVIEW_AFTER_COMPILE / SUFFIXES_OUT / SUFFIXES_AUX / MAGIC_COMMENT_KEYS` 四组常量
+  - `cli_early.py`：`handle(args, cp, logger)` 处理 `-r / -i / -iu / -ls` 早退出子命令
+  - `cli_context.py`：`build → resolve_target → apply_magic_comments` 三步完成 上下文解析 + 三层配置合并 + 魔法注释覆盖 + 文件清单派生
+  - `cli_compile.py`：`handle_clean_any / run / finalize` 覆盖 `-ca/-Ca / -c/-C / -pr / 完整编译 / PDF 预览 / time_print / UpdateChecker`
+  - `cli_latexdiff.py`：`run` 覆盖 LaTeXDiff 全流程（校验 → 辅助文件检查 → flatten → 风格交互 → 差异编译 → finally 归还辅助文件）
+  - 依赖严格单向：`cli_workflow → {cli_early, cli_context, cli_compile, cli_latexdiff} → cli_state`，无循环依赖
+  - 全流程共享状态由隐式全局变量 → 显式 `WorkflowState` dataclass，消除 20 个散落变量的层层覆盖
+  - 13 处函数内 import 全部上移顶部，依赖关系静态可见
+  - 所有新模块沿用 `set_language("cli_workflow")` 域，**翻译文件 `cli_workflow.mo` 无需修改**
+  - 对外接口 `run_workflow(args)` 签名不变，`__main__.py` / 打包配置 / CI 无感
+
+- **索引系统重构**：`detection._index_aux_content_get` 与 `index_judgment` 两套 50 行分支逻辑统一改为 `_INDEX_REGISTRY` 注册表驱动，glossaries/nomencl/makeidx 三种索引的触发条件、解析规则、文件后缀、命令模板集中管理，新增第四种索引系统（如 acronym）只需在注册表追加一条
+- **`standardize_name()` 三处重复定义合并**：`compile_engine.py / compile_report.py / cli_workflow.py` 各自拷贝的 7 行函数 → 统一 `tex_project.standardize_name`，原位置改为 import 复用
+- **compile.py 四段相同错误处理提取**：`compile_tex / compile_bib / compile_index / compile_xdv` 四个方法的 `except SubprocessFailedError` 块一字不差 → 提取为类方法 `_on_subprocess_failure`
+
+### 🐛 Bug 修复
+
+- **🔴 glossaries 快照读错文件**：`detection._index_aux_content_get` glossaries 分支快照 `_read_file_content(Path(f"{ext_o}"))` 但 key 用 `{ext_i}`，导致快照存了输出文件 `.gls` 内容却标为输入文件 `.glo`，检测阶段永远在拿不同文件比较 → 每轮编译都误判需要重跑索引。修正为 `_read_file_content(Path(f"{ext_i}"))`（与 nomencl/makeidx 分支保持一致，都以输入文件 ext_i 为快照/比较对象）
+- **🔴 配置项 `pdf_preview_status` 完全失效**：三层证据
+  1. `config.py` 默认值为 `False`（布尔），但 L205 被 `args.pdf_preview`（`-pv` 未传时 argparse const 为 `None`）无条件覆盖
+  2. L429 又拿布尔值去和字符串哨兵 `"preview after compile"` 比较 → 永远不相等
+  3. 出厂 `default_user_config.toml` 注释写着"编译结束后是否打开 PDF"，却因上述三层矛盾静默不生效。修复：统一为 `state.preview_after_compile: bool`，配置合并（L132-137）与 `-pv` 合并（L165-182）都以布尔语义赋值，消除字符串哨兵 + 无条件覆盖
+- **🔴 `[index]` 段三参数静默谎言**：`index_style_file / input_suffix / output_suffix` 在原 `cli_workflow.py:177-186` 中被读取后只打日志、下文零引用，而实际索引后缀由 `detection._INDEX_REGISTRY` 硬编码统一管理；glossaries 输入后缀又本就由 `.aux` 动态解析多个值，单一后缀覆盖语义不成立。已从 `cli_context._apply_config_file` 删除该段读取，留注释说明原因；配置文件中的 `[index]` 段暂时保留兼容但不参与运行时
+- **恒真条件**：`cli_workflow.py:232` `elif not args.readme:`（此时已在 L83-98 走 `finally: exit_pytexmk()` 退出）→ `else:`
+
+### 🛠️ 完善
+
+- **13 处函数内冗余 `set_language("detection")` 清理**：`detection.py` 模块级已调一次，函数体内的重复调用完全多余（运行时模块级 state 已就绪），已删除
+- **移除 `from __future__ import annotations`**：`context.py / subproject_scanner.py` 中该 import 在 Python 3.14 下（PEP 563 延迟注解默认启用）完全多余，已删除
+- **`_count_citations` 三重嵌套简化**：先用 `.search()` 再 `.finditer()` 导致 search 结果被忽略 → 直接用 tuple + 单层 `for pattern in _CITE_PATTERNS` 迭代，一次遍历完成三模式匹配
+- **未使用的 `get_gettext()` 删除**：`language.py:74-75` 此函数仅做 `return set_language(lang_file)`，搜索全 src 目录无任何调用方
+- **`print_message` dict 查表替代 if/elif**：`ui_messages.py` 三种 state 对应的 `in_dec_chars / out_dec_chars / *_style` 硬编码 if/elif → 用 `_STATE_STYLES` 集中管理的 dict 查表
+- **`pyproject.toml` per-file-ignores 清理**：6 条指向不存在文件（`scripts/*`、`tests/test.py`、`tests/test_tr21_manager_compare.py`、`tests/test_tr22_register_compat.py`、`scripts/check_log_decouple.py`）的忽略规则已清理
+- **`_index_changed_judgment` `.get()` 兜底**：原裸 `dict[key]` 查找有隐性 KeyError 风险（快照用 `all()`、检测用 `any()` 的触发条件不一致时），改为 `.get(key, "")`
+
+### 📝 文档更新
+
+- `docs/architecture.md` 同步至 v1.2.5：模块规模 23 → 28、Layer 1 CLI 子包列表 4 → 9、职责矩阵重写（含 `cli_state/cli_early/cli_context/cli_compile/cli_latexdiff` 新行）、烟检命令更新、子包拆分阈值背景补充说明"CLI 域扩展后三阈值条件仍成立"
+
+### 🧪 质量验证
+
+- `ruff check src/pytexmk/`：**All checks passed**（0 错误；修复前 1 条 SIM102 同步消除）
+- `pytest -q`：**14 passed**（无新增失败）
+- 6 个新模块静态导入烟检：**ALL IMPORT OK**
+- 真实端到端 XeLaTeX 编译（XeLaTeX×3 + bibtex + nomencl + dvipdfmx + 日志解析 + 统计表 + UpdateChecker）：**Exit=0，全绿**
+- 7 组 CLI 路径逐一冒烟：`-i` 初始化、`-ls` 子项目清单、`-d / -dc` LaTeXDiff 参数校验、`-c / -C / -ca` 清理路径、`-pv FILE` 单次预览：全部符合预期
+
+---
 
 ## v1.2.4 - 2026-09-18
 
