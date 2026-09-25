@@ -1,5 +1,4 @@
 """结构化子项目发现与写回：扫描主 .tex、构造清单并整体替换 [subprojects] 段。"""
-from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
