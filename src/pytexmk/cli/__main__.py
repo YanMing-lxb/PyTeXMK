@@ -95,7 +95,19 @@ def main():
     args = parse_args(UC)
     from pytexmk.cli.cli_workflow import run_workflow
 
-    run_workflow(args)
+    try:
+        run_workflow(args)
+    except KeyboardInterrupt:
+        try:
+            # 确保 console 已初始化（如果在 _ = set_language 之前就按 Ctrl+C）
+            from pytexmk.ui_theme import console
+
+            console.print()
+            console.print("[bold yellow]PyTeXMK 已被用户中断[/bold yellow]")
+        except Exception:  # noqa: BLE001
+            # console 还没初始化成功就被 Ctrl+C，直接 print 兜底
+            print("\nPyTeXMK 已被用户中断", file=sys.stderr)
+        sys.exit(130)  # 标准 SIGINT 退出码 (128 + 2)
 
 
 if __name__ == "__main__":
