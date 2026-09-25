@@ -12,29 +12,23 @@ logger = logging.getLogger(__name__)
 
 _ = set_language("ui_messages")
 
+# 各状态对应的样式配置：(装饰字符, 装饰样式, 外围分隔线样式, 消息样式)
+_STATE_STYLES: dict[str, tuple[str, str, str, str]] = {
+    "additional": ("X", "red on white", "blue bold",    "red on white bold"),
+    "running":    ("X", "red on white", "yellow bold",  "red on white bold"),
+    "success":    ("▓", "red on white", "green bold",   "bold red on white"),
+}
+
 
 def print_message(message, state=None):
     if state is None:
         console.print(message)
         return
-    if state == "additional":
-        in_dec_chars = "X"
-        out_dec_chars = "="
-        in_dec_chars_style = "red on white"
-        out_dec_chars_style = "blue bold"
-        message_style = "red on white bold"
-    elif state == "running":
-        in_dec_chars = "X"
-        out_dec_chars = "="
-        in_dec_chars_style = "red on white"
-        out_dec_chars_style = "yellow bold"
-        message_style = "red on white bold"
-    elif state == "success":
-        in_dec_chars = "▓"
-        out_dec_chars = "="
-        in_dec_chars_style = "red on white"
-        out_dec_chars_style = "green bold"
-        message_style = "bold red on white"
+
+    in_dec_chars, in_dec_chars_style, out_dec_chars_style, message_style = _STATE_STYLES.get(
+        state, ("=", "white bold", "white bold", "white bold")
+    )
+    out_dec_chars = "="
 
     try:
         padding_size = total_len - get_text_len(message) - 4
