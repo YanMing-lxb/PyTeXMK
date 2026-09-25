@@ -41,7 +41,8 @@ LaTeX 辅助编译命令行程序
 三大编译引擎</li>
 <li>📚 <strong>参考文献</strong>：支持
 bibtex、biblatex、thebibliography</li>
-<li>📑 <strong>索引支持</strong>：glossaries、nomencl、mkeidx</li>
+<li>📑 <strong>索引支持</strong>：glossaries（含 glossaries-extra +
+bib2gls + biber）、nomencl、makeidx</li>
 <li>📋 <strong>结构化编译检测报告</strong>：将 6
 维检测状态（参考文献/索引/目录/交叉引用/书签文件/日志
 Rerun）与本轮结论整合为统一报告区块；报告采用 <strong>Rich 5
@@ -58,18 +59,22 @@ XeLaTeX/PdfLaTeX/LuaLaTeX；所有报告文案完整适配国际化 <code>_()</c
 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、lastpage
 总页数等收敛稳定</li>
 <li>🔮 <strong>魔法注释</strong>：通过 <code>% !TEX</code>
-注释指定编译引擎、主文件、输出目录等</li>
-<li>🌍 <strong>国际化</strong>：支持多语言界面；<strong>默认界面语言为中文</strong>（源码字符串即中文），不强制默认英文；v1.2.1
-起全面采用 <strong>pybabel 官方工作流</strong>（<code>pybabel
-extract → init → update → compile</code>），不再使用
-xgettext / msgfmt；所有用户可见文案 100%
-<code>_()</code> 包装 + <code>%(name)s</code> 占位；<strong>3 组遗留共享域全部拆为独立域</strong>（lifecycle /
-paths、pdf_tools / subprocess_runner /
-tex_project、timing /
-ui_messages），与 set_language 参数、locale 文件名 1:1
+注释指定编译引擎、主文件、输出目录等；正则已加固，行内 TeX 转义百分号
+<code>\%</code> 不会被误识别为魔法注释起始</li>
+<li>🌍
+<strong>国际化</strong>：支持多语言界面；<strong>默认界面语言为中文</strong>（源码字符串即中文），不强制默认英文；v1.2.1
+起全面采用 <strong>pybabel
+官方工作流</strong>（<code>pybabel extract → init → update → compile</code>），不再使用
+xgettext / msgfmt；所有用户可见文案 100% <code>_()</code> 包装 +
+<code>%(name)s</code> 占位；<strong>3
+组遗留共享域全部拆为独立域</strong>（lifecycle / paths、pdf_tools /
+subprocess_runner / tex_project、timing / ui_messages），与 set_language
+参数、locale 文件名 1:1
 严格对齐；提供新增语言的交互式命令（<code>make lang-add</code>
-终端提问语言代码）、自动更新所有 pot/po 的 <code>make lang-update</code>、把 po 编译成 mo 的
-<code>make lang-mo</code>、以及重抽所有 pot 的 <code>make lang-poup</code></li>
+终端提问语言代码）、自动更新所有 pot/po 的
+<code>make lang-update</code>、把 po 编译成 mo 的
+<code>make lang-mo</code>、以及重抽所有 pot 的
+<code>make lang-poup</code></li>
 <li>🧹
 <strong>智能清理</strong>：支持多种清理模式，精确清理辅助文件</li>
 <li>🔍 <strong>日志解析</strong>：编译失败后自动解析 LaTeX
@@ -96,13 +101,15 @@ Banner 回归复古三行 <code>=*78 / X32|开始预处理|X32 / =*78</code>
 0/N 个辅助文件」「exist 0/N 个已有辅助文件」4
 场景<strong>差异化打印提示</strong>，避免无论是否实际迁移都两行固定输出的歧义；「未检测到已有辅助文件，进行初始化」文案<strong>全局只保留
 1 处</strong>，归属 <code>cli_workflow</code></li>
-<li>🚫 <strong>零兼容承诺 + 冗余清理 + 永久去 Cython 加密</strong>：v1.2.1
-起<strong>不保留任何兼容层</strong>（彻底删除旧 <code>pytexmk.run</code>
-入口 / DeprecationWarning / try-import fallback）；<strong>永久移除 Cython
-加密打包链路</strong>（删除 <code>tools/pydmk.py</code>、<code>srcpyd/</code>
-入口、<code>cython</code>
-依赖、三平台 GA 编译工具链安装步骤），打包流程<strong>永久只有「源码模式 onedir」一条路径</strong>；核心模块持续执行 ruff
-F401/F841 + 死注释清理，控制架构熵增速率</li>
+<li>🚫 <strong>零兼容承诺 + 冗余清理 + 永久去 Cython
+加密</strong>：v1.2.1 起<strong>不保留任何兼容层</strong>（彻底删除旧
+<code>pytexmk.run</code> 入口 / DeprecationWarning / try-import
+fallback）；<strong>永久移除 Cython 加密打包链路</strong>（删除
+<code>tools/pydmk.py</code>、<code>srcpyd/</code>
+入口、<code>cython</code> 依赖、三平台 GA
+编译工具链安装步骤），打包流程<strong>永久只有「源码模式
+onedir」一条路径</strong>；核心模块持续执行 ruff F401/F841 +
+死注释清理，控制架构熵增速率</li>
 <li>🗺 <strong>架构决策制度化</strong>：新增 <a
 href="docs/architecture.md">docs/architecture.md</a>
 作为单一事实源，给出 6 层 ASCII 分层依赖图、23
@@ -128,27 +135,37 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用 uv 安装（推荐）</span></span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install pytexmk</span></code></pre></div>
-<h3 id="升级">升级</h3>
+<h3 id="windows-winget-安装推荐">Windows winget 安装（推荐）</h3>
+<p>Windows 10 1809+ / Windows 11 用户可使用 <a
+href="https://learn.microsoft.com/zh-cn/windows/package-manager/">winget</a>
+一键安装（无需 Python 环境）：</p>
 <div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pip</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pytexmk</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># uv</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--upgrade</span> pytexmk</span></code></pre></div>
+class="sourceCode powershell"><code class="sourceCode powershell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>winget install <span class="op">--</span>id YanMing-lxb<span class="op">.</span><span class="fu">PyTeXMK</span></span></code></pre></div>
+<blockquote>
+<p>提示：若已完成 moniker 注册，可简写为
+<code>winget install pytexmk</code>。</p>
+</blockquote>
+<h3 id="升级">升级</h3>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pip</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">--upgrade</span> pytexmk</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># uv</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> pip install <span class="at">--upgrade</span> pytexmk</span></code></pre></div>
 <h3 id="基本使用">基本使用</h3>
 <p>在 LaTeX 项目根目录下运行：</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用默认配置编译</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 指定主文件编译</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> main.tex</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用 XeLaTeX 编译</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-x</span> main.tex</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 清理辅助文件</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-c</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用默认配置编译</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 指定主文件编译</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> main.tex</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用 XeLaTeX 编译</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-x</span> main.tex</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 清理辅助文件</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ex">pytexmk</span> <span class="at">-c</span></span></code></pre></div>
 <blockquote>
 <p><strong>注意</strong>：PyTeXMK 仅支持 UTF-8 编码的 TeX 文件。</p>
 </blockquote>
@@ -295,11 +312,12 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 </tr>
 <tr>
 <td><code>-s</code>, <code>--subproject</code></td>
-<td>从根配置中选中一个子项目并在其目录编译</td>
+<td>从根配置 <code>[subprojects]</code> 中选中子项目并在其目录编译</td>
 </tr>
 <tr>
 <td><code>-ls</code>, <code>--list-subprojects</code></td>
-<td>扫描子项目并展示清单（自动同步根配置的子项目段）</td>
+<td>扫描子项目并展示清单（自动同步根配置 <code>[subprojects]</code>
+段）</td>
 </tr>
 <tr>
 <td><code>-i</code>, <code>--init</code></td>
@@ -332,14 +350,82 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 / 2-不显示修改）。</li>
 </ul>
 <h3 id="多子项目编译">多子项目编译</h3>
-<p>PyTeXMK 支持在一个项目根目录下管理多个相互独立的子项目并逐一编译。</p>
-<ol>
-<li>在根目录执行 <code>pytexmk -i</code> 生成根配置 <code>.pytexmkrc</code>，需要覆盖已有配置时加 <code>-f</code>：<code>pytexmk -i -f</code>；也可用 <code>-iu</code> 生成用户级 <code>~/.pytexmkrc</code>。</li>
-<li>执行 <code>pytexmk -ls</code> 扫描并展示子项目清单；若根 <code>.pytexmkrc</code> 存在，会自动整体替换其中的子项目段（<code>[subprojects]</code>）并写入扫描到的子项目条目，而扫描规则段 <code>[project_scan]</code> 不被改动。</li>
-<li>使用 <code>pytexmk -s 子项目名</code> 选中一个子项目，并在其目录下进行编译，也可与待编译主文件名共存：<code>pytexmk -s 子项目名 main</code>；清理作用域同样生效，如 <code>pytexmk -s 子项目名 -c</code>。</li>
+<p>PyTeXMK
+支持在一个项目根目录下管理并逐一编译多个相互独立的子项目。</p>
+<p><code>-s</code> / <code>-ls</code> / <code>-i</code> /
+<code>-iu</code> / <code>-f</code> 相关说明：</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>选项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-s</code>, <code>--subproject &lt;名称&gt;</code></td>
+<td>从根 <code>.pytexmkrc</code> 的 <code>[subprojects]</code>
+段选中一个子项目，并在其目录下编译/清理；进程内部切换工作根，<strong>不改变用户终端
+cwd</strong>，可与主文件名共存（如
+<code>pytexmk -s 子项目 main</code>）；alias 未命中时报错并提示先运行
+<code>-ls</code>，以「项目不存在」退出码退出</td>
+</tr>
+<tr>
+<td><code>-ls</code>, <code>--list-subprojects</code></td>
+<td>按根配置 <code>[project_scan]</code>
+规则扫描并表格展示子项目清单；若根 <code>.pytexmkrc</code> 存在，会把
+<code>[subprojects]</code>
+段<strong>整体替换</strong>为扫描结果（结果幂等），<code>[project_scan]</code>
+段不被改动；若 rc 不存在则提示先运行 <code>-i</code>、不写盘</td>
+</tr>
+<tr>
+<td><code>-i</code>, <code>--init</code></td>
+<td>生成根项目 <code>.pytexmkrc</code> 配置文件</td>
+</tr>
+<tr>
+<td><code>-iu</code>, <code>--init-user</code></td>
+<td>生成用户级 <code>~/.pytexmkrc</code> 配置文件</td>
+</tr>
+<tr>
+<td><code>-f</code>, <code>--force</code></td>
+<td>仅配合 <code>-i</code>/<code>-iu</code>
+覆盖已存在文件；目标已存在且未加 <code>-f</code> 时提示且不写入</td>
+</tr>
+</tbody>
+</table>
+<p><strong>典型流程</strong></p>
+<ol type="1">
+<li>在根目录执行 <code>pytexmk -i</code> 生成根配置
+<code>.pytexmkrc</code>（需覆盖已有配置时加
+<code>-f</code>）；需要全局配置时用 <code>-iu</code> 生成用户级
+<code>~/.pytexmkrc</code></li>
+<li>执行 <code>pytexmk -ls</code> 扫描并展示子项目清单（自动把根配置的
+<code>[subprojects]</code> 段更新为扫描结果）</li>
+<li>用 <code>pytexmk -s 子项目名</code>
+选中子项目并编译，也可与主文件名共存：<code>pytexmk -s 子项目名 main</code>；清理作用域同样生效，如
+<code>pytexmk -s 子项目名 -c</code></li>
 </ol>
-<p>子项目调用时，其目录下的本地 <code>.pytexmkrc</code> 会被忽略，以根配置为准（<code>-vb</code> 会打印一行提示）；用户单独进入子项目目录运行时本地 rc 生效（向后兼容）。</p>
-<p>配置说明：<code>[project_scan]</code> 为子项目扫描规则段（默认 <code>depth=3</code>、<code>exclude</code> 排除清单），仅用于 <code>-ls</code>/<code>-s</code> 扫描且不会被修改；<code>[subprojects]</code> 为子项目清单段，由 <code>-s</code> 选中使用，并会被 <code>-ls</code> 整体替换为扫描结果。</p>
+<p><strong>配置说明</strong></p>
+<ul>
+<li><code>[project_scan]</code>：子项目扫描规则段（默认
+<code>depth=3</code>、<code>exclude</code> 排除清单）。仅用于
+<code>-ls</code>/<code>-s</code>
+扫描，扫描参数统一取根配置；<code>-ls</code> 与 <code>-s</code>
+<strong>均不会覆盖或修改</strong>该段内容</li>
+<li><code>[subprojects]</code>：子项目清单段，由 <code>-s</code>
+选中使用；<code>-ls</code> 会将其整体替换为扫描结果</li>
+</ul>
+<p><strong>本地 rc 作用域</strong></p>
+<ul>
+<li>从根目录用 <code>-s</code> 调用时，会忽略子项目目录下的本地
+<code>.pytexmkrc</code>（<code>-vb</code>
+会打印一行提示），以根配置为绝对来源</li>
+<li>用户 cd 进入子项目目录独立运行时，本地 rc 生效（向后兼容）</li>
+</ul>
 <h3 id="魔法注释">魔法注释</h3>
 <p>PyTeXMK 支持使用魔法注释来自定义编译行为（仅检索文档前 50 行）。</p>
 <table>
@@ -417,10 +503,10 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 支持两级配置文件：<strong>用户级配置</strong>和<strong>项目级配置</strong>。正常运行<strong>不再自动生成</strong>配置文件，需要时用
 <code>-iu</code>（用户级）或 <code>-i</code>（项目级）手动生成。</p>
 <ul>
-<li><strong>用户级配置</strong>：<code>pytexmk -iu</code> 手动生成，位于用户主目录下
-<code>.pytexmkrc</code></li>
-<li><strong>项目级配置</strong>：<code>pytexmk -i</code> 手动生成，位于当前工作目录下
-<code>.pytexmkrc</code></li>
+<li><strong>用户级配置</strong>：<code>pytexmk -iu</code>
+手动生成，位于用户主目录下 <code>.pytexmkrc</code></li>
+<li><strong>项目级配置</strong>：<code>pytexmk -i</code>
+手动生成，位于当前工作目录下 <code>.pytexmkrc</code></li>
 </ul>
 <p>生成的配置文件中包含详细注释，可根据需要进行修改。</p>
 <p><strong>配置文件路径</strong></p>
@@ -434,18 +520,19 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 </thead>
 <tbody>
 <tr>
-<td>用户级配置</td>
+<td>系统配置</td>
 <td><code>C:\Users\用户名\.pytexmkrc</code></td>
 <td><code>~/.pytexmkrc</code></td>
 </tr>
 <tr>
-<td>项目级配置</td>
+<td>项目配置</td>
 <td>当前目录 <code>.pytexmkrc</code></td>
 <td>当前目录 <code>.pytexmkrc</code></td>
 </tr>
 </tbody>
 </table>
-<p><strong>优先级</strong>：项目级配置 &gt; 用户级配置 &gt; 内置默认；缺失配置用内置默认静默运行，键不匹配仅警告、不写盘。</p>
+<p><strong>优先级</strong>：项目级配置 &gt; 用户级配置 &gt;
+内置默认；缺失配置用内置默认静默运行，键不匹配仅警告、不写盘。</p>
 <hr />
 <h2 id="开发与构建">🛠 开发与构建</h2>
 <h3 id="环境要求">环境要求</h3>
@@ -454,38 +541,38 @@ LaTeX-Workshop 找到 PDF 文件。</p>
 <li><a href="https://github.com/astral-sh/uv">uv</a>（推荐）或 pip</li>
 </ul>
 <h3 id="开发环境搭建">开发环境搭建</h3>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 克隆项目</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/YanMing-lxb/PyTeXMK.git</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> PyTeXMK</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 安装开发依赖</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync <span class="at">--all-extras</span> <span class="at">--dev</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 运行开发版本</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytexmk <span class="at">--help</span></span></code></pre></div>
-<h3 id="构建分发包">构建分发包</h3>
 <div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建 wheel 和 sdist</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> build</span></code></pre></div>
-<h3 id="构建可执行程序">构建可执行程序</h3>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 克隆项目</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/YanMing-lxb/PyTeXMK.git</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> PyTeXMK</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 安装开发依赖</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> sync <span class="at">--all-extras</span> <span class="at">--dev</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 运行开发版本</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run pytexmk <span class="at">--help</span></span></code></pre></div>
+<h3 id="构建分发包">构建分发包</h3>
 <div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 生成平台图标</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> icon</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建源码模式的可执行程序（onedir 目录）</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 清理构建产物</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建 wheel 和 sdist</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> build</span></code></pre></div>
+<h3 id="构建可执行程序">构建可执行程序</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 生成平台图标</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> icon</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 构建源码模式的可执行程序（onedir 目录）</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 清理构建产物</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> clean</span></code></pre></div>
 <blockquote>
 <p><strong>Windows 中的 make 命令</strong>需要单独配置，详见 <a
 href="docs/Window%20下使用%20make.md">Windows 下使用 make</a>。</p>
 </blockquote>
 <h3 id="代码检查">代码检查</h3>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check src/</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format src/</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff check src/</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">uv</span> run ruff format src/</span></code></pre></div>
 <hr />
 <h2 id="许可证">📄 许可证</h2>
 <p>本项目基于 <a href="LICENSE">GPLv3</a> 许可证开源。</p>
