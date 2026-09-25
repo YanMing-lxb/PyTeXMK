@@ -38,7 +38,7 @@ import pytexlogs
 
 from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
-from pytexmk.lifecycle import exit_pytexmk
+from pytexmk.lifecycle import EXIT_COMPILE_FAILED, exit_pytexmk
 from pytexmk.subprocess_runner import MySubProcess, SubprocessFailedError
 from pytexmk.version import __version__
 
@@ -88,7 +88,7 @@ class CompileLaTeX:
             pytexmk_version=__version__,
             ref_tracker_translate_fn=set_language("log_parser"),
         )
-        exit_pytexmk()
+        exit_pytexmk(EXIT_COMPILE_FAILED)
 
     def compile_tex(self):
 
