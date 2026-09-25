@@ -23,7 +23,7 @@ def run_workflow(args):
     from ..logger_config import setup_logger
     from ..paths import get_app_path
     from ..pdf_tools import PdfFileOperation
-    from ..tex_project import MainFileOperation
+    from ..tex_project import MainFileOperation, standardize_name
     from ..timing import time_count, time_print
     from ..ui_messages import print_message
     from ..version import __version__
@@ -33,14 +33,6 @@ def run_workflow(args):
     from pathlib import Path
 
     from pytexmk.ui_theme import console
-
-    def standardize_name(compiled_program):
-        standard_names = {
-            "xelatex": "XeLaTeX",
-            "pdflatex": "PdfLaTeX",
-            "lualatex": "LuaLaTeX",
-        }
-        return standard_names.get(compiled_program.lower(), compiled_program)
 
     start_time = datetime.datetime.now(tz=datetime.UTC)
 
