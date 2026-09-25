@@ -3,11 +3,10 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-from rich import print
-
 from pytexmk.language import set_language
-from pytexmk.lifecycle import exit_pytexmk
+from pytexmk.lifecycle import EXIT_ERROR, exit_pytexmk
 from pytexmk.subproject_scanner import has_magic
+from pytexmk.ui_theme import console
 
 _ = set_language("tex_project")
 
@@ -31,13 +30,13 @@ class MainFileOperation:
     ) -> str:
         path_obj = Path(check_project_name)
 
-        # 放开相对路径，但禁止绝对路径与“..”越界
+        # 放开相对路径，但禁止绝对路径与".."越界
         if path_obj.is_absolute():
             self.logger.error(_("不支持绝对路径: ") + f"[bold cyan]{check_project_name}")
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
         if ".." in path_obj.parts:
             self.logger.error(_("路径不能越过项目根目录: ") + f"[bold cyan]{check_project_name}")
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
 
         base_name = path_obj.stem
         file_extension = path_obj.suffix
@@ -47,7 +46,7 @@ class MainFileOperation:
                 _("文件类型非 %(args)s: ") % {"args": suffix}
                 + f"[bold cyan]{check_project_name}{suffix}"
             )
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
 
         if base_name in main_files:
             return check_project_name.rstrip(suffix) if check_project_name.endswith(suffix) else check_project_name
@@ -59,7 +58,7 @@ class MainFileOperation:
         self.logger.error(
             _("未找到主文件 %(args)s") % {"args": f"[bold cyan]{check_project_name}{suffix}[/bold cyan]"}
         )
-        exit_pytexmk()
+        exit_pytexmk(EXIT_ERROR)
 
     def get_suffix_files_in_dir(self, dir: str, suffix: str) -> list:
         suffix_files_in_dir = []
@@ -76,12 +75,14 @@ class MainFileOperation:
                 )
             else:
                 self.logger.error(
-                    _("文件不存在于当前路径下，请检查终端显示路径是否是项目路径")
+                    _("文件不存在于当前路径下, 请检查终端显示路径是否是项目路径")
                 )
                 self.logger.warning(_("当前终端路径: ") + str(current_path))
-                exit_pytexmk()
-        except Exception as e:  # noqa: BLE001
+                exit_pytexmk(EXIT_ERROR)
+        except OSError as e:
             self.logger.error(_("文件搜索失败: ") + f"{suffix} --> {e}")
+        except re.error as e:
+            self.logger.error(_("文件搜索正则错误: ") + f"{suffix} --> {e}")
         return suffix_files_in_dir
 
     def find_tex_commands(self, tex_files_in_root: list) -> list:
@@ -93,17 +94,17 @@ class MainFileOperation:
                     self.logger.info(
                         _("通过特征命令检索到主文件: ") + str(file_name)
                     )
-            except Exception as e:  # noqa: BLE001
+            except (OSError, UnicodeDecodeError) as e:
                 self.logger.error(_("打开文件失败: ") + f"{file_name}.tex --> {e}")
 
         if main_tex_files:
             self.logger.info(_("发现主文件数量: ") + str(len(main_tex_files)))
         else:
             self.logger.error(
-                _("终端路径下不存在主文件!请检查终端显示路径是否是项目路径!")
+                _("终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!")
             )
             self.logger.warning(_("当前终端路径: ") + str(Path.cwd()))
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
         return main_tex_files
 
     def search_magic_comments(
@@ -129,7 +130,7 @@ class MainFileOperation:
                                     matched_comment_value
                                 )
                                 break
-            except Exception as e:  # noqa: BLE001
+            except (OSError, UnicodeDecodeError) as e:
                 self.logger.error(_("打开文件失败: ") + f"{file_path} --> {e}")
                 continue
 
@@ -154,14 +155,14 @@ class MainFileOperation:
             project_name = self.check_project_name(
                 main_files_in_root, project_name, ".tex"
             )
-            print(
+            console.print(
                 _("通过命令行命令指定待编译主文件为: ") + f"[bold cyan]{project_name}"
             )
             return project_name
 
         if len(main_files_in_root) == 1:
             project_name = main_files_in_root[0]
-            print(
+            console.print(
                 _("通过根目录下唯一主文件指定待编译主文件为: ")
                 + f"[bold cyan]{project_name}.tex"
             )
@@ -181,7 +182,7 @@ class MainFileOperation:
                 )
                 if file_path == check_file:
                     project_name = check_file
-                    print(
+                    console.print(
                         _("通过魔法注释 % !TEX root 指定待编译主文件为: ")
                         + f"[bold cyan]{project_name}.tex"
                     )
@@ -209,7 +210,7 @@ class MainFileOperation:
             for file in main_files_in_root:
                 if file == default_file:
                     project_name = file
-                    print(
+                    console.print(
                         _('通过默认文件名 "%(args)s.tex" 指定待编译主文件为: ')
                         % {"args": default_file}
                         + f"[bold cyan]{project_name}.tex"
@@ -228,12 +229,12 @@ class MainFileOperation:
             )
             self.logger.warning(
                 _(
-                    '请修改待编译主文件名为默认文件名 "%(args)s.tex" 或在文件中加入魔法注释 "% !TEX root = [待编译主文件名]" 或在终端输入 "pytexmk [待编译主文件名]" 进行编译, 或删除当前根目录下多余的 tex 文件'
+                    '请修改待编译主文件名为默认文件名 "%(args)s.tex" 或在文件中加入魔法注释 "%% !TEX root = [待编译主文件名]" 或在终端输入 "pytexmk [待编译主文件名]" 进行编译, 或删除当前根目录下多余的 tex 文件'
                 )
                 % {"args": default_file}
             )
             self.logger.warning(_("当前根目录是: ") + str(current_path))
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
 
         return project_name
 
@@ -284,5 +285,7 @@ class MainFileOperation:
             self.logger.error(_("文件未找到: ") + file_name)
         except PermissionError:
             self.logger.error(_("权限错误: 无法读取或写入文件: ") + file_name)
-        except Exception as e:  # noqa: BLE001
-            self.logger.error(_("更新草稿模式时出错: " + str(e)))
+        except OSError as e:
+            self.logger.error(_("更新草稿模式时出错: ") + str(e))
+        except re.error as e:
+            self.logger.error(_("草稿模式正则匹配出错: ") + str(e))
