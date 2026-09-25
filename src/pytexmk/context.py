@@ -1,5 +1,4 @@
 """项目上下文与解析：承载工作根目录、配置来源与子项目映射，路径一律 pathlib。"""
-from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
