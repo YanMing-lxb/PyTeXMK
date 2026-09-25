@@ -28,44 +28,35 @@ import re
 import sys
 from pathlib import Path
 
-from rich import console
-
 from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
-from pytexmk.lifecycle import exit_pytexmk
+from pytexmk.lifecycle import EXIT_COMPILE_FAILED, EXIT_ERROR, exit_pytexmk
 from pytexmk.subprocess_runner import MySubProcess, SubprocessFailedError
 
 _ = set_language("latexdiff")
-
-console = console.Console()
 
 
 class LaTeXDiff_Aux:
     """latexdiff 辅助类：负责 TeX 文件展开、diff 调用、目录清理。"""
     def __init__(self, outdir, suffixes_out, suffixes_aux, auxdir):
-
         """初始化 LaTeXDiff_Aux：缓存输出/辅助目录、后缀列表与子进程包装。"""
-        self.logger = logging.getLogger(__name__)  # 调用_setup_logger方法设置日志记录器
+        self.logger = logging.getLogger(__name__)
         self.suffixes_out = suffixes_out
         self.suffixes_aux = suffixes_aux
         self.outdir = Path(outdir)
         self.auxdir = Path(auxdir)
 
-        self.MRO = FileMoveRemoveManager()  # 初始化 FileMoveRemoveManager 类对象
+        self.MRO = FileMoveRemoveManager()
         self.MSP = MySubProcess(outdir, auxdir, latexdiff=True)
 
     # --------------------------------------------------------------------------------
     # 定义 指定的旧TeX辅助文件存在检查函数
     # --------------------------------------------------------------------------------
     def check_aux_files(self, file_name):
-        """
-        指定的旧TeX辅助文件存在检查.
+        """指定的 TeX 文件辅助文件存在检查.
 
         返回:
-        - bool: 指定的旧TeX辅助文件是否存在.
-
-        行为逻辑:
-        1. 遍历指定目录下的所有文件,判断是否存在指定的文件.
+            bool: 所有配置的辅助文件后缀中任一存在即为 True.
         """
         aux_files = [f"{file_name}{suffix}" for suffix in self.suffixes_aux]
         for file in aux_files:
@@ -78,41 +69,21 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     # latexdiff 自带的 --flatten 参数可以用于压平多文件,但如果项目用 BibTeX 管理引用,则会在压平后报错.
     def flatten_Latex(self, file_name):
-        """
-        将 LaTeX 文件及其所有引用的子文件压平为一个单一文件.
+        """将 LaTeX 文件及其所有引用的子文件压平为一个单一文件.
 
         参数:
-        file_name (str): 主 LaTeX 文件的名称(不带 .tex 扩展名).
+            file_name (str): 主 LaTeX 文件的名称(不带 .tex 扩展名).
 
         返回:
-        str: 压平后的文件名称.
-
-        行为逻辑:
-        1. 定义两个正则表达式来匹配 \\input 和 \\include 命令.
-        2. 打开输出文件并将 sys.stdout 重定向到该文件.
-        3. 递归地读取主 LaTeX 文件及其引用的所有子文件,并将内容写入输出文件.
-        4. 恢复 sys.stdout 并返回压平后的文件名称.
+            str: 压平后的文件名称(不带 .tex 扩展名).
         """
 
-        def flattenLatex(
-            tex_file_name,
-        ):  # TODO 递归读取 flatten 文件功能有问题,未考虑用户自定义命令中存在 \input 和 \include 命令的情况
-            """
-            递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout.
-
-            参数:
-            tex_file_name (str): LaTeX 文件的名称.
-
-            行为逻辑:
-            1. 检查文件是否存在.
-            2. 读取文件内容,匹配 \\input 和 \\include 命令.
-            3. 对于匹配到的命令,递归调用自身处理引用的子文件.
-            4. 将未匹配到的行写入 sys.stdout.
-            """
+        def flattenLatex(tex_file_name):
+            """递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout."""
             rootPath = Path(tex_file_name)
             if not rootPath.is_file():
                 self.logger.error(_("文件不存在: ") + tex_file_name)
-                exit_pytexmk()
+                exit_pytexmk(EXIT_ERROR)
             dirpath = rootPath.parent
             with open(tex_file_name, "r", encoding="utf-8") as file_handler:
                 for line in file_handler:
@@ -141,36 +112,28 @@ class LaTeXDiff_Aux:
 
         # 打开输出文件并将 sys.stdout 重定向到该文件
         output_file_name = f"{file_name}-flatten"
+        original_stdout = sys.stdout
+        output_path = Path(output_file_name + ".tex")
         try:
-            with open(output_file_name + ".tex", "w", encoding="utf-8") as output_file:
+            with open(output_path, "w", encoding="utf-8") as output_file:
                 sys.stdout = output_file
                 flattenLatex(f"{file_name}.tex")
-            sys.stdout = sys.__stdout__
-            self.logger.info(_("已压平文件: ") + output_file_name + ".tex")
         except Exception as e:  # noqa: BLE001
             self.logger.error(_("压平出错: ") + str(e))
-            exit_pytexmk()
+            exit_pytexmk(EXIT_ERROR)
+        finally:
+            sys.stdout = original_stdout
 
+        self.logger.info(_("已压平文件: ") + str(output_path))
         return output_file_name
 
     # --------------------------------------------------------------------------------
     # 判断在指定后缀的新旧辅助文件是否同时存在
     # --------------------------------------------------------------------------------
     def aux_files_both_exist(self, old_file, new_file, suffix):
-        """
-        删除匹配正则表达式的文件.
-
-        参数:
-        - old_file: 旧文件名,无后缀.
-        - new_file: 新文件名,无后缀.
-        - suffix: 后缀名,如'.bbl'.
-
-        行为:
-        - 检查新旧辅助文件是否同时存在.
-        - 如果存在,则返回True,否则返回False.
-        """
-        old_file_path = Path(old_file + suffix)  # 转换为Path对象
-        new_file_path = Path(new_file + suffix)  # 转换为Path对象
+        """检查新旧辅助文件是否同时存在."""
+        old_file_path = Path(old_file + suffix)
+        new_file_path = Path(new_file + suffix)
         if old_file_path.exists() and new_file_path.exists():
             self.logger.info(
                 _("新旧辅助文件同时存在: ")
@@ -179,6 +142,7 @@ class LaTeXDiff_Aux:
                 + str(new_file_path)
             )
             return suffix
+        return None
 
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
@@ -202,6 +166,8 @@ class LaTeXDiff_Aux:
         aux_files = old_aux_files + new_aux_files
 
         try:
-            self.MSP.run_command(command, out_files, aux_files, "latexdiff", stdout_path=output_path)
+            self.MSP.run_command(
+                command, out_files, aux_files, "latexdiff", stdout_path=output_path
+            )
         except SubprocessFailedError:
-            exit_pytexmk()
+            exit_pytexmk(EXIT_COMPILE_FAILED)
