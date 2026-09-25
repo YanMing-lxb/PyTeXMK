@@ -30,25 +30,25 @@ def print_message(message, state=None):
     )
     out_dec_chars = "="
 
-    try:
-        padding_size = total_len - get_text_len(message) - 4
+    padding_size = total_len - get_text_len(message) - 4
+    if padding_size < 0:
+        left_banner = ""
+        right_banner = ""
+    else:
         left_padding = padding_size // 2
         right_padding = padding_size - left_padding
-
         left_banner = in_dec_chars * left_padding
         right_banner = in_dec_chars * right_padding
 
-        banner = (
-            f"[{in_dec_chars_style}]{left_banner}[/{in_dec_chars_style}]"
-            + f"[{message_style}]| {message} |[/{message_style}]"
-            + f"[{in_dec_chars_style}]{right_banner}[/{in_dec_chars_style}]"
-        )
+    banner = (
+        f"[{in_dec_chars_style}]{left_banner}[/{in_dec_chars_style}]"
+        + f"[{message_style}]| {message} |[/{message_style}]"
+        + f"[{in_dec_chars_style}]{right_banner}[/{in_dec_chars_style}]"
+    )
 
-        console.print("\n" + out_dec_chars * total_len, style=f"{out_dec_chars_style}")
-        console.print(banner)
-        console.print(out_dec_chars * total_len + "\n", style=f"{out_dec_chars_style}")
-    except Exception as e:  # noqa: BLE001
-        logger.error(_("打印模块信息时出错: ") + str(e))
+    console.print("\n" + out_dec_chars * total_len, style=f"{out_dec_chars_style}")
+    console.print(banner)
+    console.print(out_dec_chars * total_len + "\n", style=f"{out_dec_chars_style}")
 
 
 def magic_comment_desc_table():
