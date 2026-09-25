@@ -14,11 +14,7 @@ DIVIDER_STYLE = "cyan bold"
 
 
 def print_compile_separator(divider_char: str = DIVIDER_CHAR, style: str = DIVIDER_STYLE) -> None:
-    try:
-        print()
-        console.print(divider_char * total_len, style=style)
-    except Exception as e:  # noqa: BLE001
-        logger.error(_("打印分隔线时出错: ") + str(e))
+    console.print(divider_char * total_len, style=style)
 
 
 ORDER: list[tuple[str, str, tuple[str, str]]] = [
@@ -44,50 +40,47 @@ def print_compile_report(
     reached_limit: bool = False,
     max_extra: int = 10,
 ) -> None:
-    try:
-        raw_program = compiled_program if compiled_program else prog
-        actual_program = standardize_name(raw_program)
+    raw_program = compiled_program if compiled_program else prog
+    actual_program = standardize_name(raw_program)
 
+    console.print(
+        "[bold magenta][" + _("检测报告") + "][/bold magenta] "
+        "[yellow](" + _("第") + " " + str(round_index) + " " + _("轮") + ")[/yellow] "
+    )
+
+    for name, tag, (stable_msg, unstable_msg) in ORDER:
+        val = dims.get(tag, 0)
+        if val == 0:
+            mark = "[bold green][√][/bold green]"
+            detail = f"[green]{stable_msg}[/green]"
+        else:
+            mark = r"[bold yellow]\[x][/bold yellow]"
+            detail = f"[yellow]{unstable_msg}[/yellow]"
         console.print(
-            "[bold magenta][" + _("检测报告") + "][/bold magenta] "
-            "[yellow](" + _("第") + " " + str(round_index) + " " + _("轮") + ")[/yellow] "
+            f" [bold cyan]{name:<{NAME_WIDTH}s}[/bold cyan]"
+            f"[bold]({tag})[/bold] : {mark} --> {detail}"
         )
 
-        for name, tag, (stable_msg, unstable_msg) in ORDER:
-            val = dims.get(tag, 0)
-            if val == 0:
-                mark = "[bold green][√][/bold green]"
-                detail = f"[green]{stable_msg}[/green]"
-            else:
-                mark = r"[bold yellow]\[x][/bold yellow]"
-                detail = f"[yellow]{unstable_msg}[/yellow]"
-            console.print(
-                f" [bold cyan]{name:<{NAME_WIDTH}s}[/bold cyan]"
-                f"[bold]({tag})[/bold] : {mark} --> {detail}"
-            )
+    console.print()
 
-        console.print()
+    all_zero = all(dims.get(tag, 0) == 0 for _, tag, _ in ORDER)
 
-        all_zero = all(dims.get(tag, 0) == 0 for _, tag, _ in ORDER)
+    if all_zero:
+        console.print(
+            "[bold magenta]" + _("结论：") + "[/bold magenta] "
+            "[green]" + _("无需额外执行 %(prog)s 编译。") % {"prog": actual_program} + "[/green]"
+        )
+        console.print(
+            "[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
+        )
+    else:
+        actual_next = next_extra_compilations
+        console.print(
+            "[bold magenta]" + _("结论：") + "[/bold magenta] "
+            "[yellow]" + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": actual_next, "prog": actual_program} + "[/yellow]"
+        )
 
-        if all_zero:
-            console.print(
-                "[bold magenta]" + _("结论：") + "[/bold magenta] "
-                "[green]" + _("无需额外执行 %(prog)s 编译。") % {"prog": actual_program} + "[/green]"
-            )
-            console.print(
-                "[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
-            )
-        else:
-            actual_next = next_extra_compilations
-            console.print(
-                "[bold magenta]" + _("结论：") + "[/bold magenta] "
-                "[yellow]" + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": actual_next, "prog": actual_program} + "[/yellow]"
-            )
-
-        if reached_limit:
-            console.print(
-                "[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
-            )
-    except Exception as e:  # noqa: BLE001
-        logger.error(_("打印编译检测报告时出错: ") + str(e))
+    if reached_limit:
+        console.print(
+            "[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
+        )
