@@ -12,6 +12,16 @@ from pytexmk.subproject_scanner import has_magic
 _ = set_language("tex_project")
 
 
+def standardize_name(compiled_program: str) -> str:
+    """将小写/混合大小写编译程序名统一为规范标题形式。"""
+    standard_names = {
+        "xelatex": "XeLaTeX",
+        "pdflatex": "PdfLaTeX",
+        "lualatex": "LuaLaTeX",
+    }
+    return standard_names.get(compiled_program.lower(), compiled_program)
+
+
 class MainFileOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -47,8 +57,7 @@ class MainFileOperation:
             return str(path_obj).rstrip(suffix) if str(path_obj).endswith(suffix) else str(path_obj)
 
         self.logger.error(
-            _("文件类型非 %(args)s: ") % {"args": suffix}
-            + f"[bold cyan]{check_project_name}{suffix}"
+            _("未找到主文件 %(args)s") % {"args": f"[bold cyan]{check_project_name}{suffix}[/bold cyan]"}
         )
         exit_pytexmk()
 
