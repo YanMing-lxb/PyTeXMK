@@ -1,5 +1,6 @@
 import logging
 import re
+import shutil
 from pathlib import Path
 
 from pytexmk.language import set_language
@@ -39,46 +40,9 @@ class FileMoveRemoveManager:
         files: list | None = None,
         src_folder: str | None = None,
         dest_folder: str | None = None,
-        *,
-        project_root: str | None = None,
-        root_path: str | None = None,
-        aux_dir: str | None = None,
-        extensions_to_move: list[str] | None = None,
     ) -> int:
+        """按文件名精确搬移：把 src_folder 下的 files 列表中的文件搬到 dest_folder。"""
         moved_count = 0
-
-        if extensions_to_move is not None:
-            root = Path(root_path) if root_path else Path(project_root) if project_root else Path.cwd()
-            aux = Path(aux_dir) if aux_dir else root / "aux"
-            if not aux.exists():
-                return 0
-            dest = root
-            dest.mkdir(parents=True, exist_ok=True)
-            exts = [e if e.startswith(".") else f".{e}" for e in (extensions_to_move or [])]
-            for fpath in aux.iterdir():
-                if not fpath.is_file():
-                    continue
-                if exts and fpath.suffix not in exts:
-                    continue
-                dest_file_path = dest / fpath.name
-                if dest_file_path.exists():
-                    try:
-                        dest_file_path.unlink()
-                    except OSError as e:
-                        self.logger.error(_("删除失败: ") + f"{dest_file_path} --> {e}")
-                        continue
-                try:
-                    import shutil
-                    shutil.move(str(fpath), str(dest_file_path))
-                    moved_count += 1
-                    self.logger.info(
-                        _("移动成功: ") + f"{fpath} ==> {dest}"
-                    )
-                except OSError as e:
-                    self.logger.error(
-                        _("移动失败: ") + f"{fpath} ==> {dest} --> {e}"
-                    )
-            return moved_count
 
         src_folder_path = Path(src_folder) if src_folder else Path()
         dest_folder_path = Path(dest_folder) if dest_folder else Path()
@@ -95,7 +59,7 @@ class FileMoveRemoveManager:
                     dest_file_path.unlink()
                 except OSError as e:
                     self.logger.error(_("删除失败: ") + f"{dest_file_path} --> {e}")
-                    break
+                    continue
 
             if src_file_path.exists():
                 try:
@@ -109,6 +73,46 @@ class FileMoveRemoveManager:
                         _("移动失败: ") + f"{src_file_path} ==> {dest_folder} --> {e}"
                     )
 
+        return moved_count
+
+    def move_by_extensions(
+        self,
+        extensions_to_move: list[str],
+        root_path: str | None = None,
+        aux_dir: str | None = None,
+    ) -> int:
+        """按后缀批量搬移：把 aux_dir 下匹配后缀的文件搬到项目根目录。"""
+        moved_count = 0
+
+        root = Path(root_path) if root_path else Path.cwd()
+        aux = Path(aux_dir) if aux_dir else root / "aux"
+        if not aux.exists():
+            return 0
+        dest = root
+        dest.mkdir(parents=True, exist_ok=True)
+        exts = [e if e.startswith(".") else f".{e}" for e in (extensions_to_move or [])]
+        for fpath in aux.iterdir():
+            if not fpath.is_file():
+                continue
+            if exts and fpath.suffix not in exts:
+                continue
+            dest_file_path = dest / fpath.name
+            if dest_file_path.exists():
+                try:
+                    dest_file_path.unlink()
+                except OSError as e:
+                    self.logger.error(_("删除失败: ") + f"{dest_file_path} --> {e}")
+                    continue
+            try:
+                shutil.move(str(fpath), str(dest_file_path))
+                moved_count += 1
+                self.logger.info(
+                    _("移动成功: ") + f"{fpath} ==> {dest}"
+                )
+            except OSError as e:
+                self.logger.error(
+                    _("移动失败: ") + f"{fpath} ==> {dest} --> {e}"
+                )
         return moved_count
 
     def move_matched_files(
