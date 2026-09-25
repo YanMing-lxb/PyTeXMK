@@ -2,11 +2,10 @@
 
 import argparse
 
-from rich import print
-
 from ..config import ConfigParser
 from ..language import set_language
 from ..logger_config import setup_logger
+from ..ui_theme import console
 from ..version import __version__
 from . import cli_compile, cli_context, cli_early, cli_latexdiff
 
@@ -15,8 +14,11 @@ _ = set_language("cli_workflow")
 
 def run_workflow(args: argparse.Namespace) -> None:
     """PyTeXMK 主流程：早退出子命令 → 上下文解析 → 编译分派 → 收尾。"""
-    print(_("PyTeXMK 版本: %(args)s") % {"args": f"[i bold green]{__version__}[/i bold green]\n"})
-    print(_("[bold green]PyTeXMK 开始运行...\n"))
+    console.print(
+        _("PyTeXMK 版本: %(version)s")
+        % {"version": f"[i bold green]{__version__}[/i bold green]"}
+    )
+    console.print(_("[bold green]PyTeXMK 开始运行...[/bold green]"))
 
     logger = setup_logger(bool(args.verbose))
     cp = ConfigParser()
