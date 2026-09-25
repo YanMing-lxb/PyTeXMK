@@ -28,6 +28,23 @@
 
 # CHANGELOG
 
+## v1.2.6 - 2026-09-25
+
+### 🐛 Bug 修复
+
+- **🔴 魔法注释正则误匹配 TeX 转义百分号 `\%`**：`tex_project.py` 中魔法注释正则 `rf"%(?:\s*)!TEX ..."` 开头的 `%` 不检查前导反斜杠，导致行内 TeX 代码 `\texttt{\% !TEX program = XeLaTeX}` 中的 `\%` 被误识别为魔法注释的起始标记，值末尾多带 `}`。修复：正则开头加 `(?<!\\)` 否定后行断言，确保 `%` 前不是反斜杠（TeX 转义百分号）。真实注释行（行首 `%`）行为不变
+- **🔴 bib2gls（glossaries-extra 后端 + biber）模式下错误触发 makeindex**：`bib_judgment()` 正确检测到 bib2gls 模式并设置 `self.bib2gls_mode = True`，但 `_INDEX_REGISTRY` 驱动的 glossaries 规则不知道该标记，仍按普通 glossaries 返回 makeindex 命令。bib2gls 的 glossary 条目由 biber 统一处理（写 `.gls` / `.glstex`），完全不生成 `.glo` / `.ist` / `.xdy`，makeindex 调用必然因输入文件缺失而失败。修复：在 `_INDEX_REGISTRY` 两处遍历循环（`_index_aux_content_get` 快照采集 + `index_judgment` 命令生成）里，若 `bib2gls_mode` 且 `rule["name"] == "glossaries"` 则 `continue` 跳过
+
+### 🧪 质量验证
+
+- `ruff check src/pytexmk/tex_project.py src/pytexmk/detection.py`：**All checks passed!**
+- 正则对比测试：旧版 `\texttt{\% !TEX program = XeLaTeX}` → 误匹配 `XeLaTeX}`；新版 → None ✅
+- bib2gls 端到端（`pytexmk -x glossaries-extra-bib2gls-test`）：3 XeLaTeX + DVIPDFMX 收敛，**零 makeindex/xindy 调用** ✅
+- 普通 glossaries 回归（`pytexmk -x glossaries-test`）：`glossaries main 编译 makeindex -s ...` 正常调度 ✅
+- 综合项目回归（`pytexmk -x main`）：运行 LaTeX 程序数目 = 5，与修复前一致 ✅
+
+---
+
 ## v1.2.5 - 2026-09-25
 
 ### 🏗 架构变更

@@ -49,10 +49,10 @@
 
 - 🚀 **Multi-engine support**: XeLaTeX, PdfLaTeX, and LuaLaTeX compilation engines
 - 📚 **Bibliography**: bibtex, biblatex, thebibliography
-- 📑 **Index support**: glossaries, nomencl, mkeidx
+- 📑 **Index support**: glossaries (incl. glossaries-extra + bib2gls + biber), nomencl, makeidx
 - 📋 **Structured Compile-Detection Report**: Aggregates the 6 detection dimensions (bibliography / index / TOC / cross-refs / bookmark file / log Rerun signals) and the per-pass conclusion into a single report block. The report uses **Rich 5-color layered styling (title magenta, name cyan-bold, [OK] green-bold, [!!] yellow-bold, safety cap red-bold)**. **Table grids are DISABLED**; only plain entry lists are rendered. The old generic 4-character "stable" message is replaced with **6 dimension-specific independent stable messages** (e.g. "Citation count unchanged, bibliography parsing is stable", "PDF bookmark entries unchanged, bookmark generation is stable"). The `actual_next` conclusion semantics strictly follow `2 → 1 → not needed`, **never** fall back to 1, **never** print "0 extra passes required"; the compiler name is dynamically replaced with XeLaTeX / PdfLaTeX / LuaLaTeX based on the actual engine. All report strings are fully wrapped with `_()` for i18n
 - 🔁 **Smart multi-pass detection**: Automatically compares aux/out file contents and parses Rerun warnings in logs to ensure cross-references, hyperref bookmarks, lastpage total page counts, etc. converge stably
-- 🔮 **Magic comments**: Specify engine, main file, output directory via `% !TEX` comments
+- 🔮 **Magic comments**: Specify engine, main file, output directory via `% !TEX` comments; regex hardened so TeX-escaped percent signs `\%` in inline code are no longer misidentified as magic comment markers
 - 🌍 **Internationalization**: Multi-language interface support. **The default UI language is Chinese** (source strings are in Chinese); we no longer force-en as the default. Since **v1.2.1**, the whole i18n pipeline officially switches to the **Babel (`pybabel`) standard workflow**: `pybabel extract → init → update → compile` (the previous `xgettext / msgfmt` toolchain is dropped entirely). All user-facing strings are wrapped with `_()` + `%(placeholder)s` placeholders. The **3 legacy shared-domain groups are fully split into independent domains** (`lifecycle` / `paths`, `pdf_tools` / `subprocess_runner` / `tex_project`, `timing` / `ui_messages`), in 1:1 strict alignment with `set_language(...)` parameters and `.pot/.po` file names. A set of Makefile helpers is provided: `make lang-add` (interactively prompts for a new language code), `make lang-update` (auto-updates every pot/po), `make lang-mo` (compiles po → mo for every domain), and `make lang-poup` (re-extracts all .pot templates with pybabel)
 - 🧹 **Smart cleanup**: Multiple clean modes for precise auxiliary file removal
 - 🔍 **Log parsing**: Auto-parse LaTeX logs on failure to locate errors
@@ -95,7 +95,7 @@ uv pip install pytexmk
 For Windows 10 1809+ / Windows 11 users, install via [winget](https://learn.microsoft.com/en-us/windows/package-manager/) in one command (no Python environment required):
 
 ```powershell
-winget install --id YanMing-lxb.PyTeXMK -e
+winget install --id YanMing-lxb.PyTeXMK
 ```
 
 > Tip: Once moniker is registered, the short form `winget install pytexmk` will also work.

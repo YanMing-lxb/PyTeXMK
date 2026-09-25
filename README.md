@@ -49,10 +49,10 @@
 
 - 🚀 **多引擎支持**：XeLaTeX、PdfLaTeX、LuaLaTeX 三大编译引擎
 - 📚 **参考文献**：支持 bibtex、biblatex、thebibliography
-- 📑 **索引支持**：glossaries、nomencl、mkeidx
+- 📑 **索引支持**：glossaries（含 glossaries-extra + bib2gls + biber）、nomencl、makeidx
 - 📋 **结构化编译检测报告**：将 6 维检测状态（参考文献/索引/目录/交叉引用/书签文件/日志 Rerun）与本轮结论整合为统一报告区块；报告采用 **Rich 5 色分层彩色（标题洋红、名称青粗、[OK]绿粗、[!!]黄粗、安全上限红粗）+ 粗体**，禁用表格网格，纯条目列表输出；**[OK] 状态不再千篇一律「状态稳定」，改为 6 维度各自独立的动态稳定文案**（如「参考文献引用计数无变化，参考文献解析稳定」「PDF 书签条目未发生变更，书签生成稳定」等）；结论行 actual_next 语义严格对齐（2→1→无需，绝不兜底为 1，绝不打印「需额外进行 0 次」），编译名称按实际引擎动态替换为 XeLaTeX/PdfLaTeX/LuaLaTeX；所有报告文案完整适配国际化 `_()` 包装
 - 🔁 **智能多次编译检测**：自动比较 aux/out 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、lastpage 总页数等收敛稳定
-- 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录等
+- 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录等；正则已加固，行内 TeX 转义百分号 `\%` 不会被误识别为魔法注释起始
 - 🌍 **国际化**：支持多语言界面；**默认界面语言为中文**（源码字符串即中文），不强制默认英文；v1.2.1 起全面采用 **pybabel 官方工作流**（`pybabel extract → init → update → compile`），不再使用 xgettext / msgfmt；所有用户可见文案 100% `_()` 包装 + `%(name)s` 占位；**3 组遗留共享域全部拆为独立域**（lifecycle / paths、pdf_tools / subprocess_runner / tex_project、timing / ui_messages），与 set_language 参数、locale 文件名 1:1 严格对齐；提供新增语言的交互式命令（`make lang-add` 终端提问语言代码）、自动更新所有 pot/po 的 `make lang-update`、把 po 编译成 mo 的 `make lang-mo`、以及重抽所有 pot 的 `make lang-poup`
 - 🧹 **智能清理**：支持多种清理模式，精确清理辅助文件
 - 🔍 **日志解析**：编译失败后自动解析 LaTeX 日志，定位错误
@@ -95,7 +95,7 @@ uv pip install pytexmk
 Windows 10 1809+ / Windows 11 用户可使用 [winget](https://learn.microsoft.com/zh-cn/windows/package-manager/) 一键安装（无需 Python 环境）：
 
 ```powershell
-winget install --id YanMing-lxb.PyTeXMK -e
+winget install --id YanMing-lxb.PyTeXMK
 ```
 
 > 提示：若已完成 moniker 注册，可简写为 `winget install pytexmk`。
