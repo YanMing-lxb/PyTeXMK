@@ -1,7 +1,7 @@
 # PyTeXMK 架构设计文档
 
-> 本文档描述 PyTeXMK v1.2.1 版本的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
-> 本文档依据 `spec.md`（路径 A 推荐方案）编写，适用于当前 23 模块规模。
+> 本文档描述 PyTeXMK v1.2.5 版本的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
+> 本文档依据 `spec.md`（路径 A 推荐方案）编写，适用于当前 28 模块规模。
 
 ---
 
@@ -22,7 +22,8 @@ PyTeXMK 采用严格的 6 层向下依赖架构，Layer 0 为对外 API 顶层�
 ────────────────────────────────────────────────────────────────────
   cli/__init__.py (空，占位)
   cli/__main__.py          cli/cli_args.py         cli/cli_workflow.py
-  cli/check_version.py
+  cli/check_version.py     cli/cli_state.py        cli/cli_early.py
+  cli/cli_context.py       cli/cli_compile.py      cli/cli_latexdiff.py
               │
               ▼ down
 ────────────────────────────────────────────────────────────────────
@@ -62,47 +63,52 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 严格禁止向上箭头（Infra/I18N 不得 import CLI / Core-Run；Core-Run 不得 import CLI；只有 CLI 可以 import 所有下层）。
 
 本架构对应的设计原则：
-1. **下层稳定、上层变化**：Layer 5 I18N Hub 最稳定（language indegree = 19/23 = 82.6%），Layer 1 CLI 变化最频繁。
+1. **下层稳定、上层变化**：Layer 5 I18N Hub 最稳定（被几乎所有上层依赖），Layer 1 CLI 变化最频繁。
 2. **依赖即信任**：上层可以信任下层实现；下层不得反向假设上层存在。
-3. **唯一入口扇出**：`cli_workflow.py` outdegree = 14/23 = 60.9% 是调度根；其他模块不得做全局调度。
+3. **唯一入口扇出**：`cli_workflow.py` 是 CLI 流程薄入口，仅做串接，具体实现下沉到 `cli_early / cli_context / cli_compile / cli_latexdiff` 四个叶子模块；各模块内部不得做全局调度。
 
 ---
 
-## 章节 2：23 模块职责矩阵（含 [cli 子包] 标签）
+## 章节 2：28 模块职责矩阵（含 [cli 子包] 标签）
 
-本矩阵列出 PyTeXMK 当前 23 个源模块（其中 4 个位于 `cli/` 子包内，标注 `[cli 子包]`），
-行号、行数为 v1.2.1 锚点的近似值，「对外关键符号」按该模块被外部 import 频率排序（前 5）。
+本矩阵列出 PyTeXMK 当前 28 个源模块（其中 9 个位于 `cli/` 子包内，标注 `[cli 子包]`），
+行号、行数为 v1.2.5 锚点的实测值，「对外关键符号」按该模块被外部 import 频率排序（前 5）。
 
-| No. | 文件名 | 行数（近似） | 对外关键符号（前 5） | 一句话职责 |
-|-----|--------|-------------|----------------------|-----------|
+| No. | 文件名 | 行数 | 对外关键符号（前 5） | 一句话职责 |
+|-----|--------|------|----------------------|-----------|
 | 01 | `__init__.py` | 12 | `__version__`, `__app_name__`, `main`, `__getattr__` | 包对外 API：导出版本号、懒加载转发 cli_args/cli_workflow/check_version/main |
 | 02 | `__main__.py` | 4 | `main`（薄转发） | 根包主入口：3 行薄转发 `from .cli.__main__ import main`，使 `python -m pytexmk` 可用 |
-| 03 | `cli/__main__.py [cli 子包]` | 34 | `main` | CLI 主骨架：set_language + parse_args + run_workflow + try/except 生命周期，副作用集中 |
-| 04 | `cli/cli_args.py [cli 子包]` | 169 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：argparse 16 个参数定义、CustomHelpFormatter 等宽帮助、校验互斥组 |
-| 05 | `cli/cli_workflow.py [cli 子包]` | 330 | `run_workflow`, `doctor_check`, `show_config_display` | CLI 工作流调度：按运行模式（RUN / LaTeXDiff / --doctor / --show-config）分发到 Core-Run |
-| 06 | `cli/check_version.py [cli 子包]` | 203 | `UpdateChecker`, `check_pypi_update`, `get_cached_latest` | 版本检查：GitHub API 拉取最新版本号、本地文件缓存、~10 秒超时避免网络卡壳 |
-| 07 | `compile_engine.py` | 279 | `RUN`, `LaTeXDiffRUN` | 对外运行函数：`RUN` 编排主编译收敛循环（最多 8 次）、`LaTeXDiffRUN` 封装 latexdiff 流程（v1.2.0 起 `run.py` 重命名为 `compile_engine.py`，旧名字无兼容层保留） |
-| 08 | `compile.py` | 165 | `CompileLaTeX`, `aux_move_to_dir` | 编译调度：`CompileLaTeX.__call__` 单次执行子进程 + 拉 log + 触发 6 维检测 + 搬 aux 目录 |
-| 09 | `detection.py` | 469 | `CompilationDetector`, `RERUN_LOG_PATTERNS`, `RERUN_AUX_PATTERNS` | 6 维检测策略：bib/toc/index/aux/out/log 六类正则 + 10 项检测方法，判断是否需要 rerun |
-| 10 | `latexdiff.py` | 178 | `run_latexdiff`, `diff_tex_with_commit`, `diff_tex_with_file` | LaTeXDiff 差异：调用 latexdiff 命令行、支持 Git 历史 commit 与两个本地文件两种对比模式 |
-| 11 | `tex_project.py` | 241 | `MainFileOperation`, `find_main_tex`, `parse_magic_comments`, `draft_mode_sanitize` | TeX 项目域：主文件检索（通配 main.tex + 魔法注释）、`% !TeX root` 解析、草稿模式安全过滤 |
-| 12 | `file_ops.py` | 84 | `FileMoveRemoveManager`, `safe_move`, `safe_remove`, `clean_aux_files` | 纯文件操作：`FileMoveRemoveManager` 封装移动/删除、`shutil.move` / `unlink` 的安全封装（吞 FileNotFound、记录日志）、批量 aux 清理（v1.2.0 起 `MoveRemoveOperation` 重命名为 `FileMoveRemoveManager`） |
-| 13 | `subprocess_runner.py` | 97 | `MySubProcess`, `SubprocessFailedError`, `run_command_capture`, `_format_duration` | 子进程执行：Popen 封装 stdout/stderr 捕获、自定义异常替代 `sys.exit`、耗时格式化 |
-| 14 | `pdf_tools.py` | 55 | `PdfFileOperation`, `open_pdf_viewer`, `compare_pdf_pages` | PDF 工具：跨平台 PDF 预览启动（Windows `start` / macOS `open` / Linux `xdg-open`） |
-| 15 | `ui_theme.py` | 13 | `custom_theme`, `console` | Rich UI 主题：`custom_theme` 三色常量（success=green/warning=yellow/error=red）、全局单例 `console` |
-| 16 | `version.py` | 29 | `__version__`, `__app_name__`, `script_name` | 版本常量：`1.2.1` 硬编码 + `PyTeXMK` 应用名，所有其他模块的版本号唯一来源 |
-| 17 | `paths.py` | 13 | `get_app_path`, `get_data_dir`, `get_config_dir` | 路径定位：`pkgutil.get_data` + 平台 `AppData`/`.config` 目录解析，locale/data/config 相对锚点 |
-| 18 | `lifecycle.py` | 9 | `exit_pytexmk`, `ExitCode` 枚举 | 生命周期退出：统一退出钩子（打印再见横幅、写 logger、刷新缓冲、`sys.exit`），禁止零散 `sys.exit` |
-| 19 | `logger_config.py` | 65 | `setup_logger`, `get_logger`, `LOG_FILE_PATH` | 日志配置：Rich 日志 handler + 文件 handler 双写、按日滚动、日志级别 CLI 参数切换 |
-| 20 | `config.py` | 172 | `ConfigManager`, `load_user_config`, `merge_project_config`, `DEFAULT_CONFIG_TOML` | TOML 配置：三层合并（默认 default → 用户 `~/.config/pytexmk/` → 项目 `.pytexmk.toml`） + 键校验 |
-| 21 | `language.py` | 49 | `set_language`, `gettext`, `_current_domain` | i18n Hub：`gettext.translation` 封装，所有模块调用 `set_language("<domain>")` 取翻译器 `_` |
-| 22 | `timing.py` | 133 | `time_count`, `time_print`, `total_len`, `get_text_len` | 计时统计：装饰器式编译耗时累计、中英文双宽字符对齐 `get_text_len`、统计段格式化 |
-| 23 | `compile_report.py` | 63 | `print_compile_report`, `print_compile_separator`, `DIVIDER_STYLE`, `WARNING_STYLE` | 编译检测报告：Rerun 原因 6 维汇总表 + 分隔线（-×80）+ 三色样式标签（warning/stable/conclusion） |
-| 24 | `ui_messages.py` | 76 | `print_message`, `magic_comment_desc_table` | UI 通用横幅：启动 / 成功 / 失败 Rich 三色大横幅、`--help` 中魔法注释说明表文本 |
+| 03 | `cli/__main__.py [cli 子包]` | 87 | `main` | CLI 主骨架：Windows UTF-8 兜底 + set_language + parse_args + run_workflow |
+| 04 | `cli/cli_args.py [cli 子包]` | 197 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：argparse 16 个参数定义、CustomHelpFormatter 等宽帮助、校验互斥组 |
+| 05 | `cli/cli_workflow.py [cli 子包]` | 30 | `run_workflow` | CLI 流程薄入口：串接 早退出子命令 → 上下文解析 → 编译分派 → 收尾；全流程共享状态由 `cli_state.WorkflowState` 承载 |
+| 06 | `cli/cli_state.py [cli 子包]` | 65 | `WorkflowState`, `PREVIEW_AFTER_COMPILE`, `SUFFIXES_OUT`, `SUFFIXES_AUX`, `MAGIC_COMMENT_KEYS` | CLI 工作流共享状态容器（叶子模块，不 import 任何其他 cli_* 模块），定义 20+ 运行时变量 dataclass 与 4 组常量 |
+| 07 | `cli/cli_early.py [cli 子包]` | 61 | `handle` | 早退出子命令：`-r` README / `-i` 初始化 / `-iu` 用户配置 / `-ls` 子项目清单，命中即退出 |
+| 08 | `cli/cli_context.py [cli 子包]` | 162 | `build`, `resolve_target`, `apply_magic_comments` | 上下文解析与三层配置合并：子项目定位 → config 文件 → 魔法注释 → 命令行参数，完成参数优先级覆盖与文件清单派生 |
+| 09 | `cli/cli_compile.py [cli 子包]` | 92 | `run`, `finalize`, `handle_clean_any` | 常规编译流程：`-ca/-Ca` 全清理、`-c/-C` 主文件清理、`-pr` PDF 修复、完整编译 + 收尾（PDF 预览 / time_print / UpdateChecker） |
+| 10 | `cli/cli_latexdiff.py [cli 子包]` | 102 | `run` | LaTeXDiff 全流程：新旧文件校验 → 辅助文件检查 → flatten → 风格交互 → 差异编译 → finally 归还辅助文件 |
+| 11 | `cli/check_version.py [cli 子包]` | 342 | `UpdateChecker`, `check_pypi_update`, `get_cached_latest` | 版本检查：GitHub API 拉取最新版本号、本地文件缓存、~10 秒超时避免网络卡壳 |
+| 12 | `compile_engine.py` | 279 | `RUN`, `LaTeXDiffRUN` | 对外运行函数：`RUN` 编排主编译收敛循环（最多 8 次）、`LaTeXDiffRUN` 封装 latexdiff 流程 |
+| 13 | `compile.py` | 165 | `CompileLaTeX`, `aux_move_to_dir` | 编译调度：`CompileLaTeX.__call__` 单次执行子进程 + 拉 log + 触发 6 维检测 + 搬 aux 目录 |
+| 14 | `detection.py` | 469 | `CompilationDetector`, `_INDEX_REGISTRY`, `RERUN_LOG_PATTERNS`, `RERUN_AUX_PATTERNS` | 6 维检测策略：bib/toc/index/aux/out/log 六类正则 + 10 项检测方法；索引系统由 `_INDEX_REGISTRY` 注册表驱动（glossaries/nomencl/makeidx） |
+| 15 | `latexdiff.py` | 178 | `run_latexdiff`, `diff_tex_with_commit`, `diff_tex_with_file` | LaTeXDiff 差异：调用 latexdiff 命令行、支持 Git 历史 commit 与两个本地文件两种对比模式 |
+| 16 | `tex_project.py` | 241 | `MainFileOperation`, `standardize_name`, `find_main_tex`, `parse_magic_comments`, `draft_mode_sanitize` | TeX 项目域：主文件检索（通配 main.tex + 魔法注释）、`% !TeX root` 解析、草稿模式安全过滤；`standardize_name` 为跨模块共享函数 |
+| 17 | `file_ops.py` | 84 | `FileMoveRemoveManager`, `safe_move`, `safe_remove`, `clean_aux_files` | 纯文件操作：`FileMoveRemoveManager` 封装移动/删除、`shutil.move` / `unlink` 的安全封装（吞 FileNotFound、记录日志）、批量 aux 清理 |
+| 18 | `subprocess_runner.py` | 97 | `MySubProcess`, `SubprocessFailedError`, `run_command_capture`, `_format_duration` | 子进程执行：Popen 封装 stdout/stderr 捕获、自定义异常替代 `sys.exit`、耗时格式化 |
+| 19 | `pdf_tools.py` | 55 | `PdfFileOperation`, `open_pdf_viewer`, `compare_pdf_pages` | PDF 工具：跨平台 PDF 预览启动（Windows `start` / macOS `open` / Linux `xdg-open`） |
+| 20 | `ui_theme.py` | 13 | `custom_theme`, `console` | Rich UI 主题：`custom_theme` 三色常量（success=green/warning=yellow/error=red）、全局单例 `console` |
+| 21 | `version.py` | 29 | `__version__`, `__app_name__`, `script_name` | 版本常量：当前版本号硬编码 + `PyTeXMK` 应用名，所有其他模块的版本号唯一来源 |
+| 22 | `paths.py` | 13 | `get_app_path`, `get_data_dir`, `get_config_dir` | 路径定位：`pkgutil.get_data` + 平台 `AppData`/`.config` 目录解析，locale/data/config 相对锚点 |
+| 23 | `lifecycle.py` | 9 | `exit_pytexmk`, `EXIT_OK`, `EXIT_ERROR`, `EXIT_PROJECT_NOT_FOUND` | 生命周期退出：统一退出钩子（打印再见横幅、刷新缓冲、`sys.exit`），禁止零散 `sys.exit` |
+| 24 | `logger_config.py` | 65 | `setup_logger`, `get_logger`, `LOG_FILE_PATH` | 日志配置：Rich 日志 handler + 文件 handler 双写、按日滚动、日志级别 CLI 参数切换 |
+| 25 | `config.py` | 172 | `ConfigManager`, `load_user_config`, `merge_project_config`, `DEFAULT_CONFIG_TOML` | TOML 配置：三层合并（默认 default → 用户 `~/.config/pytexmk/` → 项目 `.pytexmk.toml`） + 键校验 |
+| 26 | `language.py` | 49 | `set_language`, `gettext`, `_current_domain` | i18n Hub：`gettext.translation` 封装，所有模块调用 `set_language("<domain>")` 取翻译器 `_` |
+| 27 | `timing.py` | 133 | `time_count`, `time_print`, `total_len`, `get_text_len` | 计时统计：装饰器式编译耗时累计、中英文双宽字符对齐 `get_text_len`、统计段格式化 |
+| 28 | `compile_report.py` | 63 | `print_compile_report`, `print_compile_separator`, `DIVIDER_STYLE`, `WARNING_STYLE` | 编译检测报告：Rerun 原因 6 维汇总表 + 分隔线（-×80）+ 三色样式标签（warning/stable/conclusion） |
+| 29 | `ui_messages.py` | 76 | `print_message`, `magic_comment_desc_table` | UI 通用横幅：启动 / 成功 / 失败 Rich 三色大横幅、`--help` 中魔法注释说明表文本 |
 
-> 备注：矩阵中 No.1~24 中，`cli/__init__.py [cli 子包]`（0 行空文件）是子包存在标志但无对外符号，
-> 因此计入子包但不计入 23 模块统计，23 模块指上表 No.1~24 中去掉 `cli/__init__.py`（因为是子包占位），
-> 恰好 23 行数据（No.1 根包 `__init__` + No.2 根包 `__main__` + No.3~6 的 4 个 cli 子包模块 + No.7~24 的 18 个根包扁平模块）。
+> 备注：矩阵中 29 行是源文件总数。其中 `cli/__init__.py [cli 子包]`（1 行空文件）是子包存在标志但无对外符号，
+> 计入 Layer 1 结构图但不计入序号。序号从 `__init__.py`(01) 到 `ui_messages.py`(29) 共 29 行去掉占位 `cli/__init__.py` 后，
+> 正好 28 个有实际功能的模块。cli 子包内现 9 个模块：`__main__ / cli_args / cli_workflow / cli_state / cli_early / cli_context / cli_compile / cli_latexdiff / check_version`。
 
 ---
 
@@ -200,8 +206,9 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 > 三者缺一不可。
 
 本阈值的背景来源：spec.md 静态调查 6 候选域（cli/core_run/domain_ops/infra/i18n/api），
-**仅 cli 域**（4 模块 / 内引 4 / 耦合 0.826）同时满足三条件，
-其他 5 个候选域至少不满足 1~2 条，因此 19 个非 cli 模块保持扁平。
+**仅 cli 域**（初始 4 模块 / 内引 4 / 耦合 0.826）同时满足三条件，其他 5 个候选域至少不满足 1~2 条。
+CLI 域后经 v1.2.5 拆分由 4 模块扩展到 9 模块（cli_state / cli_early / cli_context / cli_compile / cli_latexdiff 为新增），
+但**三阈值条件仍成立**：同域模块数 9 ≥ 4、内部 import 边数 7 ≥ 3、耦合系数保持高值（cli 子包 import 仅从 `cli_workflow` 顶层扇出，内部无环）。
 未来新域的拆分必须使用同样的三个阈值进行客观判定，禁止主观「看起来应该拆」。
 
 ---
@@ -247,7 +254,7 @@ PyTeXMK 的 import 规则与分层架构严格对应。违反以下 3 条会直�
 
 烟检命令（修改 import 后必须执行，保证点数无误）：
 ```bash
-uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli.cli_workflow, pytexmk.cli.check_version; print("import 点数 OK")'
+uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli.cli_workflow, pytexmk.cli.cli_state, pytexmk.cli.cli_early, pytexmk.cli.cli_context, pytexmk.cli.cli_compile, pytexmk.cli.cli_latexdiff, pytexmk.cli.check_version; print("import 点数 OK")'
 ```
 
 ### 纪律（c）：子包对外 API 必须经子包 `__init__.py` 显式 re-export
@@ -259,7 +266,7 @@ uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli
 #### 当前 cli 子包状态
 
 `src/pytexmk/cli/__init__.py` 当前**故意留空（0 行）**。
-原因：当前 4 个 cli 模块（`__main__` / `cli_args` / `cli_workflow` / `check_version`）
+原因：当前 9 个 cli 模块（`__main__` / `cli_args` / `cli_workflow` / `cli_state` / `cli_early` / `cli_context` / `cli_compile` / `cli_latexdiff` / `check_version`）
 没有需要对外暴露的**聚合公共 API**。所有使用方要么：
 1. 通过根包 `__init__.py.__getattr__` 懒加载（如 `from pytexmk import cli_args` 兼容写法）；或
 2. 直接写全路径 `from pytexmk.cli.cli_args import parse_args`（这是直接 import 模块对象，不是跨子包 API 符号暴露，不违反本纪律）。
