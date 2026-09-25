@@ -1,0 +1,12 @@
+{
+  "schema_version": 2,
+  "timestamp": "2026-09-25T12:59:04.605076+00:00",
+  "keys": [
+    "knuth1986texbook",
+    "lamport1986latex"
+  ],
+  "key_counts": {
+    "lamport1986latex": 2,
+    "knuth1986texbook": 2
+  }
+}
