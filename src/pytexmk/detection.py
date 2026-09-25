@@ -45,9 +45,7 @@ _ = set_language("detection")
 BIBER_PATTERN = re.compile(r"\\abx@aux@refcontext")
 BIBTEX_PATTERN = re.compile(r"\\bibdata")
 
-BIBER_BIB_PATTERN = re.compile(
-    r"<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>"
-)
+BIBER_BIB_PATTERN = re.compile(r"<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>")
 BIBTEX_BIB_PATTERN = re.compile(r"\\bibdata\{(.*)\}")
 
 # ── bib2gls (glossaries-extra) 检测 ──────────────────────────────
@@ -60,9 +58,9 @@ BIB2GLS_BCF_PATTERN = re.compile(r"<bcf:glossary", re.IGNORECASE)
 
 # 三种引用命令：Biber / BibTeX / thebibliography
 _CITE_PATTERNS = (
-    re.compile(r"\\abx@aux@cite{.*?}\{(.*)\}"),   # Biber
-    re.compile(r"\\citation\{(.*)\}"),             # BibTeX
-    re.compile(r"\\bibcite\{(.*?)\}"),             # thebibliography
+    re.compile(r"\\abx@aux@cite{.*?}\{(.*)\}"),  # Biber
+    re.compile(r"\\citation\{(.*)\}"),  # BibTeX
+    re.compile(r"\\bibcite\{(.*?)\}"),  # thebibliography
 )
 
 # ── LaTeX log 中触发额外编译的警告模式 ──────────────────────────────
@@ -78,11 +76,9 @@ RERUN_LOG_PATTERNS: list[tuple[str | None, re.Pattern]] = [
     (None, re.compile(r"LaTeX Warning: There were multiply-defined labels\.")),
     (None, re.compile(r"Package lastpage Warning: Rerun to get the references right")),
     (None, re.compile(r"Package rerunfilecheck Warning: .* Rerun")),
-
     # ── 参考文献相关包 ─────────────────────────────────────────────
     ("biblatex", re.compile(r"Package biblatex Warning: Please .* rerun LaTeX", re.IGNORECASE)),
     ("biblatex", re.compile(r"Package biblatex Warning: Please \(re\)run Biber", re.IGNORECASE)),
-
     # ── 索引与术语表相关包 ──────────────────────────────────────────
     ("glossaries", re.compile(r"Package glossaries Warning: .* rerun", re.IGNORECASE)),
     ("glossaries", re.compile(r"Glossary entries? have changed\.? .* rerun LaTeX", re.IGNORECASE)),
@@ -93,13 +89,11 @@ RERUN_LOG_PATTERNS: list[tuple[str | None, re.Pattern]] = [
     ("acro", re.compile(r"Package acro Warning: .* rerun", re.IGNORECASE)),
     ("acro", re.compile(r"Package acro Warning: .* entries? (have )?changed", re.IGNORECASE)),
     ("acronym", re.compile(r"Package acronym Warning: .* rerun", re.IGNORECASE)),
-
     # ── 目录与书签相关包 ─────────────────────────────────────────────
     ("hyperref", re.compile(r"Package hyperref Warning: .* rerun", re.IGNORECASE)),
     ("tocloft", re.compile(r"Package tocloft Warning: .* rerun", re.IGNORECASE)),
     ("titlesec", re.compile(r"Package titlesec Warning: .* rerun", re.IGNORECASE)),
     ("fancyhdr", re.compile(r"Package fancyhdr Warning: .* rerun", re.IGNORECASE)),
-
     # ── 其他常见需要 rerun 的包 ─────────────────────────────────────
     ("cleveref", re.compile(r"Package cleveref Warning: .* rerun", re.IGNORECASE)),
     ("enumitem", re.compile(r"Package enumitem Warning: .* rerun", re.IGNORECASE)),
@@ -134,9 +128,7 @@ RERUN_LOG_PATTERNS: list[tuple[str | None, re.Pattern]] = [
 #   不带方括号参数：  \\@newglossary{main}{gls}{glo}{Glossary}
 # 方括号内常写 .alg（glossary log）的扩展名，同时也可以携带 backend 标记（xindy）。
 # 正则把方括号参数（可能不存在）捕获为 group(1)，其余 4 组不变。
-_NGLOSSARY_PATTERN = re.compile(
-    r"\\@newglossary(?:\[([^\]]*)\])?\{([^{}]+)\}\{([^{}]+)\}\{([^{}]+)\}\{([^{}]+)\}"
-)
+_NGLOSSARY_PATTERN = re.compile(r"\\@newglossary(?:\[([^\]]*)\])?\{([^{}]+)\}\{([^{}]+)\}\{([^{}]+)\}\{([^{}]+)\}")
 
 # xindy 后端的 .xdy 文件标记：当 \\@newglossary 方括号参数中含 "xindy" 字样、
 # 或 .aux 中出现 \\xindyLoadHyphFile / \\XindySetup 等宏时，说明 glossaries 使用 xindy 后端。
@@ -175,7 +167,9 @@ def _detect_xindy_language(log_content: str) -> str:
     return "english"
 
 
-def _resolve_glossaries_backend(proj: str, bracket_arg: str | None, aux_content: str, log_content: str) -> dict[str, str]:
+def _resolve_glossaries_backend(
+    proj: str, bracket_arg: str | None, aux_content: str, log_content: str
+) -> dict[str, str]:
     """为单个 glossary 类型判断后端（makeindex vs xindy）并返回参数。
 
     返回 dict 含：
@@ -199,6 +193,7 @@ def _resolve_glossaries_backend(proj: str, bracket_arg: str | None, aux_content:
 
 # ── Registry 辅助函数（各规则的 trigger / discover / cmd_builder 工厂） ────
 
+
 def _glossaries_trigger(proj: str, aux_content: str) -> bool:
     """glossaries 触发条件：.aux 中存在 \\@newglossary 行。"""
     return bool(_NGLOSSARY_PATTERN.search(aux_content))
@@ -219,11 +214,17 @@ def _glossaries_discover(proj: str, aux_content: str, log_content: str) -> list[
     for match in _NGLOSSARY_PATTERN.finditer(aux_content):
         bracket_arg, _name, _glg, gls_out, glo_in = match.groups()
         backend = _resolve_glossaries_backend(proj, bracket_arg, aux_content, log_content)
-        results.append((glo_in, gls_out, {
-            "backend": backend,
-            "name": _name,
-            "glg": _glg,  # cmd_builder 可能需要（xindy 的 .xdy 等）
-        }))
+        results.append(
+            (
+                glo_in,
+                gls_out,
+                {
+                    "backend": backend,
+                    "name": _name,
+                    "glg": _glg,  # cmd_builder 可能需要（xindy 的 .xdy 等）
+                },
+            )
+        )
     return results
 
 
@@ -241,8 +242,7 @@ def _index_glossaries_cmd_builder_v2(proj: str, ext_o: str, ext_i: str, ctx: dic
     if backend["backend"] == "xindy":
         return [
             f"glossaries ({_name}, xindy)",
-            (f"xindy -L {backend['lang']} -I xindy -M {proj}.xdy "
-            f"-t {proj}.{_glg} -o {proj}.{ext_o} {proj}.{ext_i}"),
+            (f"xindy -L {backend['lang']} -I xindy -M {proj}.xdy -t {proj}.{_glg} -o {proj}.{ext_o} {proj}.{ext_i}"),
         ]
     # makeindex 后端：
     #   -s proj.ist （glossaries 自动生成的样式文件）
@@ -295,17 +295,13 @@ _INDEX_REGISTRY: tuple[dict, ...] = (
         "name": "nomencl",
         "trigger": _make_extension_trigger([".nlo"]),
         "discover": _make_fixed_discover("nlo", "nls"),
-        "cmd_builder": _make_fixed_cmd_builder(
-            "nomencl", "makeindex -s nomencl.ist -o {proj}.nls {proj}.nlo"
-        ),
+        "cmd_builder": _make_fixed_cmd_builder("nomencl", "makeindex -s nomencl.ist -o {proj}.nls {proj}.nlo"),
     },
     {
         "name": "makeidx",
         "trigger": _make_extension_trigger([".idx"]),
         "discover": _make_fixed_discover("idx", "ind"),
-        "cmd_builder": _make_fixed_cmd_builder(
-            "makeidx", "makeindex {proj}.idx"
-        ),
+        "cmd_builder": _make_fixed_cmd_builder("makeidx", "makeindex {proj}.idx"),
     },
 )
 
@@ -322,7 +318,7 @@ def _read_file_content(path: str | Path) -> str:
     for enc in ("utf-8", locale.getpreferredencoding(False)):
         try:
             return data.decode(enc)
-        except (UnicodeDecodeError, LookupError):
+        except UnicodeDecodeError, LookupError:
             continue
     return data.decode("utf-8", errors="replace")
 
@@ -405,9 +401,7 @@ class CompilationDetector:
             try:
                 counter = _count_citations(file_name)
             except OSError:
-                self.logger.info(
-                    _("文件不存在或无法读取,跳过文件: %(args)s") % {"args": file_name}
-                )
+                self.logger.info(_("文件不存在或无法读取,跳过文件: %(args)s") % {"args": file_name})
             else:
                 cite_counter[file_name] = counter
 
@@ -440,11 +434,12 @@ class CompilationDetector:
                 break
 
         for rule in _INDEX_REGISTRY:
+            # bib2gls 下 glossaries 不写 .glo/.xdy，跳过快照采集
+            if self.bib2gls_mode and rule["name"] == "glossaries":
+                continue
             if not rule["trigger"](self.project_name, main_aux):
                 continue
-            for ext_i, ext_o, _ctx in rule["discover"](
-                self.project_name, main_aux, log_content
-            ):
+            for ext_i, ext_o, _ctx in rule["discover"](self.project_name, main_aux, log_content):
                 # 快照只关心 ext_i（输入文件）的旧内容
                 key = f"{self.project_name}.{ext_i}"
                 infile_path = Path(key)
@@ -454,9 +449,7 @@ class CompilationDetector:
         return index_aux_content_dict_old
 
     def toc_changed_judgment(self, toc_file):
-        file_name = Path(self.project_name).with_suffix(
-            ".toc"
-        )
+        file_name = Path(self.project_name).with_suffix(".toc")
         return file_name.exists() and _read_file_content(file_name) != toc_file
 
     def bib_judgment(self, old_cite_counter):
@@ -468,20 +461,12 @@ class CompilationDetector:
         aux_file_path = Path(f"{self.project_name}.aux")
         if aux_file_path.exists():
             aux_content = _read_file_content(aux_file_path)
-            match_biber = BIBER_PATTERN.search(
-                aux_content
-            )
-            match_bibtex = BIBTEX_PATTERN.search(
-                aux_content
-            )
+            match_biber = BIBER_PATTERN.search(aux_content)
+            match_bibtex = BIBTEX_PATTERN.search(aux_content)
             if match_biber or match_bibtex:
                 if match_biber:
-                    bcf_file_path = Path(
-                        f"{self.project_name}.bcf"
-                    )
-                    match_biber_bib = BIBER_BIB_PATTERN.search(
-                        _read_file_content(bcf_file_path)
-                    )
+                    bcf_file_path = Path(f"{self.project_name}.bcf")
+                    match_biber_bib = BIBER_BIB_PATTERN.search(_read_file_content(bcf_file_path))
                     if match_biber_bib:
                         self.bib_file = match_biber_bib.group(1)
                         bib_engine = "biber"
@@ -501,9 +486,7 @@ class CompilationDetector:
                                 self.bib2gls_mode = True
 
                 elif match_bibtex:
-                    match_bibtex_bib = BIBTEX_BIB_PATTERN.search(
-                        aux_content
-                    )
+                    match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)
                     if match_bibtex_bib:
                         self.bib_file = match_bibtex_bib.group(1)
                         bib_engine = "bibtex"
@@ -519,11 +502,8 @@ class CompilationDetector:
                 if old_cite_counter == new_cite_counter:
                     latex_compilation_times = 0
 
-                if (
-                    re.search(
-                        f"No file {self.project_name}.bbl.", self.out
-                    )
-                    or re.search("LaTeX Warning: Citation .* undefined", self.out)
+                if re.search(f"No file {self.project_name}.bbl.", self.out) or re.search(
+                    "LaTeX Warning: Citation .* undefined", self.out
                 ):
                     latex_compilation_times = 2
 
@@ -535,9 +515,7 @@ class CompilationDetector:
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
         return bib_engine, latex_compilation_times, target_name_bib
 
-    def _index_changed_judgment(
-        self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile
-    ):
+    def _index_changed_judgment(self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile):
         """判断单次索引是否需要重跑。
 
         三种情况返回 True：
@@ -550,9 +528,7 @@ class CompilationDetector:
         """
         if re.search(f"No file {index_aux_infile}.", self.out):
             return True
-        if not (
-            Path(index_aux_infile).exists() and Path(index_aux_outfile).exists()
-        ):
+        if not (Path(index_aux_infile).exists() and Path(index_aux_outfile).exists()):
             return True
         file_content = _read_file_content(index_aux_infile)
         # 用 .get() 而非 dict[key]，避免快照/检测触发条件不一致导致 KeyError
@@ -577,20 +553,19 @@ class CompilationDetector:
                 break
 
         for rule in _INDEX_REGISTRY:
+            # bib2gls 下 glossaries 的条目由 biber 处理，跳过 makeindex/xindy 调用
+            if self.bib2gls_mode and rule["name"] == "glossaries":
+                continue
             if not rule["trigger"](self.project_name, main_aux):
                 continue
-            for ext_i, ext_o, ctx in rule["discover"](
-                self.project_name, main_aux, log_content
-            ):
+            for ext_i, ext_o, ctx in rule["discover"](self.project_name, main_aux, log_content):
                 make_index = self._index_changed_judgment(
                     index_aux_content_dict_old,
                     f"{self.project_name}.{ext_i}",
                     f"{self.project_name}.{ext_o}",
                 )
                 if make_index:
-                    run_index_list_cmd.append(
-                        rule["cmd_builder"](self.project_name, ext_o, ext_i, ctx)
-                    )
+                    run_index_list_cmd.append(rule["cmd_builder"](self.project_name, ext_o, ext_i, ctx))
 
         return run_index_list_cmd
 
@@ -607,7 +582,7 @@ class CompilationDetector:
                 if aux_path.exists():
                     aux_content_old = _read_file_content(aux_path)
                     break
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 aux_content_old = ""
 
         out_paths = [
@@ -619,7 +594,7 @@ class CompilationDetector:
                 if out_path.exists():
                     out_content_old = _read_file_content(out_path)
                     break
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 out_content_old = ""
 
         return aux_content_old, out_content_old
@@ -650,7 +625,9 @@ class CompilationDetector:
                 continue
             if re.fullmatch(r"\\@outlinefile\s*\{.*\}", line):
                 continue
-            if re.fullmatch(r"\\gdef\s*\\@abspage@last\{.*\}", line) or re.fullmatch(r"\\xdef\s*\\@abspage@last\{.*\}", line):
+            if re.fullmatch(r"\\gdef\s*\\@abspage@last\{.*\}", line) or re.fullmatch(
+                r"\\xdef\s*\\@abspage@last\{.*\}", line
+            ):
                 continue
             if re.fullmatch(r"\\global\\\@namedef\{ver@.*\}\{.*\}", line):
                 continue
@@ -668,7 +645,7 @@ class CompilationDetector:
                 if aux_path.exists():
                     current = _read_file_content(aux_path)
                     break
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 return False
         return self._normalize_aux_like(current) != self._normalize_aux_like(aux_content_old)
 
@@ -683,7 +660,7 @@ class CompilationDetector:
                 if out_path.exists():
                     current = _read_file_content(out_path)
                     break
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 return False
         return self._normalize_aux_like(current) != self._normalize_aux_like(out_content_old)
 
@@ -711,7 +688,7 @@ class CompilationDetector:
                 if candidate.exists():
                     log_content = _read_file_content(candidate)
                     break
-            except (OSError, UnicodeDecodeError):
+            except OSError, UnicodeDecodeError:
                 log_content = ""
 
         if not log_content:
@@ -726,7 +703,9 @@ class CompilationDetector:
                 return True
         return False
 
-    def run_full_detection(self, *, cite_counter_old, toc_file_old, index_aux_content_old, aux_content_old, out_content_old):
+    def run_full_detection(
+        self, *, cite_counter_old, toc_file_old, index_aux_content_old, aux_content_old, out_content_old
+    ):
         """六维状态检测聚合接口（FR-A5 Task 2.3）。一次性返回 (dims, next_extra, bib_engine, index_run_cmds, times_bib)。
 
         返回：
@@ -770,23 +749,17 @@ class CompilationDetector:
         if aux_exists:
             main_aux = _read_file_content(aux_path)
             bib_enabled = bool(
-                BIBER_PATTERN.search(main_aux)
-                or BIBTEX_PATTERN.search(main_aux)
-                or re.search(r"\\bibcite", main_aux)
+                BIBER_PATTERN.search(main_aux) or BIBTEX_PATTERN.search(main_aux) or re.search(r"\\bibcite", main_aux)
             )
 
-        idx_enabled = any(
-            rule["trigger"](self.project_name, main_aux)
-            for rule in _INDEX_REGISTRY
-        )
+        idx_enabled = any(rule["trigger"](self.project_name, main_aux) for rule in _INDEX_REGISTRY)
 
         toc_enabled = Path(f"{self.project_name}.toc").exists()
 
         out_enabled = Path(f"{self.project_name}.out").exists()
 
         log_enabled = any(
-            Path(p).exists()
-            for p in (f"{self.project_name}.log", Path(self.auxdir) / f"{self.project_name}.log")
+            Path(p).exists() for p in (f"{self.project_name}.log", Path(self.auxdir) / f"{self.project_name}.log")
         )
 
         dims = {
