@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 19:10+0800\n"
+"POT-Creation-Date: 2026-09-25 21:26+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -19,33 +19,32 @@ msgstr ""
 "Generated-By: Babel 2.18.0\n"
 
 msgid "清除所有的辅助文件"
-msgstr "Cleaning all auxiliary files"
+msgstr "Clean all aux files"
 
 msgid "清除文件夹内输出文件"
-msgstr "Cleaning output files in folder"
+msgstr "Clean folder outputs"
 
 msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]"
 msgstr ""
-"[bold green]Finished cleaning all auxiliary-extension files and main file "
-"outputs[/bold green]"
+"[bold green]Finished cleaning all auxiliary-extension files and main file"
+" outputs[/bold green]"
 
 msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]"
-msgstr ""
-"[bold green]Finished cleaning all auxiliary-extension files[/bold green]"
+msgstr "[bold green]Finished cleaning all auxiliary-extension files[/bold green]"
 
 msgid "修复 PDF 文件"
-msgstr "Repairing PDF files"
+msgstr "Repair PDF"
 
 msgid "清除文件夹内辅助文件"
-msgstr "Cleaning auxiliary files in folder"
+msgstr "Clean folder aux"
 
 msgid "清除根目录内辅助文件"
-msgstr "Cleaning auxiliary files in root directory"
+msgstr "Clean root aux"
 
 msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]"
 msgstr ""
-"[bold green]Finished cleaning auxiliary and output files of all main files"
-"[/bold green]"
+"[bold green]Finished cleaning auxiliary and output files of all main "
+"files[/bold green]"
 
 msgid "[bold green]已完成清除所有主文件的辅助文件的指令[/bold green]"
 msgstr ""
@@ -56,7 +55,7 @@ msgid "开始预处理"
 msgstr "Starting preprocessing"
 
 msgid "辅助文件->根目录"
-msgstr "Auxiliary files -> root directory"
+msgstr "Aux files -> root"
 
 msgid "未检测到已有辅助文件，进行初始化"
 msgstr "No existing auxiliary files detected, initializing"
@@ -79,13 +78,13 @@ msgid "移动结果文件到输出目录..."
 msgstr "Moving result files to output directory..."
 
 msgid "结果文件->输出目录"
-msgstr "Result files -> output directory"
+msgstr "Result -> output"
 
 msgid "移动辅助文件到辅助目录..."
 msgstr "Moving auxiliary files to auxiliary directory..."
 
 msgid "辅助文件->辅助目录"
-msgstr "Auxiliary files -> auxiliary directory"
+msgstr "Aux files -> aux dir"
 
 msgid "警告：检测到上次编译可能被中断，辅助文件可能不完整。"
 msgstr ""
@@ -99,8 +98,8 @@ msgstr ""
 
 msgid "可运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"
 msgstr ""
-"Run pytexmk -ls to sync the subproject list, or check the \\[subprojects"
-"\\] section in the root config"
+"Run pytexmk -ls to sync the subproject list, or check the "
+"\\[subprojects\\] section in the root config"
 
 msgid "子项目调用: 忽略子项目目录下的本地 .pytexmkrc, 以根配置为准"
 msgstr ""
@@ -212,7 +211,7 @@ msgid "LaTeXDiff 预处理"
 msgstr "LaTeXDiff preprocessing"
 
 msgid "全辅助文件->根目录"
-msgstr "All auxiliary files -> root directory"
+msgstr "All aux -> root"
 
 msgid ""
 "请输入 LaTeXDiff 的显示风格：\n"
@@ -226,13 +225,13 @@ msgstr ""
 "Please choose (1 or 2): "
 
 msgid "LaTeXDiff 运行"
-msgstr "LaTeXDiff running"
+msgstr "LaTeXDiff run"
 
 msgid "LaTeXDiff 后处理"
 msgstr "LaTeXDiff post-processing"
 
 msgid "删除 Flatten 后的文件..."
-msgstr "Removing flattened files..."
+msgstr "Remove flattened files"
 
 msgid "开始预处理命令"
 msgstr "Starting preprocessing commands"
