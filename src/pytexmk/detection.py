@@ -66,6 +66,53 @@ RERUN_LOG_PATTERNS = [
     re.compile(r"LaTeX Warning: There were multiply-defined labels\."),
 ]
 
+# ── 索引系统注册表 ──────────────────────────────────────────────────
+# 统一描述三种 LaTeX 索引系统的快照/检测元信息，快照和检测都从此驱动。
+# 每条规则字段：
+#   name        : 索引系统标识
+#   triggers    : 触发扩展名列表（任一存在即命中 → any 语义）
+#   pattern     : .aux 中正则（仅 glossaries 需要，因为它的 ext_i/ext_o 是动态解析的）
+#   cmd_builder : (proj, *args...) -> list[list[str]]，生成要执行的索引命令
+#
+# glossaries 特殊：每个 .aux 中的 \\@newglossary 条目不只是一套，一个项目可能有多套
+#                  (glossaries 有多个 glossary 类型：main/acronyms/symbols 等)，
+#                  所以它的 cmd_builder 接收 match 的动态 (name, ext_o, ext_i)。
+_NGLOSSARY_PATTERN = re.compile(
+    r"\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}"
+)
+
+_INDEX_REGISTRY: tuple[dict, ...] = (
+    {
+        "name": "glossaries",
+        "triggers": [".glo", ".acn", ".slo"],
+        "pattern": _NGLOSSARY_PATTERN,
+        # match.groups() = (_name, ext_o, ext_i)
+        "cmd_builder": lambda proj, _name, ext_o, ext_i: [
+            f"glossaries {_name}",
+            f"makeindex -s {proj}.ist -o {proj}{ext_o} {proj}{ext_i}",
+        ],
+    },
+    {
+        "name": "nomencl",
+        "triggers": [".nlo"],                      # 任一存在即命中
+        "fixed_in": ".nlo",
+        "fixed_out": ".nls",
+        "cmd_builder": lambda proj: [
+            "nomencl",
+            f"makeindex -s nomencl.ist -o {proj}.nls {proj}.nlo",
+        ],
+    },
+    {
+        "name": "makeidx",
+        "triggers": [".idx"],                      # 任一存在即命中
+        "fixed_in": ".idx",
+        "fixed_out": ".ind",
+        "cmd_builder": lambda proj: [
+            "makeidx", f"makeindex {proj}.idx",
+        ],
+    },
+)
+
 
 def _read_file_content(path: str | Path) -> str:
     """容错读取 LaTeX 辅助文件内容，避免因编码不同导致编译检测崩溃。
@@ -156,57 +203,42 @@ class CompilationDetector:
         return cite_counter
 
     def _index_aux_content_get(self):
-        file_name = Path(
-            f"{self.project_name}.aux"
-        )
-        index_aux_content_dict_old = {}
+        """快照阶段：扫描三种索引系统，为命中的系统记录 ext_i（输入文件）旧内容。
 
-        if file_name.exists():
-            if any(
-                Path(f"{self.project_name}{ext}").exists()
-                for ext in [".glo", ".acn", ".slo"]
-            ):
-                main_aux = _read_file_content(file_name)
-                pattern = r"\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}"
-                for match in re.finditer(
-                    pattern, main_aux
-                ):
-                    _name, ext_o, ext_i = (
-                        match.groups()
-                    )
-                    if (
-                        Path(f"{self.project_name}{ext_i}").exists()
-                        and Path(f"{self.project_name}{ext_o}").exists()
-                    ):
-                        index_ext_i_content = _read_file_content(
-                            Path(f"{self.project_name}{ext_o}")
-                        )
-                        index_aux_content_dict_old[f"{self.project_name}.{ext_i}"] = (
-                            index_ext_i_content
-                        )
-            if all(
-                Path(f"{self.project_name}{ext}").exists()
-                for ext in [".nlo", ".nls"]
-            ):
-                index_ext_i_content = _read_file_content(
-                    Path(f"{self.project_name}.nlo")
-                )
-                index_aux_content_dict_old[f"{self.project_name}.nlo"] = (
-                    index_ext_i_content
-                )
+        统一语义：快照存 ext_i，检测也比较 ext_i。
+        原先 glossaries 分支误读 ext_o（输出文件）已在此修正。
+        nomencl/makeidx 原先要求 ext_i 和 ext_o 两文件都存在才快照，
+        现在统一改为任一触发扩展名存在即快照（与检测阶段对齐）。
+        """
+        index_aux_content_dict_old: dict[str, str] = {}
 
-            if all(
-                Path(f"{self.project_name}{ext}").exists()
-                for ext in [".idx", ".ind"]
-            ):
-                index_ext_i_content = _read_file_content(
-                    Path(f"{self.project_name}.idx")
-                )
-                index_aux_content_dict_old[f"{self.project_name}.idx"] = (
-                    index_ext_i_content
-                )
-        else:
+        aux_path = Path(f"{self.project_name}.aux")
+        if not aux_path.exists():
             self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
+            return index_aux_content_dict_old
+
+        for rule in _INDEX_REGISTRY:
+            if not any(
+                Path(f"{self.project_name}{ext}").exists()
+                for ext in rule["triggers"]
+            ):
+                continue
+
+            if rule["name"] == "glossaries":
+                main_aux = _read_file_content(aux_path)
+                for match in rule["pattern"].finditer(main_aux):
+                    _name, _ext_o, ext_i = match.groups()
+                    key = f"{self.project_name}.{ext_i}"
+                    infile_path = Path(key)
+                    if infile_path.exists():
+                        index_aux_content_dict_old[key] = _read_file_content(infile_path)
+            else:
+                # nomencl / makeidx：固定 ext_i
+                ext_i = rule["fixed_in"]
+                key = f"{self.project_name}{ext_i}"
+                infile_path = Path(key)
+                if infile_path.exists():
+                    index_aux_content_dict_old[key] = _read_file_content(infile_path)
 
         return index_aux_content_dict_old
 
@@ -280,40 +312,56 @@ class CompilationDetector:
     def _index_changed_judgment(
         self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile
     ):
-        make_index = False
-        if re.search(
-            f"No file {index_aux_infile}.", self.out
-        ):
-            make_index = True
-        elif (
+        """判断单次索引是否需要重跑。
+
+        三种情况返回 True：
+          1. self.out 中出现 "No file {index_aux_infile}." → 从未跑过索引
+          2. 当前输入文件存在且内容与快照不同 → 发生了变化
+          3. 其他（输入/输出文件缺失）→ 视为首次，需要跑
+
+        .get() 兜底：当快照 dict 里没有 key 时（快照阶段没捕获到该文件），
+        视为快照内容与任何值都不同 → 触发重跑。
+        """
+        if re.search(f"No file {index_aux_infile}.", self.out):
+            return True
+        if not (
             Path(index_aux_infile).exists() and Path(index_aux_outfile).exists()
         ):
-            file_content = _read_file_content(index_aux_infile)
-            if file_content is not None and (
-                str(index_aux_content_dict_old[index_aux_infile]) != file_content
-            ):
-                make_index = True
-        else:
-            make_index = True
-        return make_index
+            return True
+        file_content = _read_file_content(index_aux_infile)
+        # 用 .get() 而非 dict[key]，避免快照/检测触发条件不一致导致 KeyError
+        return index_aux_content_dict_old.get(index_aux_infile, "") != file_content
 
     def index_judgment(self, index_aux_content_dict_old):
-        file_name = Path(
-            f"{self.project_name}.aux"
-        )
-        run_index_list_cmd = []
-        if any(
-            Path(f"{self.project_name}{ext}").exists()
-            for ext in [".glo", ".acn", ".slo"]
-        ):
-            main_aux = _read_file_content(file_name)
-            pattern = r"\\@newglossary\{(.*)\}\{.*\}\{(.*)\}\{(.*)\}"
-            for match in re.finditer(
-                pattern, main_aux
+        """检测阶段：统一遍历注册表，为命中的系统决定是否需要重跑索引。"""
+        run_index_list_cmd: list[list[str]] = []
+
+        for rule in _INDEX_REGISTRY:
+            if not any(
+                Path(f"{self.project_name}{ext}").exists()
+                for ext in rule["triggers"]
             ):
-                name, ext_o, ext_i = (
-                    match.groups()
-                )
+                continue
+
+            if rule["name"] == "glossaries":
+                aux_path = Path(f"{self.project_name}.aux")
+                if not aux_path.exists():
+                    continue
+                main_aux = _read_file_content(aux_path)
+                for match in rule["pattern"].finditer(main_aux):
+                    _name, ext_o, ext_i = match.groups()
+                    make_index = self._index_changed_judgment(
+                        index_aux_content_dict_old,
+                        f"{self.project_name}{ext_i}",
+                        f"{self.project_name}{ext_o}",
+                    )
+                    if make_index:
+                        run_index_list_cmd.append(
+                            rule["cmd_builder"](self.project_name, _name, ext_o, ext_i)
+                        )
+            else:
+                ext_i = rule["fixed_in"]
+                ext_o = rule["fixed_out"]
                 make_index = self._index_changed_judgment(
                     index_aux_content_dict_old,
                     f"{self.project_name}{ext_i}",
@@ -321,35 +369,9 @@ class CompilationDetector:
                 )
                 if make_index:
                     run_index_list_cmd.append(
-                        [
-                            f"glossaries {name}",
-                            f"makeindex -s {self.project_name}.ist -o {self.project_name}{ext_o} {self.project_name}{ext_i}",
-                        ]
+                        rule["cmd_builder"](self.project_name)
                     )
-        elif Path(f"{self.project_name}.nlo").exists():
-            make_index = self._index_changed_judgment(
-                index_aux_content_dict_old,
-                f"{self.project_name}.nlo",
-                f"{self.project_name}.nls",
-            )
-            if make_index:
-                run_index_list_cmd.append(
-                    [
-                        "nomencl",
-                        f"makeindex -s nomencl.ist -o {self.project_name}.nls {self.project_name}.nlo",
-                    ]
-                )
 
-        elif Path(f"{self.project_name}.idx").exists():
-            make_index = self._index_changed_judgment(
-                index_aux_content_dict_old,
-                f"{self.project_name}.idx",
-                f"{self.project_name}.ind",
-            )
-            if make_index:
-                run_index_list_cmd.append(
-                    ["makeidx", f"makeindex {self.project_name}.idx"]
-                )
         return run_index_list_cmd
 
     def prepare_aux_out_snapshots(self):
