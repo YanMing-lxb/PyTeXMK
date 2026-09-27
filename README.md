@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://github.com/YanMing-lxb/PyTeXMK/blob/main/imgs/pytexmk-logo.png?raw=true" alt="PyTeXMK Logo" width="128" height="128">
   <h1>PyTeXMK</h1>
-  <p>LaTeX 辅助编译命令行程序</p>
+  <p>LaTeX 辅助编译命令行工具</p>
 
   <p>
     <a href="https://pypi.python.org/pypi/pytexmk/">
@@ -45,25 +45,37 @@
 
 ---
 
+**PyTeXMK**（Python TeX Make）是一个用 Python 编写的 LaTeX 自动化编译工具，灵感来源于 `latexmk`。它能够根据辅助文件变化智能决定编译轮次，配合 Rich 彩色输出、参考文献/索引工具链自动调度，让 LaTeX 编译工作流一键完成。
+
+---
+
 ## ✨ 功能特性
 
-- 🚀 **多引擎支持**：XeLaTeX、PdfLaTeX、LuaLaTeX 三大编译引擎
-- 📚 **参考文献**：支持 bibtex、biblatex、thebibliography
-- 📑 **索引支持**：glossaries（含 glossaries-extra + bib2gls + biber）、nomencl、makeidx
-- 📋 **结构化编译检测报告**：将 6 维检测状态（参考文献/索引/目录/交叉引用/书签文件/日志 Rerun）与本轮结论整合为统一报告区块；报告采用 **Rich 5 色分层彩色（标题洋红、名称青粗、[OK]绿粗、[!!]黄粗、安全上限红粗）+ 粗体**，禁用表格网格，纯条目列表输出；**[OK] 状态不再千篇一律「状态稳定」，改为 6 维度各自独立的动态稳定文案**（如「参考文献引用计数无变化，参考文献解析稳定」「PDF 书签条目未发生变更，书签生成稳定」等）；结论行 actual_next 语义严格对齐（2→1→无需，绝不兜底为 1，绝不打印「需额外进行 0 次」），编译名称按实际引擎动态替换为 XeLaTeX/PdfLaTeX/LuaLaTeX；所有报告文案完整适配国际化 `_()` 包装
-- 🔁 **智能多次编译检测**：自动比较 aux/out 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、lastpage 总页数等收敛稳定
-- 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录等；正则已加固，行内 TeX 转义百分号 `\%` 不会被误识别为魔法注释起始
-- 🌍 **国际化**：支持多语言界面；**默认界面语言为中文**（源码字符串即中文），不强制默认英文；v1.2.1 起全面采用 **pybabel 官方工作流**（`pybabel extract → init → update → compile`），不再使用 xgettext / msgfmt；所有用户可见文案 100% `_()` 包装 + `%(name)s` 占位；**3 组遗留共享域全部拆为独立域**（lifecycle / paths、pdf_tools / subprocess_runner / tex_project、timing / ui_messages），与 set_language 参数、locale 文件名 1:1 严格对齐；提供新增语言的交互式命令（`make lang-add` 终端提问语言代码）、自动更新所有 pot/po 的 `make lang-update`、把 po 编译成 mo 的 `make lang-mo`、以及重抽所有 pot 的 `make lang-poup`
-- 🧹 **智能清理**：支持多种清理模式，精确清理辅助文件
-- 🔍 **日志解析**：编译失败后自动解析 LaTeX 日志，定位错误
-- 📝 **LaTeXDiff**：支持 LaTeX 文件差异对比
-- ⚙️ **配置文件**：支持用户配置和项目配置两级配置
-- 🔔 **版本检查**：自动检查更新，第一时间获取新版本
-- 🪓 **检测与编译彻底解耦（零薄转发）**：新建独立 `detection.py` 模块承载全部 6 维检测逻辑与 `CompilationDetector` 类，`compile.py` 仅保留 subprocess 级编译执行；强制采用组合关系调用（`compile_model.detector.*`），**严禁任何薄转发方法**（`return self.detector.xxx(...)` = 0），单一职责与可维护性拉满
-- 🧱 **分层架构 + DAG 无环 import**：基于 23 模块静态拓扑调查的「凝聚度硬阈值」拆分出唯一达标的 `cli/` 子包（`__main__ / cli_args / cli_workflow / check_version`），其余 19 模块保持扁平避免过度工程；同时打破 `run ↔ cli_workflow` 静态 2 节点 SCC 环，import 图正式 DAG 化（SCC≥2 分量 = 0），从结构上消除循环依赖隐患
-- 🪧 **预处理 Banner + 预处理日志差异化**：预处理控制台 Banner 回归复古三行 `=*78 / X32|开始预处理|X32 / =*78` 风格，与项目其他 Banner **统一走 `ui_messages.print_message`**；删除「结束预处理」横幅；预处理段按「move 0/N 个辅助文件」「exist 0/N 个已有辅助文件」4 场景**差异化打印提示**，避免无论是否实际迁移都两行固定输出的歧义；「未检测到已有辅助文件，进行初始化」文案**全局只保留 1 处**，归属 `cli_workflow`
-- 🚫 **零兼容承诺 + 冗余清理 + 永久去 Cython 加密**：v1.2.1 起**不保留任何兼容层**（彻底删除旧 `pytexmk.run` 入口 / DeprecationWarning / try-import fallback）；**永久移除 Cython 加密打包链路**（删除 `tools/pydmk.py`、`srcpyd/` 入口、`cython` 依赖、三平台 GA 编译工具链安装步骤），打包流程**永久只有「源码模式 onedir」一条路径**；核心模块持续执行 ruff F401/F841 + 死注释清理，控制架构熵增速率
-- 🗺 **架构决策制度化**：新增 [docs/architecture.md](docs/architecture.md) 作为单一事实源，给出 6 层 ASCII 分层依赖图、23 模块职责矩阵、新功能放哪的 Q1~Q4 决策树 + 规则 5「子包拆分硬阈值（≥4 模块 AND ≥3 内引 AND ≥0.7 耦合系数）」、以及 3 条 import 纪律，约束架构熵增速率
+### 核心编译
+
+- 🚀 **多引擎支持**：XeLaTeX、PdfLaTeX、LuaLaTeX，通过命令行参数或魔法注释灵活切换
+- 🔁 **智能多次编译检测**：自动比较 `.aux`/`.out` 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、总页数等收敛稳定
+- 📋 **结构化编译检测报告**：每轮编译结束后输出 6 维检测状态（参考文献、索引、目录、交叉引用、书签文件、日志重编译），清晰展示各维度是否稳定及预期下一步
+
+### 参考文献与索引
+
+- 📚 **参考文献**：自动调度 bibtex / biblatex（biber）/ thebibliography
+- 📑 **索引与术语表**：glossaries（含 glossaries-extra + bib2gls + biber）、nomencl、makeidx，自动选择 xindy 或 makeindex 后端
+- 🔮 **魔法注释**：通过 `% !TEX` 注释指定编译引擎、主文件、输出目录、辅助目录等
+
+### 辅助工具
+
+- 🧹 **智能清理**：多种清理模式，支持按目录范围和文件后缀精确清理辅助文件
+- 🔍 **日志解析**：编译失败后自动解析 LaTeX 日志，定位错误位置
+- 📝 **LaTeXDiff**：两个 LaTeX 文件差异对比，生成带修订标记的 PDF
+- 🖼 **PDF 修复与预览**：损坏 PDF 自动修复，编译后自动预览
+
+### 配置与扩展
+
+- 🌍 **国际化**：支持多语言界面，默认中文
+- ⚙️ **两级配置文件**：用户级 + 项目级 `.pytexmkrc`，所有参数均可自定义
+- 🧩 **多子项目管理**：一个根目录下管理多个独立子项目，支持自动扫描和逐一编译
+- 🪲 **版本检查**：自动检查更新，第一时间获取新版本
 
 ---
 
@@ -78,27 +90,37 @@
 
 ## 🚀 快速开始
 
+### 前置条件
+
+在安装 PyTeXMK 之前，请确保你的系统已安装以下组件：
+
+1. **Python 3.14+**（通过 uv 管理推荐）
+2. **LaTeX 发行版**（任选其一）：
+   - **Windows**: [MiKTeX](https://miktex.org/) 或 [TeX Live](https://tug.org/texlive/)
+   - **macOS**: [MacTeX](https://www.tug.org/mactex/) 或 BasicTeX
+   - **Linux**: TeX Live（发行版自带或官方安装）
+3. **可选工具**（按需安装）：
+   - `biber`（biblatex 后端，用于参考文献处理）
+   - `xindy`（glossaries 后端，用于术语表编译）
+   - `latexdiff`（LaTeX 文件差异对比）
+
 ### 安装
 
-官方版本 PyTeXMK 发布在 [PyPI](https://pypi.org/project/pytexmk/) 上，可以通过 pip 或 uv 轻松安装：
+#### 通过 pip 或 uv
 
 ```bash
 # 使用 pip 安装
 pip install pytexmk
 
 # 使用 uv 安装（推荐）
-uv pip install pytexmk
+uv add pytexmk
 ```
 
-### Windows winget 安装（推荐）
-
-Windows 10 1809+ / Windows 11 用户可使用 [winget](https://learn.microsoft.com/zh-cn/windows/package-manager/) 一键安装（无需 Python 环境）：
+#### Windows winget（推荐，无需 Python 环境）
 
 ```powershell
 winget install --id YanMing-lxb.PyTeXMK
 ```
-
-> 提示：若已完成 moniker 注册，可简写为 `winget install pytexmk`。
 
 ### 升级
 
@@ -106,8 +128,11 @@ winget install --id YanMing-lxb.PyTeXMK
 # pip
 pip install --upgrade pytexmk
 
-# uv
-uv pip install --upgrade pytexmk
+# uv（升级到最新版）
+uv add pytexmk@latest
+
+# winget
+winget upgrade --id YanMing-lxb.PyTeXMK
 ```
 
 ### 基本使用
@@ -115,14 +140,17 @@ uv pip install --upgrade pytexmk
 在 LaTeX 项目根目录下运行：
 
 ```bash
-# 使用默认配置编译
+# 使用默认配置（XeLaTeX + main.tex + Build/）编译
 pytexmk
 
 # 指定主文件编译
 pytexmk main.tex
 
-# 使用 XeLaTeX 编译
-pytexmk -x main.tex
+# 使用 PdfLaTeX 编译
+pytexmk -p main.tex
+
+# 编译 + 预览 PDF
+pytexmk main.tex -pv
 
 # 清理辅助文件
 pytexmk -c
@@ -140,144 +168,155 @@ pytexmk -c
 | 主文件名 | `main.tex` | 待编译的 LaTeX 主文件 |
 | 输出目录 | `Build` | 编译结果存放目录 |
 | 辅助目录 | `Auxiliary` | 辅助文件存放目录 |
-| 编译模式 | batch 模式 | 编译过程不显示详细信息 |
+| 编译模式 | batch 模式 | 编译过程不在终端显示详细日志 |
 
 > **提示**：以上参数均可在配置文件中修改，详见 [配置文件说明](#配置文件说明)。
 >
-> VSCode 用户需在 `settings.json` 中设置 `"latex-workshop.latex.outDir": "./Build"` 以便 LaTeX-Workshop 找到 PDF 文件。
+> **VSCode 用户**：在 `settings.json` 中设置 `"latex-workshop.latex.outDir": "./Build"` 以便 LaTeX-Workshop 找到 PDF 文件。
 
 ---
 
 ## 📖 使用说明
 
-### 编译命令
-
-PyTeXMK 支持的编译选项：
-
-**位置参数**
-
-| 参数 | 说明 |
-| --- | --- |
-| `document` | 要被编译的文件名 |
-
-**选项参数**
+### 编译引擎与模式
 
 | 选项 | 说明 |
 | --- | --- |
-| `-h`, `--help` | 显示帮助信息 |
-| `-v`, `--version` | 显示程序版本号 |
-| `-p`, `--PdfLaTeX` | 使用 PdfLaTeX 进行编译 |
-| `-x`, `--XeLaTeX` | 使用 XeLaTeX 进行编译 |
-| `-l`, `--LuaLaTeX` | 使用 LuaLaTeX 进行编译 |
-| `-d`, `--LaTeXDiff` | 使用 LaTeXDiff 生成改动对比文件 |
-| `-dc`, `--LaTexDiff-compile` | 使用 LaTeXDiff 生成对比文件并编译新文件 |
-| `-dr`, `--draft` | 启用草稿模式（无图显示，提高编译速度） |
+| `-p`, `--PdfLaTeX` | 使用 PdfLaTeX 编译 |
+| `-x`, `--XeLaTeX` | 使用 XeLaTeX 编译（默认） |
+| `-l`, `--LuaLaTeX` | 使用 LuaLaTeX 编译 |
+| `-dr`, `--draft` | 草稿模式，编译时不包含图片（加速） |
+| `-nq`, `--non_quiet` | 非安静模式，终端显示编译过程 |
+| `-vb`, `--verbose` | 详细模式，显示 PyTeXMK 运行信息 |
+
+### 清理
+
+| 选项 | 说明 |
+| --- | --- |
 | `-c`, `--clean` | 清除主文件的辅助文件 |
 | `-C`, `--Clean` | 清除辅助文件（含根目录）和输出文件 |
 | `-ca`, `--clean-any` | 清除所有带辅助文件后缀的文件 |
 | `-Ca`, `--Clean-any` | 清除所有辅助文件（含根目录）和主文件输出 |
-| `-nq`, `--non_quiet` | 非安静模式，显示编译过程 |
-| `-vb`, `--verbose` | 显示 PyTeXMK 运行详细信息 |
-| `-pr`, `--pdf-repair` | 修复所有根目录以外的 PDF 文件 |
-| `-pv`, `--pdf-preview` | 编译后预览 PDF 文件 |
-| `-s`, `--subproject` | 从根配置 `[subprojects]` 中选中子项目并在其目录编译 |
-| `-ls`, `--list-subprojects` | 扫描子项目并展示清单（自动同步根配置 `[subprojects]` 段） |
-| `-i`, `--init` | 生成根项目 `.pytexmkrc` 配置文件 |
-| `-iu`, `--init-user` | 生成用户级 `~/.pytexmkrc` 配置文件 |
-| `-f`, `--force` | 配合 `-i`/`-iu` 强制覆盖已存在的配置文件 |
 
-**参数说明**
-
-- **`-pr`**：当 LaTeX 编译过程中报类似 `invalid X X R object at offset XXXXX` 的警告时，可使用此参数尝试修复所有 PDF 文件。该警告通常由 PDF 图片文件损坏导致。
-- **`-d` / `-dc`**：输入示例：`pytexmk -d old_tex_file new_tex_file`，生成的改动对比文件名为 `LaTeXDiff.tex`。
-- **`-pv`**：编译结束后调用浏览器或本地 PDF 阅读器预览。示例：`pytexmk main -pv` 或 `pytexmk -pv`。
-- **`-dc` / `-d`**：支持在参考文献和符号索引中显示修改痕迹，编译过程中会提示选择风格（1-显示修改 / 2-不显示修改）。
-
-### 多子项目编译
-
-PyTeXMK 支持在一个项目根目录下管理并逐一编译多个相互独立的子项目。
-
-`-s` / `-ls` / `-i` / `-iu` / `-f` 相关说明：
+### LaTeXDiff 差异对比
 
 | 选项 | 说明 |
 | --- | --- |
-| `-s`, `--subproject <名称>` | 从根 `.pytexmkrc` 的 `[subprojects]` 段选中一个子项目，并在其目录下编译/清理；进程内部切换工作根，**不改变用户终端 cwd**，可与主文件名共存（如 `pytexmk -s 子项目 main`）；alias 未命中时报错并提示先运行 `-ls`，以「项目不存在」退出码退出 |
-| `-ls`, `--list-subprojects` | 按根配置 `[project_scan]` 规则扫描并表格展示子项目清单；若根 `.pytexmkrc` 存在，会把 `[subprojects]` 段**整体替换**为扫描结果（结果幂等），`[project_scan]` 段不被改动；若 rc 不存在则提示先运行 `-i`、不写盘 |
-| `-i`, `--init` | 生成根项目 `.pytexmkrc` 配置文件 |
-| `-iu`, `--init-user` | 生成用户级 `~/.pytexmkrc` 配置文件 |
-| `-f`, `--force` | 仅配合 `-i`/`-iu` 覆盖已存在文件；目标已存在且未加 `-f` 时提示且不写入 |
+| `-d`, `--LaTeXDiff` | 生成两个文件的差异对比，输出 `LaTeXDiff.tex` |
+| `-dc`, `--LaTexDiff-compile` | 生成差异文件并自动编译，输出带修订标记的 PDF |
 
-**典型流程**
+**示例**：
 
-1. 在根目录执行 `pytexmk -i` 生成根配置 `.pytexmkrc`（需覆盖已有配置时加 `-f`）；需要全局配置时用 `-iu` 生成用户级 `~/.pytexmkrc`
-2. 执行 `pytexmk -ls` 扫描并展示子项目清单（自动把根配置的 `[subprojects]` 段更新为扫描结果）
-3. 用 `pytexmk -s 子项目名` 选中子项目并编译，也可与主文件名共存：`pytexmk -s 子项目名 main`；清理作用域同样生效，如 `pytexmk -s 子项目名 -c`
+```bash
+pytexmk -d old.tex new.tex     # 生成 LaTeXDiff.tex
+pytexmk -dc old.tex new.tex    # 生成并编译 LaTeXDiff PDF
+```
 
-**配置说明**
+> 支持在参考文献和符号索引中显示修改痕迹，编译时会提示选择风格。
 
-- `[project_scan]`：子项目扫描规则段（默认 `depth=3`、`exclude` 排除清单）。仅用于 `-ls`/`-s` 扫描，扫描参数统一取根配置；`-ls` 与 `-s` **均不会覆盖或修改**该段内容
-- `[subprojects]`：子项目清单段，由 `-s` 选中使用；`-ls` 会将其整体替换为扫描结果
+### PDF 工具
 
-**本地 rc 作用域**
+| 选项 | 说明 |
+| --- | --- |
+| `-pr`, `--pdf-repair` | 修复损坏的 PDF 文件（如图片导致的 `invalid X X R object` 警告） |
+| `-pv`, `--pdf-preview` | 编译完成后调用浏览器或本地 PDF 阅读器预览 |
 
-- 从根目录用 `-s` 调用时，会忽略子项目目录下的本地 `.pytexmkrc`（`-vb` 会打印一行提示），以根配置为绝对来源
-- 用户 cd 进入子项目目录独立运行时，本地 rc 生效（向后兼容）
+### 多子项目管理
+
+PyTeXMK 支持在一个项目根目录下管理多个相互独立的子项目，各自拥有独立的编译配置和输出目录。
+
+**典型流程**：
+
+```bash
+# 1. 生成根配置文件
+pytexmk -i
+
+# 2. 自动扫描并展示子项目清单（同时更新配置）
+pytexmk -ls
+
+# 3. 编译指定子项目（可与主文件名配合）
+pytexmk -s 论文 main.tex
+```
+
+| 选项 | 说明 |
+| --- | --- |
+| `-s`, `--subproject <名称>` | 选中指定子项目并在其目录下编译/清理 |
+| `-ls`, `--list-subprojects` | 扫描子项目并展示清单，同步更新根配置 |
+
+### 配置文件生成
+
+| 选项 | 说明 |
+| --- | --- |
+| `-i`, `--init` | 在当前目录生成项目级 `.pytexmkrc` |
+| `-iu`, `--init-user` | 在用户主目录生成用户级 `.pytexmkrc` |
+| `-f`, `--force` | 配合 `-i`/`-iu` 强制覆盖已存在的配置文件 |
+
+### 其他
+
+| 选项 | 说明 |
+| --- | --- |
+| `document` | 位置参数，指定要编译的文件名（可省略后缀） |
+| `-h`, `--help` | 显示帮助信息 |
+| `-v`, `--version` | 显示程序版本号 |
 
 ### 魔法注释
 
-PyTeXMK 支持使用魔法注释来自定义编译行为（仅检索文档前 50 行）。
+PyTeXMK 支持在 LaTeX 主文件前 50 行使用魔法注释来自定义编译行为：
 
 | 魔法注释 | 说明 | 示例 |
 | --- | --- | --- |
-| `% !TEX program = <XeLaTeX>` | 指定编译类型 | `% !TEX program = PdfLaTeX` |
-| `% !TEX root = <主文件名>` | 指定待编译主文件 | `% !TEX root = test_file` |
-| `% !TEX outdir = <输出目录>` | 指定编译结果存放位置 | `% !TEX outdir = output` |
-| `% !TEX auxdir = <辅助目录>` | 指定辅助文件存放位置 | `% !TEX auxdir = auxfiles` |
+| `% !TEX program = <引擎>` | 指定编译引擎 | `% !TEX program = PdfLaTeX` |
+| `% !TEX root = <文件名>` | 指定待编译主文件 | `% !TEX root = main` |
+| `% !TEX outdir = <目录>` | 指定输出目录 | `% !TEX outdir = output` |
+| `% !TEX auxdir = <目录>` | 指定辅助目录 | `% !TEX auxdir = auxfiles` |
 
-> **注意**：魔法注释仅支持在主文件中定义，不支持在子文件中定义。
+> **注意**：魔法注释仅在主文件中定义有效，子文件中的注释会被忽略。
 
-### 主文件与编译类型选定逻辑
+### 工作原理
 
 <details>
-<summary><b>📂 待编译主文件选定逻辑</b></summary>
+<summary><b>📂 主文件自动识别</b></summary>
 
-1. 命令行参数中指定主文件 → 编译该文件（如 `pytexmk <主文件名>`，可省略后缀）
-2. 当前目录仅有一个 `.tex` 文件 → 默认使用该文件
-3. 存在魔法注释 `% !TEX root` → 使用注释指定的文件
-4. 检索 `\documentclass[]{}` 或 `\begin{document}` 判定（仅前 200 行）
-5. 默认主文件名 `main.tex` → 尝试使用
-6. 以上均失败 → 输出错误信息并退出
+1. 命令行参数明确指定 → 使用该文件
+2. 当前目录仅一个 `.tex` 文件 → 自动选中
+3. 存在 `% !TEX root` 魔法注释 → 使用注释值
+4. 检索 `\documentclass` 或 `\begin{document}`（前 200 行）→ 识别主文件
+5. 默认回退到 `main.tex`
 
 </details>
 
 <details>
-<summary><b>⚙️ 编译类型选定逻辑</b></summary>
+<summary><b>⚙️ 编译引擎选择</b></summary>
 
-1. 命令行参数 `-p` / `-x` / `-l` 指定 → 优先级最高
-2. 魔法注释 `% !TEX program` 指定 → 使用注释值
-3. 均未指定 → 使用默认 `XeLaTeX`
+1. 命令行参数 `-p` / `-x` / `-l` → 最高优先级
+2. 魔法注释 `% !TEX program` → 使用注释值
+3. 均未指定 → 默认 `XeLaTeX`
 
 </details>
 
-> 输出目录优先级：`% !TEX outdir` 魔法注释 > 默认 `Build`
+<details>
+<summary><b>🔁 自动编译轮次</b></summary>
+
+1. 第一次编译 LaTeX
+2. 若 `.aux` 中存在参考文献引用，调度 bibtex / biber
+3. 若存在术语表/索引，调度 makeindex / xindy
+4. 继续编译 LaTeX，每轮结束后检测各维度是否收敛
+5. 所有维度稳定或达到安全上限后停止
+
+</details>
 
 ### 配置文件说明
 
-PyTeXMK 支持两级配置文件：**用户级配置**和**项目级配置**。正常运行**不再自动生成**配置文件，需要时用 `-iu`（用户级）或 `-i`（项目级）手动生成。
-
-- **用户级配置**：`pytexmk -iu` 手动生成，位于用户主目录下 `.pytexmkrc`
-- **项目级配置**：`pytexmk -i` 手动生成，位于当前工作目录下 `.pytexmkrc`
-
-生成的配置文件中包含详细注释，可根据需要进行修改。
-
-**配置文件路径**
+PyTeXMK 支持两级配置文件，均为 TOML 格式：
 
 | 类型 | Windows | Linux / macOS |
 | --- | --- | --- |
-| 系统配置 | `C:\Users\用户名\.pytexmkrc` | `~/.pytexmkrc` |
-| 项目配置 | 当前目录 `.pytexmkrc` | 当前目录 `.pytexmkrc` |
+| 用户级 | `C:\Users\用户名\.pytexmkrc` | `~/.pytexmkrc` |
+| 项目级 | 当前目录 `.pytexmkrc` | 当前目录 `.pytexmkrc` |
 
-**优先级**：项目级配置 > 用户级配置 > 内置默认；缺失配置用内置默认静默运行，键不匹配仅警告、不写盘。
+**优先级**：项目级 > 用户级 > 内置默认值
+
+配置文件可通过 `pytexmk -i`（项目级）或 `pytexmk -iu`（用户级）生成模板，生成的模板中包含详细注释。
 
 ---
 
@@ -331,6 +370,22 @@ uv run ruff check src/
 uv run ruff format src/
 ```
 
+### 国际化工作流
+
+```bash
+# 新增语言
+make lang-add
+
+# 更新所有 pot/po
+make lang-update
+
+# 编译 po → mo
+make lang-mo
+
+# 重新抽取所有 pot 模板
+make lang-poup
+```
+
 ---
 
 ## 📄 许可证
@@ -342,6 +397,16 @@ uv run ruff format src/
 ## 📝 更新记录
 
 详细更新记录请参阅 [CHANGELOG.md](CHANGELOG.md)。
+
+---
+
+## 🤝 参与贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+- 🐛 遇到 Bug？请在 [Issues](https://github.com/YanMing-lxb/PyTeXMK/issues) 中提交
+- 💡 有新功能建议？欢迎讨论
+- 🌍 想帮助翻译？请查看 [国际化工作流](#国际化工作流)
 
 ---
 
