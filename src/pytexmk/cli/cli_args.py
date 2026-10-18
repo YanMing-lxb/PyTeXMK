@@ -172,6 +172,12 @@ def parse_args(uc=None):
         ),
     )
     parser.add_argument(
+        "-fr",
+        "--force-rebuild",
+        action="store_true",
+        help=_("强制重新编译, 忽略构建状态中记录的“源文件未改动”判断"),
+    )
+    parser.add_argument(
         "-pv",
         "--pdf-preview",
         nargs="?",

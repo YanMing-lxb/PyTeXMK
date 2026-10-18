@@ -3,6 +3,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Self
 
 from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
@@ -18,6 +19,16 @@ class SubprocessFailedError(Exception):
         self.stdout = stdout
         self.stderr = stderr
         super().__init__(f"Command {command} failed with exit code {exit_code}")
+
+    @classmethod
+    def timed_out(cls, command: list, stdout: str) -> Self:
+        """子进程超时（3.15 `typing.Self`：返回类型直接写成本类，子类继承时自动跟随）。"""
+        return cls(command=command, exit_code=-1, stdout=stdout, stderr="执行超时")
+
+    @classmethod
+    def launch_failed(cls, command: list, stdout: str, error: OSError) -> Self:
+        """子进程无法启动（命令不存在、权限不足等）。"""
+        return cls(command=command, exit_code=-1, stdout=stdout, stderr=str(error))
 
 
 class MySubProcess:
@@ -180,7 +191,9 @@ class MySubProcess:
                 log_prompt = str(log_path)
                 try:
                     if log_path.exists():
-                        line_count = sum(1 for _ in log_path.open("rb"))
+                        # 3.15：Path.read_bytes() + bytes.count()，一次读入代替逐行 next()，
+                        # 大日志（编译失败时常见几十万行）下速度更快，也无须手动管理文件句柄。
+                        line_count = log_path.read_bytes().count(b"\n") + 1
                         log_prompt = f"{log_prompt}:{line_count}"
                 except OSError:
                     pass
@@ -204,19 +217,9 @@ class MySubProcess:
             self.logger.error(_("%(prog)s 执行超时: ") % {"prog": program_name})
             if process is not None:
                 self._terminate_process(process)
-            raise SubprocessFailedError(
-                command=command,
-                exit_code=-1,
-                stdout=stdout_text,
-                stderr=_("执行超时"),
-            )
+            raise SubprocessFailedError.timed_out(command, stdout_text) from None
         except OSError as e:
             self.logger.error(
                 _("%(prog)s 无法启动: %(err)s") % {"prog": program_name, "err": str(e)}
             )
-            raise SubprocessFailedError(
-                command=command,
-                exit_code=-1,
-                stdout=stdout_text,
-                stderr=str(e),
-            )
+            raise SubprocessFailedError.launch_failed(command, stdout_text, e) from e

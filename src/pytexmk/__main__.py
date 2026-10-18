@@ -22,11 +22,13 @@ Date         : 2026-08-01 21:05:35 +0800
 LastEditTime : 2026-09-17 16:17:13 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/__main__.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
 '''
 
 """Thin forwarder: `python -m pytexmk` keeps equivalent to `pytexmk.cli.__main__.main()`."""
+
+# ruff: noqa: E402  —— 维护记录块（作者/路径头）之后才排 import，属项目约定
 from pytexmk.cli.__main__ import main
 
 if __name__ == "__main__":

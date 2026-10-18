@@ -1,5 +1,6 @@
 import datetime
 import logging
+from typing import NamedTuple
 
 from rich import box
 from rich.table import Table
@@ -21,18 +22,36 @@ _LATEX_ENGINE_KEYWORDS = (
 )
 
 
-def time_count(fun, *args, **kwargs):
+class Timed(NamedTuple):
+    """time_count 的返回值：耗时（秒，失败为 None）、被调函数的返回值，以及被捕获的异常。
+
+    保留三元组是为了让"失败"可被调用方区分：旧接口在异常时返回 (None, None)，
+    调用方无法知道函数究竟返回了 None 还是抛了异常，只能靠日志。
+
+    用法（3.15 PEP 758 无括号解包）：``runtime, ret, _err = time_count(f, x)``；
+    只关心耗时时可直接 ``t = time_count(f, x)`` 再取 ``t.seconds``。
+    """
+
+    seconds: float | None
+    value: object
+    error: Exception | None
+
+    def unwrap(self) -> tuple[float | None, object]:
+        """旧式二元组视图，便于逐个调用点渐进迁移。"""
+        return self.seconds, self.value
+
+
+def time_count(fun, *args, **kwargs) -> Timed:
+    time_start = datetime.datetime.now(tz=datetime.UTC)
     try:
-        time_start = datetime.datetime.now(tz=datetime.UTC)
         fun_return = fun(*args, **kwargs)
-        time_end = datetime.datetime.now(tz=datetime.UTC)
-        time_run = (time_end - time_start).total_seconds()
-        return round(time_run, 4), fun_return
     except Exception as e:  # noqa: BLE001
         logger.error(
             _("执行函数 %(args)s 时出错: ") % {"args": {fun.__name__}} + str(e)
         )
-        return None, None
+        return Timed(None, None, e)
+    time_run = (datetime.datetime.now(tz=datetime.UTC) - time_start).total_seconds()
+    return Timed(round(time_run, 4), fun_return, None)
 
 
 def get_text_len(text):

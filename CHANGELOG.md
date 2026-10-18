@@ -28,6 +28,123 @@
 
 # CHANGELOG
 
+## v1.2.7 - 2026-10-17
+
+### 🐛 Bug 修复
+
+- **🔴 `pytexmk -l` 一直编译到安全上限（11 次）**：`bib_judgment()` 里 `bib_file_path = Path(self.bib_file)` 拿的是 `.aux` 中 `\bibdata{References}` 的**裸文件名**（无 `.bib` 后缀），`Path("References").exists()` 永远为 False，于是每一轮都重新判定"文献需要 2 次编译"；而 `_is_log_stalled()` 要求 `bib/idx/toc/aux/out` **全部**归零才肯判定停滞，只要 bib 维度非零就一路空转到 `max_extra_compilations=10`（合计 11 次）。修复三处：
+  - 新增 `_resolve_bib_files()`，按 `<name>.bib` → `<name>` 逐个探测（支持 `\bibdata{a,b}` 逗号分隔多文件），`self.bib_files` 保存真实存在的路径
+  - 判定改为"引用计数稳定 **且** `.bbl` 存在 **且** 日志无 `No file *.bbl` / `Citation undefined` **且** `.bbl` 不比 `.bib` 旧 → 归零"；找不到任何 `.bib` 时直接归零并告警（bibtex 无法产出 `.bbl`，继续重跑只是空转）
+  - 删除 `self.out` 相关的死代码（该属性只在 `__init__` 赋值 `""`，此后从未更新，`re.search(..., self.out)` 恒为 False），改用真实 `.log` 内容
+- **🔴 收敛判据过于脆弱，任何一个维度卡住就跑到上限**：`_is_log_stalled()` 的"全维度归零 + 相邻两轮日志签名相同"条件在实践中几乎不可能满足（lineno 的 `\def\@LN@column{N}` 会让 `.aux` 每轮都变）。改为**状态指纹不动点检测** `_convergence_stop_reason()`：
+  - 新增 `CompilationDetector.state_fingerprint()`：把 `.aux/.out/.toc` 的归一化内容、各索引系统输入、日志警告签名、`.bbl` 大小合成一个 sha256 指纹
+  - 指纹**等于上一轮** → `fixed_point`；指纹**等于更早轮次** → `cycle`（两态震荡）；没有任何变更类维度非零 → `log_stalled`（日志仍有警告）或 `stable`
+  - `log` 维度被明确排除在"可推进维度"之外（`ACTIONABLE_DIMS`），它只是警告信号，继续编译无法消除
+  - 结果：指纹是"整体是否原地踏步"的最终裁判，某个维度因宏包 churn 长期非零也不会再拖满 10 轮
+- **🔴 循环内从不重跑 bibtex/makeindex，`bib`/`idx` 维度必然长期非零**：原实现只在循环**外**跑一次 `compile_bib` / `compile_index`，之后每轮 `run_full_detection` 又报告"需要文献/索引处理"，而循环体丢弃了返回的 `bib_engine` / `index_run_cmds`。修复：循环内就地补跑，并用 `aux_signature()` / `index_signature()` 去重，保证"同一输入状态只调用一次外部工具"
+- **🔴 中断的编译留下截断辅助文件，之后每次编译都在同一处失败**：Ctrl+C 或关闭终端时 LaTeX 正在写 `.aux`，磁盘上留下半截文件（例如 16384 字节、末尾停在 `\@writefile{toc}{\contentsline`），下一次编译直接报 `! File ended while scanning use of \@writefile.` + `==> Fatal error occurred`，且此后每次重现——因为坏文件还在。新增 `aux_repair.py`：编译前检查 `.aux/.toc/.lof/.lot/.out/.bbl/.idx/.ind/.nlo/.nls/.glo/.gls/.nav/.snm`，按"花括号是否配平"+"文件大小是否正好是 4 KiB 整数倍却无结尾换行"识别截断文件，删除后由本轮编译重建
+- **🟡 `-ls` 在根 `.pytexmkrc` 缺失时是空操作**：`write_subprojects_to_rc()` 遇到不存在的文件直接返回 False，`_list_subprojects()` 只打印"请先运行 pytexmk -i"，于是 `-ls` 扫描出了清单却什么都没保存，紧接着的 `-s <名字>` 必然失败。修复：`-ls` 先用模板自动创建根配置再写入 `[subprojects]`
+- **🟡 `-s` 子项目解析脆弱**：`build_subprojects()` 只读持久化的 `[subprojects]`，别名表为空就抛 `ProjectNotFoundError`（"扫描得到却编译不了"）；深层子项目的别名是完整相对路径（如 `Section/en02`），用户写 `en02` 匹配不上；条目直接指向 `.tex` 时把文件路径交给 `os.chdir()` 会抛 `NotADirectoryError`。修复：新增 `discover_subprojects()` 兜底扫描、`_match()` 四级匹配（精确别名 → 大小写不敏感 → 相对路径后缀 → 叶子目录名，并兼容反斜杠）、`ProjectContext.work_file` 记录 `.tex` 条目并把 `work_root` 落到其父目录
+- **🟡 `abbreviations_num` 固定 13 元组**：编译次数超过 13 会抛 `IndexError`（v1.2.6 已从 6 扩到 13，只是把边界推远）。改为 `_ordinal()` 按需生成，上限调整不再有越界风险
+
+### ✨ 新增
+
+- **`residual_warnings()` 收尾提示**：编译结束后明确告诉用户"哪些警告是再编译也消不掉的"（未定义的交叉引用键名、`.bib` 缺少条目、重复标签），避免用户误以为是编译流程的问题
+- **`aux_repair` 独立 i18n domain**（`.po` / `.pot` / `.mo`）
+
+### ⚙️ 调整
+
+- `MAX_EXTRA_COMPILATIONS` 从 `10` 降到 `8`：正常情况下指纹不动点检测在 2~4 轮收敛，上限只用于防御"每轮都产生新指纹"的病态项目，把最坏情况限制在 9 次以内
+- `print_compile_report()` 的 `stalled` 参数保留为兼容层（等价 `stop_reason="log_stalled"`），新增 `stop_reason` / `residual_notes` 参数，停止原因文案集中在 `STOP_REASON_MESSAGES` 常量表里
+
+### 🧪 质量验证
+
+- `pytest -q`：**68 passed**（新增 `tests/test_compile_convergence.py` 31 例 + `tests/test_subproject_resolution.py` 9 例）
+- 真实论文项目（30 页，`paper-01-dr-ym`）**冷启动全量构建**：清空 `Auxiliary/` + `Build/` 后 `pytexmk -l` → **4 次** LuaLaTeX 收敛（bib 维度第 3 轮归零），bibtex 跑 2 次（第 1、2 轮，`.aux` 变化后需要重跑）、makeindex 跑 1 次，随后去重生效
+- 同一项目**热态重建**：**2 次** LuaLaTeX 收敛，第 2 轮命中 `fixed_point`
+- **截断辅助文件自愈**：把 `main.aux` 截断到 16384 字节后直接 `pytexmk -l` → 自动删除并重建，3 次编译收敛，输出 PDF 与修复前**字节完全一致**（11530517 B，30 页）
+- `-s Review -l`：子项目正常编译（1 次 LuaLaTeX，无额外空转）
+- `python -m compileall src/pytexmk`：通过；所有新增 msgid 已同步到 `.po` / `.pot` / `.mo`，`LANGUAGE=en` 下译文正确加载
+
+### ⚡ 收敛判定 v2：省掉确认轮 + 跨进程基线复用
+
+> 承接上文：修复后冷启动仍需 4 次编译（实测第 4 轮），热态 1~2 次。多出的那一轮是**纯粹的观察轮**——辅助文件其实早已稳定，但因为"上一轮快照只活在内存里"，进程每次都必须再编一次才能确认。本节把这一轮彻底消掉。
+
+#### 1. 单文件多命名空间状态（依赖 PyTeXLogs 0.4.0）
+
+- **不新增任何辅助文件**：`.pytexmk_refcache.json` 本来由依赖库 `pytexlogs` 写入（存引用缓存），现升级为**多工具共享状态文件**（schema v3）：
+
+  ```jsonc
+  {
+    "schema_version": 3,
+    "pytexlogs": { "refs": { "keys": [...], "key_counts": {...} } },
+    "pytexmk":   { "build": { "fingerprint": "...", "artifacts": {...}, "sources": {...}, "converged": true, "stop_reason": "stable", "signals": {...} } },
+    "jobs":      { "main": { "updated_at": "..." } }
+  }
+  ```
+
+- 读写统一交给 `pytexlogs.ProjectStateStore`：**命名空间隔离**（各写各的键，不会互相覆盖）+ **原子写**（临时文件 + `os.replace`）+ **轻量文件锁**（超时降级，不阻塞编译）
+- 新增 `src/pytexmk/build_state.py`：`BuildState` 负责产物摘要、源快照、收敛标记的业务读写；**PyTeXMK 不自己碰 JSON**
+
+#### 2. 判定矩阵：信号分类 + 省掉确认轮
+
+核心变化是把日志信号分成两类（`CompilationDetector.classify_signals()`）：
+
+| 类别 | 内容 | 含义 | 决策作用 |
+|------|------|------|---------|
+| `permanent` | 未定义引用、`Citation undefined`、重复标签 | 只有改源码才能消除 | **不得**作为"再编一轮"的理由 |
+| `transient` | `Label(s) may have changed`、`Rerun to get cross-references right`、lastpage/rerunfilecheck rerun | 会随轮次消失 | **必须**再编一轮让 LaTeX 自行确认 |
+
+只有 `transient` 需继续编译，`permanent` 不能触发额外编译——这样“至少编一轮确认”就不再需要：
+
+| 优先级 | 情形 | 判定 | 停止原因 |
+|--------|------|------|---------|
+| 1 | 本轮指纹等于上一轮 / 更早轮次 | **停** | `fixed_point` / `cycle` |
+| 2 | `bib/idx/toc/aux/out` 全为 0 | **停** | `stable` |
+| 3 | 仍有维度非零，但日志**只剩 permanent** 信号、无 transient | **停** | `log_stalled`（新增路径） |
+| 4 | 仍有 transient 信号 / 维度非零且无信号信息 | **继续** | — |
+
+- 第 3 条只保留为兜底：第 2 条已覆盖绝大多数情况，这里只防止“被永久信号拖着的伪需求”空转到上限
+- 若 `RERUN_LOG_PATTERNS` 顺序被调整，`_PERMANENT_PATTERN_TOKENS` 会由正则文本自动重算，不会错位
+
+#### 3. 源文件未改动则整次跳过编译
+
+- 新增 `-fr / --force-rebuild` 参数；不指定时，满足以下全部条件则**完全跳过编译**：
+  1. 上次判定为收敛（`converged: true`）
+  2. 所有 `.tex` 源文件的 `(size, mtime_ns)` 与快照一致（用纳秒，避免“同秒内修改”漏判）
+  3. 产物摘要与基线一致，且输出 PDF 确实存在
+- 源快照**不递归别人的子项目**：`Cover/`、`Review/` 这类自带 `.pytexmkrc` 的目录有自己的 PDF，改动它们不该触发主项目重编译；同时排除隐藏目录与 `Build/`、`Auxiliary/` 等产物目录
+- `-dr/--draft` 与 `-fr` 永不跳过
+- **只有收敛的构建才写 `converged`**：停在 `limit`（安全上限用尽）不写，避免把未收敛的 PDF 当成成品
+
+#### 4. 清理与状态一致性
+
+- `-c / -C`：调用 `BuildState.discard()`，**只删 `pytexmk.build`**，保留 `pytexlogs.refs`（引用缓存不属于 PyTeXMK）
+- `-ca / -Ca` 及状态文件为空骨架时自动删除文件
+- 所有状态读写异常一律降级（最多多编一轮），**绝不阻断编译**
+
+#### 5. 其他修正
+
+- 首轮若所有变更维度已归零，直接判 `stable`，不再多编一轮（对应此前"行为退化：首轮必编 2 次"）
+- `-s NAME` 支持按目录名 / 相对路径末段匹配（`-s en02` 可命中 `Section/en02`）；`ProjectContext` 新增 `work_file`，条目直接指向 `.tex` 时会正确设置主文件
+- `-ls` 在根 `.pytexmkrc` 缺失时自动创建（此前只打印警告、扫描结果被丢弃，导致随后 `-s` 无处可查）
+
+#### 性能实测（`paper-01-dr-ym`，30 页）
+
+| 场景 | 改造前 | 改造后 |
+|------|--------|--------|
+| 清除辅助文件后全量重建 | 4 次（约 16 s） | 4 次 |
+| 无改动重复运行 | 2 次（约 8 s） | **0 次（0.3 s，直接跳过）** |
+| 修改某个章节后 | 2 次 | 1 次 |
+
+#### 测试
+
+- `pytest -q`：**108 passed**（新增 `tests/test_build_state.py` 24 例 + `tests/test_signal_classification.py` 12 例，`test_compile_convergence.py` 扩展判定矩阵用例）
+- 真实项目端到端：`-fr` 刷新快照 → 无改动 0.3 s 跳过 → 改章节立即重编 → `-c` 只清 `pytexmk.build`（`pytexlogs.refs` 的 39 条引用缓存保留）→ 清理后首次编译自动重建 4 次 → 再跑即跳过
+- `ruff check src/pytexmk tests`：通过
+
+---
+
 ## v1.2.6 - 2026-09-25
 
 ### 🐛 Bug 修复

@@ -12,9 +12,9 @@ description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Com
 keywords = ["LaTeX", "build", "latexmk"]
 dependencies = [
     "packaging>=26.3",
-    "platformdirs>=4.11.13",
+    "platformdirs>=4.13.3",
     "pypdf>=6.21.1",
-    "pytexlogs>=0.3.0",
+    "pytexlogs>=0.4.0",
     "rich>=15.0.0",
     "rich_argparse>=1.8.0",
     "tomli-w>=1.2.0",
@@ -24,11 +24,13 @@ readme = "README.md"
 requires-python = ">=3.15"
 license = "GPL-3.0-or-later"
 classifiers = [
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.15",
     "Operating System :: OS Independent",
 ]
@@ -40,24 +42,41 @@ classifiers = [
 [project.scripts]
 pytexmk = "pytexmk:main"
 
+# ---------------------------------------------------------------------------
+# 面向 pip / PyPI 用户的 extras（PEP 621 [project.optional-dependencies]）
+#   · 只有 `pip install pytexmk[dev]` 这类**给下游使用者 / 贡献者**的场景走这里；
+#   · PyTeXMK 自身的开发环境优先用下方 PEP 735 的 [dependency-groups] dev，
+#     `uv sync` 默认装上它，且不会写进 wheel 的 METADATA。
+# 表内版本下限必须与 [dependency-groups] dev 完全一致
+#   （tests/test_packaging_metadata.py 会逐条校验，防止两处再次分叉）。
+# 不能写成 dev = [{ include-group = "dev" }]：PEP 735 的 include-group 只在
+#   [dependency-groups] 内部合法，uv 会报 "invalid type: map, expected a string"。
+# ---------------------------------------------------------------------------
+[project.optional-dependencies]
+dev = [
+    "babel>=2.18.0",
+    "pillow>=13.0.0",
+    "pyinstaller>=6.22.3",
+    "pytest>=9.1.1",
+]
+
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
 publish-url = "https://pypi.org/project/pytexmk"
 default = true
 
-[project.optional-dependencies]
-dev = [
-    "pillow>=13.00",
-    "pyinstaller>=6.21.0",
-    "pytest>=9.1.1",
-    "Babel>=2.18",
-]
-
+# ---------------------------------------------------------------------------
+# 开发依赖：PEP 735 [dependency-groups].dev 是 uv 侧的事实来源
+#   · uv 默认安装 dev 组，`uv sync` 即得到完整开发环境（无需 --dev）；
+#   · 版本下限统一抬到已锁定、且已确认支持 Python 3.15 的版本，
+#     不再出现 pillow 12.3 / 13.00、pyinstaller 6.21 / 6.22 两处各自为政的分叉；
+#   · pytest / ruff 的配置见文件末尾 [tool.pytest.ini_options]、[tool.ruff]。
+# ---------------------------------------------------------------------------
 [dependency-groups]
 dev = [
-    "babel>=2.18",
-    "pillow>=12.3.0",
+    "babel>=2.18.0",
+    "pillow>=13.0.0",
     "pyinstaller>=6.22.3",
     "pytest>=9.1.1",
 ]
@@ -89,4 +108,34 @@ include-package-data = true
 ]
 
 [tool.ruff]
+target-version = "py315"   # 启用 3.15 语法/标准库规则集（避免为旧版本保留兼容写法）
 line-length = 120
+
+[tool.ruff.lint]
+# 以「迁移到 3.15 所必需」为界选规则集：默认 E4/E7/E9 + F（pyflakes）+ UP（pyupgrade，按
+# target-version 识别废弃写法）+ I（import 排序）+ B（bugbear 可疑写法）。
+# 刻意不引入 PL*（pylint 移植规则）：该项目大量函数式 CLI 代码本就有长参数表/多分支，
+# 一次性拉入会把 100+ 条风格告警混进迁移 diff，淹没真正的弃用点。
+select = ["E4", "E7", "E9", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]          # 行宽由 formatter 负责，不在 lint 阶段报错
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pytexmk"]
+known-third-party = ["rich", "rich_argparse", "pypdf", "platformdirs", "pytexlogs", "packaging", "tomli_w"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.pytest.ini_options]
+minversion = "9.1"
+testpaths = ["tests"]
+pythonpath = ["src"]          # 允许在未安装包时直接 `pytest`
+addopts = "-ra --strict-config --strict-markers"
+filterwarnings = [
+    "error::DeprecationWarning:pytexmk.*",   # 自家代码的弃用告警一律视为失败
+    "error::SyntaxWarning",                  # `IS` 字面量、无效转义等隐性坑直接拦下
+]
+markers = ["slow: 需要真实 LaTeX 工具链的慢速用例"]

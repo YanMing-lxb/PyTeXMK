@@ -307,7 +307,7 @@ class UpdateChecker:
     # --------------------------------------------------------------------------------
     def _get_latest_version(
         self,
-    ): 
+    ):
 
         start_time = time.time()
 

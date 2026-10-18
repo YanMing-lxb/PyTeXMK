@@ -85,18 +85,28 @@ def _open_readme(logger) -> None:
 
 
 def _list_subprojects(cp: ConfigParser) -> None:
-    """发现子项目并输出清单，同时把结果写回根 .pytexmkrc 的 [subprojects] 段。"""
+    """发现子项目并输出清单，同时把结果写回根 .pytexmkrc 的 [subprojects] 段。
+
+    根配置文件不存在时会先用模板创建一份：历史实现只打印"请先运行 pytexmk -i"，
+    结果是 `-ls` 扫描出了清单却什么都没保存，紧接着的 `-s <名字>` 必然失败。
+    """
     root_path = Path.cwd()
     entries = discover_subprojects(root_path, cp.load_config(root_path))
     rc_path = root_path / ".pytexmkrc"
-    if rc_path.exists():
-        write_subprojects_to_rc(rc_path, entries)
+
+    if not rc_path.exists():
+        if cp.init_project_config(force=False):
+            console.print(
+                _("[bold green]已自动创建根配置文件 [/bold green]") + str(rc_path)
+            )
+
+    if write_subprojects_to_rc(rc_path, entries):
         console.print(
             _("[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]")
         )
     else:
         console.print(
-            _("[yellow]未找到根 .pytexmkrc , 请先运行 pytexmk -i 后再运行 -ls[/yellow]")
+            _("[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]")
         )
     print_subproject_table(entries)
     exit_pytexmk()

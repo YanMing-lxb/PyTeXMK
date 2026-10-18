@@ -56,10 +56,11 @@ def test_resolve_s_flag_and_not_found(tmp_path):
     config = {"subprojects": {"doc": "docs/main.tex"}}
     resolver = ContextResolver(_FakeLoader(config))
 
-    # -s doc 命中：work_root 指向子项目
+    # -s doc 命中：work_root 是 .tex 的父目录（os.chdir 不能进文件），主文件单独记录
     ctx = resolver.resolve(_Args(subproject="doc"), cwd=root)
     assert ctx.root == root.resolve()
-    assert ctx.work_root == (root / "docs/main.tex").resolve()
+    assert ctx.work_root == (root / "docs").resolve()
+    assert ctx.work_file == (root / "docs/main.tex").resolve()
     assert ctx.subproject == "doc"
 
     # 未命中别名抛错

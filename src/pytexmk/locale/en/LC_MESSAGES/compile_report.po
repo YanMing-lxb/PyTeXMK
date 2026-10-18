@@ -102,3 +102,27 @@ msgstr ""
 "Reached the safety limit of %(max_extra)s additional compilation passes, "
 "stopping scheduling."
 
+msgid "辅助文件已稳定，但日志仍存在重编译警告（常见于未定义引用或标签缺失），继续编译无法消除，已提前停止。"
+msgstr ""
+"Auxiliary files are stable, but the log still reports rerun warnings (often "
+"undefined references or missing labels); recompiling cannot resolve them, so "
+"scheduling stopped early."
+
+msgid "已达额外编译安全上限，停止调度。"
+msgstr "Reached the safety limit for additional compilations; stopping scheduling."
+
+msgid "提示："
+msgstr "Note: "
+
+msgid "本轮编译未改变任何辅助文件（已到达不动点），继续编译不会产生新结果，已提前停止。"
+msgstr "This pass changed no auxiliary files (fixed point reached); further compilation would produce no new results, so scheduling stopped early."
+
+msgid "检测到辅助文件在两种状态之间循环震荡，继续编译无法收敛，已提前停止。"
+msgstr "Auxiliary files are oscillating between two states; further compilation cannot converge, so scheduling stopped early."
+
+msgid "辅助文件与日志信号均已稳定，继续编译不会再改变结果，已提前停止。"
+msgstr "Auxiliary files and log signals are both stable; further compilation would change nothing, so scheduling stopped early."
+
+#: src/pytexmk/compile_report.py
+msgid "日志中只剩未定义引用/重复标签这类必须改源码才能消除的信号，再编译不会改变结果，已提前停止。"
+msgstr "Only source-level warnings (undefined references / duplicate labels) remain; recompiling cannot change the result, stopped early."

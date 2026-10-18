@@ -33,15 +33,22 @@ pytexmk: LaTeX 编译 CLI 工具
 
 
 
-python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-output --include-data-dir=./src/pytexmk/data=data --include-data-dir=./src/pytexmk/locale/=locale --company-name="YanMing" --product-name="pytexmk-cli" --file-version="1.0" --product-version="1.0" --file-description="LaTeX 编译 CLI 工具" ./src/pytexmk/__main__.py 
+python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-output --include-data-dir=./src/pytexmk/data=data --include-data-dir=./src/pytexmk/locale/=locale --company-name="YanMing" --product-name="pytexmk-cli" --file-version="1.0" --product-version="1.0" --file-description="LaTeX 编译 CLI 工具" ./src/pytexmk/__main__.py
 pipreqs ./src/pytexmk/ --encoding=utf8  --force
 """
 
-def __getattr__(name):
+
+def __getattr__(name: str):
+    """包级惰性导出：`pytexmk.main` / `pytexmk.cli_args` 在首次访问时才真正 import。
+
+    子模块本身就是惰性的（`from .cli import ...` 才会加载），因此这里只做一层转发；
+    好处是 `import pytexmk` 不会拉起 rich / pypdf / argparse 等重依赖，
+    `pytexmk --version` 这类冷启动路径因此快得多。
+    """
     if name in {"cli_args", "cli_workflow", "check_version", "__main__"}:
         import importlib
-        mod = importlib.import_module(f".cli.{name}", __name__)
-        return mod
+
+        return importlib.import_module(f".cli.{name}", __name__)
     if name == "main":
         from .cli.__main__ import main
 

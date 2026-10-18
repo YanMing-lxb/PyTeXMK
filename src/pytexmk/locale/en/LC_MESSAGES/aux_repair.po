@@ -1,0 +1,27 @@
+# English translations for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-10-17 23:30+0800\n"
+"PO-Revision-Date: 2026-10-17 23:30+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#, python-format
+msgid "删除损坏的辅助文件失败: %(path)s --> %(err)s"
+msgstr "Failed to delete the corrupted auxiliary file: %(path)s --> %(err)s"
+
+msgid "检测到被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建: %(path)s"
+msgstr "Detected a corrupted auxiliary file left by an interrupted compilation; deleted it and it will be rebuilt in this run: %(path)s"
+

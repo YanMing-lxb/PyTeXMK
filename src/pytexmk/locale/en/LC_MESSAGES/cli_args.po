@@ -143,3 +143,6 @@ msgstr "Combine with -i/-iu to force overwrite existing config files"
 msgid "待编译主文件名"
 msgstr "Main file name to compile"
 
+#: src/pytexmk/cli_args.py
+msgid "强制重新编译, 忽略构建状态中记录的“源文件未改动”判断"
+msgstr "Force a rebuild, ignoring the \\\"sources unchanged\\\" shortcut from the build state"

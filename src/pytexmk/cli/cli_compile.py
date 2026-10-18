@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytexlogs
 
+from ..aux_repair import repair_auxiliary_files
+from ..build_state import BuildState
 from ..compile_engine import RUN
 from ..language import set_language
 from ..lifecycle import exit_pytexmk
@@ -25,15 +27,16 @@ def handle_clean_any(args, state: WorkflowState) -> bool:
     if not (args.clean_any or args.Clean_any):
         return False
 
-    runtime_remove_aux_matched_auxdir, _ret = time_count(
+    runtime_remove_aux_matched_auxdir = time_count(
         state.mro.remove_matched_files, state.aux_regex_files, "."
-    )
+
+    ).seconds
     state.runtime_dict[_("清除所有的辅助文件")] = runtime_remove_aux_matched_auxdir
 
     if args.Clean_any:
-        runtime_remove_out_outdir, _ret = time_count(
+        runtime_remove_out_outdir = time_count(
             state.mro.remove_specific_files, state.out_files, state.outdir
-        )
+        ).seconds
         state.runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_out_outdir
         console.print(
             _("[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]")
@@ -53,9 +56,9 @@ def run(args, state: WorkflowState) -> None:
     if args.clean or args.Clean:
         _clean(args, state)
     elif args.pdf_repair:
-        runtime_pdf_repair, _ret = time_count(
+        runtime_pdf_repair = time_count(
             state.pfo.pdf_repair, state.project_name, ".", state.outdir
-        )
+        ).seconds
         state.runtime_dict[_("修复 PDF 文件")] = runtime_pdf_repair
     else:
         _compile(args, state)
@@ -75,19 +78,22 @@ def finalize(state: WorkflowState) -> None:
 
 def _clean(args, state: WorkflowState) -> None:
     """-c / -C：清理主文件的辅助文件（-C 额外清理输出文件）。"""
-    runtime_remove_aux_auxdir, _ret = time_count(
+    runtime_remove_aux_auxdir = time_count(
         state.mro.remove_specific_files, state.aux_files, state.auxdir
-    )
+    ).seconds
     state.runtime_dict[_("清除文件夹内辅助文件")] = runtime_remove_aux_auxdir
-    runtime_remove_aux_root, _ret = time_count(
+    runtime_remove_aux_root = time_count(
         state.mro.remove_specific_files, state.aux_files, "."
-    )
+    ).seconds
     state.runtime_dict[_("清除根目录内辅助文件")] = runtime_remove_aux_root
 
+    # 构建基线必须同步作废：否则下次编译会把"已删除的产物"误判为"未变动"
+    _discard_build_state(state)
+
     if args.Clean:
-        runtime_remove_out_outdir, _ret = time_count(
+        runtime_remove_out_outdir = time_count(
             state.mro.remove_specific_files, state.out_files, state.outdir
-        )
+        ).seconds
         state.runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_out_outdir
         console.print(
             _("[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]")
@@ -101,7 +107,12 @@ def _clean(args, state: WorkflowState) -> None:
 def _compile(args, state: WorkflowState) -> None:
     """执行一次完整编译：辅助文件就位 → 编译 → 结果与辅助文件归档 → 日志解析。"""
     print_message(_("开始预处理"), "additional")
-    runtime_move_aux_root, aux_moved_count = time_count(
+
+    if _can_skip_compile(args, state):
+        _report_skipped_compile(state)
+        return
+
+    runtime_move_aux_root, aux_moved_count, _err = time_count(
         state.mro.move_specific_files, state.aux_files, state.auxdir, "."
     )
     state.runtime_dict[_("辅助文件->根目录")] = runtime_move_aux_root
@@ -115,7 +126,9 @@ def _compile(args, state: WorkflowState) -> None:
             + _("已检测到 %(n)s 个已有辅助文件") % {"n": aux_exist_count}
             + "[/green]"
         )
-        # P2 中断后辅助文件一致性检测：.log 缺失完成标记 ⇒ 警告用户
+        # 中断自愈：截断的辅助文件会让后续每次编译都在同一处失败，必须先清掉
+        _repair_truncated_aux_files(state)
+        # .log 缺失完成标记 ⇒ 提示用户辅助文件可能不完整
         _warn_if_last_compile_interrupted(state)
 
     if aux_moved_count == 0:
@@ -142,15 +155,15 @@ def _compile(args, state: WorkflowState) -> None:
     print_message(_("开始后处理"), "additional")
 
     console.print("[yellow]" + _("移动结果文件到输出目录...") + "[/yellow]")
-    runtime_move_out_outdir, _ret = time_count(
+    runtime_move_out_outdir = time_count(
         state.mro.move_specific_files, state.out_files, ".", state.outdir
-    )
+    ).seconds
     state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
 
     console.print("[yellow]" + _("移动辅助文件到辅助目录...") + "[/yellow]")
-    runtime_move_aux_auxdir, _ret = time_count(
+    runtime_move_aux_auxdir = time_count(
         state.mro.move_specific_files, state.aux_files, ".", state.auxdir
-    )
+    ).seconds
     state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
     pytexlogs.run_log_pipeline(
@@ -160,6 +173,87 @@ def _compile(args, state: WorkflowState) -> None:
         pytexmk_version=__version__,
         ref_tracker_translate_fn=set_language("log_parser"),
     )
+
+
+def _repair_truncated_aux_files(state: WorkflowState) -> None:
+    """删除被中断的编译留下的截断辅助文件（.aux/.toc/.out/... ）。
+
+    辅助文件刚被搬回项目根目录，此时若某个文件是"写到一半"的状态，
+    下一次 LaTeX 会以 ``File ended while scanning use of \\@writefile``
+    失败，而且此后每次都会失败 —— 因为坏文件还在原处。这里直接删除，
+    让本轮编译完整重建它们。
+    """
+    repaired = repair_auxiliary_files(
+        [Path("."), Path(state.auxdir)],
+        project_name=state.project_name,
+        logger=state.logger,
+    )
+    if repaired:
+        console.print(
+            "[yellow]"
+            + _("检测到 %(n)s 个被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建。") % {"n": len(repaired)}
+            + "[/yellow]"
+        )
+
+
+def _can_skip_compile(args, state: WorkflowState) -> bool:
+    """判断本次是否可以整次跳过编译（源文件与产物都和上次一致）。
+
+    三个必要条件缺一不可：
+      1. 上次编译判定为收敛（存在无法消除的残留警告时也照样算收敛，
+         因为再编译也改变不了它们）；
+      2. 所有 ``.tex`` 源文件的 ``(size, mtime_ns)`` 与上次快照一致；
+      3. 构建产物摘要与上次基线一致，且 PDF 确实存在。
+    用户显式指定 ``-fr/--force-rebuild`` 或 ``-dr/--draft`` 时永不跳过。
+    """
+    if getattr(args, "force_rebuild", False) or getattr(args, "draft", False):
+        return False
+
+    try:
+        tracker = BuildState(state.auxdir, state.project_name)
+        if not tracker.was_converged():
+            return False
+        if not tracker.baseline_matches_current():
+            return False
+        if not Path(state.outdir, f"{state.project_name}.pdf").exists():
+            return False
+        return tracker.sources_unchanged(_iter_tex_sources(state))
+    except Exception:  # 状态文件不可用就老老实实编译
+        return False
+
+
+def _iter_tex_sources(state: WorkflowState):
+    """枚举参与编译的 ``.tex`` 源文件（与 compile_engine 的快照口径保持一致）。"""
+    from ..compile_engine import _iter_tex_sources as _engine_sources
+
+    yield from _engine_sources(state.project_name)
+
+
+def _report_skipped_compile(state: WorkflowState) -> None:
+    """源文件未改动时给出明确提示，让用户知道"没编译"是刻意为之。"""
+    console.print(
+        "[bold green]"
+        + _("源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。")
+        + "[/bold green]"
+    )
+    pdf_path = Path(state.outdir) / f"{state.project_name}.pdf"
+    if pdf_path.exists():
+        console.print(
+            "[green]"
+            + _("当前 PDF：%(p)s") % {"p": str(pdf_path)}
+            + "[/green]"
+        )
+
+
+def _discard_build_state(state: WorkflowState) -> None:
+    """清理构建基线（只删 ``pytexmk.build``，保留 ``pytexlogs.refs``）。
+
+    引用缓存归 pytexlogs 所有，清理辅助文件时不该连带丢掉它。
+    """
+    try:
+        BuildState(state.auxdir, state.project_name).discard()
+    except Exception:  # 状态文件问题绝不阻断清理流程
+        pass
 
 
 def _warn_if_last_compile_interrupted(state: WorkflowState) -> None:

@@ -80,16 +80,17 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
+      - name: Set up Python 3.15
         uses: actions/setup-python@v7.0.0
         with:
-          python-version-file: "pyproject.toml"
+          python-version: "3.15"
+          allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
 
-      # --all-extras --dev: 编译二进制需要完整的运行/构建/开发依赖树
+      # --dev：编译二进制需要完整的运行/构建/开发依赖树
       # （与普通开发环境一致，保证 PyInstaller 能收集到全部动态依赖）。
       - name: Install dependencies
         shell: bash
-        run: uv sync --locked --all-extras --dev
+        run: uv sync --locked --dev
 
       # 纯诊断输出：确认本机编译器/Python/uv/PyInstaller 版本，便于排查打包问题。
       - name: Show versions for diagnostics
@@ -164,13 +165,14 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
+      - name: Set up Python 3.15
         uses: actions/setup-python@v7.0.0
         with:
-          python-version-file: "pyproject.toml"
+          python-version: "3.15"
+          allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras
+        run: uv sync --locked
 
       # uv build → 一次性产出 sdist(.tar.gz) 与 wheel(.whl)。
       - name: Build package

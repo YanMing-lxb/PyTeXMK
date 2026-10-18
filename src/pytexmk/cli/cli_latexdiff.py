@@ -22,12 +22,13 @@ Date         : 2026-09-25 17:13:51 +0800
 LastEditTime : 2026-09-25 18:56:55 +0800
 Github       : https://github.com/YanMing-lxb/
 FilePath     : /PyTeXMK/src/pytexmk/cli/cli_latexdiff.py
-Description  : 
+Description  :
  -----------------------------------------------------------------------
 '''
 
 """PyTeXMK CLI LaTeXDiff 流程：新旧 TeX 文件对比与差异编译。"""
 
+# ruff: noqa: E402  —— 维护记录块（作者/路径头）之后才排 import，属项目约定
 from ..compile_engine import RUN, LaTeXDiffRUN
 from ..language import set_language
 from ..latexdiff import LaTeXDiff_Aux
@@ -66,9 +67,9 @@ def run(args, state: WorkflowState) -> None:
 
     old_tex_file_flatten = lda.flatten_Latex(state.old_tex_file)
     new_tex_file_flatten = lda.flatten_Latex(state.new_tex_file)
-    runtime_move_matched_files, _ret = time_count(
+    runtime_move_matched_files = time_count(
         state.mro.move_matched_files, state.aux_regex_files, state.auxdir, "."
-    )
+    ).seconds
     state.runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
     latex_diff_style = input(
         _(
@@ -90,30 +91,30 @@ def run(args, state: WorkflowState) -> None:
                 if aux_file_exit is not None:
                     aux_suffixes_exit.append(aux_file_exit)
             for aux_suffix in aux_suffixes_exit:
-                runtime_compile_LaTeXDiff, _ret = time_count(
+                runtime_compile_LaTeXDiff = time_count(
                     lda.compile_LaTeXDiff,
                     state.old_tex_file,
                     state.new_tex_file,
                     state.diff_tex_file,
                     aux_suffix,
-                )
-
-        runtime_compile_LaTeXDiff, _ret = time_count(
+                ).seconds
+        runtime_compile_LaTeXDiff = time_count(
             lda.compile_LaTeXDiff,
             old_tex_file_flatten,
             new_tex_file_flatten,
             state.diff_tex_file,
             ".tex",
-        )
+
+        ).seconds
         state.runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
 
         print_message(_("LaTeXDiff 后处理"), "additional")
         console.print(_("删除 Flatten 后的文件..."))
-        runtime_remove_flatten_root, _ret = time_count(
+        runtime_remove_flatten_root = time_count(
             state.mro.remove_specific_files,
             [f"{old_tex_file_flatten}.tex", f"{new_tex_file_flatten}.tex"],
             ".",
-        )
+        ).seconds
         state.runtime_dict[_("清除文件夹内输出文件")] = runtime_remove_flatten_root
 
         if args.LaTeXDiff_compile:
@@ -156,17 +157,17 @@ def run(args, state: WorkflowState) -> None:
             print_message(_("开始后处理"), "additional")
 
             console.print(_("移动结果文件到输出目录..."))
-            runtime_move_out_outdir, _ret = time_count(
+            runtime_move_out_outdir = time_count(
                 state.mro.move_specific_files, out_files, ".", state.outdir
-            )
+            ).seconds
             state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
     except Exception as e:  # noqa: BLE001
         logger.error(_("LaTeXDiff 编译出错: ") + str(e))
         exit_pytexmk(EXIT_COMPILE_FAILED)
     finally:
-        runtime_move_matched_files, _ret = time_count(
+        runtime_move_matched_files = time_count(
             state.mro.move_matched_files, state.aux_regex_files, ".", state.auxdir
-        )
+        ).seconds
         state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
 
 

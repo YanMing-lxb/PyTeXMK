@@ -49,3 +49,7 @@ msgstr ""
 msgid "2 次 %(args1)s 编译"
 msgstr ""
 
+#, python-format
+msgid "未能消除：%(args)s"
+msgstr ""
+

@@ -37,7 +37,7 @@ def _get_version():
     if not version_file.exists():
         raise FileNotFoundError(f"文件 {version_file} 不存在")
 
-    with open(version_file, "r", encoding="utf-8") as file:
+    with open(version_file, encoding="utf-8") as file:
         content = file.read()
 
     version_match = re.search(r"__version__\s*=\s*['\"]([^'\"]+)['\"]", content)

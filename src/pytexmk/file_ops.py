@@ -1,6 +1,5 @@
 import logging
 import re
-import shutil
 from pathlib import Path
 
 from pytexmk.language import set_language
@@ -50,30 +49,35 @@ class FileMoveRemoveManager:
         if not src_folder_path.exists() or not dest_folder_path.exists():
             dest_folder_path.mkdir(parents=True, exist_ok=True)
 
-        for file in (files or []):
+        for file in files or []:
             src_file_path = src_folder_path / file
             dest_file_path = dest_folder_path / file
-
-            if dest_file_path.exists():
-                try:
-                    dest_file_path.unlink()
-                except OSError as e:
-                    self.logger.error(_("删除失败: ") + f"{dest_file_path} --> {e}")
-                    continue
-
-            if src_file_path.exists():
-                try:
-                    src_file_path.rename(dest_file_path)
-                    moved_count += 1
-                    self.logger.info(
-                        _("移动成功: ") + f"{src_file_path} ==> {dest_folder}"
-                    )
-                except OSError as e:
-                    self.logger.error(
-                        _("移动失败: ") + f"{src_file_path} ==> {dest_folder} --> {e}"
-                    )
+            if self._replace(src_file_path, dest_file_path, dest_folder):
+                moved_count += 1
 
         return moved_count
+
+    def _replace(self, src: Path, dest: Path, dest_label: str | None) -> bool:
+        """把 src 搬到 dest：覆盖同名旧文件后 rename，返回是否真的搬动了。
+
+        四个搬移方法原本各写一遍「存在则删旧 → rename → 记日志」，出错分支还各有
+        细微差别；集中到一处后行为一致，改错也只改一次。
+        """
+        if not src.exists():
+            return False
+        if dest.exists():
+            try:
+                dest.unlink()
+            except OSError as e:
+                self.logger.error(_("删除失败: ") + f"{dest} --> {e}")
+                return False
+        try:
+            src.rename(dest)
+        except OSError as e:
+            self.logger.error(_("移动失败: ") + f"{src} ==> {dest_label} --> {e}")
+            return False
+        self.logger.info(_("移动成功: ") + f"{src.name} ==> {dest_label}")
+        return True
 
     def move_by_extensions(
         self,
@@ -96,58 +100,27 @@ class FileMoveRemoveManager:
                 continue
             if exts and fpath.suffix not in exts:
                 continue
-            dest_file_path = dest / fpath.name
-            if dest_file_path.exists():
-                try:
-                    dest_file_path.unlink()
-                except OSError as e:
-                    self.logger.error(_("删除失败: ") + f"{dest_file_path} --> {e}")
-                    continue
-            try:
-                shutil.move(str(fpath), str(dest_file_path))
+            if self._replace(fpath, dest / fpath.name, str(dest)):
                 moved_count += 1
-                self.logger.info(
-                    _("移动成功: ") + f"{fpath} ==> {dest}"
-                )
-            except OSError as e:
-                self.logger.error(
-                    _("移动失败: ") + f"{fpath} ==> {dest} --> {e}"
-                )
         return moved_count
 
-    def move_matched_files(
-        self, patterns: list[re.Pattern], src_folder: str, dest_folder: str
-    ):
-        src_folder_path = Path(src_folder)
-        dest_folder_path = Path(dest_folder)
+    def move_matched_files(self, patterns: list[re.Pattern], src_folder: str, dest_folder: str) -> int:
+        """把 src_folder 下文件名命中任一正则的文件搬到 dest_folder，返回搬移个数。
 
+        patterns 既可以是已编译的 re.Pattern（state.aux_regex_files 上游已编译过），
+        也可以是字符串；re.compile() 对前者原样返回，因此无需再判断类型。
+        """
+        dest_folder_path = Path(dest_folder)
         dest_folder_path.mkdir(parents=True, exist_ok=True)
 
         compiled_patterns = [re.compile(pattern) for pattern in patterns]
-
-        for file_path in src_folder_path.iterdir():
-            if file_path.is_file():
-                for pattern in compiled_patterns:
-                    if pattern.match(file_path.name):
-                        dest_file_path = dest_folder_path / file_path.name
-
-                        if dest_file_path.exists():
-                            try:
-                                dest_file_path.unlink()
-                            except OSError as e:
-                                self.logger.error(
-                                    _("删除失败: ") + f"{dest_file_path} --> {e}"
-                                )
-                                break
-
-                        try:
-                            file_path.rename(dest_file_path)
-                            self.logger.info(
-                                _("移动成功: ") + f"{file_path.name} ==> {dest_folder}"
-                            )
-                        except OSError as e:
-                            self.logger.error(
-                                _("移动失败: ")
-                                + f"{file_path.name} ==> {dest_folder} --> {e}"
-                            )
-                        break
+        moved_count = 0
+        for file_path in Path(src_folder).iterdir():
+            if not file_path.is_file():
+                continue
+            for pattern in compiled_patterns:
+                if pattern.match(file_path.name):
+                    if self._replace(file_path, dest_folder_path / file_path.name, dest_folder):
+                        moved_count += 1
+                    break
+        return moved_count

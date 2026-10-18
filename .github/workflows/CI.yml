@@ -50,13 +50,22 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python
+      - name: Set up Python 3.15
+        # requires-python = ">=3.15"：显式钉住 3.15，避免解释器解析漂到更新的小版本
         uses: actions/setup-python@v7.0.0
         with:
-          python-version-file: "pyproject.toml"
+          python-version: "3.15"
+          allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
 
       - name: Install dependencies
-        run: uv sync --locked --all-extras --dev
+        run: uv sync --locked --dev
+
+      - name: Lint (ruff, target-version=py315)
+        run: uv run --with ruff ruff check src tools tests
+
+      - name: Run unit tests (pytest on 3.15)
+        # 失败回显全部警告：3.15 的 DeprecationWarning 是我们的迁移哨兵
+        run: uv run pytest -q -W default
 
       - name: Pack binary (onedir, source mode)
         run: uv run python tools/pack.py pack

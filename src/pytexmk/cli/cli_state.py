@@ -30,12 +30,17 @@ SUFFIXES_AUX = [
 MAGIC_COMMENT_KEYS = ["program", "root", "outdir", "auxdir"]
 
 
-@dataclass
+@dataclass(slots=True)
 class WorkflowState:
     """run_workflow 全流程共享的运行时状态。
 
     运行时参数按「内置默认值 → 配置文件 → 魔法注释 → 命令行」的优先级，
     依次由 cli_context.build / resolve_target / apply_magic_comments 覆盖赋值。
+
+    slots=True（3.10+ 的 dataclass 选项，在 3.15 工具链下可放心使用）让实例不再带
+    每实例 __dict__：字段集在类层面固定，字段名拼错立即 AttributeError 而不是
+    悄悄新建一个属性；同时实例更省内存、属性访问更快。
+    注意 slots 类不能随意挂未声明属性，新增状态请照旧在此声明字段。
     """
 
     # ── 输入 ──

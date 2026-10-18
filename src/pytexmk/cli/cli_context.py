@@ -41,6 +41,11 @@ def build(args, cp: ConfigParser, logger) -> WorkflowState:
 
     # 进入工作根目录：用户终端 cwd 不变，编译流程在子项目/根目录内执行
     os.chdir(ctx.work_root)
+    # 子项目条目直接指向某个 .tex 时，把它作为默认主文件，避免被配置里的
+    # default_file 覆盖成不存在的名字
+    if ctx.work_file is not None:
+        state.default_file = ctx.work_file.stem
+        logger.info(_("通过子项目条目指定主文件为: ") + f"[bold cyan]{state.default_file}[/bold cyan]")
 
     logger.info("-" * 70)
     tex_files_in_root = state.mfo.get_suffix_files_in_dir(".", ".tex")

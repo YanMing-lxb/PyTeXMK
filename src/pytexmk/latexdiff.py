@@ -85,7 +85,7 @@ class LaTeXDiff_Aux:
                 self.logger.error(_("文件不存在: ") + tex_file_name)
                 exit_pytexmk(EXIT_ERROR)
             dirpath = rootPath.parent
-            with open(tex_file_name, "r", encoding="utf-8") as file_handler:
+            with open(tex_file_name, encoding="utf-8") as file_handler:
                 for line in file_handler:
                     match_input = inputPattern.search(line)
                     match_include = includePattern.search(line)

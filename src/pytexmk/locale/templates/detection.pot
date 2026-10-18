@@ -24,3 +24,16 @@ msgstr ""
 msgid "未找到辅助文件: "
 msgstr ""
 
+msgid "存在未定义的文献引用（.bib 中缺少对应条目）"
+msgstr ""
+
+msgid "存在重复定义的标签"
+msgstr ""
+
+#, python-format
+msgid "未定义的交叉引用 %(count)s 个: %(keys)s"
+msgstr ""
+
+msgid "未找到参考文献数据文件(.bib): %(args)s，已跳过 %(engine)s 调用"
+msgstr ""
+

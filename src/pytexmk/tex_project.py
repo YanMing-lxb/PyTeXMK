@@ -193,6 +193,7 @@ class MainFileOperation:
         return project_name
 
     def draft_model(self, project_name: str, draft_run: bool, draft_judgement: bool):
+        """在 \\documentclass 行增删 draft 选项，实现草稿模式开关。"""
         if not draft_run:
             self.logger.info(_("草稿模式未启用, 跳过处理."))
             return
@@ -200,24 +201,17 @@ class MainFileOperation:
         file_name = f"{project_name}.tex"
         file_path = Path(file_name)
 
-        pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[([^\]]*)\])?\{([^\}]*)\}")
+        pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}")
 
-        def _replace_draft(match):
-            options = match.group(1) or ""
-            class_type = match.group(2)
-
-            options = set(options.split(",")) if options else set()
-            options.add("draft") if draft_judgement else options.discard("draft")
-
-            options_str = ",".join(options).strip()
-            options_str = f"[{options_str}]" if options_str else ""
-
-            return f"\\documentclass{options_str}{{{class_type}}}"
+        def _draft_substitution(match: re.Match[str]) -> str:
+            options = self._documentclass_options(match["opts"] or "", draft_judgement)
+            opts = f"[{options}]" if options else ""
+            return f"\\documentclass{opts}{{{match['class']}}}"
 
         try:
             content = file_path.read_text(encoding="utf-8")
 
-            modified_content = pattern.sub(_replace_draft, content)
+            modified_content = pattern.sub(_draft_substitution, content)
 
             if modified_content != content:
                 file_path.write_text(modified_content, encoding="utf-8")
@@ -238,3 +232,14 @@ class MainFileOperation:
             self.logger.error(_("更新草稿模式时出错: ") + str(e))
         except re.error as e:
             self.logger.error(_("草稿模式正则匹配出错: ") + str(e))
+
+    @staticmethod
+    def _documentclass_options(options: str, enable_draft: bool) -> str:
+        """按逗号切分 \\documentclass 选项，增/删 draft 后保持其余选项的原有顺序。"""
+        current = [opt.strip() for opt in options.split(",") if opt.strip()]
+        if enable_draft:
+            if "draft" not in current:
+                current.append("draft")
+        else:
+            current = [opt for opt in current if opt != "draft"]
+        return ",".join(current)

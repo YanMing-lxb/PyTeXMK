@@ -50,3 +50,7 @@ msgstr "Compilation finished"
 msgid "2 次 %(args1)s 编译"
 msgstr "2 %(args1)s passes"
 
+#, python-format
+msgid "未能消除：%(args)s"
+msgstr "Unresolved: %(args)s"
+

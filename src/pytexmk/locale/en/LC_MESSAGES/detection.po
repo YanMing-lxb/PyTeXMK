@@ -25,3 +25,16 @@ msgstr "File does not exist or cannot be read, skipping file: %(args)s"
 msgid "未找到辅助文件: "
 msgstr "No auxiliary files found: "
 
+msgid "存在未定义的文献引用（.bib 中缺少对应条目）"
+msgstr "Undefined citations (entries missing from the .bib file)"
+
+msgid "存在重复定义的标签"
+msgstr "Duplicate label definitions"
+
+#, python-format
+msgid "未定义的交叉引用 %(count)s 个: %(keys)s"
+msgstr "%(count)s undefined cross-references: %(keys)s"
+
+msgid "未找到参考文献数据文件(.bib): %(args)s，已跳过 %(engine)s 调用"
+msgstr "No bibliography data file (.bib) found: %(args)s; skipped the %(engine)s invocation"
+

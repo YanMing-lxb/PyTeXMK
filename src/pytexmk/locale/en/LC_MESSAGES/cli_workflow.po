@@ -267,3 +267,31 @@ msgstr "[bold green]PyTeXMK starting...[/bold green]"
 #~ msgid "README.html 文件未找到: "
 #~ msgstr "README.html file not found: "
 
+#, python-format
+msgid "检测到 %(n)s 个被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建。"
+msgstr "Detected %(n)s corrupted auxiliary files left by an interrupted compilation; deleted them and they will be rebuilt in this run."
+
+msgid "通过子项目条目指定主文件为: "
+msgstr "Main file specified by the subproject entry: "
+
+msgid "[bold green]已自动创建根配置文件 [/bold green]"
+msgstr "[bold green]Created the root config file automatically: [/bold green]"
+
+msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]"
+msgstr "[yellow]Cannot write the root .pytexmkrc; the subproject list is valid only for this run[/yellow]"
+
+#: src/pytexmk/cli_workflow.py
+msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。"
+msgstr "Sources are unchanged since the last build; compilation skipped (use [bold cyan]-fr[/bold cyan] to force a rebuild)."
+
+#: src/pytexmk/cli_workflow.py
+msgid "当前 PDF：%(p)s"
+msgstr "Current PDF: %(p)s"
+
+#: src/pytexmk/cli_workflow.py
+msgid "未找到子项目: %(name)s"
+msgstr "Subproject not found: %(name)s"
+
+#: src/pytexmk/cli_workflow.py
+msgid "，可用别名: %(s)s"
+msgstr ", available aliases: %(s)s"

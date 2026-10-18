@@ -36,6 +36,7 @@ import shlex
 
 import pytexlogs
 
+from pytexmk.detection import BibEngine
 from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
 from pytexmk.lifecycle import EXIT_COMPILE_FAILED, exit_pytexmk
@@ -117,7 +118,7 @@ class CompileLaTeX:
     def compile_bib(self, bib_engine):
         command = [bib_engine, self.project_name]
 
-        if not self.non_quiet and bib_engine == "biber":
+        if not self.non_quiet and bib_engine == BibEngine.BIBER:
             command.insert(1, "-quiet")
 
         try:

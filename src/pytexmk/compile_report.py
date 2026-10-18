@@ -28,6 +28,16 @@ ORDER: list[tuple[str, str, tuple[str, str]]] = [
 
 NAME_WIDTH = 8
 
+# 停止原因 → 结论文案。用常量而非散落的 if 分支，便于新增停止策略时只改一处。
+STOP_REASON_MESSAGES: dict[str, str] = {
+    "converged": _("无需额外执行 %(prog)s 编译。"),
+    "stable": _("辅助文件与日志信号均已稳定，继续编译不会再改变结果，已提前停止。"),
+    "fixed_point": _("本轮编译未改变任何辅助文件（已到达不动点），继续编译不会产生新结果，已提前停止。"),
+    "cycle": _("检测到辅助文件在两种状态之间循环震荡，继续编译无法收敛，已提前停止。"),
+    "log_stalled": _("日志中只剩未定义引用/重复标签这类必须改源码才能消除的信号，再编译不会改变结果，已提前停止。"),
+    "limit": _("已达额外编译安全上限，停止调度。"),
+}
+
 
 def print_compile_report(
     round_index: int,
@@ -38,7 +48,10 @@ def print_compile_report(
     *,
     prog: str = "",
     reached_limit: bool = False,
+    stalled: bool = False,
     max_extra: int = 10,
+    stop_reason: str = "",
+    residual_notes: list[str] | None = None,
 ) -> None:
     raw_program = compiled_program if compiled_program else prog
     actual_program = standardize_name(raw_program)
@@ -70,7 +83,14 @@ def print_compile_report(
     active_vals = [dims.get(tag, -1) for _, tag, _ in ORDER if dims.get(tag, -1) >= 0]
     all_zero = all(v == 0 for v in active_vals) if active_vals else True
 
-    if all_zero:
+    # stalled 是旧调用点的兼容参数：等价于 stop_reason="log_stalled"
+    reason = stop_reason or ("log_stalled" if stalled else "")
+    if not reason:
+        reason = "converged" if all_zero else ""
+    if not reason and reached_limit:
+        reason = "limit"
+
+    if reason == "converged":
         console.print(
             "[bold magenta]" + _("结论：") + "[/bold magenta] "
             "[green]" + _("无需额外执行 %(prog)s 编译。") % {"prog": actual_program} + "[/green]"
@@ -78,14 +98,28 @@ def print_compile_report(
         console.print(
             "[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
         )
-    else:
-        actual_next = next_extra_compilations
+    elif reason:
+        style = "bold red" if reason == "limit" else "bold yellow"
+        template = STOP_REASON_MESSAGES.get(reason, STOP_REASON_MESSAGES["stable"])
         console.print(
             "[bold magenta]" + _("结论：") + "[/bold magenta] "
-            "[yellow]" + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": actual_next, "prog": actual_program} + "[/yellow]"
+            f"[{style}]" + template % {"prog": actual_program} + f"[/{style}]"
+        )
+        console.print(
+            "[cyan]" + _("本次累计编译总次数：%(total)s 次") % {"total": total_compilations} + "[/cyan]"
+        )
+    else:
+        console.print(
+            "[bold magenta]" + _("结论：") + "[/bold magenta] "
+            "[yellow]"
+            + _("需额外进行 %(next)s 次 %(prog)s 编译。") % {"next": next_extra_compilations, "prog": actual_program}
+            + "[/yellow]"
         )
 
-    if reached_limit:
+    if reached_limit and reason != "limit":
         console.print(
             "[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
         )
+
+    for note in residual_notes or []:
+        console.print("[bold yellow]" + _("提示：") + f"[/bold yellow][yellow]{note}[/yellow]")
