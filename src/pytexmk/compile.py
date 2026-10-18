@@ -34,7 +34,7 @@ Description  :
 import logging
 import shlex
 
-import pytexlogs
+from pytexlogs import run_pipeline as _run_log_pipeline
 
 from pytexmk.detection import BibEngine
 from pytexmk.file_ops import FileMoveRemoveManager
@@ -84,7 +84,7 @@ class CompileLaTeX:
 
     def _on_subprocess_failure(self):
         """统一处理 SubprocessFailedError：打印日志分析、退出 PyTeXMK。"""
-        pytexlogs.run_log_pipeline(
+        _run_log_pipeline(
             self.project_name, self.auxdir, root_file=None,
             pytexmk_version=__version__,
             ref_tracker_translate_fn=set_language("log_parser"),

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-import pytexlogs
+from pytexlogs import run_pipeline as _run_log_pipeline
 
 from ..aux_repair import repair_auxiliary_files
 from ..build_state import BuildState
@@ -166,7 +166,7 @@ def _compile(args, state: WorkflowState) -> None:
     ).seconds
     state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-    pytexlogs.run_log_pipeline(
+    _run_log_pipeline(
         state.project_name,
         state.auxdir,
         root_file=state.project_name,
