@@ -120,11 +120,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.13.3"
+version = "4.13.4"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/da/91/4a03cfdb03314cfca262921797fff04ff4054bd86a160aed76eddf8aa12b/platformdirs-4.13.3.tar.gz", hash = "sha256:5e567f664eb087ab8521c0179cd8d1bd60857d271136567a39719e28e2d383ce", size = 61559, upload-time = "2026-10-16T01:16:16.573Z" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b7/89/dfd269de936e76319cf27787d9eaaca513491f635d49b0fbe7cdb6d3bf6f/platformdirs-4.13.4.tar.gz", hash = "sha256:dd96496961684a7f42041923f842ec7494e09f5e87aded99117e1109cd40570e", size = 62364, upload-time = "2026-10-17T19:31:53.69Z" }
 wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/45/b8/fd1af06b079af236f5423f7c1821264419cc8f6b4803f79353acbb8bfa53/platformdirs-4.13.3-py3-none-any.whl", hash = "sha256:f6ad7f447f24f8a3b82cce5976387428bff894a0eca6c3488f4a17f153c130c4", size = 32762, upload-time = "2026-10-16T01:16:15.051Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/58/51/5614d0537dd830ca64d95a2f254bd66bdf3ac61d41cffcccaec62121fcfd/platformdirs-4.13.4-py3-none-any.whl", hash = "sha256:502ce08e9d36cf90579ee44e1e764838842fa658e4975ef47344fd053011d2c8", size = 32782, upload-time = "2026-10-17T19:31:52.293Z" },
 ]
 
 [[package]]
@@ -212,11 +212,11 @@ wheels = [
 
 [[package]]
 name = "pytexlogs"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/d6/53/af513a5fa8a7505da7352b4953e82030d57f0a9b7b3f2d03d171202543e8/pytexlogs-0.3.0.tar.gz", hash = "sha256:f6d94035d3fdb7d5968c7d66a135b3d001a42884053a817eb4156d95631bd11b", size = 70280, upload-time = "2026-08-04T07:45:35.722Z" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2c/a4/704807451d15710ac25dc48ff7fc578407c757b3eb8403cb1175dd8933d9/pytexlogs-0.4.0.tar.gz", hash = "sha256:264ac0f47a8baceeac24a4a5b0c6ffda39df21c9753682bba4917fbcf8dd8b01", size = 85528, upload-time = "2026-10-18T07:57:56.627Z" }
 wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/67/e8/4a47ea611b034ca816cf093298eebbcc84e9e4c5916f7f79169aeec09abf/pytexlogs-0.3.0-py3-none-any.whl", hash = "sha256:6d040704fb149e3cf57e1df8f570a50bcd835db342d4f2e7b2c9ea1f8133b96d", size = 74261, upload-time = "2026-08-04T07:45:34.519Z" },
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/69/63/92fecdc551cbb078ad682e8654205faef9428eefdaf9aa1db91f52a79466/pytexlogs-0.4.0-py3-none-any.whl", hash = "sha256:52dda1f86c5cbeead8c5e05ddf787c0478463c0fedf1eeeeda325f2ae8536de6", size = 84319, upload-time = "2026-10-18T07:57:54.865Z" },
 ]
 
 [[package]]
@@ -257,7 +257,7 @@ requires-dist = [
     { name = "pyinstaller", marker = "extra == 'dev'", specifier = ">=6.22.3" },
     { name = "pypdf", specifier = ">=6.21.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.1.1" },
-    { name = "pytexlogs", specifier = ">=0.3.0" },
+    { name = "pytexlogs", specifier = ">=0.4.0" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "rich-argparse", specifier = ">=1.8.0" },
     { name = "tomli-w", specifier = ">=1.2.0" },
