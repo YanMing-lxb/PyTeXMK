@@ -122,6 +122,33 @@ uv add pytexmk
 winget install --id YanMing-lxb.PyTeXMK
 ```
 
+#### Linux binary package (recommended, no Python required)
+
+Download `pytexmk-<version>-linux-x64.zip` from [Releases](https://github.com/YanMing-lxb/PyTeXMK/releases), or install it with a single command (the installer detects platform and architecture, resolves the latest version, checks glibc and creates the launcher; re-running it upgrades in place):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s
+```
+
+It installs into `~/.local/opt/pytexmk` and links the launcher to `~/.local/bin/pytexmk`. To customise, append `--` followed by the flags:
+
+```bash
+# Custom program directory and launcher directory
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -d ~/opt/pytexmk -b ~/.local/bin
+
+# Pin a specific version
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.7
+
+# Show all options
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -h
+```
+
+> **Notes**
+> - The installer only needs `curl` and `unzip` (e.g. `sudo apt install curl unzip`); a LaTeX distribution is still required as described in Prerequisites.
+> - **glibc ≥ 2.38 is required** (Ubuntu 24.04+, Debian 13+, Fedora 39+, etc.). The script checks this before downloading and points you to `uv tool install pytexmk` when your glibc is too old, so you never end up with a binary that cannot start; pass `-f` to force the install anyway.
+> - The install lives in your home directory (`~/.local/opt/pytexmk`) and needs no `sudo`; if `~/.local/bin` is not on your `PATH`, the script prints the exact `export` line to add.
+> - The archive is a PyInstaller onedir tree: the `pytexmk` launcher and `_internal/` (which holds `_internal/data` and the `_internal/locale` message catalogs) must stay in the same directory. The script replaces the whole directory; when installing manually, **do not copy the `pytexmk` file on its own**.
+
 ### Upgrade
 
 ```bash
@@ -133,6 +160,26 @@ uv add pytexmk@latest
 
 # winget
 winget upgrade --id YanMing-lxb.PyTeXMK
+```
+
+For the Linux binary package, just re-run the install command (the script detects an existing install and replaces it in place):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s
+```
+
+### Uninstall
+
+```bash
+# Linux binary package: remove the program directory and the launcher symlink
+# (swap in your own paths if you installed with -d / -b)
+rm -rf ~/.local/opt/pytexmk ~/.local/bin/pytexmk
+
+# pip install
+pip uninstall pytexmk
+
+# uv install
+uv tool uninstall pytexmk
 ```
 
 ### Basic Usage
