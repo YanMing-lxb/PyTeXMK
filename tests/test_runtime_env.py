@@ -15,6 +15,11 @@ import pytest
 from pytexmk.runtime_env import bundle_dir, child_env, external_process_scope
 
 
+def _join(*parts):
+    """按当前平台的路径分隔符拼接（Windows 是 ';'，POSIX 是 ':'）。"""
+    return os.pathsep.join(str(part) for part in parts)
+
+
 @pytest.fixture
 def frozen(monkeypatch, tmp_path):
     """把当前进程伪装成 PyInstaller onedir 运行，返回打包目录。"""
@@ -48,15 +53,15 @@ def test_bundle_dir_uses_realpath(frozen, tmp_path):
 
 def test_source_run_keeps_library_path_untouched(unpinned, monkeypatch):
     """源码运行时 child_env 不改动 LD_LIBRARY_PATH。"""
-    monkeypatch.setenv("LD_LIBRARY_PATH", "/usr/lib:/opt/lib")
-    assert child_env()["LD_LIBRARY_PATH"] == "/usr/lib:/opt/lib"
+    monkeypatch.setenv("LD_LIBRARY_PATH", _join("/usr/lib", "/opt/lib"))
+    assert child_env()["LD_LIBRARY_PATH"] == _join("/usr/lib", "/opt/lib")
 
 
 def test_bundle_entries_are_removed(frozen, unpinned, monkeypatch):
     """打包目录条目被摘掉，其它条目与顺序保持不变。"""
-    monkeypatch.setenv("LD_LIBRARY_PATH", f"/usr/lib:{frozen}:/opt/lib")
+    monkeypatch.setenv("LD_LIBRARY_PATH", _join("/usr/lib", frozen, "/opt/lib"))
     env = child_env()
-    assert env["LD_LIBRARY_PATH"] == "/usr/lib:/opt/lib"
+    assert env["LD_LIBRARY_PATH"] == _join("/usr/lib", "/opt/lib")
 
 
 def test_variable_is_dropped_when_only_bundle_remains(frozen, unpinned, monkeypatch):
@@ -67,7 +72,7 @@ def test_variable_is_dropped_when_only_bundle_remains(frozen, unpinned, monkeypa
 
 def test_orig_variable_wins(frozen, unpinned, monkeypatch):
     """存在 *_ORIG 时以它为准，并清掉 *_ORIG 自身（不泄漏给子进程）。"""
-    monkeypatch.setenv("LD_LIBRARY_PATH", f"{frozen}:/usr/lib")
+    monkeypatch.setenv("LD_LIBRARY_PATH", _join(frozen, "/usr/lib"))
     monkeypatch.setenv("LD_LIBRARY_PATH_ORIG", "/usr/lib")
     env = child_env()
     assert env["LD_LIBRARY_PATH"] == "/usr/lib"
@@ -85,15 +90,16 @@ def test_empty_orig_variable_deletes_it(frozen, unpinned, monkeypatch):
 
 def test_dyld_library_path_is_handled(frozen, unpinned, monkeypatch):
     """macOS 的 DYLD_LIBRARY_PATH 走同一套逻辑。"""
-    monkeypatch.setenv("DYLD_LIBRARY_PATH", f"{frozen}:/usr/local/lib")
+    monkeypatch.setenv("DYLD_LIBRARY_PATH", _join(frozen, "/usr/local/lib"))
     assert child_env()["DYLD_LIBRARY_PATH"] == "/usr/local/lib"
 
 
 def test_child_env_does_not_mutate_current_process(frozen, unpinned, monkeypatch):
     """净化只作用于副本，不能改动当前进程的环境。"""
-    monkeypatch.setenv("LD_LIBRARY_PATH", f"{frozen}:/usr/lib")
+    value = _join(frozen, "/usr/lib")
+    monkeypatch.setenv("LD_LIBRARY_PATH", value)
     child_env()
-    assert os.environ["LD_LIBRARY_PATH"] == f"{frozen}:/usr/lib"
+    assert os.environ["LD_LIBRARY_PATH"] == value
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="SetDllDirectoryW 只在 Windows 上存在")

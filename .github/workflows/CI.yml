@@ -14,12 +14,15 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
+            arch: x64
             bin_path: ./dist/pytexmk/pytexmk
           - os: windows-latest
             platform: windows
+            arch: x64
             bin_path: ./dist/pytexmk/pytexmk.exe
           - os: macos-latest
             platform: macos
+            arch: arm64        # macos-latest 是 arm64 runner，资产命名必须与架构一致
             bin_path: ./dist/pytexmk/pytexmk
     runs-on: ${{ matrix.os }}
     defaults:
@@ -88,7 +91,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Binary smoke test failed, exit=$LASTEXITCODE" }
 
       - name: Prepare release zip
-        run: uv run python tools/zip_release.py ${{ matrix.platform }}
+        run: uv run python tools/zip_release.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7.0.1
