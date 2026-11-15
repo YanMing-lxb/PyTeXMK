@@ -45,7 +45,10 @@ def build(args, cp: ConfigParser, logger) -> WorkflowState:
     # default_file 覆盖成不存在的名字
     if ctx.work_file is not None:
         state.default_file = ctx.work_file.stem
-        logger.info(_("通过子项目条目指定主文件为: ") + f"[bold cyan]{state.default_file}[/bold cyan]")
+        if ctx.subproject:
+            logger.info(_("通过子项目条目指定主文件为: ") + f"[bold cyan]{state.default_file}[/bold cyan]")
+        else:
+            logger.info(_("通过命令行指定子目录主文件为: ") + f"[bold cyan]{state.default_file}[/bold cyan]")
 
     logger.info("-" * 70)
     tex_files_in_root = state.mfo.get_suffix_files_in_dir(".", ".tex")
