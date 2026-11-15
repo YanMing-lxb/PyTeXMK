@@ -32,8 +32,9 @@ class ProjectContext:
     字段说明：
         root       : 项目根目录（即用户终端当前目录），用 resolve() 归一化。
         work_root  : 实际工作目录（一定是目录）。普通编译 == root；
-                     `-s` 子项目编译时为该子项目所在目录。
-        work_file  : `-s` 条目直接指向某个 .tex 文件时的该文件绝对路径，否则 None。
+                     `-s` 子项目编译或命令行指定子目录主文件时为该文件所在目录。
+        work_file  : `-s` 条目直接指向某个 .tex 文件、或命令行给出带子目录的
+                     主文件名时为该文件绝对路径，否则 None。
         config     : 纯读取合并后的原始配置 dict（优先级 默认<-用户rc<-项目rc）。
         subprojects: 子项目别名 -> 绝对 Path 映射（来自根 [subprojects]）。
         subproject : 本次 `-s` 选中的别名，None 表示根项目编译。
@@ -141,6 +142,7 @@ class ContextResolver:
         work_file: Path | None = None
 
         requested = getattr(args, "subproject", None)
+        document = getattr(args, "document", None)
         if requested:
             candidates = dict(subprojects)
             matched = self._match(requested, candidates)
@@ -164,6 +166,20 @@ class ContextResolver:
             else:
                 work_root = target
 
+            # `-s Review ./Review/main.tex` 这类重复指定：只有该文件确实落在
+            # -s 已选定的目录内才接管，否则视为与 -s 冲突，交给后续流程报错
+            if work_file is None:
+                nested = self._resolve_nested_document(document, root)
+                if nested is not None and nested[1] == work_root:
+                    work_file = nested[0]
+        else:
+            # 命令行直接给出带子目录的主文件（如 `pytexmk -l ./Review/main.tex`）：
+            # 与 `-s` 指向文件同一套语义——进入该文件所在目录编译，
+            # 让 project_name 保持为短名（无目录成分）。
+            nested = self._resolve_nested_document(document, root)
+            if nested is not None:
+                work_file, work_root = nested
+
         return ProjectContext(
             root=root,
             work_root=work_root,
@@ -172,3 +188,42 @@ class ContextResolver:
             subproject=subproject,
             work_file=work_file,
         )
+
+    @staticmethod
+    def _resolve_nested_document(document, root: Path) -> tuple[Path, Path] | None:
+        """把命令行里指向子目录的主文件解析为 (文件绝对路径, 文件父目录)。
+
+        仅在满足下列全部条件时生效，否则返回 None（走原有流程）：
+          1. document 非空且不含目录成分——同目录主文件交给原有逻辑处理；
+          2. 不是绝对路径、不含 `..`——与 check_project_name 的约束保持一致；
+          3. `root/<document>.tex` 或 `root/<document>` 确实是一个已存在的文件。
+        返回的父目录一定是 root 的后代（条件 2 + 存在性已保证），不会越出项目。
+        """
+        if not document:
+            return None
+
+        candidate = Path(str(document).replace("\\", "/"))
+        if candidate.is_absolute() or ".." in candidate.parts:
+            return None
+        if len(candidate.parts) < 2:
+            return None
+
+        probe = candidate.with_suffix(".tex")
+        if not probe.exists():
+            if candidate.suffix:
+                return None
+            # 允许省略 .tex 后缀：`pytexmk Review/main`
+            probe = candidate.with_name(candidate.name + ".tex")
+            if not probe.exists():
+                return None
+
+        try:
+            resolved = probe.resolve()
+            resolved.relative_to(root)
+        except (OSError, ValueError):
+            return None
+        if resolved == root:
+            return None
+
+        return resolved, resolved.parent
+
