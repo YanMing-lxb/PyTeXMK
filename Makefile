@@ -35,6 +35,7 @@ help:
 	@echo   add-lang 交互式新增语言代码并初始化全部 .po 文件
 	@echo   update   重新提取 POT，合并更新到所有已有语言的 .po 文件
 	@echo   mo       将所有语言的 .po 文件编译为二进制 .mo 文件
+	@echo   dryrun   触发 GitHub Actions 打包 dry_run（只构建不发布，默认跟踪结果）
 	@echo   upload   上传包至 PyPI
 	@echo   help     显示本帮助信息
 
@@ -134,6 +135,17 @@ mo:
 # - 上传前请确保已运行 make whl 构建产物
 upload:
 	@uv run python ./tools/make.py upload
+
+# 触发 GitHub Actions 的 Release 工作流做一次 dry_run：只构建、不发布
+# - 用于在打 tag 前验证打包链路（Linux manylinux_2_28 容器、macOS arm64、glibc 门禁、环境探针）
+# - 需要 GitHub token：设置 GH_TOKEN / GITHUB_TOKEN，或先 gh auth login（需 actions:write）
+# - 跑的是远端代码：本地改动要先 push，否则测的是旧版本
+# - 脚本只用标准库，故走 --no-project，不受 .venv 平台切换影响
+#   make dryrun                 触发并跟踪到结束（失败时命令返回非 0）
+#   make dryrun ARGS=--check    只校验 token 与目标，不真的触发
+#   make dryrun ARGS=--no-watch 触发后立即返回，只打印运行地址
+dryrun:
+	@uv run --no-project python ./tools/ci_dryrun.py $(ARGS)
 
 # 注意：winget 发布不提供本地/Make 入口。
 # 发布完全在 GitHub Action（Release.yml 的 publish-to-winget job）中，

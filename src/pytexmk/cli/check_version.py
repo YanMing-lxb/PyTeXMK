@@ -47,6 +47,9 @@ _ = set_language("check_version")
 _log = logging.getLogger(__name__)
 
 API_URL = f"https://api.github.com/repos/YanMing-lxb/{script_name}/releases/latest"
+# 与 README/install.sh 同源：Linux/macOS 的二进制升级由重跑该脚本完成（就地替换）。
+INSTALL_SCRIPT_URL = f"https://raw.githubusercontent.com/YanMing-lxb/{script_name}/main/tools/install.sh"
+INSTALL_SCRIPT_CMD = f"curl -fsSL {INSTALL_SCRIPT_URL} | bash -s"
 
 
 def _detect_install_method() -> Literal["winget", "pip", "uv", "onedir", "unknown"]:
@@ -146,14 +149,25 @@ def _build_upgrade_message(method: str) -> list[str]:
         )
 
     elif method == "onedir":
-        lines.append(
-            _("当前为手动安装（从 GitHub Release 下载的 zip 解压版），请前往以下地址下载新版 zip 覆盖旧目录：")
-        )
-        lines.append(f"[bold blue]{release_url}[/bold blue]")
-        lines.append("")  # 空行，视觉分隔
-        lines.append(
-            _("💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]")
-        )
+        if os.name == "nt":
+            lines.append(
+                _("当前为手动安装（从 GitHub Release 下载的 zip 解压版），请前往以下地址下载新版 zip 覆盖旧目录：")
+            )
+            lines.append(f"[bold blue]{release_url}[/bold blue]")
+            lines.append("")  # 空行，视觉分隔
+            lines.append(
+                _("💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]")
+            )
+        else:
+            # Linux/macOS 的 zip 通道只在 install.sh 里维护（下载→校验→就地替换→软链），
+            # 手工解压容易漏掉软链与 glibc 校验，因此统一让用户重跑脚本。
+            lines.append(_("当前为手动安装（从 GitHub Release 下载的 zip 解压版），重跑安装脚本即可就地升级："))
+            lines.append(f"[bold green]{INSTALL_SCRIPT_CMD}[/bold green]")
+            lines.append("")  # 空行，视觉分隔
+            lines.append(
+                _("💡 也可以改用 uv 渠道（不依赖打包二进制的 glibc 基线）：[bold green]uv tool install %(args)s[/bold green]")
+                % {"args": script_name}
+            )
 
     elif method == "unknown":
         lines.append(
@@ -177,7 +191,11 @@ def _build_upgrade_message(method: str) -> list[str]:
                 % {"url": release_url}
             )
         else:
-            # Linux/mac 3 渠道：pip / uv / 手动下载
+            # Linux/mac 4 渠道：安装脚本 / pip / uv / 手动下载
+            lines.append(
+                _("[bold]安装脚本[/bold]:       [bold green]%(cmd)s[/bold green]")
+                % {"cmd": INSTALL_SCRIPT_CMD}
+            )
             lines.append(
                 _("[bold]PyPI pip[/bold]:           [bold green]pip install --upgrade %(args)s[/bold green]")
                 % {"args": script_name}

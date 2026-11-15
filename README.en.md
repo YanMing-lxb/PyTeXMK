@@ -122,9 +122,14 @@ uv add pytexmk
 winget install --id YanMing-lxb.PyTeXMK
 ```
 
-#### Linux binary package (recommended, no Python required)
+#### Linux / macOS binary package (recommended, no Python required)
 
-Download `pytexmk-<version>-linux-x64.zip` from [Releases](https://github.com/YanMing-lxb/PyTeXMK/releases), or install it with a single command (the installer detects platform and architecture, resolves the latest version, checks glibc and creates the launcher; re-running it upgrades in place):
+Pick the matching asset from [Releases](https://github.com/YanMing-lxb/PyTeXMK/releases):
+
+- Linux x86_64: `pytexmk-<version>-linux-x64.zip`
+- macOS Apple Silicon: `pytexmk-<version>-macos-arm64.zip`
+
+Or install it with a single command (the installer detects platform and architecture, resolves the latest version, checks glibc and creates the launcher; re-running it upgrades in place):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s
@@ -137,7 +142,10 @@ It installs into `~/.local/opt/pytexmk` and links the launcher to `~/.local/bin/
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -d ~/opt/pytexmk -b ~/.local/bin
 
 # Pin a specific version
-curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.7
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.8
+
+# Use the uv channel instead (installs from PyPI, needs uv; for Intel Macs or old glibc)
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -m uv
 
 # Show all options
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -h
@@ -146,7 +154,8 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 > **Notes**
 > - The installer only needs `curl` and `unzip` (e.g. `sudo apt install curl unzip`); a LaTeX distribution (TeX Live / MiKTeX / MacTeX) is still required as described in Prerequisites.
 > - Output language follows the system locale (Chinese locales get Chinese, everything else gets English); force it with `-l zh` or `-l en`.
-> - **glibc ≥ 2.38 is required** (Ubuntu 24.04+, Debian 13+, Fedora 39+, etc.). The script checks this before downloading and points you to `uv tool install pytexmk` when your glibc is too old, so you never end up with a binary that cannot start; pass `-f` to force the install anyway.
+> - **Only two binary architectures are published**: `x64` for Linux and `arm64` for macOS. On Intel Macs use the uv channel (`uv tool install pytexmk`, or pass `-m uv` to the script); the installer refuses a package that does not match your architecture.
+> - **glibc ≥ 2.28 is required on Linux** (Ubuntu 20.04+, Debian 10+, RHEL 8+, etc.). The binary is built inside a `manylinux_2_28` container and CI asserts that nothing in the bundle (including the bundled `.so` files under `_internal`) exceeds that floor. The script checks this before downloading and points you to `uv tool install pytexmk` when your glibc is too old; pass `-f` to force the install anyway.
 > - The install lives in your home directory (`~/.local/opt/pytexmk`) and needs no `sudo`; if `~/.local/bin` is not on your `PATH`, the script prints the exact `export` line to add.
 > - The archive is a PyInstaller onedir tree: the `pytexmk` launcher and `_internal/` (which holds `_internal/data` and the `_internal/locale` message catalogs) must stay in the same directory. The script replaces the whole directory; when installing manually, **do not copy the `pytexmk` file on its own**.
 
@@ -163,7 +172,7 @@ uv add pytexmk@latest
 winget upgrade --id YanMing-lxb.PyTeXMK
 ```
 
-For the Linux binary package, just re-run the install command (the script detects an existing install and replaces it in place):
+For the Linux / macOS binary package, just re-run the install command (the script detects an existing install and replaces it in place; this is also the command printed by `pytexmk --help`):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s

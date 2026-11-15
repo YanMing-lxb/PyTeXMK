@@ -122,9 +122,14 @@ uv add pytexmk
 winget install --id YanMing-lxb.PyTeXMK
 ```
 
-#### Linux 二进制包（推荐，无需 Python 环境）
+#### Linux / macOS 二进制包（推荐，无需 Python 环境）
 
-从 [Releases](https://github.com/YanMing-lxb/PyTeXMK/releases) 下载 `pytexmk-<版本>-linux-x64.zip`，或用一条命令安装（安装脚本会自动识别平台与架构、取最新版本、校验 glibc、创建启动器；重复执行即为就地升级）：
+从 [Releases](https://github.com/YanMing-lxb/PyTeXMK/releases) 下载对应资产：
+
+- Linux x86_64：`pytexmk-<版本>-linux-x64.zip`
+- macOS Apple Silicon：`pytexmk-<版本>-macos-arm64.zip`
+
+或用一条命令安装（安装脚本会自动识别平台与架构、取最新版本、校验 glibc、创建启动器；重复执行即为就地升级）：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s
@@ -137,7 +142,10 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -d ~/opt/pytexmk -b ~/.local/bin
 
 # 固定版本
-curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.7
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.8
+
+# 改用 uv 渠道（从 PyPI 源码安装，需已装 uv；适用于 Intel Mac 或 glibc 过低的系统）
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -m uv
 
 # 查看全部参数
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -h
@@ -146,7 +154,8 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 > **注意**
 > - 脚本只需要 `curl` 与 `unzip`（如 `sudo apt install curl unzip`），LaTeX 发行版（TeX Live / MiKTeX / MacTeX）仍需按「前置条件」另行安装。
 > - 输出语言跟随系统 locale（中文环境自动用中文，其余用英文），也可用 `-l zh` / `-l en` 指定。
-> - **要求 glibc ≥ 2.38**（即 Ubuntu 24.04+、Debian 13+、Fedora 39+ 等）。脚本会在下载前自检，版本过低时直接提示改用 `uv tool install pytexmk`，不会装上跑不起来的二进制；确需强制安装可加 `-f`。
+> - **二进制资产只有两种架构**：Linux 为 `x64`、macOS 为 `arm64`。Intel Mac 请走 uv 通道（`uv tool install pytexmk`，或给脚本加 `-m uv`），脚本会拒绝安装架构不符的包。
+> - **Linux 要求 glibc ≥ 2.28**（即 Ubuntu 20.04+、Debian 10+、RHEL 8+ 等）。二进制在 `manylinux_2_28` 容器内构建，CI 会断言产物（含 `_internal` 里的 `.so`）不超出该水位；脚本下载前也会自检，版本过低时直接提示改用 `uv tool install pytexmk`；确需强制安装可加 `-f`。
 > - 安装位置在用户目录（`~/.local/opt/pytexmk`），全程无需 `sudo`；若 `~/.local/bin` 不在 `PATH` 中，脚本会打印需要追加的那条 `export`。
 > - 压缩包是 PyInstaller onedir 目录：启动器 `pytexmk` 与 `_internal/`（内含 `_internal/data`、`_internal/locale` 语言包）必须放在同一目录。脚本会整目录替换；手动安装时**不要只单独拷走 `pytexmk` 这一个文件**。
 
@@ -163,7 +172,7 @@ uv add pytexmk@latest
 winget upgrade --id YanMing-lxb.PyTeXMK
 ```
 
-Linux 二进制包重跑安装命令即可（脚本检测到已有安装时会在原位置替换旧版本）：
+Linux / macOS 二进制包重跑安装命令即可（脚本检测到已有安装时会在原位置替换旧版本；`pytexmk --help` 的升级提示给出的也是这条命令）：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s

@@ -24,14 +24,14 @@ def format_size(size_bytes: int) -> str:
     return f"{size_bytes:.2f} TB"
 
 
-def zip_release(platform: str) -> bool:
+def zip_release(platform: str, arch: str = "x64") -> bool:
     dist_dir = ROOT_DIR / "dist" / PROJECT_NAME
-    zip_name = f"pytexmk-{__version__}-{platform}-x64.zip"
+    zip_name = f"pytexmk-{__version__}-{platform}-{arch}.zip"
     zip_path = ROOT_DIR / zip_name
     staging_dir = ROOT_DIR / "staging_release"
     staging_app_dir = staging_dir / PROJECT_NAME
 
-    console.rule(f"[bold]📦 发布打包 - {platform}[/]")
+    console.rule(f"[bold]📦 发布打包 - {platform}-{arch}[/]")
 
     console.print("正在验证 dist 目录...", style="status")
     if not dist_dir.exists():
@@ -87,10 +87,16 @@ def zip_release(platform: str) -> bool:
 def main():
     parser = argparse.ArgumentParser(description=f"PyTeXMK 发布打包工具 v{__version__}")
     parser.add_argument("platform", choices=["linux", "windows", "macos"], help="目标平台")
+    parser.add_argument(
+        "--arch",
+        choices=["x64", "arm64"],
+        default="x64",
+        help="目标架构（默认 x64；macOS 产物为 arm64）",
+    )
     args = parser.parse_args()
 
     try:
-        success = zip_release(args.platform)
+        success = zip_release(args.platform, args.arch)
         if not success:
             sys.exit(1)
     except KeyboardInterrupt:

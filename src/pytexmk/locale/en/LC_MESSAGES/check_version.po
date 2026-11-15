@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-15 21:50+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -56,6 +56,19 @@ msgstr ""
 "💡 Recommended: switch to winget auto-update installation (Windows only): "
 "[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]"
 
+msgid "当前为手动安装（从 GitHub Release 下载的 zip 解压版），重跑安装脚本即可就地升级："
+msgstr ""
+"Currently a manual install (the zip downloaded from a GitHub Release). Re-run the "
+"install script to upgrade in place:"
+
+#, python-format
+msgid ""
+"💡 也可以改用 uv 渠道（不依赖打包二进制的 glibc 基线）：[bold green]uv tool install "
+"%(args)s[/bold green]"
+msgstr ""
+"💡 Alternatively use the uv channel (independent of the bundled binary's glibc "
+"baseline): [bold green]uv tool install %(args)s[/bold green]"
+
 msgid "已检测到新版本，可根据你的安装方式选择以下任一命令更新："
 msgstr ""
 "A new version is available. Choose one of the following commands to "
@@ -87,6 +100,10 @@ msgstr ""
 #, python-format
 msgid "[bold]手动下载[/bold]:      [bold blue]%(url)s[/bold blue]"
 msgstr "[bold]Manual download[/bold]:      [bold blue]%(url)s[/bold blue]"
+
+#, python-format
+msgid "[bold]安装脚本[/bold]:       [bold green]%(cmd)s[/bold green]"
+msgstr "[bold]Install script[/bold]:   [bold green]%(cmd)s[/bold green]"
 
 #, python-format
 msgid ""

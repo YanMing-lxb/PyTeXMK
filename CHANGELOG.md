@@ -28,6 +28,42 @@
 
 # CHANGELOG
 
+## v1.2.8 - 2026-11-15
+
+### ⚠️ 破坏性变更（二进制分发）
+
+- **Linux 二进制的 glibc 水位从 2.38 降到 2.28**：以前在 `ubuntu-latest`（已升至 26.04 / glibc 2.43）上编译，产物实际要求 2.38，Ubuntu 22.04、Debian 11/12 等一大批发行版装上也起不来。现在改为在 `quay.io/pypa/manylinux_2_28_x86_64`（AlmaLinux 8 / glibc 2.28）容器内构建，覆盖 Ubuntu 20.04+ / Debian 10+ / RHEL 8+；构建环境不再随 runner 升级而漂移。
+- **macOS 二进制只发布 arm64**：`macos-latest` 早已切到 arm64，但 `zip_release.py` 里写死了 `-x64` 后缀，导致发出去的是"名字写 x64、实际是 arm64"的错标包，`install.sh` 又只接受 x64 因而直接拒绝安装。现在资产统一为 `pytexmk-<版本>-macos-arm64.zip`，Intel Mac 走 uv 通道（`uv tool install pytexmk` 或给脚本加 `-m uv`）。
+
+### 🏗 打包与 CI
+
+- `Release.yml` 拆出独立的 `build-binary-linux` job（容器内构建），Windows / macOS 留在矩阵里，macOS 指定 `macos-26` + `arm64`，并在打 zip 前用 `file` 断言架构。
+- 新增 `tools/check_glibc.py`：扫描产物（连同 `_internal` 里捆绑的 `.so`）引用的 `GLIBC_*` 符号，超过基线就让 CI 失败，不再把问题留给用户。
+- 新增 `smoke-linux-artifact` job：在 `rockylinux:8`（真实 glibc 2.28）里解压并运行一次 `pytexmk --version`，验证"声称能跑的最老环境"确实能启动。
+- 新增子进程环境回归探针：用假 TeX 引擎回写 `LD_LIBRARY_PATH`，断言外部程序拿不到打包目录（防止 `OPENSSL_3.2.0` 类问题复发）。
+- `tools/zip_release.py` 支持 `--arch {x64,arm64}`（默认 `x64`），资产命名由平台 + 架构共同决定。
+
+### 🐛 Bug 修复
+
+- **🔴 打包后调用 lualatex 报 `version 'OPENSSL_3.2.0' not found`**：PyInstaller 把 `_internal` 前插到 `LD_LIBRARY_PATH`（Windows 上还有 `SetDllDirectoryW`），子进程继承后优先加载了打包目录里的 `libssl.so.3` / `libcrypto.so.3`。新增 `pytexmk.runtime_env`：
+  - `child_env()`：有 `*_ORIG` 就用它还原（空值表示原本没有该变量），否则按 `realpath` 把打包目录条目摘掉
+  - `external_process_scope()`：Windows 下在 spawn 的瞬间 `SetDllDirectoryW(None)`，退出后恢复
+  - `subprocess_runner` 的两处 `Popen` 均已接线；配 `tests/test_runtime_env.py`（源码运行 / 摘除 / `*_ORIG` 优先 / 空值删除 / `DYLD_LIBRARY_PATH` / 软链 realpath / Windows 清空-恢复）
+
+### 🛠️ 安装与升级
+
+- `tools/install.sh` 新增 `-m zip|uv` 双通道：`zip`（默认，下载打包二进制）与 `uv`（从 PyPI 源码安装，适用于 Intel Mac、glibc 过低或想要源码版）；uv 通道用 `uv tool dir --bin` 定位启动器，`-d/-b` 会给出"被忽略"的提示。
+- 架构映射补齐 `arm64`：Linux arm64 / macOS x64 明确拒绝并指向 uv；glibc 门槛文案改为 2.28。
+- 修复消息以 `-` 开头时 `printf` 把格式串当成选项（`printf: -m: invalid option`）的问题，四个打印助手统一改为 `printf -- "$fmt"`。
+- `check_version` 的升级文案按平台分流：Linux/macOS 的 `onedir`（zip 解压版）统一提示**重跑 `install.sh`**（`curl -fsSL … | bash -s`）并附 uv 备选；`unknown` 的 Linux/mac 渠道补上"安装脚本"一行。en 译文同步更新（`make pot` → `update` → 手工 msgstr → 编译 `.mo`）。
+
+### 🧪 质量验证
+
+- 全量 `pytest`：**118 passed, 1 skipped**（Windows 专属用例在 Linux 上跳过）；`ruff check src tests tools` 全绿。
+- `install.sh` 真机验证：`bash -n` 通过；zip 通道装 1.2.7 后 `--version` 正常、重复执行即就地升级；uv 通道 `-m uv -v 1.2.7` 安装成功且启动器路径正确；macOS Intel / Linux arm64 / macOS arm64 三个架构分支行为符合预期。
+- `check_glibc.py` 自测：对 `/usr/bin/git`（需 GLIBC_2.38）用基线 2.28 判失败、2.99 判通过，退出码 1 / 0 正确。
+- `zip_release.py` 自测：`macos --arch arm64` 生成 `pytexmk-<版本>-macos-arm64.zip`，内含 `pytexmk/pytexmk`。
+
 ## v1.2.7 - 2026-10-17
 
 ### 🐛 Bug 修复

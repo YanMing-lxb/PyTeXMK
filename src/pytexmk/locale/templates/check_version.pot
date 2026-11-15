@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.7\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-15 21:50+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,6 +38,13 @@ msgstr ""
 msgid "💡 推荐切换到 winget 自动升级安装（仅 Windows）：[bold green]winget install --id YanMing-lxb.PyTeXMK -e[/bold green]"
 msgstr ""
 
+msgid "当前为手动安装（从 GitHub Release 下载的 zip 解压版），重跑安装脚本即可就地升级："
+msgstr ""
+
+#, python-format
+msgid "💡 也可以改用 uv 渠道（不依赖打包二进制的 glibc 基线）：[bold green]uv tool install %(args)s[/bold green]"
+msgstr ""
+
 msgid "已检测到新版本，可根据你的安装方式选择以下任一命令更新："
 msgstr ""
 
@@ -54,6 +61,10 @@ msgstr ""
 
 #, python-format
 msgid "[bold]手动下载[/bold]:      [bold blue]%(url)s[/bold blue]"
+msgstr ""
+
+#, python-format
+msgid "[bold]安装脚本[/bold]:       [bold green]%(cmd)s[/bold green]"
 msgstr ""
 
 #, python-format

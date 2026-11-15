@@ -7,6 +7,7 @@ from typing import Self
 
 from pytexmk.file_ops import FileMoveRemoveManager
 from pytexmk.language import set_language
+from pytexmk.runtime_env import child_env, external_process_scope
 from pytexmk.ui_theme import console
 
 _ = set_language("subprocess_runner")
@@ -94,6 +95,9 @@ class MySubProcess:
         stdout_text = ""
         start_time = time.time()
         process: subprocess.Popen | None = None
+        # 外部程序（TeX 引擎等）必须拿到净化后的环境，否则打包目录里的同名库
+        # 会被优先加载（见 pytexmk.runtime_env 的说明）。
+        env = child_env()
         try:
             console.print(_("[bold]运行命令: [/bold]") + f"[cyan]{' '.join(command)}")
 
@@ -103,15 +107,17 @@ class MySubProcess:
                 if not output_dir.exists():
                     output_dir.mkdir(parents=True, exist_ok=True)
                 with open(stdout_path, "w", encoding="utf-8") as stdout_file:
-                    process = subprocess.Popen(
-                        command,
-                        stdout=stdout_file,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                        encoding="utf-8",
-                        errors="replace",
-                        cwd=Path.cwd(),
-                    )
+                    with external_process_scope():
+                        process = subprocess.Popen(
+                            command,
+                            stdout=stdout_file,
+                            stderr=subprocess.STDOUT,
+                            text=True,
+                            encoding="utf-8",
+                            errors="replace",
+                            cwd=Path.cwd(),
+                            env=env,
+                        )
                     try:
                         with console.status(f"[status]正在{program_name}..."):
                             process.wait()
@@ -132,16 +138,18 @@ class MySubProcess:
                     stdout_text = ""
             else:
                 # 实时模式：stdout 合并 stderr 并实时显示
-                process = subprocess.Popen(
-                    command,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,
-                    encoding="utf-8",
-                    errors="replace",
-                    cwd=Path.cwd(),
-                )
+                with external_process_scope():
+                    process = subprocess.Popen(
+                        command,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        bufsize=1,
+                        encoding="utf-8",
+                        errors="replace",
+                        cwd=Path.cwd(),
+                        env=env,
+                    )
                 stdout_lines: list[str] = []
                 try:
                     with console.status(f"[status]正在{program_name}..."):
