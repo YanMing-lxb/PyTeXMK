@@ -144,7 +144,8 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 ```
 
 > **注意**
-> - 脚本只需要 `curl` 与 `unzip`（如 `sudo apt install curl unzip`），LaTeX 发行版仍需按「前置条件」另行安装。
+> - 脚本只需要 `curl` 与 `unzip`（如 `sudo apt install curl unzip`），LaTeX 发行版（TeX Live / MiKTeX / MacTeX）仍需按「前置条件」另行安装。
+> - 输出语言跟随系统 locale（中文环境自动用中文，其余用英文），也可用 `-l zh` / `-l en` 指定。
 > - **要求 glibc ≥ 2.38**（即 Ubuntu 24.04+、Debian 13+、Fedora 39+ 等）。脚本会在下载前自检，版本过低时直接提示改用 `uv tool install pytexmk`，不会装上跑不起来的二进制；确需强制安装可加 `-f`。
 > - 安装位置在用户目录（`~/.local/opt/pytexmk`），全程无需 `sudo`；若 `~/.local/bin` 不在 `PATH` 中，脚本会打印需要追加的那条 `export`。
 > - 压缩包是 PyInstaller onedir 目录：启动器 `pytexmk` 与 `_internal/`（内含 `_internal/data`、`_internal/locale` 语言包）必须放在同一目录。脚本会整目录替换；手动安装时**不要只单独拷走 `pytexmk` 这一个文件**。

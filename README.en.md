@@ -144,7 +144,8 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 ```
 
 > **Notes**
-> - The installer only needs `curl` and `unzip` (e.g. `sudo apt install curl unzip`); a LaTeX distribution is still required as described in Prerequisites.
+> - The installer only needs `curl` and `unzip` (e.g. `sudo apt install curl unzip`); a LaTeX distribution (TeX Live / MiKTeX / MacTeX) is still required as described in Prerequisites.
+> - Output language follows the system locale (Chinese locales get Chinese, everything else gets English); force it with `-l zh` or `-l en`.
 > - **glibc ≥ 2.38 is required** (Ubuntu 24.04+, Debian 13+, Fedora 39+, etc.). The script checks this before downloading and points you to `uv tool install pytexmk` when your glibc is too old, so you never end up with a binary that cannot start; pass `-f` to force the install anyway.
 > - The install lives in your home directory (`~/.local/opt/pytexmk`) and needs no `sudo`; if `~/.local/bin` is not on your `PATH`, the script prints the exact `export` line to add.
 > - The archive is a PyInstaller onedir tree: the `pytexmk` launcher and `_internal/` (which holds `_internal/data` and the `_internal/locale` message catalogs) must stay in the same directory. The script replaces the whole directory; when installing manually, **do not copy the `pytexmk` file on its own**.
