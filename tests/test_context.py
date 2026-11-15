@@ -13,8 +13,9 @@ class _FakeLoader:
 
 
 class _Args:
-    def __init__(self, subproject=None):
+    def __init__(self, subproject=None, document=None):
         self.subproject = subproject
+        self.document = document
 
 
 def test_build_subprojects_flat_and_table_form(tmp_path):
