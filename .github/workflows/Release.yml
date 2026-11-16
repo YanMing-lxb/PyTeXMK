@@ -8,11 +8,12 @@
 #   [build-binary-linux]  → Linux(x64) 可执行 + 打 zip，固定 manylinux_2_28 容器构建
 #   [smoke-linux-artifact] → 在 Rocky Linux 8（glibc 2.28）里真跑一次产物，验证水位承诺
 #   [build-package]       → sdist + wheel（pip/PyPI 源码与二进制发行）
-#   [publish-to-pypi]     → 把 sdist+wheel 发布到 PyPI
+#   [release-gate]        → 构建、smoke、winget fork/包存在性、Release token 全部预检
 #   [publish-to-github-release] → 把「sdist+wheel + 三平台 zip」一并发到 GitHub Release
 #   [publish-to-winget]   → 引用 GitHub Release 上的 windows zip URL，
 #                          用官方 wingetcreate 下载算 SHA、生成 en-US 清单、
 #                          校验并提交 PR 到 microsoft/winget-pkgs（不重复打包）
+#   [publish-to-pypi]     → 最后才把 sdist+wheel 发布到 PyPI（版本不可覆盖）
 #
 # 二进制资产的架构取舍（与 tools/install.sh 的映射严格一致）：
 #   linux-x64    manylinux_2_28 容器构建 → 依赖 glibc ≤ 2.28，
@@ -357,21 +358,78 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
     needs: [build-package, build-binary, build-binary-linux, smoke-linux-artifact]
     runs-on: ubuntu-latest
+    env:
+      WINGET_GITHUB_TOKEN: ${{ secrets.WINGET_GITHUB_TOKEN }}
+      PUBLISH_PYTEXMK: ${{ secrets.PUBLISH_PYTEXMK }}
     steps:
       - name: Confirm all release artifacts passed
         run: |
           echo "package / windows / macos / linux / glibc-2.28 smoke all passed"
-          echo "publishing is allowed"
+
+      # winget 的前置条件必须在任何渠道发布前检查：
+      # fork 未同步时，wingetcreate update --submit 会在 PR 阶段失败；如果等到
+      # GitHub Release/PyPI 发完才发现，就只能靠再发一个版本来修。
+      - name: Check winget / GitHub release prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          api() {
+            curl -fsS \
+              -H "Authorization: Bearer ${WINGET_GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "$@"
+          }
+          if [ -z "${WINGET_GITHUB_TOKEN:-}" ]; then
+            echo "::error::WINGET_GITHUB_TOKEN 未配置，无法提交 winget"
+            exit 1
+          fi
+          if [ -z "${PUBLISH_PYTEXMK:-}" ]; then
+            echo "::error::PUBLISH_PYTEXMK 未配置，无法创建 GitHub Release"
+            exit 1
+          fi
+
+          fork_owner=$(api https://api.github.com/user | jq -r .login)
+          curl -fsS \
+            -H "Authorization: Bearer ${PUBLISH_PYTEXMK}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}" >/dev/null \
+            || { echo "::error::PUBLISH_PYTEXMK 无权访问 ${GITHUB_REPOSITORY}"; exit 1; }
+
+          # 先确认 winget-pkgs 中确实存在该包；否则不是 update 能解决的场景。
+          api "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/y/YanMing-lxb/PyTeXMK" >/dev/null \
+            || { echo "::error::YanMing-lxb.PyTeXMK 尚未入库，不能走自动 update"; exit 1; }
+
+          # 对齐 fork 的 master 与上游 master。上游会持续合并 PR，因此先尝试
+          # GitHub 官方 merge-upstream 快进；若 fork 有本地提交导致冲突，则失败。
+          for _ in 1 2 3; do
+            upstream_sha=$(api https://api.github.com/repos/microsoft/winget-pkgs/commits/master | jq -r .sha)
+            fork_sha=$(api "https://api.github.com/repos/${fork_owner}/winget-pkgs/commits/master" | jq -r .sha)
+            [ "$upstream_sha" = "$fork_sha" ] && break
+            echo "winget fork 落后于上游，尝试同步 ${fork_owner}/winget-pkgs:master"
+            api -X POST \
+              -H "Content-Type: application/json" \
+              -d '{"branch":"master"}' \
+              "https://api.github.com/repos/${fork_owner}/winget-pkgs/merge-upstream" >/dev/null \
+              || { echo "::error::winget fork 同步失败；请手动 Sync fork 后重试"; exit 1; }
+            sleep 2
+          done
+          upstream_sha=$(api https://api.github.com/repos/microsoft/winget-pkgs/commits/master | jq -r .sha)
+          fork_sha=$(api "https://api.github.com/repos/${fork_owner}/winget-pkgs/commits/master" | jq -r .sha)
+          if [ "$upstream_sha" != "$fork_sha" ]; then
+            echo "::error::winget fork 仍与上游不一致；请手动 Sync fork 后重试"
+            exit 1
+          fi
+          echo "winget fork 已与 microsoft/winget-pkgs:master 对齐"
 
   # ---------------------------------------------------------------------------
   # JOB: publish-to-pypi —— 发布到 PyPI
-  # 在 release-gate 与 GitHub Release 都成功后再运行；先确保三平台二进制和
-  # Release 资产已经可见，最后才把不可覆盖的 PyPI 版本号发出去。
+  # 在 release-gate、GitHub Release、WinGet 都成功后再运行；先确保三平台二进制、
+  # Release 资产和 winget 提交都已成功，最后才把不可覆盖的 PyPI 版本号发出去。
   # ---------------------------------------------------------------------------
   publish-to-pypi:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
-    needs: [release-gate, publish-to-github-release]
+    needs: [release-gate, publish-to-github-release, publish-to-winget]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -457,8 +515,9 @@ jobs:
   # JOB: publish-to-winget —— 官方 wingetcreate 发布到 microsoft/winget-pkgs
   # 流程：不重新打包，也不跑本地脚本。直接用 curl 下载官方 wingetcreate，
   #       再以内联命令完成 下载→算 SHA→生成 en-US 清单→校验→提交 PR。
-  # 关键取舍：不使用 continue-on-error —— winget 发布失败会让整个 workflow 红标，
-  #          确保发布问题能立即暴露（首次需人工审核合并，但提交失败必须可见）。
+  # 关键取舍：不使用 continue-on-error —— winget 失败会使 PyPI 发布被跳过；
+  #           release-gate 已先检查 fork 同步与包存在性，失败后只需修 fork 并
+  #           重跑同一 tag，不再消耗新的 PyPI 版本号。
   # 令牌：secrets.WINGET_GITHUB_TOKEN → 注入为 WINGET_CREATE_GITHUB_TOKEN 环境变量
   #       （wingetcreate 的标准读取变量），token 永不进命令行、不打日志。
   # 依赖：needs [build-binary, publish-to-github-release] 保证 windows zip 已上传
@@ -505,8 +564,9 @@ jobs:
         run: |
           .\wingetcreate.exe update $env:PACKAGE_ID --version $env:PACKAGE_VERSION --urls $env:INSTALLER_URL --submit
           if ($LASTEXITCODE -ne 0) {
-            Write-Host "首次发布：包尚未入库，CI 无法无人值守执行交互式 new。"
-            Write-Host "请手动执行 wingetcreate new 并按 docs/winget_publish.md 完成首次提交与人工审核；"
-            Write-Host "首次清单入库后，后续版本由本 job 自动 update。"
+            Write-Host "wingetcreate update 失败, exit=$LASTEXITCODE"
+            Write-Host "若日志包含 'The forked repository could not be synced'：包已入库，失败发生在 PR 提交阶段。"
+            Write-Host "请先手动 Sync fork（${env:GITHUB_REPOSITORY_OWNER}/winget-pkgs），再重跑本 job；不要执行 wingetcreate new。"
+            Write-Host "只有确认包确实尚未入库时，才按 docs/winget_publish.md 执行 wingetcreate new。"
             throw "winget update 失败, exit=$LASTEXITCODE"
           }

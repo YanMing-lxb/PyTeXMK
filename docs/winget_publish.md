@@ -218,3 +218,34 @@ winget validate "manifests/y/YanMing-lxb/PyTeXMK/<ver>"
 - 检查 manifest 中 `PortableCommandAlias`：应为 `pytexmk`（与 Installer 的嵌套 portable 对应）
 - 检查是否为 PATH 未刷新：winget 安装完成后，**新开一个终端**再运行（当前已打开的终端会话不会自动刷新 PATH 环境变量）
 - 检查实际安装位置：默认在 `%LOCALAPPDATA%\Microsoft\WinGet\Packages\YanMing-lxb.PyTeXMK_Microsoft.Winget.Source_8wekyb3d8bbwe\`，确认其中 `pytexmk\pytexmk.exe` 存在且存在指向它的 shim
+
+### 7. fork 未同步（`The forked repository could not be synced with the upstream commits`）
+
+**报错特征**：
+
+```
+Manifest validation succeeded: True
+Submitting pull request for manifest...
+The forked repository could not be synced with the upstream commits. Sync your fork manually and try again.
+```
+
+**原因**：`wingetcreate update --submit` 使用 `WINGET_GITHUB_TOKEN` 所属账号的
+`winget-pkgs` fork 提交 PR。该 fork 的 `master` 落后于
+`microsoft/winget-pkgs:master` 时，`wingetcreate` 会拒绝基于旧基线创建 PR。
+这不是包不存在，也不是取消入库；日志中的“首次发布：包尚未入库”是旧版
+工作流的错误兜底文案。
+
+**处理**：
+
+1. 打开 `https://github.com/<token-owner>/winget-pkgs`，点 **Sync fork → Update branch**；
+2. 或使用 GitHub CLI：
+   ```bash
+   gh repo sync <token-owner>/winget-pkgs \
+     --source microsoft/winget-pkgs --branch master
+   ```
+3. 确认 fork 的 `master` 与上游一致后，重新运行失败的 `Publish to WinGet` job；
+4. **不要**执行 `wingetcreate new`。包已入库时只需重跑 `update --submit`。
+
+新版 `Release.yml` 的 `release-gate` 会在发布前检查并尝试 fast-forward
+同步该 fork；如果 fork 有本地提交导致无法快进，会直接阻断发布，避免
+GitHub Release / PyPI 已经发布后才发现 winget 失败。
