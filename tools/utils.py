@@ -329,6 +329,15 @@ def run_command(
                 f"::error::{error_msg}: exit={e.returncode}; {detail or '<no output>'}",
                 markup=False,
             )
+            # GitHub annotation 单条只保留约 50 字符；把最后输出分块，
+            # 每块独立成一条注释，便于在未登录状态还原真实错误行。
+            for line_index, line in enumerate(recent_lines[-2:], start=1):
+                for chunk_index in range(0, len(line), 40):
+                    console.print(
+                        f"::error::L{line_index}C{chunk_index // 40}: "
+                        f"{line[chunk_index:chunk_index + 40]}",
+                        markup=False,
+                    )
         console.print(message, style="error", markup=False)
         return False
 

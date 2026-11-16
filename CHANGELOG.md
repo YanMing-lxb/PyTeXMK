@@ -28,6 +28,13 @@
 
 # CHANGELOG
 
+## v1.2.15 - 2026-11-16
+
+### CI 失败尾行逐行注释
+
+- `run_command` 在 Actions 中除汇总错误外，把最近 8 行输出逐行打成独立 `::error::tailN::` 注释，避免长命令或单条注释被截断后看不到 PyInstaller 的真实错误。
+- 用于定位 manylinux 容器内 `pack.py` 在 PyInstaller 启动阶段退出的具体原因。
+
 ## v1.2.14 - 2026-11-16
 
 ### 容器内 PyInstaller 显式安装与失败尾行
