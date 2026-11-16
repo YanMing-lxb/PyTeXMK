@@ -91,10 +91,12 @@ class MySubProcess:
         aux_files: str,
         program_name: str = "执行命令",
         stdout_path: str | None = None,
+        cwd: Path | None = None,
     ) -> bool:
         stdout_text = ""
         start_time = time.time()
         process: subprocess.Popen | None = None
+        run_cwd = cwd or Path.cwd()
         # 外部程序（TeX 引擎等）必须拿到净化后的环境，否则打包目录里的同名库
         # 会被优先加载（见 pytexmk.runtime_env 的说明）。
         env = child_env()
@@ -115,7 +117,7 @@ class MySubProcess:
                             text=True,
                             encoding="utf-8",
                             errors="replace",
-                            cwd=Path.cwd(),
+                            cwd=run_cwd,
                             env=env,
                         )
                     try:
@@ -147,7 +149,7 @@ class MySubProcess:
                         bufsize=1,
                         encoding="utf-8",
                         errors="replace",
-                        cwd=Path.cwd(),
+                        cwd=run_cwd,
                         env=env,
                     )
                 stdout_lines: list[str] = []
@@ -159,7 +161,9 @@ class MySubProcess:
                                 break
                             if output:
                                 stdout_lines.append(output)
-                                console.print(f"[dim]{output.strip()}[/]")
+                                console.print(
+                                    output.strip(), style="dim", markup=False
+                                )
                 except KeyboardInterrupt:
                     console.print()  # 换行避免覆盖 status spinner
                     console.print(

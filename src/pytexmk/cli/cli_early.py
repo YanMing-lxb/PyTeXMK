@@ -18,16 +18,34 @@ _ = set_language("cli_workflow")
 
 
 def handle(args, cp: ConfigParser, logger) -> None:
-    """处理 -r / -i / -iu / -ls 早退出子命令。
+    """处理 --doctor / -r / -i / -iu / -ls 早退出子命令。
 
     命中任意一个子命令都会在执行完后直接结束进程；全部未命中时直接返回，
     由调用方继续编译流程。
     """
+    if getattr(args, "doctor", False):
+        from .cli_doctor import run as doctor_run
+
+        doctor_run(args, cp, logger)
+        exit_pytexmk()
+
     if args.readme:
         _open_readme(logger)
         exit_pytexmk()
 
     logger.info("-" * 70)
+    if getattr(args, "show_config", False):
+        from .cli_config import show_config
+
+        show_config(cp)
+        exit_pytexmk()
+    if getattr(args, "validate_config", False):
+        from ..lifecycle import EXIT_CONFIG_ERROR
+        from .cli_config import validate_config
+
+        if not validate_config(cp):
+            exit_pytexmk(EXIT_CONFIG_ERROR)
+        exit_pytexmk()
     if args.init:
         if cp.init_project_config(args.force):
             console.print(

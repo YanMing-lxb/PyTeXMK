@@ -25,6 +25,7 @@ Description  :
 """
 
 import argparse
+import os
 
 from rich import print
 from rich.console import Console
@@ -55,7 +56,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
             table = magic_comment_desc_table()
             console = Console()
             console.print(table)
-            if self.uc is not None:
+            if self.uc is not None and not os.environ.get("PYTEXMK_NO_UPDATE_CHECK"):
                 self.uc.check_for_updates()
         super().exit(status, message)
 
@@ -69,13 +70,15 @@ class CustomHelpFormatter(RichHelpFormatter):
         return super()._format_args(action, default_metavar)
 
 
-def parse_args(uc=None):
-    """定义并解析 PyTeXMK 命令行参数，返回 argparse.Namespace。"""
+def build_parser(uc=None):
+    """构建 PyTeXMK 参数解析器（供 parse_args 与 shell 补全共用）。"""
     parser = CustomArgumentParser(
         prog="pytexmk",
         description=_("[i]LaTeX 辅助编译程序  ---- 焱铭[/]"),
         epilog=_(
-            "如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://github.com/YanMing-lxb/PyTeXMK/issues"
+            "退出码：0=成功；1=参数/路径/主文件错误；3=子项目未找到；4=配置文件错误；5=编译失败；6=警告阈值；7=SyncTeX 校验失败；8=投稿包验证失败。\n"
+            "如欲了解魔法注释等详细说明请运行 -r 阅读 README；发现 BUG 请更新到最新版本并在 "
+            "https://github.com/YanMing-lxb/PyTeXMK/issues 提交 Issue"
         ),
         formatter_class=CustomHelpFormatter,
         add_help=False,
@@ -90,7 +93,7 @@ def parse_args(uc=None):
         "-v",
         "--version",
         action="version",
-        version=f"{script_name}: version [i]{__version__}",
+        version=f"{script_name} {__version__}",
         help=_("显示 PyTeXMK 的版本号并退出"),
     )
     parser.add_argument(
@@ -109,19 +112,23 @@ def parse_args(uc=None):
     parser.add_argument(
         "-d",
         "--LaTeXDiff",
-        nargs="*",
-        metavar=("OLD_FILE", "NEW_FILE"),
+        nargs="?",
+        const="",
+        metavar="OLD_FILE",
         help=_(
-            "使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+            "使用 LaTeXDiff 生成改动对比文件（两个文件名用空格分隔，可写成 -d OLD NEW）；"
+            "不带文件名时取配置文件中的 old/new 设置。注意：文件名需紧跟在本参数之后"
         ),
     )
     parser.add_argument(
         "-dc",
         "--LaTeXDiff-compile",
-        nargs="*",
-        metavar=("OLD_FILE", "NEW_FILE"),
+        nargs="?",
+        const="",
+        metavar="OLD_FILE",
         help=_(
-            "使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+            "使用 LaTeXDiff 生成改动对比文件并编译（两个文件名用空格分隔）；"
+            "不带文件名时取配置文件中的 old/new 设置"
         ),
     )
     parser.add_argument(
@@ -156,6 +163,170 @@ def parse_args(uc=None):
         "--non-quiet",
         action="store_true",
         help=_("非安静模式运行, 此模式下终端显示日志信息"),
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_true",
+        help=_("安静模式运行（覆盖配置文件中的 quiet_mode=false）"),
+    )
+    parser.add_argument(
+        "--native",
+        dest="native_build",
+        action="store_true",
+        default=None,
+        help=_("使用 -output-directory 原生目录构建（默认为自动启用，辅助文件不再往返搬运）"),
+    )
+    parser.add_argument(
+        "--no-native",
+        dest="native_build",
+        action="store_false",
+        help=_("关闭原生目录构建，回退到旧的文件搬运方式"),
+    )
+    parser.add_argument(
+        "--shell-escape",
+        dest="shell_escape",
+        action="store_true",
+        default=None,
+        help=_("强制开启 -shell-escape（默认 auto：检测到 minted/pythontex/\\write18 才开）"),
+    )
+    parser.add_argument(
+        "--no-shell-escape",
+        dest="shell_escape",
+        action="store_false",
+        help=_("强制关闭 -shell-escape（拒绝执行任意外部命令）"),
+    )
+    parser.add_argument(
+        "--interaction",
+        choices=("nonstopmode", "batchmode", "scrollmode", "errorstopmode"),
+        default=None,
+        help=_("透传 LaTeX 的 -interaction 模式"),
+    )
+    parser.add_argument(
+        "--pass-arg",
+        dest="extra_args",
+        action="append",
+        default=None,
+        metavar="ARG",
+        help=_("向编译引擎追加一个参数，可重复使用（如 --pass-arg=-8bit）"),
+    )
+    parser.add_argument(
+        "--max-runs",
+        type=int,
+        default=None,
+        metavar="N",
+        help=_("额外编译轮次上限（默认 8，即最多 9 次编译）"),
+    )
+    parser.add_argument(
+        "--jobname",
+        default=None,
+        metavar="NAME",
+        help=_("输出文件名（PDF/辅助文件按 NAME 命名；.tex 源文件仍按主文件名）"),
+    )
+    parser.add_argument(
+        "--submission-pack",
+        "-sp",
+        action="store_true",
+        help=_("生成期刊投稿包 zip（按 .fls 收集依赖，并处理 pdflatex 不兼容的 Unicode）"),
+    )
+    parser.add_argument(
+        "--pdflatex-check",
+        "-pc",
+        action="store_true",
+        help=_("只检查论文是否能被仅支持 pdflatex 的期刊系统编译，不实际打包"),
+    )
+    parser.add_argument(
+        "--submit-dir",
+        default=None,
+        metavar="DIR",
+        help=_("投稿包输出目录（默认 ./Submission/）"),
+    )
+    parser.add_argument(
+        "--no-preflight",
+        action="store_true",
+        help=_("跳过编译前静态检查（默认检查缺失 \\end{document}/.bib/图片等）"),
+    )
+    parser.add_argument(
+        "--doctor",
+        action="store_true",
+        help=_("体检本机 TeX 工具链（引擎/biber/makeindex/xindy/latexdiff/状态文件）后退出"),
+    )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help=_("监视源文件变化并自动重编译（Ctrl+C 退出；轮询 1s，去抖 400ms）"),
+    )
+    parser.add_argument(
+        "--keep-preamble",
+        action="store_true",
+        help=_("投稿包里保留原导言区（默认注释 fontspec/unicode-math/ctex 并补 fontenc）"),
+    )
+    parser.add_argument(
+        "--pack-verify",
+        action="store_true",
+        help=_("生成投稿包后在临时目录用 pdflatex 真编译一次做验证"),
+    )
+    parser.add_argument(
+        "--synctex-check",
+        action="store_true",
+        help=_("编译后用 synctex 校验正向/反向跳转（编辑器跳转依赖）"),
+    )
+    parser.add_argument(
+        "--report",
+        nargs="?",
+        const=True,
+        default=None,
+        metavar="PATH",
+        help=_("把 PyTeXLogs 诊断报告写成 JSON（默认 Auxiliary/<主文件>.pytexmk-report.json）"),
+    )
+    parser.add_argument(
+        "--fail-on",
+        choices=("none", "warning", "error"),
+        default="none",
+        help=_("警告/错误达到阈值时返回非零退出码（CI 用，默认 none）"),
+    )
+    parser.add_argument(
+        "--explain",
+        action="store_true",
+        help=_("只打印本次编译的有效配置与决策，不编译"),
+    )
+    parser.add_argument(
+        "--show-config",
+        action="store_true",
+        help=_("打印合并后的完整配置（默认 < 用户 < 项目）"),
+    )
+    parser.add_argument(
+        "--validate-config",
+        action="store_true",
+        help=_("校验配置项的键名与类型，发现错误返回非零"),
+    )
+    parser.add_argument(
+        "-A",
+        "--all-subprojects",
+        action="store_true",
+        help=_("依次编译根配置 [subprojects] 中的全部子项目"),
+    )
+    parser.add_argument(
+        "-io",
+        "--includeonly",
+        metavar="LIST",
+        help=_("只编译指定 \\include 章节（逗号分隔，如 01,03）；输出隔离到 partial/ 子目录"),
+    )
+    parser.add_argument(
+        "--include-bib",
+        action="store_true",
+        help=_("投稿包同时带上 .bib 源文件（默认只带 .bbl）"),
+    )
+    parser.add_argument(
+        "--clean-dry-run",
+        action="store_true",
+        help=_("配合 -c/-C/-ca/-Ca：只列出将被删除的文件，不真的删除"),
+    )
+    parser.add_argument(
+        "--diff-style",
+        choices=("1", "2"),
+        default=None,
+        help=_("LaTeXDiff 显示风格；缺省且非交互时使用 2（不再阻塞等待输入）"),
     )
     parser.add_argument(
         "-vb",
@@ -200,7 +371,8 @@ def parse_args(uc=None):
         "--list-subprojects",
         action="store_true",
         help=_(
-            "扫描子项目并展示清单；若根 .pytexmkrc 存在则整体替换 \\[subprojects\\] 段"
+            "扫描子项目并展示清单；若根 .pytexmkrc 存在则更新 \\[subprojects\\] 段"
+            "（仍指向真实路径的手写别名会保留）"
         ),
     )
     parser.add_argument(
@@ -215,8 +387,34 @@ def parse_args(uc=None):
     parser.add_argument(
         "-f", "--force", action="store_true", help=_("配合 -i/-iu 强制覆盖已存在的配置文件")
     )
+    parser.add_argument(
+        "--completion",
+        choices=("bash", "zsh", "fish", "powershell"),
+        metavar="SHELL",
+        help=_("输出对应 shell 的补全脚本后退出（bash/zsh/fish/powershell）"),
+    )
     parser.add_argument("document", nargs="?", help=_("待编译主文件名"))
 
-    args = parser.parse_args()
+    return parser
+
+
+def parse_args(uc=None):
+    """解析命令行参数，返回 argparse.Namespace。"""
+    args = build_parser(uc).parse_args()
+
+    # `-d OLD NEW`：argparse 只能吃一个（nargs="?"），第二个会被当成 document。
+    # 这里补回二元组，避免历史上 `nargs="*"` 把待编译主文件一起吞掉的坑（U1）。
+    for attr in ("LaTeXDiff", "LaTeXDiff_compile"):
+        value = getattr(args, attr)
+        if value is None:
+            continue
+        if value == "":
+            setattr(args, attr, [])
+            continue
+        if args.document and value:
+            setattr(args, attr, [value, args.document])
+            args.document = None
+        elif value:
+            setattr(args, attr, [value])
 
     return args

@@ -1,5 +1,7 @@
 import logging
 import re
+import shutil
+import time
 from pathlib import Path
 
 from pytexmk.language import set_language
@@ -21,11 +23,16 @@ class FileMoveRemoveManager:
                 except OSError as e:
                     self.logger.error(_("删除失败: ") + f"{filepath} --> {e}")
 
+    #: `-ca/-Ca` 递归清理时必须跳过的目录（源码/示例/虚拟环境不是辅助产物）
+    CLEAN_EXCLUDED_DIRS = frozenset(
+        {".git", ".github", "examples", "tests", "dist", "docs", ".venv", "venv", "node_modules"}
+    )
+
     def remove_matched_files(self, patterns: list[re.Pattern], folder: str):
         for pattern in patterns:
             compiled_pattern = re.compile(pattern)
             for filepath in Path(folder).rglob("*"):
-                if ".git" in filepath.parts or ".github" in filepath.parts:
+                if any(part in self.CLEAN_EXCLUDED_DIRS for part in filepath.parts):
                     continue
                 if filepath.is_file() and compiled_pattern.match(filepath.name):
                     try:
@@ -72,12 +79,30 @@ class FileMoveRemoveManager:
                 self.logger.error(_("删除失败: ") + f"{dest} --> {e}")
                 return False
         try:
-            src.rename(dest)
+            # Path.rename 在跨盘（D: → C:）或 OneDrive/网盘同步目录上会失败，
+            # 而且失败时既没搬过去也可能留下半个目标文件。shutil.move 内部会
+            # 退化为 copy2+unlink，再对 OneDrive 的短暂占用做几次重试。
+            self._move_with_retry(src, dest)
         except OSError as e:
             self.logger.error(_("移动失败: ") + f"{src} ==> {dest_label} --> {e}")
             return False
         self.logger.info(_("移动成功: ") + f"{src.name} ==> {dest_label}")
         return True
+
+    @staticmethod
+    def _move_with_retry(src: Path, dest: Path, attempts: int = 3) -> None:
+        """搬移文件，遇到 Windows 文件占用/同步锁时短暂重试。"""
+        last_error: OSError | None = None
+        for attempt in range(attempts):
+            try:
+                shutil.move(str(src), str(dest))
+                return
+            except OSError as exc:
+                last_error = exc
+                if attempt < attempts - 1:
+                    time.sleep(0.2 * (attempt + 1))
+        if last_error is not None:
+            raise last_error
 
     def move_by_extensions(
         self,

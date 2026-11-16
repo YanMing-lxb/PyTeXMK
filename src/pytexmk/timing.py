@@ -93,7 +93,7 @@ def time_print(start_time, runtime_dict):
         )
 
     max_whole_digits = max(
-        len(str(int(value))) for value in runtime_dict.values()
+        len(str(int(value or 0))) for value in runtime_dict.values()
     )
     formatted_times = {
         key: f"{value:0{max_whole_digits + 5}.4f} s"

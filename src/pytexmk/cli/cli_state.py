@@ -55,6 +55,14 @@ class WorkflowState:
     outdir: str = "./Build/"
     auxdir: str = "./Auxiliary/"
     project_name: str = ""
+    output_name: str = ""             # --jobname；默认等于 project_name
+
+    # ── 构建行为（配置文件 / 命令行可覆盖）──
+    native_build: bool = True
+    shell_escape: str = "auto"        # auto | true | false
+    interaction: str = ""
+    extra_args: list[str] = field(default_factory=list)
+    max_extra_compilations: int = 8
 
     # ── LaTeXDiff 专属 ──
     old_tex_file: str = "old_file"

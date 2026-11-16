@@ -28,6 +28,67 @@
 
 # CHANGELOG
 
+## v1.2.9 - 2026-11-16
+
+### PyTeXLogs 0.5.0 接入与诊断增强
+
+- **依赖升级**：`pytexlogs>=0.5.0`，删除 `diagnostics.py` 中对 0.4 的 `inspect.signature` 参数探测和 `TypeError` 最小参数降级；直接使用 `write_report_file` / `report_path`。
+- **可执行建议上下文**：改用 `hint_for_entry(..., jobname=..., root_file=..., language=...)`，失败命令里的 `biber <jobname>`、`xelatex <主文件>.tex` 会显示成 `biber main`、`xelatex main.tex`。
+- **警告也有建议**：成功摘要的 top-3 警告不再只给一行文本，同样打印 `↳` 建议与命令；中英文跟随终端 locale。
+- **排序修正**：错误/警告按级别、文件、行号排序，不再只按文件排序。
+- **uv 源**：为 `pytexlogs` 单独指定官方 PyPI 源，避免刚发布时清华镜像未同步导致 `uv sync --locked` 失败；`publish-url` 修正为 `https://upload.pypi.org/legacy/`。
+- **PythonTeX 自动调度**：首轮 LaTeX 生成 `*.pytxcode` 后，自动在该文件所在目录运行 `pythontex <jobname>`，再补一轮 LaTeX；native 构建在 `Auxiliary` 内运行，传统构建在项目根目录运行。`MySubProcess.run_command` 新增 `cwd` 参数，不改变既有调用的默认行为。
+- **preflight 误报修复**：`\input`/`\include` 正则增加控制序列边界，避免把 `\inputsection{...}` 解析成 `\input section`；路径中含 `#1` 或 `\langdir` 等宏时只给 warning 并跳过存在性检查；`\newcommand`/`\def`/`\newenvironment` 的定义体先屏蔽再检查，定义里的模板 `\input` 不再被当成真实输入。真实缺失的静态文件仍报错。
+- **`make inswhl` 嵌套 uv 锁修复**：原目标先用 `uv run` 启动脚本，父 uv 持有工具目录锁，脚本内再调 `uv tool uninstall/install` 会在 Windows 报 `.lock` 拒绝访问；现改为在 Makefile 外层直接执行两条 `uv tool` 命令，并用 `$(wildcard dist/*.whl)` 传入 wheel。
+- **Windows venv 兼容修复**：项目 `.venv` 被 WSL `uv` 创建成 Linux 布局后，Windows `uv` 会因 `lib64 -> lib` reparse point 拒绝删除而让 `make clean` / `make whl` 在脚本启动前失败；已在 Windows 侧重跑 `uv sync` 重建为 `Scripts/` + `Lib/` 布局，并让符号链接权限不足的测试按环境跳过。
+- 测试：`tests/test_diagnostics.py` 新增 4 项，`tests/test_external_tools.py` 新增 3 项，preflight 新增 4 项，全量 **176 passed, 1 skipped**；ruff 通过。
+
+> 依据 `docs/2026-11-16-功能与CLI审查.md` 的全量整改。编译正确性（C1–C6）、
+> 失败诊断（3.3）、原生命名目录（3.7）、投稿打包与 Unicode 转换（3.9）
+> 已落地；`preflight`（3.2）、`--diff-style`（3.5）、索引样式配置（3.8）、
+> 清理安全（U6）同步补齐。**尚未落地**的条目见 `docs/2026-11-16-整改遗留.md`。
+
+### 🔴 编译正确性（C1–C6）
+
+- **C1 源文件快照**：改用 `.fls` 的 `INPUT` 记录识别真实依赖（跨目录 `\input`、图片、`.bib`、`.cls`），无 `.fls` 时才按后缀兜底；按 `resolve()` 去重，`--skip` 判断不再漏判。
+- **C2 构建指纹**：`BuildState.save_round` 落盘 `build_key`（引擎/交互模式/shell-escape/草稿/原生/输出目录/辅助目录/额外参数/版本 的 sha256）。参数一变即重编译；同参数重复运行才跳过。
+- **C3 草稿模式自愈**：开启时先完整备份源文件并注册 `atexit`，`try/finally` 中调用 `restore_draft()` 精确还原；异常退出也不再把 `\includeonly`/草稿标记留在正文里。
+- **C4 bib2gls**：识别 `.pytxcode`/bib2gls 信号后单独调度一次，原生命名目录下传 `--dir=<auxdir>`。
+- **C5 shell-escape**：`detect_shell_escape()` 扫描 minted/pythontex/shellesc/svg/gnuplottex/tikzexternalize/`\write18`，默认 `auto` 只在需要时加 `-shell-escape`。
+- **C6 PDF 修复零残留**：同目录临时文件 → `fsync` → `os.replace` 原子替换；失败只删临时文件，原 PDF 逐字节不变；不再产生 `.bak`/`.tmp`。优先 `qpdf`（保留书签/元数据），`pypdf` 兜底。
+
+### 🧭 构建与目录（3.3 / 3.6 / 3.7 / 3.9）
+
+- **原生目录构建（3.7 中期方案）**：`[build] native = auto` 时 `xelatex` 直接 `-output-directory=<auxdir> -jobname=<project>`，辅助文件从源头写进 `Auxiliary/`，根目录不再"搬进搬出"；`-o` 归档只移动最终 PDF/SyncTeX。
+- **失败诊断（3.3）**：新增 `diagnostics.py`，失败打印"发现 N 个错误 + 最多 5 条 `file:line` + ↳ 可执行建议 + 安装命令 + `pytexlogs <log> --open`"；成功只报 top-3 警告并给出剩余条数。
+- **投稿打包（3.9）**：新增 `submission.py`。按 `.fls` 收集项目内依赖、复制 `.bbl`、生成 `pytexmk-submission-notes.txt`（转换清单 + pdflatex 兼容警告），zip 固定 1980 时间戳可复现，staging 目录必删、无 `.tmp` 残留。
+- **Unicode 深度转换**：覆盖希腊字母大小写、集合/逻辑/运算/箭头、`°℃µ‰§©®™€£¥Å•`、破折号/引号、全部上下标数字、`½¼¾`、全角标点、连字 `ﬁﬂ`，以及 NFKD 组合音标（`é`→`\'{e}`）与全角字符；`\verb`/verbatim/lstlisting/minted 内的内容不转换。
+- **导言区净化**：`-sp` 默认注释 `fontspec/unicode-math/ctex/xeCJK/luacode/luatexja/polyglossia/selnolig` 及 `\setmainfont` 等字体设置，补 `fontenc`/`inputenc`/`textcomp`；一行多宏包只摘掉不兼容项。可用 `--keep-preamble` 关闭。
+- **`.bbl` 也转换**：biber 生成的 `.bbl` 常带 Unicode，投稿包会对它做同一套转换，否则 pdflatex 在参考文献处仍会炸。
+- **残留字符定位**：无法转换的字符（中文、日文、emoji、`☃` 等）不再"静默保留"，而是按 `file:line` 列进说明文件与终端，并明确提示 pdflatex 无法处理中文正文。
+- **`--pack-verify`**：在临时 staging 目录真跑一次 pdflatex，结果（通过/失败 + 日志尾部）写进说明文件；`--include-bib` 可把 `.bib` 一并打包。
+
+### 🧰 CLI 体验（U1–U8 部分）
+
+- `-d/-dc` 由 `nargs="*"` 改为 `nargs="?"` + 后处理：`-d OLD NEW` 不再吞掉 `document`，`-d` 单独使用等价于全部。
+- 新增 `-q/--quiet`、`--native/--no-native`、`--shell-escape/--no-shell-escape`、`--interaction`、`--pass-arg`、`--max-runs`、`-sp/--submission-pack`、`-pc/--pdflatex-check`、`--submit-dir`、`--no-preflight`、`--clean-dry-run`、`--diff-style`、`--doctor`、`--watch`、`--keep-preamble`、`--pack-verify`、`--include-bib`。
+- 新增 `-io/--includeonly`（隔离的 `Build/partial`、`Auxiliary/partial`）、`-A/--all-subprojects`（批量编译 + 汇总表）、`--synctex-check`（正向/反向定位校验，错误码 7）、`--report [PATH]`（PyTeXLogs JSON 报告，成功/失败都写）、`--fail-on warning`（警告/排版提示触发退出码 6）、`--explain`（只解释本次有效配置）、`--show-config`、`--validate-config`。
+- 新增 `--jobname NAME`：PDF/aux/synctex/报告与构建状态按输出名组织，`.tex` 源文件仍按主文件名；投稿包把 `.bbl` 回落到主文件名，避免期刊端缺 `.bbl`。
+- `-ls` 会保留仍指向真实路径的手写子项目别名，不再整体清空。
+- `[index] glossaries_tool = "makeglossaries"` 可让多 glossary 项目改走 `makeglossaries`（默认仍 `makeindex`；相同命令自动去重）。
+- `finalize` 预览后不再提前 `exit`，后续步骤仍会执行。
+- 退出码在 epilog 公开：0 成功 / 1 参数或环境错误 / 3 子项目未找到 / 4 配置错误 / 5 编译失败 / 6 `--fail-on warning` / 7 SyncTeX 校验失败 / 8 投稿包 pdflatex 验证失败。
+- 版本串去掉 `[i]`；更新检查可用 `PYTEXMK_NO_UPDATE_CHECK` 关闭。
+
+### 🧪 质量验证
+
+- 新增 `--completion bash|zsh|fish|powershell`：从 argparse 自动提取全部选项，输出纯文本补全脚本后退出（不经过 rich 横幅）。
+- 全量 `pytest`：**176 passed, 1 skipped**（Windows 专属用例在 Linux 跳过）。
+- WSL + MiKTeX 26.5 真机端到端：失败用例 exit 5 且根目录零辅助文件残留；成功用例 `Build/main.pdf` + `Auxiliary/main.{aux,fls,log,out}`；二次运行正确跳过；`-sp` 产出可复现 zip 并列出 fontspec 不兼容项；`-pc` 正确报错。
+- 投稿包真机验证：含 fontspec/unicode-math/`α β ≤ ° ² é µ`/verbatim 的稿件，`-sp --pack-verify` 在临时目录 pdflatex **编译通过**；含中文的稿件正确报出 `cjk.tex:18 中` 并以验证失败提示人工处理。
+- 新增能力真机验证：`--synctex-check` 正向第 1 页 / 反向 `main.tex` 行定位通过；`-io sec1` 只输出指定 `\include` 章节到 `Build/partial`；`-A` 批量编译两个子项目并汇总；`--fail-on warning` 对 Overfull 警告返回 6；`--explain` / `--show-config` / `--validate-config` 输出正常。
+
+
 ## v1.2.8 - 2026-11-15
 
 ### ⚠️ 破坏性变更（二进制分发）

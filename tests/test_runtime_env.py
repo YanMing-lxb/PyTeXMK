@@ -47,7 +47,11 @@ def test_bundle_dir_is_none_when_running_from_source(monkeypatch):
 def test_bundle_dir_uses_realpath(frozen, tmp_path):
     """打包目录返回真实路径（软链要解开）。"""
     link = tmp_path / "link_to_bundle"
-    os.symlink(frozen, link)
+    try:
+        os.symlink(frozen, link)
+    except OSError as exc:
+        # Windows 默认需要开发者模式/符号链接权限；这是环境限制，不是代码缺陷。
+        pytest.skip(f"平台不允许创建符号链接: {exc}")
     assert bundle_dir() == os.path.realpath(frozen)
 
 

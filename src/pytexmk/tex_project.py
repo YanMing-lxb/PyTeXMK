@@ -24,6 +24,9 @@ def standardize_name(compiled_program: str) -> str:
 class MainFileOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        #: 草稿模式改写前的原文备份（进程内）；restore_draft 用它精确回滚
+        self._draft_backups: dict[str, str] = {}
+        self._draft_atexit_registered = False
 
     def check_project_name(self, main_files: list, check_project_name: str, suffix: str) -> str:
         path_obj = Path(check_project_name)
@@ -193,45 +196,93 @@ class MainFileOperation:
         return project_name
 
     def draft_model(self, project_name: str, draft_run: bool, draft_judgement: bool):
-        """在 \\documentclass 行增删 draft 选项，实现草稿模式开关。"""
+        """草稿模式开关：临时在 ``\\documentclass`` 上加/去 ``draft`` 选项。
+
+        C3：旧实现只在编译成功路径上调用 ``draft_model(..., False)``，一旦编译
+        失败（``exit_pytexmk``）或 Ctrl+C，用户仓库里的 ``main.tex`` 就永久带着
+        ``draft``。现在：
+          * 开启时先把**原文完整备份**在内存里；
+          * 注册 ``atexit`` 兜底（连 ``sys.exit`` 路径也能恢复）；
+          * 结束时由 ``restore_draft()`` 精确写回原文，而不是再做一次正则反向替换
+            （反向替换会丢掉用户在这期间的其它编辑）。
+        """
         if not draft_run:
             self.logger.info(_("草稿模式未启用, 跳过处理."))
             return
 
-        file_name = f"{project_name}.tex"
-        file_path = Path(file_name)
+        if not draft_judgement:
+            if self._draft_backups:
+                self.restore_draft()
+                return
+            # 没有本次运行留下的备份（例如上次进程崩在“关闭”之前）：
+            # 回退为反向替换，保证 -dr 之后的文件至少还能恢复成无 draft 状态。
+            file_path = Path(f"{project_name}.tex")
+            pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}")
+            try:
+                content = file_path.read_text(encoding="utf-8")
+                cleaned = pattern.sub(
+                    lambda m: (
+                        f"\\documentclass[{self._documentclass_options(m['opts'] or '', False)}]{{{m['class']}}}"
+                        if self._documentclass_options(m["opts"] or "", False)
+                        else f"\\documentclass{{{m['class']}}}"
+                    ),
+                    content,
+                )
+                if cleaned != content:
+                    file_path.write_text(cleaned, encoding="utf-8")
+                    self.logger.info(_("关闭草稿模式"))
+            except OSError as exc:
+                self.logger.error(_("关闭草稿模式失败: ") + str(exc))
+            return
 
+        file_path = Path(f"{project_name}.tex")
         pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}")
 
         def _draft_substitution(match: re.Match[str]) -> str:
-            options = self._documentclass_options(match["opts"] or "", draft_judgement)
+            options = self._documentclass_options(match["opts"] or "", True)
             opts = f"[{options}]" if options else ""
             return f"\\documentclass{opts}{{{match['class']}}}"
 
         try:
             content = file_path.read_text(encoding="utf-8")
-
             modified_content = pattern.sub(_draft_substitution, content)
-
-            if modified_content != content:
-                file_path.write_text(modified_content, encoding="utf-8")
-                self.logger.info(_("启用草稿模式") if draft_judgement else _("关闭草稿模式"))
-                if draft_judgement:
-                    file_size = file_path.stat().st_size / 1024**2
-                    self.logger.info(
-                        _("处理文件: %(args)s, 文件大小: %(size).3f MB") % {"args": file_name, "size": file_size}
-                    )
-            else:
+            if modified_content == content:
                 self.logger.info(_("未匹配到内容, 文件未修改."))
+                return
+            self._draft_backups[str(file_path)] = content
+            file_path.write_text(modified_content, encoding="utf-8")
+            self.logger.info(_("启用草稿模式"))
+            file_size = file_path.stat().st_size / 1024**2
+            self.logger.info(
+                _("处理文件: %(args)s, 文件大小: %(size).3f MB") % {"args": file_path.name, "size": file_size}
+            )
+            if not self._draft_atexit_registered:
+                import atexit
+
+                atexit.register(self.restore_draft)
+                self._draft_atexit_registered = True
 
         except FileNotFoundError:
-            self.logger.error(_("文件未找到: ") + file_name)
+            self.logger.error(_("文件未找到: ") + file_path.name)
         except PermissionError:
-            self.logger.error(_("权限错误: 无法读取或写入文件: ") + file_name)
+            self.logger.error(_("权限错误: 无法读取或写入文件: ") + file_path.name)
         except OSError as e:
             self.logger.error(_("更新草稿模式时出错: ") + str(e))
         except re.error as e:
             self.logger.error(_("草稿模式正则匹配出错: ") + str(e))
+
+    def restore_draft(self) -> None:
+        """把草稿模式改写的源文件恢复为原始内容（可重复调用）。"""
+        for name, original in list(self._draft_backups.items()):
+            path = Path(name)
+            try:
+                if path.exists() and path.read_text(encoding="utf-8") != original:
+                    path.write_text(original, encoding="utf-8")
+                    self.logger.info(_("关闭草稿模式"))
+            except OSError as exc:
+                self.logger.error(_("恢复草稿模式失败（请手动检查 %(f)s）: %(e)s") % {"f": name, "e": exc})
+            finally:
+                self._draft_backups.pop(name, None)
 
     @staticmethod
     def _documentclass_options(options: str, enable_draft: bool) -> str:

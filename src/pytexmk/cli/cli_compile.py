@@ -2,17 +2,14 @@
 
 from pathlib import Path
 
-from pytexlogs import run_pipeline as _run_log_pipeline
-
 from ..aux_repair import repair_auxiliary_files
 from ..build_state import BuildState
-from ..compile_engine import RUN
+from ..compile_engine import RUN, _build_key
+from ..diagnostics import report_success
 from ..language import set_language
-from ..lifecycle import exit_pytexmk
 from ..timing import time_count, time_print
 from ..ui_messages import print_message
 from ..ui_theme import console
-from ..version import __version__
 from .check_version import UpdateChecker
 from .cli_state import WorkflowState
 
@@ -26,6 +23,20 @@ def handle_clean_any(args, state: WorkflowState) -> bool:
     """
     if not (args.clean_any or args.Clean_any):
         return False
+
+    if getattr(args, "clean_dry_run", False):
+        console.print("[yellow]" + _("试运行：以下文件将被删除（-ca/-Ca）") + "[/yellow]")
+        import re as _re
+
+        patterns = [_re.compile(p) for p in state.aux_regex_files]
+        for path in Path(".").rglob("*"):
+            if not path.is_file():
+                continue
+            if any(part in {".git", ".github", "examples", "tests", "dist", "docs", ".venv"} for part in path.parts):
+                continue
+            if any(p.match(path.name) for p in patterns):
+                console.print(f"  [dim]{path}[/dim]")
+        return True
 
     runtime_remove_aux_matched_auxdir = time_count(
         state.mro.remove_matched_files, state.aux_regex_files, "."
@@ -57,18 +68,120 @@ def run(args, state: WorkflowState) -> None:
         _clean(args, state)
     elif args.pdf_repair:
         runtime_pdf_repair = time_count(
-            state.pfo.pdf_repair, state.project_name, ".", state.outdir
+            state.pfo.pdf_repair, state.output_name, ".", state.outdir
         ).seconds
         state.runtime_dict[_("修复 PDF 文件")] = runtime_pdf_repair
     else:
         _compile(args, state)
+        if getattr(args, "pdflatex_check", False):
+            _pdflatex_check(state)
+        elif getattr(args, "submission_pack", False):
+            _submission_pack(args, state)
+
+
+def _pdflatex_check(state: WorkflowState) -> None:
+    """只体检：报告哪些字符/宏包会让 pdflatex 编译失败。"""
+    from ..submission import scan_compat
+
+    report = scan_compat(Path("."), state.project_name)
+    if report.ok:
+        console.print("[bold green]" + _("pdflatex 兼容性检查通过：未发现非 ASCII 字符或不兼容宏包") + "[/bold green]")
+        return
+    console.print("[bold yellow]" + _("pdflatex 兼容性检查发现问题") + "[/bold yellow]")
+    for package, reason in report.incompatible_packages.items():
+        console.print(f"  [yellow]宏包[/] {package}: {reason}")
+    for char, count in sorted(report.unsupported_chars.items(), key=lambda kv: -kv[1])[:20]:
+        console.print(f"  [yellow]字符[/] {char} (U+{ord(char):04X}) × {count}")
+    console.print(
+        _("可用 [bold cyan]pytexmk -sp[/bold cyan] 生成已转换 Unicode 的投稿包")
+    )
+
+
+def _submission_pack(args, state: WorkflowState) -> None:
+    """生成投稿 zip，并打印页数/体积/转换条数摘要。"""
+    from ..submission import build_pack
+
+    submit_dir = getattr(args, "submit_dir", None) or "./Submission"
+    result = build_pack(
+        Path("."),
+        state.project_name,
+        state.outdir,
+        state.auxdir,
+        pdf_name=state.output_name,
+        submit_dir=submit_dir,
+        convert_unicode=True,
+        include_bbl=True,
+        include_bib=bool(getattr(args, "include_bib", False)),
+        sanitize=not getattr(args, "keep_preamble", False),
+        verify=bool(getattr(args, "pack_verify", False)),
+    )
+    size_mb = result.zip_path.stat().st_size / 1024 / 1024
+    console.print(_("投稿包已生成") + ": " + str(result.zip_path), style="bold green")
+    console.print(
+        f"  {_('文件数')}: {len(result.files)} | {_('体积')}: {size_mb:.2f} MB | "
+        f"PDF {_('页数')}: {result.pdf_pages if result.pdf_pages is not None else '?'} | "
+        f"{_('编译轮数')}: {result.rounds if result.rounds is not None else '?'}"
+    )
+    if result.conversions:
+        console.print(
+            f"  [yellow]{_('Unicode 转换')}: {len(result.conversions)} 处"
+            f"（清单见包内 pytexmk-submission-notes.txt）[/yellow]"
+        )
+    if result.sanitized:
+        console.print(
+            f"  [yellow]{_('导言区净化')}: {len(result.sanitized)} 项"
+            f"（fontspec/unicode-math 等已在提交副本中注释）[/yellow]"
+        )
+    if result.remaining_chars:
+        total = sum(result.remaining_chars.values())
+        console.print(
+            f"  [bold red]{_('仍有 ')}{total}{_(' 个非 ASCII 字符无法转换，pdflatex 会失败')}[/bold red]"
+        )
+        for char, count in list(result.remaining_chars.items())[:8]:
+            console.print(f"    [red]{char} (U+{ord(char):04X}) × {count}[/red]")
+        for location in result.remaining_locations[:5]:
+            console.print(f"    [dim]{location}[/dim]")
+        console.print("    [dim]" + _("中文/日文等正文需 ctex/xeCJK，pdflatex 无法处理") + "[/dim]")
+    if result.verify_ok is not None:
+        style = "green" if result.verify_ok else "red"
+        console.print(
+            f"  [{style}]pdflatex 验证: {'通过' if result.verify_ok else '失败'}[/{style}]"
+        )
+        if not result.verify_ok:
+            for line in result.verify_tail[-5:]:
+                console.print(f"    [dim]{line}[/dim]")
+    if not result.compat.ok:
+        handled = bool(result.sanitized)
+        if handled:
+            console.print(
+                "  [yellow]"
+                + _("原稿使用了 Xe/Lua 专属宏包，提交副本中已自动处理（详见包内说明）")
+                + "[/yellow]"
+            )
+        else:
+            console.print("  [yellow]" + _("仍有 pdflatex 无法处理的项，请查看包内说明文件") + "[/yellow]")
+        for package, reason in result.compat.incompatible_packages.items():
+            console.print(f"    [yellow]{package}[/]: {reason}")
+        for char, count in list(result.compat.unsupported_chars.items())[:10]:
+            console.print(f"    [yellow]{char} (U+{ord(char):04X})[/] × {count}")
+    if result.sha256:
+        console.print(f"  [dim]sha256: {result.sha256}[/dim]")
+    if result.verify_ok is False:
+        from ..lifecycle import EXIT_PACK_VERIFY, exit_pytexmk
+
+        console.print(
+            "  [dim]"
+            + _("投稿包已生成，但 pdflatex 验证未通过；请先修复残留项再投稿")
+            + "[/dim]"
+        )
+        exit_pytexmk(EXIT_PACK_VERIFY)
 
 
 def finalize(state: WorkflowState) -> None:
     """全部流程收尾：编译后 PDF 预览、耗时统计与版本更新检查。"""
-    if state.preview_after_compile and state.project_name:
-        state.pfo.pdf_preview(state.project_name, state.outdir)
-        exit_pytexmk()
+    if state.preview_after_compile and state.output_name:
+        state.pfo.pdf_preview(state.output_name, state.outdir)
+        # 不再在这里 exit：耗时统计与成功摘要还没打印（U3）
 
     if state.runtime_dict:
         time_print(state.start_time, state.runtime_dict)
@@ -78,6 +191,20 @@ def finalize(state: WorkflowState) -> None:
 
 def _clean(args, state: WorkflowState) -> None:
     """-c / -C：清理主文件的辅助文件（-C 额外清理输出文件）。"""
+    if getattr(args, "clean_dry_run", False):
+        console.print("[yellow]" + _("试运行：以下文件将被删除") + "[/yellow]")
+        for folder in (state.auxdir, "."):
+            for name in state.aux_files:
+                candidate = Path(folder) / name
+                if candidate.exists():
+                    console.print(f"  [dim]{candidate}[/dim]")
+        if args.Clean:
+            for name in state.out_files:
+                candidate = Path(state.outdir) / name
+                if candidate.exists():
+                    console.print(f"  [dim]{candidate}[/dim]")
+        return
+
     runtime_remove_aux_auxdir = time_count(
         state.mro.remove_specific_files, state.aux_files, state.auxdir
     ).seconds
@@ -105,40 +232,55 @@ def _clean(args, state: WorkflowState) -> None:
 
 
 def _compile(args, state: WorkflowState) -> None:
-    """执行一次完整编译：辅助文件就位 → 编译 → 结果与辅助文件归档 → 日志解析。"""
+    """执行一次完整编译：原生目录构建 → 编译 → 归档结果 → 诊断摘要。"""
+    _apply_build_overrides(args, state)
     print_message(_("开始预处理"), "additional")
+
+    if not getattr(args, "no_preflight", False) and not _run_preflight(state):
+        return
 
     if _can_skip_compile(args, state):
         _report_skipped_compile(state)
         return
 
-    runtime_move_aux_root, aux_moved_count, _err = time_count(
-        state.mro.move_specific_files, state.aux_files, state.auxdir, "."
-    )
-    state.runtime_dict[_("辅助文件->根目录")] = runtime_move_aux_root
-
-    aux_exist_count = sum(1 for f in state.aux_files if Path(f).exists())
-    if aux_exist_count == 0:
-        console.print("[green]" + _("未检测到已有辅助文件，进行初始化") + "[/green]")
-    else:
-        console.print(
-            "[green]"
-            + _("已检测到 %(n)s 个已有辅助文件") % {"n": aux_exist_count}
-            + "[/green]"
-        )
-        # 中断自愈：截断的辅助文件会让后续每次编译都在同一处失败，必须先清掉
+    if state.native_build:
+        # 原生目录构建：辅助文件直接由 TeX 写进 auxdir，不再往返搬运（3.7）
+        Path(state.auxdir).mkdir(parents=True, exist_ok=True)
+        Path(state.outdir).mkdir(parents=True, exist_ok=True)
+        console.print("[green]" + _("原生目录构建：辅助文件直接写入 %(d)s") % {"d": state.auxdir} + "[/green]")
         _repair_truncated_aux_files(state)
-        # .log 缺失完成标记 ⇒ 提示用户辅助文件可能不完整
         _warn_if_last_compile_interrupted(state)
-
-    if aux_moved_count == 0:
-        console.print("[green]" + _("没有检测到可迁移的辅助文件") + "[/green]")
     else:
-        console.print(
-            "[yellow]"
-            + _("已移动 %(n)s 个辅助文件到项目根目录") % {"n": aux_moved_count}
-            + "[/yellow]"
+        runtime_move_aux_root, aux_moved_count, _err = time_count(
+            state.mro.move_specific_files, state.aux_files, state.auxdir, "."
         )
+        state.runtime_dict[_("辅助文件->根目录")] = runtime_move_aux_root
+
+        aux_exist_count = sum(1 for f in state.aux_files if Path(f).exists())
+        if aux_exist_count == 0:
+            console.print("[green]" + _("未检测到已有辅助文件，进行初始化") + "[/green]")
+        else:
+            console.print(
+                "[green]"
+                + _("已检测到 %(n)s 个已有辅助文件") % {"n": aux_exist_count}
+                + "[/green]"
+            )
+            # 中断自愈：截断的辅助文件会让后续每次编译都在同一处失败，必须先清掉
+            _repair_truncated_aux_files(state)
+            # .log 缺失完成标记 ⇒ 提示用户辅助文件可能不完整
+            _warn_if_last_compile_interrupted(state)
+
+        if aux_moved_count == 0:
+            console.print("[green]" + _("没有检测到可迁移的辅助文件") + "[/green]")
+        else:
+            console.print(
+                "[yellow]"
+                + _("已移动 %(n)s 个辅助文件到项目根目录") % {"n": aux_moved_count}
+                + "[/yellow]"
+            )
+
+    report_write = bool(getattr(args, "report", False))
+    report_path = args.report if isinstance(getattr(args, "report", None), str) else None
 
     RUN(
         state.runtime_dict,
@@ -150,29 +292,145 @@ def _compile(args, state: WorkflowState) -> None:
         state.auxdir,
         state.non_quiet,
         args.draft,
+        shell_escape=state.shell_escape,
+        native=state.native_build,
+        extra_args=state.extra_args,
+        interaction=state.interaction or None,
+        jobname=state.output_name,
+        max_extra=state.max_extra_compilations,
+        write_report=report_write,
+        report_path=report_path,
+        include_only=getattr(args, "includeonly", None),
     )
 
     print_message(_("开始后处理"), "additional")
 
-    console.print("[yellow]" + _("移动结果文件到输出目录...") + "[/yellow]")
-    runtime_move_out_outdir = time_count(
-        state.mro.move_specific_files, state.out_files, ".", state.outdir
-    ).seconds
-    state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
+    if state.native_build:
+        # 只把最终产物搬到 outdir；辅助文件原地留在 auxdir（不会再有搬运失败风险）
+        console.print("[yellow]" + _("归档 PDF / synctex 到输出目录...") + "[/yellow]")
+        runtime_move_out_outdir = time_count(
+            state.mro.move_specific_files, state.out_files, state.auxdir, state.outdir
+        ).seconds
+        state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
+    else:
+        console.print("[yellow]" + _("移动结果文件到输出目录...") + "[/yellow]")
+        runtime_move_out_outdir = time_count(
+            state.mro.move_specific_files, state.out_files, ".", state.outdir
+        ).seconds
+        state.runtime_dict[_("结果文件->输出目录")] = runtime_move_out_outdir
 
-    console.print("[yellow]" + _("移动辅助文件到辅助目录...") + "[/yellow]")
-    runtime_move_aux_auxdir = time_count(
-        state.mro.move_specific_files, state.aux_files, ".", state.auxdir
-    ).seconds
-    state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
+        console.print("[yellow]" + _("移动辅助文件到辅助目录...") + "[/yellow]")
+        runtime_move_aux_auxdir = time_count(
+            state.mro.move_specific_files, state.aux_files, ".", state.auxdir
+        ).seconds
+        state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_aux_auxdir
 
-    _run_log_pipeline(
-        state.project_name,
+    warning_count = report_success(
+        state.output_name,
         state.auxdir,
-        root_file=state.project_name,
-        pytexmk_version=__version__,
-        ref_tracker_translate_fn=set_language("log_parser"),
+        root_file=f"{state.project_name}.tex",
+        translate_fn=set_language("log_parser"),
+        write_report=report_write,
+        report_path=report_path,
     )
+    if report_write:
+        destination = report_path or str(
+            Path(state.auxdir) / f"{state.output_name}.pytexmk-report.json"
+        )
+        console.print("[dim]" + _("诊断报告: ") + destination + "[/dim]")
+    if getattr(args, "fail_on", "none") == "warning" and warning_count:
+        console.print(
+            "[bold red]"
+            + _("--fail-on warning：出现 %(n)s 个警告，按失败退出") % {"n": warning_count}
+            + "[/bold red]"
+        )
+        from ..lifecycle import EXIT_WARNING_POLICY, exit_pytexmk
+
+        exit_pytexmk(EXIT_WARNING_POLICY)
+
+    if getattr(args, "synctex_check", False):
+        _check_synctex(state)
+
+
+def _check_synctex(state: WorkflowState) -> None:
+    """编译成功后校验 SyncTeX 正/反向定位；失败以专用错误码退出。"""
+    from ..lifecycle import EXIT_SYNCTEX_CHECK, exit_pytexmk
+    from ..synctex import check
+
+    report = check(
+        Path(state.outdir) / f"{state.output_name}.pdf",
+        Path(f"{state.project_name}.tex"),
+        root=".",
+    )
+    if report.ok:
+        console.print("[green]" + report.summary() + "[/green]")
+        return
+    console.print("[bold red]" + _("SyncTeX 校验失败") + "[/bold red]")
+    for error in report.errors:
+        console.print(f"  [red]{error}[/red]")
+    for line in report.raw_tail:
+        console.print(f"  [dim]{line}[/dim]")
+    console.print(
+        "  [dim]"
+        + _("编辑器的“跳到 PDF/跳到源码”会失效；检查 .synctex.gz 是否与 PDF 同目录同名")
+        + "[/dim]"
+    )
+    exit_pytexmk(EXIT_SYNCTEX_CHECK)
+
+
+def _run_preflight(state: WorkflowState) -> bool:
+    """返回 True 表示可以继续编译；False 表示有致命问题。"""
+    from ..preflight import check_project, format_report
+
+    report = check_project(state.project_name, Path("."))
+    if report.warnings:
+        console.print("[yellow]" + _("编译前检查提示") + "[/yellow]")
+        for line in format_report(report, limit=5):
+            console.print(f"  {line}")
+    if report.errors:
+        console.print("[bold red]" + _("编译前检查发现阻断性问题，已停止编译") + "[/bold red]")
+        for line in format_report(report, limit=8):
+            console.print(f"  [red]{line}[/red]")
+        console.print(
+            "[dim]"
+            + _("确认无误时可加 --no-preflight 跳过检查")
+            + "[/dim]"
+        )
+        return False
+    return True
+
+
+def _apply_build_overrides(args, state: WorkflowState) -> None:
+    """把命令行构建参数合进 state（命令行优先级最高）。"""
+    if getattr(args, "native_build", None) is not None:
+        state.native_build = bool(args.native_build)
+    if getattr(args, "shell_escape", None) is not None:
+        state.shell_escape = "true" if args.shell_escape else "false"
+    if getattr(args, "interaction", None):
+        state.interaction = args.interaction
+    if getattr(args, "extra_args", None):
+        state.extra_args.extend(str(a) for a in args.extra_args)
+    if getattr(args, "max_runs", None) is not None:
+        state.max_extra_compilations = max(1, int(args.max_runs))
+    if getattr(args, "includeonly", None):
+        # 用户常写成 sec1.tex / 带空格；TeX 的 \includeonly 只接受不带扩展名的名字。
+        args.includeonly = ",".join(
+            part.strip().removesuffix(".tex")
+            for part in str(args.includeonly).split(",")
+            if part.strip()
+        )
+        # 部分编译必须隔离：否则会覆盖完整构建的 PDF/aux，破坏增量基线。
+        state.outdir = str(Path(state.outdir) / "partial")
+        state.auxdir = str(Path(state.auxdir) / "partial")
+        state.preview_after_compile = False
+        console.print(
+            "[yellow]"
+            + _("部分编译模式：仅输出到 %(o)s，不会覆盖完整构建")
+            % {"o": state.outdir}
+            + "[/yellow]"
+        )
+    if getattr(args, "quiet", False):
+        state.non_quiet = False
 
 
 def _repair_truncated_aux_files(state: WorkflowState) -> None:
@@ -185,7 +443,7 @@ def _repair_truncated_aux_files(state: WorkflowState) -> None:
     """
     repaired = repair_auxiliary_files(
         [Path("."), Path(state.auxdir)],
-        project_name=state.project_name,
+        project_name=state.output_name,
         logger=state.logger,
     )
     if repaired:
@@ -208,18 +466,58 @@ def _can_skip_compile(args, state: WorkflowState) -> bool:
     """
     if getattr(args, "force_rebuild", False) or getattr(args, "draft", False):
         return False
+    if getattr(args, "includeonly", None):
+        return False
 
     try:
-        tracker = BuildState(state.auxdir, state.project_name)
+        tracker = BuildState(state.auxdir, state.output_name)
         if not tracker.was_converged():
             return False
         if not tracker.baseline_matches_current():
             return False
-        if not Path(state.outdir, f"{state.project_name}.pdf").exists():
+        if not Path(state.outdir, f"{state.output_name}.pdf").exists():
             return False
-        return tracker.sources_unchanged(_iter_tex_sources(state))
+        if not tracker.sources_unchanged(_iter_source_files_for_state(state)):
+            return False
+        # C2：构建参数变了（换引擎/换目录/开关 shell-escape）必须重编，
+        # 否则"源文件没动"会把两个不可比的 PDF 当成同一个。
+        previous_key = tracker.build_key()
+        return bool(previous_key) and previous_key == _current_build_key(state)
     except Exception:  # 状态文件不可用就老老实实编译
         return False
+
+
+def _current_build_key(state: WorkflowState) -> str:
+    """按当前 state 计算构建参数指纹（与 compile_engine 落盘时同口径）。"""
+    from ..compile import detect_shell_escape
+    from ..version import __version__
+
+    if str(state.shell_escape).lower() == "auto":
+        from ..compile_engine import _iter_tex_sources
+
+        shell_escape = detect_shell_escape(_iter_tex_sources(state.project_name))
+    else:
+        shell_escape = state.shell_escape not in ("false", "0", "no", "off")
+
+    return _build_key({
+        "engine": state.compiled_program,
+        "interaction": state.interaction or ("nonstopmode" if state.non_quiet else "batchmode"),
+        "shell_escape": bool(shell_escape),
+        "draft": bool(getattr(state.args, "draft", False)),
+        "native": bool(state.native_build),
+        "outdir": str(state.outdir),
+        "auxdir": str(state.auxdir),
+        "extra_args": list(state.extra_args),
+        "jobname": state.output_name,
+        "version": __version__,
+    })
+
+
+def _iter_source_files_for_state(state: WorkflowState):
+    """C1：源快照覆盖 .tex + .fls 依赖（图片/宏包/bib）。"""
+    from ..compile_engine import _iter_source_files
+
+    yield from _iter_source_files(state.project_name, state.auxdir, fls_name=state.output_name)
 
 
 def _iter_tex_sources(state: WorkflowState):
@@ -236,7 +534,7 @@ def _report_skipped_compile(state: WorkflowState) -> None:
         + _("源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。")
         + "[/bold green]"
     )
-    pdf_path = Path(state.outdir) / f"{state.project_name}.pdf"
+    pdf_path = Path(state.outdir) / f"{state.output_name}.pdf"
     if pdf_path.exists():
         console.print(
             "[green]"
@@ -251,7 +549,7 @@ def _discard_build_state(state: WorkflowState) -> None:
     引用缓存归 pytexlogs 所有，清理辅助文件时不该连带丢掉它。
     """
     try:
-        BuildState(state.auxdir, state.project_name).discard()
+        BuildState(state.auxdir, state.output_name).discard()
     except Exception:  # 状态文件问题绝不阻断清理流程
         pass
 
@@ -267,7 +565,7 @@ def _warn_if_last_compile_interrupted(state: WorkflowState) -> None:
          - "Transcript written on ..." (latexmk 等包装的收尾)
       3. 若没有完成标记 ⇒ 上次编译被 Ctrl+C / 崩溃中断
     """
-    log_path = Path(state.auxdir) / f"{state.project_name}.log"
+    log_path = Path(state.auxdir) / f"{state.output_name}.log"
     if not log_path.exists():
         return
 

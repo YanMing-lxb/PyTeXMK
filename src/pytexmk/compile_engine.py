@@ -33,15 +33,18 @@ Description  :
     compile / compile_report / tex_project / timing / ui_messages / language。
 """
 
+import hashlib
+import json
 from pathlib import Path
 
 from pytexmk.build_state import BuildState
-from pytexmk.compile import CompileLaTeX
+from pytexmk.compile import CompileLaTeX, detect_shell_escape
 from pytexmk.compile_report import print_compile_report, print_compile_separator
 from pytexmk.language import set_language
 from pytexmk.tex_project import MainFileOperation, standardize_name
 from pytexmk.timing import time_count
 from pytexmk.ui_messages import print_message
+from pytexmk.version import __version__
 
 _ = set_language("compile_engine")
 MFO = MainFileOperation()  # 实例化 MainFileOperation 类
@@ -134,14 +137,93 @@ def RUN(
     auxdir,
     non_quiet,
     draft,
+    *,
+    shell_escape="auto",
+    native=False,
+    extra_args=None,
+    interaction=None,
+    jobname=None,
+    max_extra=None,
+    write_report=False,
+    report_path=None,
+    include_only=None,
 ):
     # 草稿模式函数启用
     """主编译流程：草稿模式、多轮 LaTeX/Bib/Index 编译、统计时长。"""
+    if max_extra is not None:
+        global MAX_EXTRA_COMPILATIONS  # noqa: PLW0603  配置可覆盖安全上限
+        MAX_EXTRA_COMPILATIONS = int(max_extra)
+
+    if shell_escape == "auto":
+        shell_escape = detect_shell_escape(_iter_source_files(project_name))
+
     MFO.draft_model(project_name, draft, True)
 
     # 编译前的准备工作
-    compile_model = CompileLaTeX(project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet)
+    compile_model = CompileLaTeX(
+        project_name, compiled_program, out_files, aux_files, outdir, auxdir, non_quiet,
+        shell_escape=shell_escape, native=native, extra_args=extra_args,
+        interaction=interaction, jobname=jobname,
+        write_report=write_report, report_path=report_path,
+        include_only=include_only,
+    )
     detector = compile_model.detector
+
+    try:
+        return _run_impl(
+            runtime_dict, project_name, compiled_program, compile_model, detector,
+            outdir, auxdir, draft, shell_escape, native, interaction,
+        )
+    finally:
+        # C3：草稿模式必须自愈。无论是正常结束、编译失败调用 exit_pytexmk，
+        # 还是 Ctrl+C，源文件都要恢复原样，绝不能把 draft 选项留在用户仓库里。
+        MFO.restore_draft()
+
+
+def _run_pythontex_if_present(compile_model, runtime_dict, compiled_program) -> bool:
+    """若首轮 LaTeX 生成了 ``.pytxcode``，先跑 pythontex，再补一轮 LaTeX。
+
+    pythontex 是「LaTeX → pythontex → LaTeX」的三段式流程；不补最后一轮
+    LaTeX，用户只会看到代码块未展开的 PDF。这里不新增收敛维度，补跑后
+    仍交给正常检测循环判断是否还需要更多轮。
+    """
+    if not compile_model.has_pythontex_code():
+        return False
+    print_message(_("pythontex 处理代码块"), "running")
+    runtime_dict[_("pythontex")] = time_count(compile_model.compile_pythontex).seconds
+    print_message(_("pythontex 后重新编译 LaTeX"), "running")
+    runtime_dict[f"{compiled_program} (pythontex 后)"] = time_count(
+        compile_model.compile_tex
+    ).seconds
+    return True
+
+
+def _run_impl(
+    runtime_dict,
+    project_name,
+    compiled_program,
+    compile_model,
+    detector,
+    outdir,
+    auxdir,
+    draft,
+    shell_escape,
+    native,
+    interaction,
+):
+    """RUN 的实际主体（拆出来才能用 try/finally 包住草稿模式自愈）。"""
+    build_options = {
+        "engine": compiled_program,
+        "interaction": interaction or ("nonstopmode" if compile_model.non_quiet else "batchmode"),
+        "shell_escape": bool(shell_escape),
+        "draft": bool(draft),
+        "native": bool(native),
+        "outdir": str(outdir),
+        "auxdir": str(auxdir),
+        "jobname": compile_model.jobname,
+        "extra_args": list(compile_model.extra_args),
+        "version": __version__,
+    }
 
     runtime_read, return_read, _err = time_count(
         detector.prepare_LaTeX_output_files,
@@ -154,7 +236,7 @@ def RUN(
 
     # 构建基线：上次编译落盘在共享状态文件里的产物摘要与收敛标记。
     # 它在进程重启后依然有效，因此冷启动时不必靠"多编一轮"重新观察。
-    build_state = BuildState(auxdir, project_name)
+    build_state = BuildState(auxdir, compile_model.jobname)
 
     # 首次编译 LaTeX 文档
     print_message(_("1 次 %(args)s 编译") % {"args": compiled_program}, "running")
@@ -162,6 +244,10 @@ def RUN(
         compile_model.compile_tex,
     ).seconds
     runtime_dict[f"{compiled_program} {_ordinal(1)}"] = runtime_Latex
+
+    # PythonTeX 的中间代码只会在首轮 LaTeX 后出现；先处理并补一轮 LaTeX，
+    # 再进入常规六维检测，避免用户拿到代码块未展开的 PDF。
+    _run_pythontex_if_present(compile_model, runtime_dict, compiled_program)
 
     # 首次编译后：run_full_detection 聚合 6 维检测 + 返回子步骤 schedule 所需值
     runtime_detect, return_detect, _err = time_count(
@@ -179,11 +265,12 @@ def RUN(
 
     # 记录已经跑过的文献/索引任务，避免同一状态下重复调用外部工具
     bib_signature_done: str | None = None
+    bib2gls_done = False
     index_signature_done: str | None = None
 
     def _run_bib_if_needed(det) -> None:
-        """按需执行 bibtex/biber；同一 .aux 状态只跑一次。"""
-        nonlocal bib_signature_done
+        """按需执行 bibtex/biber（+ bib2gls）；同一 .aux 状态只跑一次。"""
+        nonlocal bib_signature_done, bib2gls_done
         if not det.bib_engine or det.latex_compilation_times_bib == 0:
             return
         signature = detector.aux_signature()
@@ -192,6 +279,11 @@ def RUN(
         print_message(_("%(args)s 编译文献") % {"args": det.bib_engine}, "running")
         runtime_bib = time_count(compile_model.compile_bib, det.bib_engine).seconds
         runtime_dict[_("%(args)s 编译") % {"args": det.bib_engine}] = runtime_bib
+        if getattr(det, "bib2gls_mode", False) and not bib2gls_done:
+            print_message(_("bib2gls 编译术语表"), "running")
+            runtime_b2g = time_count(compile_model.compile_bib2gls).seconds
+            runtime_dict[_("bib2gls 编译")] = runtime_b2g
+            bib2gls_done = True
         bib_signature_done = signature
 
     def _run_index_if_needed(det) -> None:
@@ -293,12 +385,15 @@ def RUN(
             break
 
     # 编译完成, 开始判断编译 XDV 文件
-    if compiled_program == "XeLaTeX":  # 判断是否编译 xdv 文件
+    if compiled_program == "XeLaTeX" and not native:  # 判断是否编译 xdv 文件
         print_message(_("DVIPDFMX 编译"), "running")
         runtime_xdv = time_count(
             compile_model.compile_xdv,
         ).seconds  # 编译 xdv 文件
         runtime_dict[_("DVIPDFMX 编译")] = runtime_xdv
+
+    if not compile_model.verify_pdf_exists():
+        print_message(_("未检测到编译输出的 PDF，请检查日志"), "warning")
 
     # 显示编译过程中关键信息
     print_message(_("完成所有编译"), "success")
@@ -309,10 +404,7 @@ def RUN(
         for note in residual_notes:
             print_message(_("未能消除：%(args)s") % {"args": note}, "additional")
 
-    # 结束草稿模式
-    MFO.draft_model(project_name, draft, False)
-
-    # 落盘构建基线：产物摘要 + 收敛标记 + 源快照。
+    # 落盘构建基线：产物摘要 + 收敛标记 + 源快照 + 构建参数指纹。
     # 有了它，下次运行时"源文件是否变过"无需再编一轮就能判断。
     _persist_build_state(
         build_state,
@@ -322,6 +414,7 @@ def RUN(
         signals=signals,
         stop_reason=stop_reason or "stable",
         project_name=project_name,
+        build_key=_build_key(build_options),
     )
 
     return runtime_dict
@@ -336,6 +429,7 @@ def _persist_build_state(
     signals: dict[str, list[str]],
     stop_reason: str,
     project_name: str,
+    build_key: str = "",
 ) -> None:
     """把本轮结束时的状态写进共享状态文件（失败绝不阻断编译结果）。
 
@@ -352,10 +446,107 @@ def _persist_build_state(
             signals=signals,
             stop_reason=stop_reason,
             converged=converged,
-            sources=build_state.source_snapshot(_iter_tex_sources(project_name)),
+            sources=build_state.source_snapshot(
+                _iter_source_files(
+                    project_name,
+                    str(build_state.auxdir),
+                    fls_name=build_state.project_name,
+                )
+            ),
+            build_key=build_key,
         )
     except Exception:  # 状态文件问题不影响编译成功
         pass
+
+
+def _build_key(options: dict) -> str:
+    """构建参数指纹：任何一项变化都必须让"源未变可跳过"失效。"""
+    payload = json.dumps(options, sort_keys=True, ensure_ascii=False, default=str)
+    return "sha256:" + hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+#: 依赖快照要覆盖的源/资源后缀（C1：只盯 .tex 会漏掉图片、宏包、bib 的改动）
+_SOURCE_SUFFIXES = frozenset(
+    {
+        ".tex", ".bib", ".bst", ".cls", ".sty", ".def", ".clo", ".cfg", ".ist",
+        ".tikz", ".asy", ".lua", ".py", ".svg", ".pdf", ".png", ".jpg", ".jpeg",
+        ".eps", ".bbx", ".cbx", ".lbx", ".glo", ".gls", ".nlo", ".nls", ".bcf",
+    }
+)
+
+
+def _fls_inputs(project_name: str, auxdir: str) -> list[Path]:
+    """解析 ``-recorder`` 生成的 .fls 中的 INPUT 行（真实参与编译的文件）。"""
+    for candidate in (Path(auxdir) / f"{project_name}.fls", Path(f"{project_name}.fls")):
+        if not candidate.exists():
+            continue
+        paths: list[Path] = []
+        try:
+            for line in candidate.read_text(encoding="utf-8", errors="ignore").splitlines():
+                if not line.startswith("INPUT "):
+                    continue
+                raw = line[len("INPUT "):].strip()
+                path = Path(raw)
+                if path.exists() and path.suffix.lower() in _SOURCE_SUFFIXES:
+                    paths.append(path)
+        except OSError:
+            return []
+        return paths
+    return []
+
+
+def _iter_source_files(project_name: str, auxdir: str | None = None, fls_name: str | None = None):
+    """参与"源是否变过"判断的文件集合（C1）。
+
+    组合三类来源，去重后逐个产出：
+      1. 任意深度的 ``.tex``（与 ``_iter_tex_sources`` 相同的排除规则）；
+      2. ``-recorder`` 的 ``.fls`` 里 INPUT 记录的真实依赖（图片、宏包、bib…）；
+      3. 没有 .fls（首次编译/被清理）时，按后缀兜底扫描常见资源类型。
+
+    ``fls_name`` 是 TeX jobname（``--jobname`` 时 ``<jobname>.fls``），
+    源文件枚举仍以 ``project_name`` 为准。
+    """
+    seen: set[str] = set()
+
+    def _key(path: Path) -> str:
+        try:
+            return str(path.resolve())
+        except OSError:
+            return path.as_posix()
+
+    for path in _iter_tex_sources(project_name):
+        key = _key(path)
+        if key not in seen:
+            seen.add(key)
+            yield path
+
+    fls_paths: list[Path] = []
+    stem = fls_name or project_name
+    for candidate in (Path(auxdir or ".") / f"{stem}.fls", Path(f"{stem}.fls")):
+        if candidate.exists():
+            fls_paths = _fls_inputs(stem, auxdir or ".")
+            break
+    for path in fls_paths:
+        key = _key(path)
+        if key not in seen:
+            seen.add(key)
+            yield path
+
+    if fls_paths:
+        return  # .fls 已经给出真实依赖清单，无需再做后缀兜底扫描
+
+    cwd = Path().resolve()
+    for path in cwd.rglob("*"):
+        if not path.is_file() or path.suffix.lower() not in _SOURCE_SUFFIXES:
+            continue
+        parts = path.relative_to(cwd).parts[:-1]
+        if any(part.startswith(".") or part in _EXCLUDED_SOURCE_DIRS for part in parts):
+            continue
+        key = _key(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        yield path
 
 
 def _iter_tex_sources(project_name: str):

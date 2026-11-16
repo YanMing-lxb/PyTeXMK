@@ -14,7 +14,7 @@ dependencies = [
     "packaging>=26.3",
     "platformdirs>=4.13.3",
     "pypdf>=6.21.1",
-    "pytexlogs>=0.4.0",
+    "pytexlogs>=0.5.0",
     "rich>=15.0.0",
     "rich_argparse>=1.8.0",
     "tomli-w>=1.2.0",
@@ -63,8 +63,18 @@ dev = [
 [[tool.uv.index]]
 name = "pypi"
 url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
-publish-url = "https://pypi.org/project/pytexmk"
+publish-url = "https://upload.pypi.org/legacy/"
 default = true
+
+# PyTeXLogs 0.5.0 刚发布时清华镜像可能尚未同步；只给这一个直接依赖
+# 指定官方 PyPI，避免整个项目的镜像源被切换。
+[[tool.uv.index]]
+name = "pypi-org"
+url = "https://pypi.org/simple/"
+explicit = true
+
+[tool.uv.sources]
+pytexlogs = { index = "pypi-org" }
 
 # ---------------------------------------------------------------------------
 # 开发依赖：PEP 735 [dependency-groups].dev 是 uv 侧的事实来源

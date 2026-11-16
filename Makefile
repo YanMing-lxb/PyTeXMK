@@ -12,6 +12,9 @@
 # 默认目标：显示帮助
 .DEFAULT_GOAL := help
 
+# 当前 dist 下的 wheel；inswhl 直接交给外层 uv，避免 uv run 嵌套 uv tool 时的锁冲突
+WHL = $(wildcard dist/*.whl)
+
 # Windows 下使用 cmd 作为 shell（确保 echo 等内置命令可用）
 ifeq ($(OS),Windows_NT)
 SHELL := cmd.exe
@@ -66,8 +69,12 @@ whl: clean
 
 # 安装本地构建的 wheel 包
 # - 用于本地测试安装后的程序行为
+# - 注意：不要在 `uv run` 里再调 `uv tool`：父 uv 会持有工具目录锁，
+#   Windows 上子 uv 会因 `.lock` 拒绝访问而失败。这里直接在 Makefile 外层执行。
+# - 卸载失败（未安装）不阻断后续安装
 inswhl:
-	@uv run python ./tools/make.py inswhl
+	-@uv tool uninstall pytexmk
+	@uv tool install $(WHL)
 
 # ------------------------------------------------------------------------------
 # 清理相关目标

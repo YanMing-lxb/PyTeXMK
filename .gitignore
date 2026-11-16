@@ -469,3 +469,7 @@ TSWLatexianTemp*
 *.pytexmkrc
 .trae/*
 build/winget*/
+
+# PyTeXMK 本地测试/编译临时产物
+pytest-of-lixue/
+Auxiliary/

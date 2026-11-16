@@ -1,6 +1,7 @@
 """PyTeXMK CLI 上下文解析：子项目定位、配置合并与魔法注释覆盖。"""
 
 import os
+import re
 
 from ..config import ConfigParser
 from ..language import set_language
@@ -71,10 +72,35 @@ def resolve_target(args, state: WorkflowState) -> None:
     """决定本次要处理的目标：LaTeXDiff 新旧文件对，或待编译的主文件名。"""
     if state.is_latexdiff:
         _resolve_latexdiff_target(state)
+        state.output_name = state.project_name
     else:
         state.project_name = state.mfo.get_main_file(
             state.default_file, args.document, state.main_files_in_root, state.all_magic_comments
         )
+        state.output_name = _resolve_output_name(args, state.project_name)
+
+
+_JOBNAME_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def _resolve_output_name(args, project_name: str) -> str:
+    """校验并返回 ``--jobname``；未指定时沿用主文件名。
+
+    限制为 ASCII 字母/数字/点/下划线/连字符：TeX 的 jobname 会成为文件名与
+    ``\\jobname`` 宏，允许路径或扩展名会造成输出文件错位和清理越界。
+    """
+    raw = getattr(args, "jobname", None)
+    if not raw:
+        return project_name
+    name = str(raw).strip()
+    if not _JOBNAME_RE.fullmatch(name) or name.endswith((".tex", ".pdf", ".aux", ".log")):
+        console.print(
+            "[bold red]"
+            + _("--jobname 只能使用 ASCII 字母、数字、点、下划线和连字符，且不能带路径或扩展名")
+            + f": {raw!r}[/bold red]"
+        )
+        exit_pytexmk(EXIT_ERROR)
+    return name
 
 
 def apply_magic_comments(state: WorkflowState) -> None:
@@ -108,8 +134,8 @@ def apply_magic_comments(state: WorkflowState) -> None:
         state.auxdir = state.magic_comments["auxdir"]
         console.print(_("通过魔法注释设置辅助目录: ") + f"[bold cyan]{state.auxdir}[/bold cyan]")
 
-    state.out_files = [f"{state.project_name}{suffix}" for suffix in SUFFIXES_OUT]
-    state.aux_files = [f"{state.project_name}{suffix}" for suffix in SUFFIXES_AUX]
+    state.out_files = [f"{state.output_name}{suffix}" for suffix in SUFFIXES_OUT]
+    state.aux_files = [f"{state.output_name}{suffix}" for suffix in SUFFIXES_AUX]
     state.aux_regex_files = [f".*\\{suffix}" for suffix in SUFFIXES_AUX]
 
 
@@ -124,9 +150,30 @@ def _apply_config_file(state: WorkflowState) -> None:
     if config_dict["compiled_program"]:
         state.compiled_program = standardize_name(config_dict["compiled_program"])
         logger.info(_("通过配置文件设置编译器为: ") + f"[bold cyan]{state.compiled_program}")
-    if config_dict["quiet_mode"]:
+    if config_dict.get("quiet_mode"):
         state.non_quiet = False
         logger.info(_("通过配置文件设置安静模式为: ") + f"[bold cyan]{config_dict['quiet_mode']}")
+
+    build = config_dict.get("build") or {}
+    if build:
+        native = str(build.get("native", "auto")).lower()
+        # auto：TeX 都支持 -output-directory，默认走原生目录构建（3.7 中期方案）
+        state.native_build = native not in ("false", "0", "no", "off")
+        if build.get("shell_escape") not in (None, ""):
+            state.shell_escape = str(build["shell_escape"]).lower()
+        if build.get("interaction"):
+            state.interaction = str(build["interaction"])
+        extra = build.get("extra_args") or []
+        if isinstance(extra, list):
+            state.extra_args = [str(x) for x in extra]
+        try:
+            state.max_extra_compilations = int(build.get("max_extra_compilations", 8))
+        except (TypeError, ValueError):
+            state.max_extra_compilations = 8
+        logger.info(
+            _("构建模式: native=%(n)s, shell_escape=%(s)s")
+            % {"n": state.native_build, "s": state.shell_escape}
+        )
 
     if config_dict["folder"]:
         if config_dict["folder"]["outdir"]:
@@ -146,10 +193,24 @@ def _apply_config_file(state: WorkflowState) -> None:
             state.pfo.set_viewer(config_dict["pdf"]["pdf_viewer"])
             logger.info(_("通过配置文件设置 PDF 预览器为: ") + f"[bold cyan]{config_dict['pdf']['pdf_viewer']}")
 
-    # [index] 段参数（index_style_file / input_suffix / output_suffix）暂未接入运行时：
-    # glossaries 输入后缀由 .aux 动态解析多值，单一后缀语义不成立；
-    # 其余索引系统后缀由 detection._INDEX_REGISTRY 硬编码统一管理。
-    # 若未来需要让用户可覆盖，应接通到 _INDEX_REGISTRY 的规则元数据而非在此处读取。
+    # [index] 段：index_style_file 真正接通到 nomencl 的 makeindex -s 参数（3.8）。
+    # input_suffix/output_suffix 仍由 detection 的注册表统一管理，避免单一后缀
+    # 语义与 glossaries 的多 glossary 冲突。
+    index_cfg = config_dict.get("index") or {}
+    style_file = index_cfg.get("index_style_file")
+    glossaries_tool = index_cfg.get("glossaries_tool")
+    if style_file or glossaries_tool:
+        from ..detection import configure_index
+
+        configure_index(
+            str(style_file) if style_file else None,
+            str(glossaries_tool) if glossaries_tool else None,
+        )
+        if style_file:
+            logger.info(_("通过配置文件设置索引样式文件为: ") + f"[bold cyan]{style_file}")
+        if glossaries_tool:
+            logger.info(_("通过配置文件设置 glossaries 工具为: ") + f"[bold cyan]{glossaries_tool}")
+
     if config_dict["latexdiff"]:
         if config_dict["latexdiff"]["old_tex_file"]:
             state.old_tex_file = config_dict["latexdiff"]["old_tex_file"]

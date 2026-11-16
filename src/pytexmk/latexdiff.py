@@ -25,7 +25,6 @@ Description  :
 
 import logging
 import re
-import sys
 from pathlib import Path
 
 from pytexmk.file_ops import FileMoveRemoveManager
@@ -69,60 +68,63 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     # latexdiff 自带的 --flatten 参数可以用于压平多文件,但如果项目用 BibTeX 管理引用,则会在压平后报错.
     def flatten_Latex(self, file_name):
-        """将 LaTeX 文件及其所有引用的子文件压平为一个单一文件.
+        """把主文件及其 ``\\input``/``\\include`` 子文件压平成一个 .tex。
 
-        参数:
-            file_name (str): 主 LaTeX 文件的名称(不带 .tex 扩展名).
-
-        返回:
-            str: 压平后的文件名称(不带 .tex 扩展名).
+        与旧实现的区别（3.5）：
+          * 直接写文件句柄，**不再把 sys.stdout 重定向**（否则 logger 的每一行
+            都会混进生成的 .tex，产出不可编译的文件）；
+          * 支持 ``\\input file``（不带花括号）写法；
+          * 子文件路径相对**当前被展开文件所在目录**解析，而不是主文件目录；
+          * 维护 ``seen`` 集合做环路检测，自引用/互引用不会无限递归。
         """
-
-        def flattenLatex(tex_file_name):
-            """递归地读取 LaTeX 文件及其引用的子文件,并将内容写入 sys.stdout."""
-            rootPath = Path(tex_file_name)
-            if not rootPath.is_file():
-                self.logger.error(_("文件不存在: ") + tex_file_name)
-                exit_pytexmk(EXIT_ERROR)
-            dirpath = rootPath.parent
-            with open(tex_file_name, encoding="utf-8") as file_handler:
-                for line in file_handler:
-                    match_input = inputPattern.search(line)
-                    match_include = includePattern.search(line)
-                    if match_input:
-                        newFile = match_input.group(1)
-                        if not newFile.endswith("tex"):
-                            newFile += ".tex"
-                        flattenLatex(dirpath / newFile)
-                    elif match_include:
-                        newFile = match_include.group(1)
-                        if not newFile.endswith("tex"):
-                            newFile += ".tex"
-                        flattenLatex(dirpath / newFile)
-                    else:
-                        sys.stdout.write(line)
-
-        # 定义正则表达式 匹配命令前面没有%的 \input 和 \include 命令
-        inputPattern = re.compile(
-            r"^(?!.*%.*\\input)(?:.*\\input\{(.*?)\})", re.MULTILINE
-        )
-        includePattern = re.compile(
-            r"^(?!.*%.*\\include)(?:.*\\include\{(.*?)\})", re.MULTILINE
-        )
-
-        # 打开输出文件并将 sys.stdout 重定向到该文件
+        pattern = re.compile(r"\\(?:input|include)\s*(?:\{([^}]*)\}|([^\s{}%]+))")
         output_file_name = f"{file_name}-flatten"
-        original_stdout = sys.stdout
         output_path = Path(output_file_name + ".tex")
+        root = Path(f"{file_name}.tex")
+        if not root.is_file():
+            self.logger.error(_("文件不存在: ") + str(root))
+            exit_pytexmk(EXIT_ERROR)
+
+        seen: set[Path] = set()
+
+        def expand(path: Path, handle, depth: int = 0) -> None:
+            if depth > 64:
+                self.logger.warning(_("压平嵌套过深，已跳过: ") + str(path))
+                return
+            try:
+                key = path.resolve()
+            except OSError:
+                key = path
+            if key in seen:
+                self.logger.warning(_("检测到循环引用，已跳过: ") + str(path))
+                return
+            seen.add(key)
+            if not path.is_file():
+                self.logger.warning(_("被引用的文件不存在，已跳过: ") + str(path))
+                return
+            for line in path.read_text(encoding="utf-8", errors="replace").splitlines(keepends=True):
+                stripped = line.lstrip()
+                if stripped.startswith("%"):
+                    handle.write(line)
+                    continue
+                match = pattern.search(line)
+                if not match:
+                    handle.write(line)
+                    continue
+                target = (match.group(1) or match.group(2) or "").strip()
+                if not target:
+                    handle.write(line)
+                    continue
+                if not target.lower().endswith(".tex"):
+                    target += ".tex"
+                expand(path.parent / target, handle, depth + 1)
+
         try:
-            with open(output_path, "w", encoding="utf-8") as output_file:
-                sys.stdout = output_file
-                flattenLatex(f"{file_name}.tex")
-        except Exception as e:  # noqa: BLE001
+            with output_path.open("w", encoding="utf-8") as output_file:
+                expand(root, output_file)
+        except OSError as e:
             self.logger.error(_("压平出错: ") + str(e))
             exit_pytexmk(EXIT_ERROR)
-        finally:
-            sys.stdout = original_stdout
 
         self.logger.info(_("已压平文件: ") + str(output_path))
         return output_file_name
@@ -147,14 +149,16 @@ class LaTeXDiff_Aux:
     # --------------------------------------------------------------------------------
     # 定义 LaTeXDiff 编译函数
     # --------------------------------------------------------------------------------
-    def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix):
-        """调用 latexdiff 命令生成差异 TeX 文件。"""
+    def compile_LaTeXDiff(self, old_tex_file, new_tex_file, diff_tex_file, suffix, style=None):
+        """调用 latexdiff 命令生成差异 TeX 文件；``style`` 为 1/2 时非交互指定。"""
         command = [
             "latexdiff",
             old_tex_file + suffix,
             new_tex_file + suffix,
             "--encoding=utf8",
         ]
+        if style:
+            command.append(f"--style={style}")
         output_path = diff_tex_file + suffix
 
         old_out_files = [f"{old_tex_file}{suffix}" for suffix in self.suffixes_out]

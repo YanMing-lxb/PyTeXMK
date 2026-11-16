@@ -26,6 +26,7 @@ pdf_viewer = "default"      # default 为默认阅读器
 # ---- 索引 ------------------------------------------------------
 [index]
 index_style_file = "nomencl.ist"  # 输入样式文件
+glossaries_tool = "makeindex"     # makeindex | makeglossaries（多 glossary 建议后者）
 input_suffix = ".nlo"             # 输入文件后缀
 output_suffix = ".nls"            # 输出文件后缀
 

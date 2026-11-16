@@ -56,6 +56,7 @@
 - 🚀 **多引擎支持**：XeLaTeX、PdfLaTeX、LuaLaTeX，通过命令行参数或魔法注释灵活切换
 - 🔁 **智能多次编译检测**：自动比较 `.aux`/`.out` 文件内容并解析日志 Rerun 警告，确保交叉引用、hyperref 书签、总页数等收敛稳定
 - 📋 **结构化编译检测报告**：每轮编译结束后输出 6 维检测状态（参考文献、索引、目录、交叉引用、书签文件、日志重编译），清晰展示各维度是否稳定及预期下一步
+- 🐍 **PythonTeX 自动调度**：首轮生成 `.pytxcode` 后自动运行 `pythontex` 并补一轮 LaTeX，native 构建在辅助目录内执行
 
 ### 参考文献与索引
 
@@ -244,6 +245,40 @@ pytexmk -c
 | `-dr`, `--draft` | 草稿模式，编译时不包含图片（加速） |
 | `-nq`, `--non_quiet` | 非安静模式，终端显示编译过程 |
 | `-vb`, `--verbose` | 详细模式，显示 PyTeXMK 运行信息 |
+| `--native/--no-native` | 原生命名目录构建（辅助文件直接写进 `Auxiliary/`，默认 `auto`） |
+| `--shell-escape/--no-shell-escape` | 是否允许 `\write18`（默认按 minted/pythontex 等自动判断） |
+| `--interaction MODE` | 覆盖 `-interaction`（`batchmode`/`nonstopmode`/`errorstopmode`） |
+| `--pass-arg ARG` | 透传额外参数给 TeX 引擎，可重复 |
+| `--max-runs N` | 额外编译轮次上限（默认 8） |
+| `--jobname NAME` | 输出文件按 NAME 命名（PDF/aux/synctex），`.tex` 源文件仍按主文件名；适合多版本 PDF |
+| `--no-preflight` | 跳过编译前静态检查（缺 `\end{document}`、`.bib`、图片等） |
+| `--doctor` | 体检本机 TeX 工具链（引擎/biber/xindy/latexdiff/PyTeXLogs/配置/状态文件）后退出 |
+| `--watch` | 监视源文件变化并自动重编译（轮询 1s，去抖 400ms，Ctrl+C 退出） |
+| `-io`, `--includeonly LIST` | 只编译指定 `\include` 章节（逗号分隔）；输出隔离到 `Build/partial`、`Auxiliary/partial` |
+| `-A`, `--all-subprojects` | 按根配置 `[subprojects]` 顺序编译全部子项目，失败继续、最后汇总并非零退出 |
+| `--synctex-check` | 编译后跑 `synctex view/edit` 校验正向/反向跳转（失败退出码 7） |
+| `--report [PATH]` | 把 PyTeXLogs 诊断报告写成 JSON（默认 `Auxiliary/<主文件>.pytexmk-report.json`） |
+| `--fail-on warning` | 出现警告/排版提示时返回退出码 6（CI 用；默认 `none`） |
+| `--explain` | 只打印本次编译的有效配置与决策，不编译 |
+| `--show-config` | 打印合并后的完整配置（默认 < 用户 < 项目） |
+| `--validate-config` | 校验配置键名与类型，发现错误返回 4 |
+| `--completion SHELL` | 输出 bash/zsh/fish/powershell 补全脚本后退出（选项列表从 argparse 自动提取） |
+
+### 投稿与兼容性
+
+| 选项 | 说明 |
+| --- | --- |
+| `-sp`, `--submission-pack` | 生成 `Submission/<项目>-submission.zip`：`.fls` 依赖 + `.bbl` + 转换后的纯 ASCII 源文件 + 说明文件 |
+| `-pc`, `--pdflatex-check` | 只做 pdflatex 兼容体检（fontspec/unicode-math/ctex/xeCJK 等） |
+| `--submit-dir DIR` | 指定投稿包输出目录（默认 `./Submission/`） |
+| `--keep-preamble` | 保留原导言区（默认会注释 fontspec/unicode-math/ctex 并补 fontenc/inputenc/textcomp） |
+| `--pack-verify` | 生成后在临时目录用 pdflatex 真编译一次，结果写进包内说明 |
+| `--include-bib` | 投稿包同时带上 `.bib` 源文件（默认只带 `.bbl`） |
+
+> 期刊只支持 pdflatex 时，`-sp` 会把希腊字母、`°℃µ‰`、`–—…`、智能引号、上下标
+> 等 Unicode 转成纯 ASCII 的 LaTeX 命令，自动注释 fontspec/unicode-math/ctex
+> 并补 `fontenc`/`inputenc`/`textcomp`；说明文件里列出每一处转换、仍不兼容的
+> 宏包以及**无法转换的字符位置**。加 `--pack-verify` 会真的用 pdflatex 试编译一次。
 
 ### 清理
 
@@ -251,8 +286,9 @@ pytexmk -c
 | --- | --- |
 | `-c`, `--clean` | 清除主文件的辅助文件 |
 | `-C`, `--Clean` | 清除辅助文件（含根目录）和输出文件 |
-| `-ca`, `--clean-any` | 清除所有带辅助文件后缀的文件 |
+| `-ca`, `--clean-any` | 清除所有带辅助文件后缀的文件（跳过 `tests/`、`examples/`、`dist/`、`docs/`、`.venv`） |
 | `-Ca`, `--Clean-any` | 清除所有辅助文件（含根目录）和主文件输出 |
+| `--clean-dry-run` | 只列出将被删除的文件，不真的删除（配合 `-c/-C/-ca/-Ca`） |
 
 ### LaTeXDiff 差异对比
 
@@ -260,6 +296,7 @@ pytexmk -c
 | --- | --- |
 | `-d`, `--LaTeXDiff` | 生成两个文件的差异对比，输出 `LaTeXDiff.tex` |
 | `-dc`, `--LaTexDiff-compile` | 生成差异文件并自动编译，输出带修订标记的 PDF |
+| `--diff-style {1,2}` | 差异风格：1 显示参考文献/符号说明修改，2 不显示；非交互环境默认 2 |
 
 **示例**：
 
@@ -268,7 +305,7 @@ pytexmk -d old.tex new.tex     # 生成 LaTeXDiff.tex
 pytexmk -dc old.tex new.tex    # 生成并编译 LaTeXDiff PDF
 ```
 
-> 支持在参考文献和符号索引中显示修改痕迹，编译时会提示选择风格。
+> 支持在参考文献和符号索引中显示修改痕迹；交互终端会提示选择风格，非交互环境默认风格 2（可用 `--diff-style` 指定）。
 
 ### PDF 工具
 

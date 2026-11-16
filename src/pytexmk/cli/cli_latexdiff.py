@@ -71,14 +71,7 @@ def run(args, state: WorkflowState) -> None:
         state.mro.move_matched_files, state.aux_regex_files, state.auxdir, "."
     ).seconds
     state.runtime_dict[_("全辅助文件->根目录")] = runtime_move_matched_files
-    latex_diff_style = input(
-        _(
-            "请输入 LaTeXDiff 的显示风格：\n"
-            "  1 - 显示参考文献/符号说明的修改\n"
-            "  2 - 不显示参考文献/符号说明的修改\n"
-            "请选择 (1 或者 2): "
-        )
-    )
+    latex_diff_style = _resolve_style(args, logger)
 
     try:
         print_message(_("LaTeXDiff 运行"), "running")
@@ -97,6 +90,7 @@ def run(args, state: WorkflowState) -> None:
                     state.new_tex_file,
                     state.diff_tex_file,
                     aux_suffix,
+                    latex_diff_style,
                 ).seconds
         runtime_compile_LaTeXDiff = time_count(
             lda.compile_LaTeXDiff,
@@ -104,7 +98,7 @@ def run(args, state: WorkflowState) -> None:
             new_tex_file_flatten,
             state.diff_tex_file,
             ".tex",
-
+            latex_diff_style,
         ).seconds
         state.runtime_dict[_("LaTeXDiff 运行")] = runtime_compile_LaTeXDiff
 
@@ -171,10 +165,46 @@ def run(args, state: WorkflowState) -> None:
         state.runtime_dict[_("辅助文件->辅助目录")] = runtime_move_matched_files
 
 
+def _resolve_style(args, logger) -> str:
+    """决定 latexdiff 风格：命令行 > 配置 > 默认 2；无 TTY 时不再阻塞等待输入。"""
+    style = getattr(args, "diff_style", None)
+    if style:
+        return str(style)
+    import sys
+
+    if not sys.stdin or not sys.stdin.isatty():
+        logger.info(_("非交互环境，LaTeXDiff 使用默认风格 2"))
+        return "2"
+    try:
+        answer = input(
+            _(
+                "请输入 LaTeXDiff 的显示风格：\n"
+                "  1 - 显示参考文献/符号说明的修改\n"
+                "  2 - 不显示参考文献/符号说明的修改\n"
+                "请选择 (1 或者 2，直接回车默认 2): "
+            )
+        ).strip()
+    except (EOFError, KeyboardInterrupt):
+        logger.info(_("未读取到输入，使用默认风格 2"))
+        return "2"
+    if not answer:
+        return "2"
+    if answer not in ("1", "2"):
+        logger.error(_("风格只能是 1 或 2，收到: ") + answer)
+        exit_pytexmk(EXIT_ERROR)
+    return answer
+
+
 def _require_aux_files(lda: LaTeXDiff_Aux, tex_file: str, logger) -> None:
-    """校验指定 TeX 文件的辅助文件是否就位，缺失则直接退出。"""
+    """检查辅助文件；缺失只警告，不直接退出。
+
+    旧版本在旧文件没有编译产物时直接拒绝运行，但 latexdiff 对纯文本
+    源文件同样能生成差异（只是参考文献编号不如带 .bbl 精确）。这里降级为
+    警告，让用户能先看到差异再决定要不要补编译。
+    """
     if lda.check_aux_files(tex_file):
         logger.info(_("%(args)s 的辅助文件存在") % {"args": tex_file})
     else:
-        logger.error(_("%(args)s 的辅助文件不存在, 请检查编译") % {"args": tex_file})
-        exit_pytexmk(EXIT_ERROR)
+        logger.warning(
+            _("%(args)s 的辅助文件不存在，差异结果可能缺少参考文献/索引内容") % {"args": tex_file}
+        )

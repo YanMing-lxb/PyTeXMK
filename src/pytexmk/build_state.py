@@ -124,6 +124,7 @@ class BuildState:
         stop_reason: str = "",
         converged: bool = False,
         sources: dict[str, Any] | None = None,
+        build_key: str = "",
     ) -> bool:
         """把本轮结束时的状态写进状态文件。"""
         payload: dict[str, Any] = {
@@ -134,6 +135,8 @@ class BuildState:
             "converged": bool(converged),
             "stop_reason": stop_reason,
         }
+        if build_key:
+            payload["build_key"] = build_key
         if signals is not None:
             payload["signals"] = {
                 "permanent": sorted(signals.get("permanent", [])),
@@ -187,6 +190,14 @@ class BuildState:
     def last_stop_reason(self) -> str:
         """上次停止的原因标识。"""
         return str(self._store.get_build().get("stop_reason") or "")
+
+    def build_key(self) -> str:
+        """上次构建的参数指纹（编译器/交互模式/shell-escape/目录等）。
+
+        参数变了就必须重新编译：换 ``pdflatex`` 为 ``xelatex`` 得到的 PDF
+        与上次基线完全不可比，不能因为"源文件没动"就跳过。
+        """
+        return str(self._store.get_build().get("build_key") or "")
 
     # ------------------------------------------------------------ 清理
 

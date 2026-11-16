@@ -17,10 +17,25 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "quiet_mode": True,
     "pdf": {"pdf_preview_status": False, "pdf_viewer": "default"},
     "folder": {"auxdir": "./Auxiliary/", "outdir": "./Build/"},
+    # 构建行为：原生目录构建 / shell-escape / 轮次上限 / 引擎参数
+    "build": {
+        "native": "auto",
+        "shell_escape": "auto",
+        "interaction": "",
+        "extra_args": [],
+        "max_extra_compilations": 8,
+    },
+    # 投稿打包：按 .fls 收依赖；遇到 pdflatex 不兼容的 Unicode 时生成转换副本
+    "submission": {
+        "unicode_to_latex": True,
+        "include_bbl": True,
+        "reproducible": True,
+    },
     "index": {
         "index_style_file": "nomencl.ist",
         "input_suffix": ".nlo",
         "output_suffix": ".nls",
+        "glossaries_tool": "makeindex",
     },
     "latexdiff": {
         "old_tex_file": "old_file",

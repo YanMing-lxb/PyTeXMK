@@ -7,6 +7,59 @@ on:
   workflow_dispatch:
 
 jobs:
+  tex-e2e:
+    # 真实 TeX 端到端：单测用假引擎，这里至少保证“原生目录构建 + 投稿包”在真
+    # XeLaTeX/pdflatex 上跑得通（C1/C6/3.7/3.9 的回归网）。
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install TeX Live
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-xetex texlive-latex-extra texlive-fonts-recommended biber
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.15
+        uses: actions/setup-python@v7.0.0
+        with:
+          python-version: "3.15"
+          allow-prereleases: true
+
+      - name: Install dependencies
+        run: uv sync --locked --dev
+
+      - name: Native build + submission pack (real TeX)
+        env:
+          PYTEXMK_NO_UPDATE_CHECK: "1"
+        run: |
+          set -euo pipefail
+          WORK="$(mktemp -d)"
+          cd "$WORK"
+          cat > main.tex <<'TEX'
+          \documentclass{article}
+          \usepackage{amsmath}
+          \begin{document}
+          \section{Intro}\label{sec:intro}
+          See \ref{sec:intro}. Unicode: $\alpha \leq \beta$, 25°C, café.
+          \end{document}
+          TEX
+          uv run --project "$GITHUB_WORKSPACE" pytexmk main -fr
+          test -f Build/main.pdf
+          test ! -e main.aux
+          uv run --project "$GITHUB_WORKSPACE" pytexmk main -fr -sp --pack-verify
+          test -f Submission/main-submission.zip
+          unzip -p Submission/main-submission.zip main.tex | grep -q '\\ensuremath{\\alpha}'
+
   build-binary:
     strategy:
       matrix:

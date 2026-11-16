@@ -212,11 +212,11 @@ wheels = [
 
 [[package]]
 name = "pytexlogs"
-version = "0.4.0"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple/" }
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/2c/a4/704807451d15710ac25dc48ff7fc578407c757b3eb8403cb1175dd8933d9/pytexlogs-0.4.0.tar.gz", hash = "sha256:264ac0f47a8baceeac24a4a5b0c6ffda39df21c9753682bba4917fbcf8dd8b01", size = 85528, upload-time = "2026-10-18T07:57:56.627Z" }
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple/" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/c3/33bc780ab1aff0c0df3f45a76b70f12de5438237ada9758ffa06ac6370d4/pytexlogs-0.5.0.tar.gz", hash = "sha256:a35d4296e972c6c8c6af4e8d953203d5723f0ec85b2f772637507ce68d3646fa", size = 108533, upload-time = "2026-11-16T09:31:01.375Z" }
 wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/69/63/92fecdc551cbb078ad682e8654205faef9428eefdaf9aa1db91f52a79466/pytexlogs-0.4.0-py3-none-any.whl", hash = "sha256:52dda1f86c5cbeead8c5e05ddf787c0478463c0fedf1eeeeda325f2ae8536de6", size = 84319, upload-time = "2026-10-18T07:57:54.865Z" },
+    { url = "https://files.pythonhosted.org/packages/db/ce/5006b3117471017c9c25230ff848f525bb09dd28915c4d758b8c5635c477/pytexlogs-0.5.0-py3-none-any.whl", hash = "sha256:1bd84f9415a9302399fb255442ed0415aa5fa4d465cee0b35a9049cbdd1bb91b", size = 103618, upload-time = "2026-11-16T09:31:00.017Z" },
 ]
 
 [[package]]
@@ -257,7 +257,7 @@ requires-dist = [
     { name = "pyinstaller", marker = "extra == 'dev'", specifier = ">=6.22.3" },
     { name = "pypdf", specifier = ">=6.21.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.1.1" },
-    { name = "pytexlogs", specifier = ">=0.4.0" },
+    { name = "pytexlogs", specifier = ">=0.5.0", index = "https://pypi.org/simple/" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "rich-argparse", specifier = ">=1.8.0" },
     { name = "tomli-w", specifier = ">=1.2.0" },

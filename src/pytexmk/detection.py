@@ -228,10 +228,17 @@ def _detect_xindy_language(log_content: str) -> str:
     """从 LaTeX .log 推断 xindy 语言参数，默认 english。
 
     推断优先级：
-      1. .log 中 polyglossia 包加载行 → 语言名
-      2. .log 中 babel 包最后一次加载行 → 语言名
-      3. 都没有 → "english"
+      1. ctex / xeCJK 中文文档 → ``simplified-chinese``（旧版只认 polyglossia/babel，
+         ctex 文档会错误地退化成 english，中文索引排序全部乱掉）
+      2. polyglossia 包加载行 → 语言名
+      3. babel 包最后一次加载行 → 语言名
+      4. 都没有 → "english"
     """
+    if re.search(r"Package: (?:ctex|xeCJK)", log_content) or re.search(
+        r"ctex(?:art|book|rep|beamer)?\.(?:cls|sty)", log_content
+    ):
+        return "simplified-chinese"
+
     # polyglossia: "Package polyglossia Info: ... Setting default language to English."
     m = re.search(
         r"Setting default language to ([A-Za-z]+(?: [A-Za-z]+)*)\.",
@@ -329,6 +336,10 @@ def _index_glossaries_cmd_builder_v2(proj: str, ext_o: str, ext_i: str, ctx: dic
     backend = ctx["backend"]
     _name = ctx["name"]
     _glg = ctx.get("glg", "")
+    if _INDEX_OPTIONS.get("glossaries_tool") == "makeglossaries":
+        # makeglossaries 会自己解析 .aux 里的全部 glossary 类型（含自定义/xindy），
+        # 多 glossary 项目比逐个手写 makeindex/xindy 更稳；调用处会去重。
+        return ["makeglossaries", f"makeglossaries {proj}"]
     if backend["backend"] == "xindy":
         return [
             f"glossaries ({_name}, xindy)",
@@ -372,6 +383,29 @@ def _make_fixed_cmd_builder(display: str, cmd_template: str):
     return cmd_builder
 
 
+#: `[index]` 的可运行时覆盖（nomencl 样式文件 / glossaries 后端工具）
+_INDEX_OPTIONS: dict[str, str] = {
+    "nomencl_ist": "nomencl.ist",
+    "glossaries_tool": "makeindex",
+}
+
+
+def configure_index(nomencl_ist: str | None = None, glossaries_tool: str | None = None) -> None:
+    """由配置文件覆盖索引设置（3.8 接通 ``[index]`` 段）。"""
+    if nomencl_ist:
+        _INDEX_OPTIONS["nomencl_ist"] = nomencl_ist
+    if glossaries_tool in {"makeindex", "makeglossaries"}:
+        _INDEX_OPTIONS["glossaries_tool"] = glossaries_tool
+
+
+def _nomencl_cmd_builder(proj: str, ext_o: str, ext_i: str, _ctx: object) -> list[str]:
+    """nomencl 命令：样式文件取自 ``[index] index_style_file``，不再硬编码。"""
+    return [
+        "nomencl",
+        f"makeindex -s {_INDEX_OPTIONS['nomencl_ist']} -o {proj}.{ext_o} {proj}.{ext_i}",
+    ]
+
+
 # ── 索引系统注册表（数据驱动） ─────────────────────────────────────────
 
 _INDEX_REGISTRY: tuple[IndexRule, ...] = (
@@ -385,7 +419,7 @@ _INDEX_REGISTRY: tuple[IndexRule, ...] = (
         name="nomencl",
         trigger=_make_extension_trigger([".nlo"]),
         discover=_make_fixed_discover("nlo", "nls"),
-        cmd_builder=_make_fixed_cmd_builder("nomencl", "makeindex -s nomencl.ist -o {proj}.nls {proj}.nlo"),
+        cmd_builder=_nomencl_cmd_builder,
     ),
     IndexRule(
         name="makeidx",
@@ -464,10 +498,13 @@ class CompilationDetector:
         auxdir,
         non_quiet,
         MRO,
+        jobname=None,
     ):
         self.logger = logging.getLogger(__name__)
 
         self.project_name = project_name
+        # jobname 决定 .aux/.log/.toc 等辅助文件名；--jobname 时与源主文件名不同
+        self.jobname = jobname or project_name
         self.compiled_program = compiled_program
         self.out_files = out_files
         self.aux_files = aux_files
@@ -480,15 +517,29 @@ class CompilationDetector:
         self.bib_files: list[Path] = []
         self.bib2gls_mode = False  # bib2gls (glossaries-extra) 标记，由 bib_judgment 刷新
 
+    def _locate(self, suffix: str) -> Path:
+        """定位 ``<project><suffix>``：先看项目根目录，再看 auxdir。
+
+        原生目录构建（``-output-directory``）把辅助文件直接写在 auxdir 里，
+        而传统流程会先把它们搬回根目录；两种布局都要能读到，所以这里做双查。
+        都不存在时返回根目录路径（保持旧行为，便于错误信息显示）。
+        """
+        name = f"{self.jobname}{suffix}"
+        for base in (Path("."), Path(self.auxdir)):
+            candidate = base / name
+            if candidate.exists():
+                return candidate
+        return Path(name)
+
     def prepare_LaTeX_output_files(self):
-        aux_file_path = Path(f"{self.project_name}.aux")
+        aux_file_path = self._locate(".aux")
         if aux_file_path.exists():
             cite_counter = self._generate_citation_counter()
             index_aux_content_dict_old = self._index_aux_content_get()
         else:
-            cite_counter = {f"{self.project_name}.aux": defaultdict(int)}
+            cite_counter = {f"{self.jobname}.aux": defaultdict(int)}
             index_aux_content_dict_old = {}
-        toc_file_path = Path(f"{self.project_name}.toc")
+        toc_file_path = self._locate(".toc")
         if toc_file_path.exists():
             toc_file = _read_file_content(toc_file_path)
         else:
@@ -496,16 +547,25 @@ class CompilationDetector:
 
         return cite_counter, toc_file, index_aux_content_dict_old
 
+    def _resolve_aux_include(self, name: str) -> Path:
+        """解析 ``\\@input{...}`` 里的辅助文件路径（原生构建时位于 auxdir）。"""
+        candidate = Path(name)
+        if candidate.exists():
+            return candidate
+        alt = Path(self.auxdir) / name
+        return alt if alt.exists() else candidate
+
     def _generate_citation_counter(self):
         cite_counter = {}
-        file_name = f"{self.project_name}.aux"
-        main_aux_content = _read_file_content(file_name)
-        cite_counter[file_name] = _count_citations(file_name)
+        file_name = f"{self.jobname}.aux"
+        main_aux_path = self._locate(".aux")
+        main_aux_content = _read_file_content(main_aux_path)
+        cite_counter[file_name] = _count_citations(main_aux_path)
 
         for match in re.finditer(r"\\@input\{(.*.aux)\}", main_aux_content):
             file_name = match.groups()[0]
             try:
-                counter = _count_citations(file_name)
+                counter = _count_citations(self._resolve_aux_include(file_name))
             except OSError:
                 self.logger.info(_("文件不存在或无法读取,跳过文件: %(args)s") % {"args": file_name})
             else:
@@ -523,9 +583,9 @@ class CompilationDetector:
         """
         index_aux_content_dict_old: dict[str, str] = {}
 
-        aux_path = Path(f"{self.project_name}.aux")
+        aux_path = self._locate(".aux")
         if not aux_path.exists():
-            self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
+            self.logger.warning(_("未找到辅助文件: ") + f"{self.jobname}.aux")
             return index_aux_content_dict_old
         main_aux = _read_file_content(aux_path)
         # glossaries 可能需要 .log（xindy language 推断）
@@ -535,18 +595,18 @@ class CompilationDetector:
             # bib2gls 下 glossaries 不写 .glo/.xdy，跳过快照采集
             if self.bib2gls_mode and rule.name == "glossaries":
                 continue
-            if not rule.trigger(self.project_name, main_aux):
+            if not rule.trigger(self.jobname, main_aux):
                 continue
-            for spec in rule.discover(self.project_name, main_aux, log_content):
+            for spec in rule.discover(self.jobname, main_aux, log_content):
                 # 快照只关心 ext_in（输入文件）的旧内容
-                infile_path = Path(f"{self.project_name}.{spec.ext_in}")
+                infile_path = Path(f"{self.jobname}.{spec.ext_in}")
                 if infile_path.exists():
                     index_aux_content_dict_old[infile_path.name] = _read_file_content(infile_path)
 
         return index_aux_content_dict_old
 
     def toc_changed_judgment(self, toc_file):
-        file_name = Path(self.project_name).with_suffix(".toc")
+        file_name = Path(self.jobname).with_suffix(".toc")
         return file_name.exists() and _read_file_content(file_name) != toc_file
 
     def _resolve_bib_files(self, raw: str) -> list[Path]:
@@ -611,9 +671,9 @@ class CompilationDetector:
         self.bib2gls_mode = False  # bib2gls (glossaries-extra) 检测标记
         self.bib_files = []
 
-        aux_file_path = Path(f"{self.project_name}.aux")
+        aux_file_path = self._locate(".aux")
         if not aux_file_path.exists():
-            self.logger.warning(_("未找到辅助文件: ") + f"{self.project_name}.aux")
+            self.logger.warning(_("未找到辅助文件: ") + f"{self.jobname}.aux")
             return bib_engine, latex_compilation_times, target_name_bib
 
         aux_content = _read_file_content(aux_file_path)
@@ -621,7 +681,7 @@ class CompilationDetector:
         match_bibtex = BIBTEX_PATTERN.search(aux_content)
 
         if match_biber:
-            bcf_file_path = Path(f"{self.project_name}.bcf")
+            bcf_file_path = self._locate(".bcf")
             bcf_content = ""
             if bcf_file_path.exists():
                 bcf_content = _read_file_content(bcf_file_path)
@@ -662,7 +722,7 @@ class CompilationDetector:
         new_cite_counter = self._generate_citation_counter()
         citations_stable = old_cite_counter == new_cite_counter
         log_content = self._read_log_content()
-        bbl_missing = bool(re.search(rf"No file {re.escape(self.project_name)}\.bbl", log_content))
+        bbl_missing = bool(re.search(rf"No file {re.escape(self.jobname)}\.bbl", log_content))
         cite_undefined = bool(re.search(r"LaTeX Warning: Citation .* undefined", log_content))
 
         if not self.bib_files:
@@ -692,10 +752,11 @@ class CompilationDetector:
         历史实现把"输出文件缺失"和"输入文件缺失"合并处理，导致输入文件
         尚未生成时也返回 True，使 idx 维度长期非零、循环无法收敛。
         """
-        infile_path = Path(index_aux_infile)
+        infile_path = self._locate(f".{index_aux_infile.rsplit('.', 1)[-1]}")
+        outfile_path = self._locate(f".{index_aux_outfile.rsplit('.', 1)[-1]}")
         if not infile_path.exists():
             return False
-        if not Path(index_aux_outfile).exists():
+        if not outfile_path.exists():
             return True
         file_content = _read_file_content(infile_path)
         # 用 .get() 而非 dict[key]，避免快照/检测触发条件不一致导致 KeyError
@@ -707,40 +768,36 @@ class CompilationDetector:
 
         # 一次性读 .aux + .log，供所有规则的 trigger / discover 复用
         main_aux = ""
-        aux_path = Path(f"{self.project_name}.aux")
+        aux_path = self._locate(".aux")
         if aux_path.exists():
             main_aux = _read_file_content(aux_path)
-        log_content = ""
-        for lp in (
-            Path(f"{self.project_name}.log"),
-            Path(self.auxdir) / f"{self.project_name}.log",
-        ):
-            if lp.exists():
-                log_content = _read_file_content(lp)
-                break
+        log_content = self._read_aux_like(".log")
 
         for rule in _INDEX_REGISTRY:
             # bib2gls 下 glossaries 的条目由 biber 处理，跳过 makeindex/xindy 调用
             if self.bib2gls_mode and rule.name == "glossaries":
                 continue
-            if not rule.trigger(self.project_name, main_aux):
+            if not rule.trigger(self.jobname, main_aux):
                 continue
-            for spec in rule.discover(self.project_name, main_aux, log_content):
+            for spec in rule.discover(self.jobname, main_aux, log_content):
                 make_index = self._index_changed_judgment(
                     index_aux_content_dict_old,
-                    f"{self.project_name}.{spec.ext_in}",
-                    f"{self.project_name}.{spec.ext_out}",
+                    f"{self.jobname}.{spec.ext_in}",
+                    f"{self.jobname}.{spec.ext_out}",
                 )
                 if make_index:
-                    run_index_list_cmd.append(
-                        rule.cmd_builder(self.project_name, spec.ext_out, spec.ext_in, spec.ctx)
+                    command = rule.cmd_builder(
+                        self.jobname, spec.ext_out, spec.ext_in, spec.ctx
                     )
+                    # makeglossaries 一次处理全部类型；相同命令只保留一条
+                    if command not in run_index_list_cmd:
+                        run_index_list_cmd.append(command)
 
         return run_index_list_cmd
 
     def _candidate_paths(self, suffix: str) -> tuple[Path, Path]:
         """辅助文件的候选路径：先当前目录，再 auxdir（LaTeX 的 auxdir/outdir 双写习惯）。"""
-        name = f"{self.project_name}{suffix}"
+        name = f"{self.jobname}{suffix}"
         return Path(name), Path(self.auxdir) / name
 
     def _read_aux_like(self, suffix: str) -> str:
@@ -752,6 +809,10 @@ class CompilationDetector:
             except (OSError, UnicodeDecodeError):
                 return ""
         return ""
+
+    def locate_aux(self, suffix: str) -> Path:
+        """公开的辅助文件定位入口（供 compile 层生成命令时使用）。"""
+        return self._locate(suffix)
 
     def prepare_aux_out_snapshots(self):
         return self._read_aux_like(".aux"), self._read_aux_like(".out")
@@ -997,7 +1058,7 @@ class CompilationDetector:
         #   aux   → LaTeX 每次编译必生成 .aux，始终启用
         #   out   → .out 文件存在（hyperref 加载后才生成）
         #   log   → .log 文件存在
-        aux_path = Path(f"{self.project_name}.aux")
+        aux_path = self._locate(".aux")
         aux_exists = aux_path.exists()
 
         main_aux = ""
@@ -1008,15 +1069,13 @@ class CompilationDetector:
                 BIBER_PATTERN.search(main_aux) or BIBTEX_PATTERN.search(main_aux) or re.search(r"\\bibcite", main_aux)
             )
 
-        idx_enabled = any(rule.trigger(self.project_name, main_aux) for rule in _INDEX_REGISTRY)
+        idx_enabled = any(rule.trigger(self.jobname, main_aux) for rule in _INDEX_REGISTRY)
 
-        toc_enabled = Path(f"{self.project_name}.toc").exists()
+        toc_enabled = self._locate(".toc").exists()
 
-        out_enabled = Path(f"{self.project_name}.out").exists()
+        out_enabled = self._locate(".out").exists()
 
-        log_enabled = any(
-            Path(p).exists() for p in (f"{self.project_name}.log", Path(self.auxdir) / f"{self.project_name}.log")
-        )
+        log_enabled = self._locate(".log").exists()
 
         dims = {
             "bib": (times_bib if bib_enabled else -1),

@@ -56,6 +56,7 @@
 - 🚀 **Multi-engine support**: XeLaTeX, PdfLaTeX, LuaLaTeX — switch freely via CLI flags or magic comments
 - 🔁 **Smart multi-pass detection**: Automatically diffs `.aux`/`.out` file contents and parses Rerun warnings in logs, ensuring cross-references, hyperref bookmarks, and page counts converge stably
 - 📋 **Structured compile-detection report**: After each pass, outputs a 6-dimension status report (bibliography, index, TOC, cross-references, bookmark file, log rerun), clearly showing which dimensions are stable and what's expected next
+- 🐍 **PythonTeX orchestration**: After the first pass creates `.pytxcode`, run `pythontex` automatically and add one LaTeX pass; native builds run inside the auxiliary directory
 
 ### Bibliography & Index
 
@@ -245,6 +246,41 @@ pytexmk -c
 | `-dr`, `--draft` | Draft mode: compile without including images (faster) |
 | `-nq`, `--non_quiet` | Non-quiet mode, show compilation process in terminal |
 | `-vb`, `--verbose` | Verbose mode, show PyTeXMK runtime details |
+| `--native/--no-native` | Native named-directory build (aux files go straight into `Auxiliary/`, default `auto`) |
+| `--shell-escape/--no-shell-escape` | Allow `\write18` (default: auto-detect minted/pythontex/etc.) |
+| `--interaction MODE` | Override `-interaction` (`batchmode`/`nonstopmode`/`errorstopmode`) |
+| `--pass-arg ARG` | Pass an extra argument to the TeX engine (repeatable) |
+| `--max-runs N` | Maximum extra compilation passes (default 8) |
+| `--jobname NAME` | Name output files (PDF/aux/synctex) after NAME; the `.tex` source keeps its main-file name. Useful for multiple PDF variants |
+| `--no-preflight` | Skip pre-compile checks (missing `\end{document}`, `.bib`, graphics, etc.) |
+| `--doctor` | Inspect the local TeX toolchain (engines/biber/xindy/latexdiff/PyTeXLogs/config/state) and exit |
+| `--watch` | Watch sources and recompile automatically (1s poll, 400ms debounce, Ctrl+C to stop) |
+| `-io`, `--includeonly LIST` | Compile only the listed `\include` chapters (comma-separated); output goes to `Build/partial` and `Auxiliary/partial` |
+| `-A`, `--all-subprojects` | Compile every `[subprojects]` entry in order, continue on failure, summarize and exit non-zero |
+| `--synctex-check` | Run `synctex view/edit` after compiling to verify forward/reverse jumps (exit 7 on failure) |
+| `--report [PATH]` | Write the PyTeXLogs diagnostic report as JSON (default `Auxiliary/<job>.pytexmk-report.json`) |
+| `--fail-on warning` | Return exit 6 when warnings/typesetting notices exist (for CI; default `none`) |
+| `--explain` | Print the effective build configuration and exit without compiling |
+| `--show-config` | Print the merged configuration (default < user < project) |
+| `--validate-config` | Validate config keys/types and return 4 on errors |
+| `--completion SHELL` | Print a bash/zsh/fish/powershell completion script and exit (options are extracted from argparse) |
+
+### Submission & pdflatex Compatibility
+
+| Option | Description |
+| --- | --- |
+| `-sp`, `--submission-pack` | Build `Submission/<project>-submission.zip`: `.fls` dependencies + `.bbl` + ASCII-converted sources + notes |
+| `-pc`, `--pdflatex-check` | Only run the pdflatex compatibility check (fontspec/unicode-math/ctex/xeCJK etc.) |
+| `--submit-dir DIR` | Submission output directory (default `./Submission/`) |
+| `--keep-preamble` | Keep the original preamble (default comments out fontspec/unicode-math/ctex and adds fontenc/inputenc/textcomp) |
+| `--pack-verify` | Compile the pack once with pdflatex in a temporary directory and record the result |
+| `--include-bib` | Also include `.bib` sources (default: `.bbl` only) |
+
+> If the journal only accepts pdflatex, `-sp` converts Greek letters, `°℃µ‰`, `–—…`,
+> smart quotes and sub/superscripts into pure ASCII LaTeX, comments out
+> fontspec/unicode-math/ctex, and lists every conversion plus the exact
+> `file:line` of characters it cannot convert (CJK, emoji, …). With
+> `--pack-verify` it actually runs pdflatex on the converted copy.
 
 ### Cleanup
 
@@ -252,8 +288,9 @@ pytexmk -c
 | --- | --- |
 | `-c`, `--clean` | Clean auxiliary files of the main file |
 | `-C`, `--Clean` | Clean auxiliary files (including root) and output files |
-| `-ca`, `--clean-any` | Clean all files with auxiliary suffixes |
+| `-ca`, `--clean-any` | Clean all files with auxiliary suffixes (skips `tests/`, `examples/`, `dist/`, `docs/`, `.venv`) |
 | `-Ca`, `--Clean-any` | Clean all auxiliary files (including root) and main output |
+| `--clean-dry-run` | Only list files that would be deleted (`-c/-C/-ca/-Ca`) |
 
 ### LaTeXDiff Comparison
 
@@ -261,6 +298,7 @@ pytexmk -c
 | --- | --- |
 | `-d`, `--LaTeXDiff` | Generate a diff between two files, output `LaTeXDiff.tex` |
 | `-dc`, `--LaTexDiff-compile` | Generate the diff file and compile it, producing a PDF with revision marks |
+| `--diff-style {1,2}` | Diff style: 1 shows bibliography/glossary changes, 2 hides them; non-interactive defaults to 2 |
 
 **Example**:
 
@@ -269,7 +307,7 @@ pytexmk -d old.tex new.tex     # Generate LaTeXDiff.tex
 pytexmk -dc old.tex new.tex    # Generate and compile LaTeXDiff PDF
 ```
 
-> Supports showing change traces in references and symbol indexes. You'll be prompted to choose a style during compilation.
+> Supports showing change traces in references and symbol indexes. Interactive terminals prompt for a style; non-interactive defaults to 2 (`--diff-style` overrides).
 
 ### PDF Tools
 

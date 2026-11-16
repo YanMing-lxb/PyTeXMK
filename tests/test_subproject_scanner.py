@@ -124,3 +124,18 @@ def test_write_subprojects_missing_rc_returns_false(tmp_path):
     missing = tmp_path / "no_such" / ".pytexmkrc"
     assert write_subprojects_to_rc(missing, [("a", "a")]) is False
     assert not missing.exists()
+
+
+def test_write_subprojects_preserves_manual_entry_with_existing_path(tmp_path):
+    """-ls 不应清掉仍指向真实路径的手写别名。"""
+    manual = tmp_path / "manual_dir"
+    manual.mkdir()
+    rc = tmp_path / ".pytexmkrc"
+    rc.write_text(
+        '[subprojects]\n"manual" = "manual_dir"\n',
+        encoding="utf-8",
+    )
+    assert write_subprojects_to_rc(rc, [("auto", "auto")]) is True
+    text = rc.read_text(encoding="utf-8")
+    assert '"manual" = "manual_dir"' in text
+    assert '"auto" = "auto"' in text

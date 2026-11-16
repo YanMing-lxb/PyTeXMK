@@ -1,5 +1,6 @@
-"""结构化子项目发现与写回：扫描主 .tex、构造清单并整体替换 [subprojects] 段。"""
+"""结构化子项目发现与写回：扫描主 .tex、构造清单并合并 [subprojects] 段。"""
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -145,14 +146,52 @@ def _build_block(entries: list[tuple[str, str]]) -> list[str]:
     return block
 
 
-def write_subprojects_to_rc(rc_path: Path, entries: list[tuple[str, str]]) -> bool:
-    """整体替换根 .pytexmkrc 的 [subprojects] 段（含手写内容与注释一并覆盖）。
+def _existing_subprojects(rc_path: Path) -> dict[str, str]:
+    """读取现有 [subprojects] 段里的 name → path（用于保留手写条目）。"""
+    if not rc_path.exists():
+        return {}
+    mapping: dict[str, str] = {}
+    in_section = False
+    for raw in rc_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line == "[subprojects]":
+            in_section = True
+            continue
+        if in_section and line.startswith("["):
+            break
+        if not in_section or not line or line.startswith(("#", ";")):
+            continue
+        match = re.match(r'^([^=]+?)\s*=\s*"?(.*?)"?\s*$', line)
+        if match:
+            mapping[match.group(1).strip().strip('"')] = match.group(2).strip()
+    return mapping
 
-    仅替换该段；段外内容逐字节保留；`[project_scan]` 等其它段不受影响。
+
+def _merge_manual_entries(
+    root: Path, entries: list[tuple[str, str]], existing: dict[str, str]
+) -> list[tuple[str, str]]:
+    """保留仍指向真实路径的手写条目；已失效的旧条目自然淘汰。"""
+    discovered_names = {name for name, _ in entries}
+    discovered_paths = {path for _, path in entries}
+    merged = list(entries)
+    for name, path in existing.items():
+        if name in discovered_names or path in discovered_paths:
+            continue
+        if (root / path).exists() or (root / f"{path}.tex").exists():
+            merged.append((name, path))
+    return sorted(merged, key=lambda item: item[0])
+
+
+def write_subprojects_to_rc(rc_path: Path, entries: list[tuple[str, str]]) -> bool:
+    """更新根 .pytexmkrc 的 [subprojects] 段。
+
+    自动发现的条目会覆盖同名旧项；**仍指向真实路径的手写条目会保留**，
+    避免 ``-ls`` 把用户手工维护的别名静默清掉。段外内容逐字节保留。
     rc 不存在时返回 False（不写盘）。
     """
     if not rc_path.exists():
         return False
+    entries = _merge_manual_entries(rc_path.parent, entries, _existing_subprojects(rc_path))
     lines = rc_path.read_text(encoding="utf-8").splitlines(keepends=True)
     block = _build_block(entries)
 

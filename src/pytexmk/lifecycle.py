@@ -12,6 +12,9 @@ EXIT_ERROR = 1                       # 一般性错误：参数/路径/主文件
 EXIT_PROJECT_NOT_FOUND = 3           # -s 子项目别名未命中
 EXIT_CONFIG_ERROR = 4                # 配置文件解析失败
 EXIT_COMPILE_FAILED = 5              # LaTeX/Bib/Index 子进程编译失败
+EXIT_WARNING_POLICY = 6              # --fail-on warning 命中警告阈值
+EXIT_SYNCTEX_CHECK = 7               # --synctex-check 双向定位校验失败
+EXIT_PACK_VERIFY = 8                 # 投稿包 pdflatex 验证失败
 
 # 退出码 → 简短原因说明（国际化，仅当 exit_code != EXIT_OK 时打印）
 _EXIT_REASONS: dict[int, str] = {
@@ -19,6 +22,9 @@ _EXIT_REASONS: dict[int, str] = {
     EXIT_PROJECT_NOT_FOUND: _("未找到指定的子项目，已退出"),
     EXIT_CONFIG_ERROR: _("配置文件错误，已退出"),
     EXIT_COMPILE_FAILED: _("编译失败，已退出"),
+    EXIT_WARNING_POLICY: _("警告数量超过 --fail-on 阈值，已退出"),
+    EXIT_SYNCTEX_CHECK: _("SyncTeX 双向定位校验失败，已退出"),
+    EXIT_PACK_VERIFY: _("投稿包 pdflatex 验证失败，已退出"),
 }
 
 
