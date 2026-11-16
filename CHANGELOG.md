@@ -28,6 +28,13 @@
 
 # CHANGELOG
 
+## v1.2.17 - 2026-11-16
+
+### Smoke test 的 SIGPIPE 修复
+
+- Rocky Linux 8 的 smoke test 同样使用 `ldd --version | head -n 1`，在 `pipefail` 下返回 141，导致 Linux 二进制明明已构建成功、smoke 却失败，GitHub Release 被跳过。
+- 改为 `ldd --version 2>&1 | awk 'NR==1'`，读取完整输出后再取首行。
+
 ## v1.2.16 - 2026-11-16
 
 ### Linux 二进制改用带共享库的 managed CPython

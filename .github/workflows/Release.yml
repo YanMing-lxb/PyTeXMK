@@ -197,7 +197,7 @@ jobs:
           cd /tmp/artifact
           unzip -q pytexmk-*.zip -d extracted
           echo "--- runtime glibc ---"
-          ldd --version | head -n 1
+          ldd --version 2>&1 | awk 'NR==1'
           ./extracted/pytexmk/pytexmk --version
 
   # ---------------------------------------------------------------------------
