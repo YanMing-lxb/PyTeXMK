@@ -28,6 +28,13 @@
 
 # CHANGELOG
 
+## v1.2.14 - 2026-11-16
+
+### 容器内 PyInstaller 显式安装与失败尾行
+
+- Release 在 `uv sync --locked --dev` 后增加 `uv pip install 'pyinstaller>=6.22.3'`，把 PyInstaller 明确装进 manylinux 的 `.venv`，不再依赖 dev 组在容器内的解析/安装结果。
+- `run_command` 的 Actions 错误注释改为只输出退出码与最近输出尾行，避免长命令列表把真正的 PyInstaller 报错挤出注释。
+
 ## v1.2.13 - 2026-11-16
 
 ### CI 打包失败可观测与命令回退

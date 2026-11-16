@@ -325,7 +325,10 @@ def run_command(
         if detail:
             message += f"\n最近输出: {detail}"
         if os.environ.get("GITHUB_ACTIONS") == "true":
-            console.print(f"::error::{error_msg}: {e}; {detail}", markup=False)
+            console.print(
+                f"::error::{error_msg}: exit={e.returncode}; {detail or '<no output>'}",
+                markup=False,
+            )
         console.print(message, style="error", markup=False)
         return False
 

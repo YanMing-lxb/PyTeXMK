@@ -102,6 +102,11 @@ jobs:
           UV_PYTHON: /opt/python/cp315-cp315/bin/python
         run: uv sync --locked --dev
 
+      # 显式确保 PyInstaller 进入项目环境；不依赖 dev 组在容器内的解析结果。
+      - name: Ensure PyInstaller
+        shell: bash
+        run: uv pip install 'pyinstaller>=6.22.3'
+
       # 唯一的 Linux 二进制编译入口：PyInstaller onedir 模式 → dist/pytexmk/。
       - name: Pack binary (onedir, source mode)
         shell: bash
