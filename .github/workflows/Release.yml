@@ -348,13 +348,29 @@ jobs:
           path: dist/
 
   # ---------------------------------------------------------------------------
+  # JOB: release-gate —— 所有可失败的构建/冒烟检查通过后，才允许发布
+  # PyPI 与 GitHub Release 都必须依赖它；任何一个二进制或 glibc smoke 失败，
+  # 都不会产生新的 PyPI 版本，避免“CI 修一次、PyPI 多一个版本”。
+  # ---------------------------------------------------------------------------
+  release-gate:
+    name: Release gate
+    if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
+    needs: [build-package, build-binary, build-binary-linux, smoke-linux-artifact]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm all release artifacts passed
+        run: |
+          echo "package / windows / macos / linux / glibc-2.28 smoke all passed"
+          echo "publishing is allowed"
+
+  # ---------------------------------------------------------------------------
   # JOB: publish-to-pypi —— 发布到 PyPI
-  # 仅在打 tag 且非 dry_run 时运行；用 Trusted Publishing（id-token）免 token。
+  # 仅在 release-gate 通过后运行；用 Trusted Publishing（id-token）免 token。
   # ---------------------------------------------------------------------------
   publish-to-pypi:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
-    needs: build-package
+    needs: release-gate
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -382,7 +398,7 @@ jobs:
   publish-to-github-release:
     name: Publish to GitHub Release
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
-    needs: [build-binary, build-binary-linux, smoke-linux-artifact, build-package]
+    needs: release-gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
