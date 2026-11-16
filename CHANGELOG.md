@@ -28,6 +28,14 @@
 
 # CHANGELOG
 
+## v1.2.13 - 2026-11-16
+
+### CI 打包失败可观测与命令回退
+
+- Release 的 `Pack binary` 回退为项目环境内的 `uv run python tools/pack.py pack`；上一版额外叠加 `--with pyinstaller` 会在容器内重新解析并安装依赖，反而引入网络/临时环境变量。
+- `tools/utils.py` 的 `run_command` 在 GitHub Actions 中失败时输出 `::error::` 注释，并附带最近 8 行命令输出；无需登录 GitHub 即可在 job 注释中看到 PyInstaller 的真实错误行。
+- 本地 `uv run python tools/pack.py pack` 在 Windows 与 WSL/Linux 均已成功（Linux 产物约 6.95 MB）。
+
 ## v1.2.12 - 2026-11-16
 
 ### Linux Release 诊断步骤修复

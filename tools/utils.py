@@ -250,6 +250,7 @@ def run_command(
         if timeout is not None:
             deadline = time.monotonic() + timeout
 
+        recent_lines: list[str] = []
         timed_out = False
         with console.status(f"[status]正在{process_name}..."):
             while True:
@@ -269,6 +270,9 @@ def run_command(
                     break
                 if line:
                     console.print(f"[dim]{line.strip()}[/]")
+                    recent_lines.append(line.strip())
+                    if len(recent_lines) > 20:
+                        recent_lines.pop(0)
 
         if timed_out:
             try:
@@ -314,7 +318,15 @@ def run_command(
         )
 
     except subprocess.CalledProcessError as e:
-        console.print(f"✗ {error_msg}: {e}", style="error")
+        detail = " | ".join(recent_lines[-8:])
+        if len(detail) > 1200:
+            detail = detail[-1200:]
+        message = f"✗ {error_msg}: {e}"
+        if detail:
+            message += f"\n最近输出: {detail}"
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            console.print(f"::error::{error_msg}: {e}; {detail}", markup=False)
+        console.print(message, style="error", markup=False)
         return False
 
 
