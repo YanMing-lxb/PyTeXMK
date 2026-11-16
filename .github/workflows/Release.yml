@@ -365,12 +365,13 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # JOB: publish-to-pypi —— 发布到 PyPI
-  # 仅在 release-gate 通过后运行；用 Trusted Publishing（id-token）免 token。
+  # 在 release-gate 与 GitHub Release 都成功后再运行；先确保三平台二进制和
+  # Release 资产已经可见，最后才把不可覆盖的 PyPI 版本号发出去。
   # ---------------------------------------------------------------------------
   publish-to-pypi:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags/') && !inputs.dry_run
-    needs: release-gate
+    needs: [release-gate, publish-to-github-release]
     runs-on: ubuntu-latest
     environment:
       name: pypi
