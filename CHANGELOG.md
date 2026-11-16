@@ -28,6 +28,14 @@
 
 # CHANGELOG
 
+## v1.2.11 - 2026-11-16
+
+### CI 打包诊断与依赖显式化
+
+- **Linux 打包命令**：Release 工作流改为 `uv run --with 'pyinstaller>=6.22.3'`，不依赖开发依赖组是否已进入运行环境；解决 manylinux 容器中 `python -m PyInstaller` 找不到模块时快速失败、但普通日志不可见的问题。
+- **失败可观测**：`tools/pack.py` 未捕获异常时额外输出 GitHub Actions `::error::` 注释，未登录也能在 job 注释里看到异常类型与消息，不再只看到 `Process completed with exit code 1`。
+- 本版本仅用于验证并补齐 GitHub Release 的三平台二进制；PyPI `1.2.10` 已发布。
+
 ## v1.2.10 - 2026-11-16
 
 ### 发布工具链修复

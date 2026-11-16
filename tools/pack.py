@@ -188,6 +188,7 @@ def main():
     except BaseException as e:
         if isinstance(e, SystemExit):
             raise
+        console.print(f"::error::pack failed: {type(e).__name__}: {e}", style="error")
         console.print("\n💥 发生未知异常！", style="error")
         console.print(f"异常类型: {type(e).__name__}", style="error")
         console.print(f"异常内容: {e!s}", style="error")
