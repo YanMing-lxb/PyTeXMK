@@ -28,6 +28,14 @@
 
 # CHANGELOG
 
+## v1.2.12 - 2026-11-16
+
+### Linux Release 诊断步骤修复
+
+- **真实根因**：manylinux 容器的 `Show versions for diagnostics` 使用 `ldd --version | head -n 1`，在 GitHub Actions 的 `bash -e -o pipefail` 下被 `head` 提前关闭管道触发 SIGPIPE，步骤返回 141，后续 `Pack binary` 全部被跳过。改为 `awk 'NR==1'`（读取完整输入，不再产生 SIGPIPE）。
+- `gcc -dumpfullversion -dumpversion` 增加 `|| true`，避免诊断命令本身成为发布门禁。
+- 保留 `uv run --with 'pyinstaller>=6.22.3'` 与 `::error::` 注释，作为后续 CI 打包的可观测性保障。
+
 ## v1.2.11 - 2026-11-16
 
 ### CI 打包诊断与依赖显式化

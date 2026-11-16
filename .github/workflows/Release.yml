@@ -87,13 +87,13 @@ jobs:
         shell: bash
         run: |
           echo "--- glibc ---"
-          ldd --version | head -n 1
+          ldd --version 2>&1 | awk 'NR==1'
           echo "--- Python ---"
           python --version
           echo "--- uv ---"
           uv --version
           echo "--- gcc ---"
-          gcc -dumpfullversion -dumpversion
+          gcc -dumpfullversion -dumpversion 2>&1 || true
 
       # --dev：编译二进制需要完整的运行/构建/开发依赖树。
       - name: Install dependencies
