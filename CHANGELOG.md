@@ -28,6 +28,14 @@
 
 # CHANGELOG
 
+## v1.2.16 - 2026-11-16
+
+### Linux 二进制改用带共享库的 managed CPython
+
+- **根因**：manylinux_2_28 镜像自带的 `/opt/python/cp315-cp315` 是静态构建，PyInstaller 报 `Python was built without a shared library`，导致 `Pack binary` 直接退出。
+- **修复**：容器内先 `uv python install 3.15`，再以 `UV_PYTHON=3.15` 执行 `uv sync`，使用 uv 管理的带 `libpython.so` 的 CPython 3.15；镜像自带的静态 Python 只用于安装 uv。
+- glibc 水位仍由 `check_glibc.py` 对产物做硬门禁，不因更换解释器而放松。
+
 ## v1.2.15 - 2026-11-16
 
 ### CI 失败尾行逐行注释
