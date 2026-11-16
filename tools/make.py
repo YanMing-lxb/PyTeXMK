@@ -73,25 +73,68 @@ def upload():
     version = _get_version()
     tag_name = f"v{version}"
 
-    # 创建标签
-    run_command(
-        command=["git", "tag", tag_name],
-        success_msg=f"标签 {tag_name} 创建成功",
-        error_msg=f"标签 {tag_name} 创建失败",
-        process_name="创建标签",
+    # 创建标签；已存在且指向当前 HEAD 时视为可重试的成功（例如上次推送中断）。
+    existing = subprocess.run(
+        ["git", "tag", "-l", tag_name],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
     )
-    console.log(f"创建标签: {tag_name}")
+    if existing.returncode != 0:
+        console.print(f"✗ 检查标签 {tag_name} 失败: {existing.stderr.strip()}", style="error")
+        sys.exit(1)
+
+    if existing.stdout.strip():
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        tag_sha = subprocess.run(
+            ["git", "rev-list", "-n", "1", tag_name],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        if (
+            head.returncode != 0
+            or tag_sha.returncode != 0
+            or head.stdout.strip() != tag_sha.stdout.strip()
+        ):
+            console.print(
+                f"✗ 标签 {tag_name} 已存在且不指向当前 HEAD，拒绝覆盖；"
+                f"请先确认版本号或手动处理旧标签",
+                style="error",
+            )
+            sys.exit(1)
+        console.print(f"ℹ️ 标签 {tag_name} 已存在并指向当前 HEAD，跳过创建", style="info")
+    else:
+        created = run_command(
+            command=["git", "tag", tag_name],
+            success_msg=f"标签 {tag_name} 创建成功",
+            error_msg=f"标签 {tag_name} 创建失败",
+            process_name="创建标签",
+        )
+        if not created:
+            console.print(f"✗ 标签 {tag_name} 创建失败，已停止发布", style="error")
+            sys.exit(1)
 
     # 推送标签
-    run_command(
+    pushed = run_command(
         command=["git", "push", "origin", tag_name],
         success_msg=f"标签 {tag_name} 推送成功",
         error_msg=f"标签 {tag_name} 推送失败",
         process_name="推送标签",
     )
-    console.log(f"推送标签: {tag_name}")
+    if not pushed:
+        console.print(f"✗ 标签 {tag_name} 推送失败，已停止发布", style="error")
+        sys.exit(1)
 
-    console.log("成功上传标签和推送到远程仓库，发布到 github")
+    console.log(f"已上传标签并推送到远程仓库，发布到 GitHub: {tag_name}")
 
 
 def html():

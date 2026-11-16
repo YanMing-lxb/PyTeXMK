@@ -48,7 +48,9 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
         console.print(f"⚠️ 配置目录不存在: {config_dir}", style="warning")
 
     args = [
-        "pyinstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
         "--noconfirm",
         "--clean",
         "--name", PROJECT_NAME,

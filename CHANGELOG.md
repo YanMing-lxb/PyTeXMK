@@ -28,6 +28,14 @@
 
 # CHANGELOG
 
+## v1.2.10 - 2026-11-16
+
+### 发布工具链修复
+
+- **Linux 二进制打包**：`tools/pack.py` 改为 `sys.executable -m PyInstaller` 调用，不再依赖 PATH 中的 `pyinstaller` 可执行脚本；避免 manylinux 容器里 `uv run` 环境下入口脚本不可见时，`Pack binary (onedir, source mode)` 在启动阶段直接失败。
+- **`make upload` 返回值校验**：`git tag` / `git push` 失败时立即停止并返回非零退出码，不再打印“成功上传标签”的假成功日志；标签已存在且指向当前 HEAD 时视为可重试成功，指向其他提交时拒绝覆盖。
+- 本版本是 `1.2.9` 的发布工具链补丁；`1.2.9` 的 PyPI 发行已成功，补发 `1.2.10` 以补齐 GitHub Release 的三平台二进制资产。
+
 ## v1.2.9 - 2026-11-16
 
 ### PyTeXLogs 0.5.0 接入与诊断增强
