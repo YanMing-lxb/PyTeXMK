@@ -124,7 +124,7 @@ def test_draft_restore_keeps_concurrent_edits(tmp_path, monkeypatch):
 # ------------------------------------------------------------ P0-6 --style
 
 
-def test_latexdiff_command_has_no_illegal_style_flag(tmp_path):
+def test_latexdiff_command_has_no_illegal_style_flag(tmp_path, monkeypatch):
     class _MSP:
         def __init__(self) -> None:
             self.commands: list[list[str]] = []
@@ -137,9 +137,13 @@ def test_latexdiff_command_has_no_illegal_style_flag(tmp_path):
             if target:
                 Path(target).write_text("% diff\n", encoding="utf-8")
 
+    # 输出路径是相对 cwd 的 "diff.tex"：必须在临时目录里跑，否则会把
+    # 差异稿写进仓库根目录（此前确实漏下过 diff.tex）。
+    monkeypatch.chdir(tmp_path)
     lda = LaTeXDiff_Aux(str(tmp_path), [".pdf"], [".aux"], str(tmp_path))
     lda.MSP = _MSP()
     lda.compile_LaTeXDiff("old", "new", "diff", ".tex")
     command = lda.MSP.commands[0]
     assert command[:2] == ["latexdiff", "old.tex"]
     assert not any(token.startswith("--style") for token in command)
+    assert (tmp_path / "diff.tex").read_text(encoding="utf-8") == "% diff\n"
