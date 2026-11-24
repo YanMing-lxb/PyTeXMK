@@ -75,7 +75,6 @@ def pack_app(entry_point: Path, data_dir: Path, config_dir: Path, locale_dir: Pa
 
     args.extend([
         "--hidden-import=tomllib",
-        "--hidden-import=tomli_w",
         f"--paths={ROOT_DIR!s}",
         str(entry_point.resolve()),
     ])

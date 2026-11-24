@@ -24,7 +24,6 @@ Description  :
 """
 
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -137,45 +136,10 @@ def upload():
     console.log(f"已上传标签并推送到远程仓库，发布到 GitHub: {tag_name}")
 
 
-def html():
-    target_dir = Path("src/pytexmk/data")
-
-    readmes: list[tuple[str, str]] = [
-        ("README.md", "README.html"),      # 中文 → README.html
-        ("README.en.md", "README.en.html"), # 英文 → README.en.html
-    ]
-
-    if not target_dir.exists():
-        target_dir.mkdir(parents=True)
-        console.log(f"已创建目录: {target_dir}")
-
-    for src_name, dst_name in readmes:
-        src_md = Path(src_name)
-        dst_html = Path(dst_name)
-
-        if not src_md.exists():
-            console.log(f"⚠️  源文件 {src_md} 不存在，跳过")
-            continue
-
-        run_command(
-            command=["pandoc", str(src_md), "-o", str(dst_html)],
-            success_msg=f"{dst_name} 生成成功",
-            error_msg=f"{dst_name} 生成失败",
-            process_name=f"生成 {dst_name}",
-        )
-
-        target_path = target_dir / dst_name
-        if target_path.exists():
-            target_path.unlink()  # 移除旧文件（shutil.move 不覆盖）
-        shutil.move(str(dst_html), str(target_path))
-        console.log(f"✅ 已移动到 {target_path}")
-
-
 def main():
     targets = {
         "upload": upload,
         "inswhl": inswhl,
-        "html": html,
     }
 
     if len(sys.argv) < 2 or sys.argv[1] not in targets:

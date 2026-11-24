@@ -327,7 +327,6 @@ def mo() -> None:
                 str(SRC_LOCALE_DIR),
                 "--locale",
                 locale_code,
-                "--use-fuzzy",
                 "--statistics",
             ]
             run_command(
