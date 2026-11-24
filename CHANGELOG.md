@@ -28,532 +28,81 @@
 
 # CHANGELOG
 
-## 未发布 - 2026-11-24 投稿包默认值与计时口径修正
+## v1.2.18 - 2026-11-24
 
-> 依据 2026-11-24 运行时长核查结论与获批改造清单。基线 426 passed，
-> 改动后 **427 passed**（删除两条 `--pack-verify` 用例、合并一条 `.bib/.bbl`
-> 用例，新增计时口径用例）。本轮未提交、未打 tag。
+> 合并 2026-11-18 至 11-24 的未发布改动。重点：编译可靠性、诊断可读性、CLI 收口。
 
-### 破坏性变更
+### ⚠️ 升级前必读
 
-- 📦 **`-sp` 默认带全部 `.bib`、不带 `.bbl`**：`[submission] include_bbl` 默认
-  改为 `false`；期刊明确要求预编译 `.bbl` 时再打开。删除 `--include-bib`
-  （`.bib` 现在始终打包），包内说明文件的检查清单会按是否附 `.bbl` 给出不同提示。
-- 🧪 **删除 `--pack-verify`**：不再在临时目录试编译，退出码 `8` 一并退役且不复用；
-  `9`（报告导出失败）保持不变。需要验证时解压投稿包自行运行
-  `pdflatex -interaction=nonstopmode -halt-on-error <主文件>.tex`。
-
-### 修复
-
-- 🚩 **`-dr/--draft` 失效**：`RUN` 与 `LaTeXDiffRUN` 把 `not draft` 当成第二个
-  开关传入，`-dr` 反而走「关闭草稿」分支，draft 既没加到 `\documentclass` 上、
-  也不写跨进程标记。现把 `draft_model` 收成单一 `enabled` 开关（`False` 只做
-  崩溃标记自愈），调用点改用关键字参数，`RUN`/`LaTeXDiffRUN`/`CompileLaTeX`
-  的相邻布尔实参同样改为关键字，避免位置错位；补 RUN 级回归用例
-  （编译期间必须有 draft、结束后必须摘除）。
-- ⏱️ **BibTeX 两轮只显示一轮**：`runtime_dict["bib_<engine>"]` 原先被后一轮覆盖，
-  表里的 LaTeX 合计少算一整轮，差额全部落进 “Python 时长”。现在合计键累加，并写
-  `bib_bibtex_1/2`、`index_makeindex_1` 明细键供调用次数统计；同一缺陷也覆盖
-  `index_*` 与 `bib2gls`。
-- 📊 **统计口径**：`Python 运行时长` → `Python 侧（未细分）`；`运行 LaTeX 程序数目`
-  → `外部工具调用 N 次（pdflatex×3、bibtex×2、makeindex×1）`；总时长改用
-  `WorkflowState.start_perf` 的 `perf_counter` 差值，墙钟只用于展示。
-- 🔁 **第 2..N 轮检测补计时**：`prepare_LaTeX_output_files` / `prepare_aux_out_snapshots`
-  / `run_full_detection` 每轮都并入 `detect_aux` / `detect_state`，不再“首轮计时、后续免费”。
-- 💬 **摘要提示**：`pytexlogs>=0.6.4`，调用 `print_summary(hint_style="brief",
-  show_footer=False)` 并把库的 `format_footer` 译后作为整段摘要最后一行；删除
-  PyTeXMK 自己拼的「N 个警告、M 个错误；可运行 pytexmk -r」。旧版 0.6.3 仍可运行
-  （运行时探测 `format_footer`，仅展示退化，不影响解析）。
-
-### 测试流程
-
-- 🧪 **测试分层**：`tests/` 从平铺拆为 `unit/`（36）、`cli/`（8）、`integration/`（5）、
-  `regressions/`（6）；`pyproject.toml` 声明 4 个 marker，`conftest.py` 按父目录自动打标，
-  `-m unit` / `-m integration` 可直接选层。
-- 🧭 **共享 fixture**：新增 `repo_root` 与 `run_cli`；修复 3 处 `parents[1]` 路径错误，
-  其中 2 处此前因 editable 安装指向 site-packages 而"假通过"。
-- 🎯 **补盲**：新增 CLI 旗标契约、真实 CLI 冒烟、构建指纹维度、搬移回滚、
-  biber/bib2gls quiet、首轮 `tools_pending`、`stage_bib` 去重、`ui_messages`；
-  另补 `paths` / `lifecycle` / `tex_source` / `ui_theme` / `cli_early` / `cli_workflow`
-  的直测（此前只有间接路径）。为可测性把构建参数字典与首轮判定抽成
-  `_build_options()` / `_first_round_stop_reason()`（行为不变）。
-- 🏷️ **命名统一**：文件名改为 `test_<被测对象>_<方面>.py`，回归层为
-  `test_<YYYY_MM_DD>_<主题>.py`，去掉 `fixes/improvements/deep` 等无信息词；
-  合并 `test_cli_report_alias.py` 并删 2 条重复用例，跨层同名 basename 已消除。
-- 📚 **索引**：新增 `docs/测试索引与修改指南.md`（55 个文件逐项索引 + 功能变动
-  增删改查流程 + 旧名对照），`tests/README.md` 同步命名规则。
-- 📈 **结果**：19 条定向变异初测 9 条存活，补测后全部杀死；全量 **605 passed**。
-- 📄 审计明细见 `docs/2026-11-24-测试审计与整理.md`。
-
-### 依赖
-
-- 📦 **`pytexlogs>=0.6.4` 已发布到 PyPI**：`uv.lock` 由 0.6.3 同步到 0.6.4
-  （`uv sync --locked` 落地、`uv lock --check` 通过），`pytest -q` 427 passed；
-  依赖下限与 `diagnostics.py` 的 0.6.3 探测保持现状（探测只影响展示）。
-
-## 未发布 - 2026-11-23 CLI 精简与清理语义恢复（第七轮）
-
-> 依据 `docs/2026-11-23-CLI精简与清理语义恢复计划.md`；基线 447 passed，
-> 本轮删除已移除能力的旧测试并新增报告/清理矩阵用例后为 **426 passed**。
-> 本轮未提交、未打 tag。
-
-### 破坏性变更
-
-- 🧹 **删除 20+ 个参数/开关（含 14 个长选项）**：`--json`、`--doctor`、`--completion`、`--validate-config`、
-  `--pdflatex-check`、`--synctex-check`、`--report [PATH]`、`--fail-on`、`-q/--quiet`、
-  `-f/--force`、`-io/--includeonly`、`--sync-subprojects`、`--clean-dry-run`、
-  `--native/--no-native`、`--shell-escape/--no-shell-escape`、`--synctex/--no-synctex`、
-  `--max-runs`、`--jobname`、`--submit-dir`、`--keep-preamble`、`--no-preflight`。
-  这些参数现在按未知参数退出 `2`。
-- 🧾 **`-r` 语义恢复**：只读最近一次编译日志，生成
-  `Auxiliary/<主文件>.pytexmk-report.json` 与同名 `.md`，不再触发编译，也不在编译
-  结束时自动写报告；缺日志退出 `1`，Markdown 导出失败退出 `9`。
-- 📝 **人读报告改为 Markdown**：顶部元信息表 + 分级概览表 + 按等级分节；
-  每条给出 `file:line`、日志正文、建议和可执行命令，JSON 仍保留为机器可读数据。
-- 🧩 **构建/投稿开关下沉配置**：`[build]` 的 native/shell_escape/synctex/
-  max_extra_compilations 与新增 `[submission] output_dir/keep_preamble`、
-  `[preflight] enabled` 成为唯一入口。
-- 🗂️ **`-ls` 直接写回**：列出并更新根配置 `[subprojects]`；根配置缺失时先用
-  内置模板自动创建，再写入清单。
-- 🔁 **`-i/-iu` 默认覆盖**：删除 `-f` 后重复执行会直接覆盖已有配置；普通运行与
-  `-r` 不会自动创建配置文件。
-
-### 修复
-
-- **终端日志折行对齐**：`ERROR` / `WARNING` 等长消息最多按 100 列折行（窄终端
-  跟随终端宽度），续行缩进 9 个空格与正文首列对齐，行尾不再补空格。
-- **`-ls` 根配置缺失不再空操作**：恢复先用内置模板创建 `.pytexmkrc`、再写入
-  `[subprojects]` 的行为；创建失败以配置错误 `4` 退出，不吞掉扫描结果。
-- **清理恢复 2×2 矩阵**：`-c` 只清辅助目录；`-C` 再加根目录并删输出；`-ca` 递归
-  全项目辅助文件；`-Ca` 递归并在能确定主文件时删输出。`-c/-C` 没有唯一主文件时
-  按原设计退出 `1`；`-ca/-Ca` 不再因多个候选主文件提前退出。
-- **移除“作者文件”保护清单**：`.bbl`、`.xdv`、`.xdy` 按后缀一并清理，
-  `RECURSIVE_CLEAN_JOBNAME_ONLY_SUFFIXES` 与干跑分支删除。
-- **编译结束只在有警告/错误时提示报告**：追加一行
-  `可运行 pytexmk -r 生成完整报告`，不再写 JSON、不再执行 `--fail-on`。
-- **`machine_report` 与 `cli_doctor` / `cli_completion` 删除**：stdout 不再切换，
-  `KeyboardInterrupt` 直接以 `130` 退出。
-
-### 回归
-
-- `ruff check --config pyproject.toml src tests`：All checks passed。
-- `python -m compileall -q src\pytexmk`：通过。
-- `python -m pytest -q tests`：**426 passed**。
-- 真机（MiKTeX，XeLaTeX）：`pytexmk -x` 编译成功、终端显示 `2 警告` 并提示 `-r`，
-  `Auxiliary/` 中没有报告文件；随后 `pytexmk -r` 生成 JSON 与 Markdown，Markdown
-  含 `main.tex:3`、建议与可执行命令。
-
-## 未发布 - 2026-11-23 清理规则修正（第六轮）
-
-> 依据 `docs/2026-11-23-改进实施记录-第六轮.md`；基线 445 passed，本轮结束 447 passed。
-> 本轮仍未提交、未打 tag。
-
-### 修复
-
-- 🧹 **四个清理入口统一**：`-c/-C/-ca/-Ca` 都递归清理所有辅助文件；`-c/-C` 不再要求
-  唯一主文件，`-ca/-Ca` 保留为旧名。`-C/-Ca` 额外删除 PDF/SyncTeX 输出。
-- **不再保留 `.bbl`**：主文件不唯一时，`.bbl` 不再按“可能属于作者”保留；需要留档时
-  应提交到版本库或另存。
-- `.xdv` 属于通用辅助后缀；主文件不唯一时同样会被清理。
-- `.xdy`、`.bak`、`.ltx` 等仍按主干与 jobname 判断归属，避免误删作者手写的样式/
-  备份；帮助页与 README 不再在选项说明里列举 `.bbl/.xdv`。
-
-## 未发布 - 2026-11-23 帮助与参数错误收口（第五轮）
-
-> 依据 `docs/2026-11-23-改进实施记录-第五轮.md`；基线 443 passed，本轮结束 445 passed。
-> 本轮仍未提交、未打 tag。
-
-### 改进
-
-- 🧾 **argparse 错误也走 JSON**：`--json` 下的未知参数、互斥参数等解析错误，
-  stdout 现在给出 `action=argument-error` 的统一载荷（含 `message`/`usage`/
-  `exit_code=2`），usage 与人类可读错误仍写 stderr。
-- 🖥️ **帮助页固定宽度**：`-h` 固定 96 列，不随超宽终端拉伸；选项左栏统一对齐。
-- 🧹 **移除退出码表**：帮助页不再要求用户记 0–8 的退出码，改为“出错时直接说明
-  原因与下一步”；`--fail-on` 等选项也不再以退出码作为说明。
-- 📝 **魔法注释说明校正**：明确“只扫描每个主文件的前 50 行”，并列出可设置的
-  编译引擎、根文件、输出目录、辅助目录；英文翻译同步更新。
-- ✂️ 精简大量冗长帮助文案（预览、PDF 修复、清理、子项目等），减少半行断词。
-
-## 未发布 - 2026-11-23 持续优化（第四轮）
-
-> 依据 `docs/2026-11-23-改进实施记录-第四轮.md`；基线 438 passed，本轮结束 443 passed。
-> 本轮仍未提交、未打 tag。
-
-### 改进
-
-- 📄 **压平覆盖 import 宏包**：`\import` / `\subimport` / `\inputfrom` /
-  `\includefrom` / `\subinputfrom` / `\subincludefrom` 按宏包语义展开；
-  `\subfile`、`\inputsection` 等语义不同或自定义的命令保持原样。目标缺失时
-  保留原命令，不静默吞掉正文。
-- 📦 **早退出 JSON 载荷**：`--completion --json` 把补全脚本放进 `script`，
-  `--show-config --json` 带合并后的 `config` 与来源路径，`-ls` /
-  `--sync-subprojects` 带 `subprojects` 条目，不再只剩 action/count。
-- 📝 修复 playbook 中已不存在的 `docs/python315-api-audit.md` 引用，并在第二轮
-  记录中标注 JSON 信封的后续状态。
-
-## 未发布 - 2026-11-23 复审修复（第三轮）
-
-> 依据 `docs/2026-11-23-改进实施记录-第三轮.md`；基线 421 passed，本轮结束 438 passed。
-> 本轮未修改任何用户文件，也未提交、未打 tag。
-
-### 修复
-
-- 🧹 **递归清理收口**：`.xml` / `.tmp` 移出 `AUX_SUFFIXES`，`-ca/-Ca` 不再删除
-  `data/records.xml`、`notes.tmp`；`.run.xml` 仍按 biber 产物保留。`-ca` 不再要求
-  先唯一确定主文件，多主文件/无主文件时只清理通用后缀并保护 `.bbl/.xdy` 等。
-- 🧩 **LaTeXDiff 压平边界**：只展开 LaTeX 内建 `\input`/`\include`，命令名后要求边界；
-  `\inputsection` 等自定义宏、行内/整行注释、`verbatim`/`Verbatim`/`lstlisting`/`minted`
-  与 `\verb` 内容保持原样。差异编译同样消费 `--native/--no-synctex/--pass-arg/--max-runs`。
-- 🛡️ **配置校验进入编译路径**：普通编译在读取配置段前统一校验，`build = "oops"` 这类
-  段类型错误以退出码 4 结束，不再抛 `AttributeError` traceback；`scrollmode` 恢复为合法取值。
-- 📊 **JSON 真实性**：`-c/-C --json` 的 `cleaned` 改为真实删除成功的路径并附 `failed`；
-  `--show-config/-ls/-i/--validate-config` 等早退出动作不再写 `action: unknown`；
-  `--watch --json` 只在退出时写一条 JSON，`-A --watch` 不再阻塞在第一个子项目。
-- 🔎 **扫描降噪**：preflight 与投稿兼容性扫描跳过注释/verbatim 中的 `\input` 与
-  `\usepackage`；`tool-pending` 停止原因有独立结论文案。
-- 📝 **文档与仓库状态**：模板中 `quiet_mode` 说明与代码/README 对齐；恢复并标注
-  `docs/python315-migration.md`；架构文档补当前文件数与 `__init__.py` 真实导出；
-  删除 `check_version` 的孤立 `.po/.mo/.pot`；移除失效的 `make all/rst` 目标。
-
-## 未发布 - 2026-11-23 功能审查修复（第二轮）
-
-> 依据 `docs/2026-11-23-功能审查与改进方案.md` 的可复现缺陷逐项修复；
-> 完整清单、未做项与验证见 `docs/2026-11-23-改进实施记录.md`。
-
-### 修复
-
-- 🧹 **递归清理不再误删源文件**：`.aux`/`.synctex.gz` 正则加 `$` 锚点；
-  `.bbl/.bak/.userbak/.xdy/.ist/.ltx` 在无构建记录时只删 jobname 同名文件，
-  `author.xdy` 保留并提示；干跑、执行、JSON 共用同一清单；删除失败进入 `failed`。
-- 🛡️ **产物与诊断门禁**：日志缺失/为空/解析失败时 `diagnostics_status.available=false`，
-  `--fail-on/--report` 以 `5` 退出；缓存命中要求日志摘要与产物摘要（PDF+SyncTeX）
-  同时匹配；旧 PDF、损坏/零页 PDF、搬移失败不再算成功；`auxdir="."` 不再自毁 `.ind`。
-- ⏱️ **停止原因可区分**：`--max-runs` 用尽记 `limit`，外部工具产物未被消费记
-  `tool-pending`；`converged` 只在真正稳定时为 `true`。
-- 🔎 **预检与依赖**：嵌套 `\input`/图片按 TeX 工作目录解析，报真实行号；
-  `.bib/.bst/.ist/.xdy` 从 aux/bcf 解析后进入依赖快照，改参考文献必触发重编。
-- 🖼️ **预检图片路径**：`\input` 子文件继承主文件声明的 `\graphicspath`，
-  子文件自身声明与继承目录宽松合并而非覆盖；修复图片实际存在却报“图片不存在”。
-  `\graphicspath{{Pictures/},}` 这类逗号分隔、末项为空的写法也能解析。
-- 🧾 **配置校验**：TOML 语法错误不再"校验通过"；`[subprojects]` 类型与
-  `glossaries_tool` 枚举校验。
-- 🧬 **LaTeXDiff**：压平改用独立临时目录，保留 `\input` 两侧正文，按递归栈判环；
-  输出原子替换，失败不毁旧文件；`-pr` 支持只检查或显式文件列表，pypdf 兜底保留书签。
-- 🧰 **CLI/批处理**：`-A --json` 只输出一份 JSON 并返回首个失败子项目的退出码；
-  文件型别名优先于配置 `default_file`；watch 每轮回到原始目录并监控图片/bib/配置；
-  SyncTeX 缺坐标不再崩溃；`--no-shell-escape` 在 MiKTeX 下传 `--disable-write18`。
-- 📦 **投稿包**：强制包含主入口 `.tex`，补入项目内全部 `.bib`；原样打包按字节复制，
-  不再把 CRLF 归一成 LF。
-- 🧾 **进度行更干净**：安静模式的静态提示去掉“（安静模式，实时日志请加 -nq）”，
-  只保留 `正在LuaLaTeX…`；`-nq` 仍由 `--help`、配置模板与 20 s 心跳说明。
-- 🧭 **失败摘要改为分组版式**：编译失败时改用 PyTeXLogs 的 `[E]` +
-  `+-- [分类]` 分组渲染（`print_summary`），保留 `↳` 建议与命令；JSON 计数与
-  日志指针不变。
-- 🧭 **成功摘要也用同一套分组版式**：`diagnostics.report_summary()` 不再自写
-  `! file:line` 紧凑列表，改为 `print_summary(max_entries=3, show_hints=True,
-  width=78)`——`==== 警告汇总 ====` 标题、`+-- [分类]` 分组、`↳` 建议与失败摘要
-  完全一致，每条编译的输出不再有两套长相。折叠条数由库按「等级 × 类别」分组
-  给出；总警告超过 3 条时额外补一行可直接执行的
-  `pytexlogs summary <log> --max-entries 0`。`MAX_SUCCESS_WARNINGS` 的语义随之
-  变为“每个分组上限”（库的 `max_entries` 口径），排版提示仍只给一行计数。
-- ✅ **验证**：`ruff` 全绿、`pytest` 419 通过、`compileall` 退出 0，并完成单项目、
-  `--no-native`、批量 JSON、LaTeXDiff 端到端验证。
-
-### 产物与验证契约补齐（同日第三轮）
-
-> 针对上一轮记录里“未实施/报告与现状不一致”之外的剩余 P1/P2 项，逐条以
-> 可复现行为为准修复；未做的架构级项仍留在原报告的后续清单。
-
-- 🧷 **明文 SyncTeX 全链路**：`OUT_SUFFIXES` 增加 `.synctex`，归档、缓存校验、
-  旧 sidecar 清理与 `-ca` 正则同时识别 `.synctex` / `.synctex.gz`。实测
-  `--pass-arg=-synctex=-1` 时 PDF 与明文 sidecar 一起进 `Build/`，JSON
-  `synctex_path` 指向真实文件，`--synctex-check` 正向/反向均通过。
-- 🛠️ **辅助文件自愈不再误删合法 `.bbl`**：花括号配平跳过未转义 `%` 到行尾的
-  TeX 注释；`% template note: { is a brace` 这类模板说明不再被判成截断文件。
-- 📦 **`--pack-verify` 始终验证**：不再依赖 `convert_unicode`；关闭 Unicode
-  转换后仍会在临时目录真跑 pdflatex，结果写进包内说明。显式请求验证但本机
-  没有 pdflatex 时以退出码 `8` 失败，而不是静默给出 `verify_ok=null`。
-- 🗜️ **`reproducible=false` 真的生效**：ZIP 条目改用源文件修改时间（1980–2107
-  范围内、偶数秒）；开启时仍固定 1980-01-01 并按名称排序，两次打包字节一致。
-- 🩺 **`--doctor` 按有效引擎判定**：命令行 `-p/-x/-l` 优先于项目配置的
-  `compiled_program`；只有有效引擎缺失才算关键失败，其余引擎降为环境信息，
-  JSON 增加 `effective_engine`。
-- 🧭 **`--explain` 展示真正会执行的计划**：与编译共用命令行覆盖逻辑
-  （native/synctex/interaction/max-runs/includeonly），局部编译显示
-  `Build/partial`、`Auxiliary/partial`，最终 PDF 绝对路径单独一行输出；
-  `--explain -pv FILE` 不再提前打开阅读器，也不再顺手删除旧 sidecar。
-- ✅ **验证**：`ruff` 全绿、`compileall` 退出 0、`pytest` **399 通过**
-  （新增 11 例）；真实 MiKTeX 验证明文 SyncTeX 归档与 `--synctex-check`、
-  注释型 `.bbl` 保留、`-sp --pack-verify`（`unicode_to_latex=false`）、
-  `-p --doctor --json` 与 `--explain --includeonly`。未提交。
-
-### 两项小范围契约收口（同日第四轮）
-
-> 收掉上一轮记录"未改"清单里的前两项：`-ls` 的只读/写回分工，以及子进程
-> 输出收尾期限与输出频率耦合。
-
-- 📋 **`-ls` 改为只读**：`-ls` / `--list-subprojects` 只扫描并展示清单，不再
-  写回 `.pytexmkrc`，也不会自动创建配置文件；根配置缺失时提示改用显式同步。
-  这是对外契约变化，README、`--help` 与英文翻译同步更新。
-- 🧷 **新增 `--sync-subprojects`**：显式写回 `[subprojects]` 段；保留仍指向
-  真实路径的手写别名、段内注释与原有条目次序，`-A` 不再因为一次同步改变
-  编译顺序；路径没变的条目原样保留整行（`alias = "x"` 不会变成
-  `"alias" = "x"`），新条目按扫描顺序追加。同一路径已被自动发现时不重复
-  保留，避免 `-A` 把同一项目编译两次。
-- ⏱️ **子进程收尾不再被输出频率拖住**：每一轮循环（无论队列有没有新行）都先
-  `process.poll()`，父进程退出即开始计 `_EOF_GRACE_SECONDS`；孙进程持续写
-  stdout 也不能把 2 s 宽限无限推迟。心跳只在进程仍在运行时打印。
-- 🔁 **重定向路径统一有界收尾**：`stdout_path` 分支不再用无界
-  `communicate()`；stderr 走同一个 `_drain_stream`，静默/持续输出的孙进程都
-  按同一宽限期收口；读取队列上限 1024 行，宽限后不会被后续输出撑大。截断
-  状态写入 `runner.last_output_truncated`，失败时带进
-  `SubprocessFailedError.output_truncated`，真实退出码保持不变。
-- 🧪 **回归**：新增 6 例子进程用例（持续 stdout 孙进程、重定向持续 stderr、
-  流式静默 stdout、重定向静默 stderr、失败截断标记/退出码、正常命令不误标）；
-  子项目侧新增只读 `-ls`、不创建配置、显式同步保序/保原行/追加新条目、
-  行尾注释与含等号引号键保留、手写别名优先/同路径去重、表头行尾注释兼容、
-  写盘失败返回 False 并由 CLI 以 4 退出（共 11 例）。
-- ✅ **验证**：`ruff` 全绿、`compileall` 退出 0、`pytest` **416 通过**；
-  真实 CLI 验证 `-ls` 前后 `.pytexmkrc` 哈希一致、`--sync-subprojects` 保留
-  `legacy = "legacy"` 在首位并追加 `sub = "sub"`、二次同步字节幂等；中英文
-  `--help` 均能看到新选项与对应说明。未提交。
-
-### 2026-11-23 PyTeXLogs 0.6.3 同步：摘要宽度对齐 78 列
-
-> 0.6.3 是「版式可配置 + CJK 显示宽度」的展示层升级，公开签名只多了
-> `width` / `summary_width`，PyTeXMK 侧属于调用点对齐，不改诊断语义。
-
-- **依赖**：`pytexlogs>=0.6.3`，`uv.lock` 同步到 0.6.3（`uv lock --check` 通过，22 个包无变化）。
-- **摘要宽度对齐**：`print_summary` 新增 `width=` 后，不传会退回库默认 74 列，与 PyTeXMK
-  自己 78 列的 `=` 分隔线、`[E]` 横幅错位。`diagnostics._print_failure_groups` 现在显式传
-  `width=timing.total_len`（78），`max_entries`/`show_hints` 等既有参数不变。
-- **CJK 宽度不重复维护**：0.6.3 内部用 `unicodedata.east_asian_width` 算显示列数，与
-  `pytexmk.timing.get_text_len` 完全同口径；`text_len_fn` 继续透传（行为等价，保留本项目的
-  单点定义），不再新增第三方宽度函数。
-- **版式契约确认（无需改代码）**：0.6.3 恢复旧版 `==== 错误汇总 · N ====` 横幅与
-  `+-- [分类] · N ---` 框线，PyTeXMK 的 `[E]`/`+-- [一般编译]`/`↳` 断言继续成立；
-  hint 命令加 `$` 前缀与 `_print_entry` 的手写 `$` 一致；`T/F/G/P` 改 dim 灰不影响文本；
-  `_MISSING_FILE_RE` 不再排除换行，79 列硬折行拆开的长文件名重新命中
-  `missing_file`/`missing_graphic`，`rule_id` 与命令名更准，PyTeXMK 的 JSON `rule_id` 自动受益。
-- **未改动**：`run_pipeline` 的 `summary_width` 未启用——PyTeXMK 以 `print_terminal=False`
-  关闭库端打印，摘要全部由 `diagnostics` 排版，加一个不生效的参数只会制造误导。
-- **验证**：`ruff check --config pyproject.toml src tests` → `All checks passed!`；
-  `compileall` 退出 `0`；`pytest -q tests` → **417 passed**（新增 2 例：横幅显示宽度等于
-  `total_len`、`print_summary` 收到 `width=78`）；`python -m pytexmk.cli --version`
-  → `PyTeXMK 1.2.18`；真实失败日志探针横幅 78 列、hint 悬挂缩进对齐。未提交。
-
-## v1.2.18 - 2026-11-23
-
-> 🎯 一次围绕「CI 可判定、失败可诊断、启动更快」的维护版。
+- **CLI 大幅精简**：`--json`、`--doctor`、`--completion`、`--validate-config`、`--report [PATH]`、`--fail-on`、`--pdflatex-check`、`--synctex-check`、`-q/--quiet`、`-f/--force`、`-io/--includeonly`、`--sync-subprojects`、`--clean-dry-run`、`--native`、`--shell-escape`、`--synctex`、`--max-runs`、`--jobname`、`--submit-dir`、`--keep-preamble`、`--no-preflight`、`--readme`、`--include-bib`、`--pack-verify` 均已移除，继续使用会按未知参数退出 `2`。
+- **`-r` 只生成报告**：读取最近一次编译日志，在 `Auxiliary/` 生成 JSON 与 Markdown 报告（Markdown 为 `<主文件>.pytexmk-report.md`），不再触发编译；无日志退出 `1`，Markdown 写入失败退出 `9`。
+- **投稿包默认值**：`-sp` 始终打包全部 `.bib`，默认不含 `.bbl`；期刊要求预编译文献时在 `[submission]` 设 `include_bbl = true`。退出码 `8`（投稿包试编译）随 `--pack-verify` 一起退役，`9` 保留。
+- **配置成为唯一入口**：native、shell_escape、synctex、轮次上限由 `[build]` 控制；投稿输出目录/导言区保留、预检开关分别由 `[submission]`、`[preflight]` 控制。
+- **`-i/-iu` 直接覆盖**：不再需要 `-f`，重复执行会覆盖已有配置文件；普通编译与 `-r` 不会自动创建配置。
+- **`-ls` 会写回**：列出并同步根配置 `[subprojects]`；配置缺失时先用模板创建再写入。
+- **安静模式**：`-q` 移除，默认是否安静由配置 `quiet_mode` 决定；`-nq` 仅临时打开实时输出。`-interaction` 不再随安静模式变化，默认恒为 `nonstopmode`。
 
 ### 🚀 亮点
 
-- 🛡️ **CI 门禁闭环**：预检阻断改为退出码 `5` 并写出阻断项；跳过编译不再绕过 `--fail-on`/`--report`；`--includeonly` 拼错章节名直接以 `1` 拒绝，不再静默产出缺章 PDF。
-- 🧬 **编译可靠性**：`-dr` 遇到非 UTF-8 源文件只给可读错误、不改写文件；draft/配置/`.pytexmkrc` 改为原子写；`--no-synctex` 清理旧 `.synctex.gz`，外部命令结束清理 `.pytexmk-tmp`。
-- 🎛️ **CLI 调整**：`-r` 从“打开 README”改为默认诊断报告别名（等价 `--report`，不带路径）；移除 `--readme` 与浏览器打开逻辑；`--report [PATH]` 保留自定义路径。
-- ⚡ **启动加速**：`python -m pytexmk.cli --version` 在导入 CLI 解析器前直接返回；本机 20 次中位数 `132.6 ms → 52.4 ms`（观察值）。
-- 🧯 **安静模式不再能卡死**：`-q` 不再建 rich Live 转圈、编译输出读取加看门狗，终端写被阻塞或残留子进程握管道时会在 20 s 内给出心跳并在 2 s 内收尾，而不是无输出地无限等待。
-- 🧹 **清理与文档**：删除测试目录生成物与误提交缓存；README 重构安装、CI、`-r`、国际化命令；移除 README HTML 运行时资源与打包项。
-- ✅ **验证**：`ruff` 全绿、`pytest` 全量通过、venv `compileall` 退出 `0`、`PyTeXMK 1.2.18`。未提交。
+- **`-dr` 恢复**：草稿模式现在真的会加 `draft` 并在编译结束后摘除；异常中断留下的标记可在下次运行自愈。
+- **交付不再假成功**：旧 PDF、零页或损坏 PDF、归档/搬移失败都会明确报错；`outdir` 与 `auxdir` 同一目录时不会再把刚生成的 PDF 删掉。
+- **诊断统一版式**：成功与失败摘要都按「等级 + 分类」分组，逐条给出 `file:line`、建议与可执行命令；`-r` 额外生成 Markdown 报告。
+- **启动更快、默认零联网**：`pytexmk --version` 不再导入完整 CLI，也不做更新检查。
+- **Windows 环境更稳**：临时目录不可写时自动改用项目内目录；xindy 启动失败会自动换目录或改用 perl 调用；native biber 正确读取辅助目录的 `.bcf`。
 
-### 📜 1.2.18 详细记录
+### 🩹 修复
 
-### 2026-11-23 修复：安静模式（不加 `-nq`）"卡在编译中"不前进
+**编译与产物**
 
-- **现象**：`pytexmk -l` / `-p` / `-x` 不加 `-nq` 时终端停在"正在编译"不再前进，加 `-nq` 立刻编完。
-- **根因一（Live 持锁写终端）**：安静模式走 `console.status()` 的 spinner。rich 的刷新线程每 `1/refresh` 秒进入 `with live._lock` 后 `refresh()`，而 `refresh()` 内部 `console.print(Control())` 是一次真实终端写；`Live.stop()` 同样在 `with self._lock` 里。只要某次终端写被阻塞（Windows 控制台快速编辑模式选中文本、ConPTY 渲染挂起），刷新线程就持锁不还，主线程 `stop()` 无限等锁 —— 表现为零输出、连 Ctrl+C 都不一定回来。最小复现：让一次终端写阻塞 5 s，`with console.status(...)` 退出被拖住 **5.01 s**。`-nq` 完全不建 Live，天然免疫，这也是"加 `-nq` 就立刻编完"的直接原因。
-- **根因二（读管道与 `poll()` 的次序）**：旧 `_execute_streaming` 在主线程 `readline()`，`poll()` 只在读到一行之后才被检查。只要 stdout 管道还被残留/派生进程握着（`minted`、`tikz externalize`、`pythontex`、`svg` 这类 `\write18` 调用），TeX 进程已经退出也永远等不到 EOF，而安静模式对此没有任何提示。
-- **修法**：
-  1. 安静模式不再建 Live：改打一行静态 `正在XeLaTeX…（安静模式，实时日志请加 -nq）`，"看不看得见进度"与"转不转圈"解耦。
-  2. 输出读取移到后台线程 + `queue` + 0.25 s 超时轮询：连续 20 s 无输出打一次心跳（带 `-nq` 提示）；子进程退出后 2 s 内管道仍未关闭，则打印"输出管道仍未关闭（可能派生了后台进程），已停止等待"并收尾，`wait()` 也加了超时。
-  3. `-q`/`-nq` 只控显示：`-interaction` 不再随安静模式切换，默认恒为 `nonstopmode`（新增 `DEFAULT_INTERACTION` / `effective_interaction()`，`--explain`、构建指纹 `_build_key`、`compile_engine` 的 build options 都走同一函数）；需要 batchmode 只能显式 `--interaction=batchmode`（仍有测试守护）。
-- **口径变化**：安静模式不再等于 batchmode。旧行为让"想少看输出"顺手把 TeX 的错误处理也换掉，两件事被绑死；README / README.en / `docs/2026-11-18-CLI命令速查.md` / 两份配置模板的 `interaction` 注释已同步。
-- **locale**：手工补 `subprocess_runner` 4 条（静态提示、心跳、管道收尾）与 `cli_args` 2 条改写的 `-q`/`-nq` 帮助，只对这两个 domain 跑 `pybabel compile`。未跑全量 `make pot`/`update`：那会把 22 份 `.po` 全部重排，且 `check_version.po`（src 侧已无该模块）、`diagnostics`（未纳入 locale）这类既有缺口会一起翻出来，与本轮修复无关。
-- **验证**：最小项目 quiet **2.17 s** vs `-nq` **2.12 s**（等价）；GUET 学位论文四组交叉 quiet+batchmode 23.5 s / `-nq`+nonstopmode 21.9 s / `-nq`+batchmode 22.3 s / quiet+nonstopmode 22.6 s，安静模式并无变慢路径；新增 `tests/test_quiet_no_live_and_watchdog.py` 8 例（两种模式恒 `nonstopmode`、`status` 被禁用、静态提示含 `-nq`、心跳文案、孙进程握管道 1 s 内收尾）；`ruff check --config pyproject.toml src tests` → `All checks passed!`；`pytest -q tests` → **348 passed**；`compileall` 退出 `0`；`python -m pytexmk.cli --version` → `PyTeXMK 1.2.18`。未提交。
+- 草稿模式修复后，`-dr` 在 RUN 与 `-d/-dc` 两条路径都生效；非 UTF-8 源文件只报可读错误，不改写文件。
+- LaTeXDiff：不再把 stderr 告警混进差异稿；native 构建不再对不存在的 `.xdv` 调 `dvipdfmx`；差异稿原子替换，失败不毁旧文件；`\import` 等宏包命令按语义展开，循环引用安全终止。
+- SyncTeX：取样行从正文开始，支持 `\input`/`\include` 子文件；明文 `.synctex` 与 `.gz` 一样归档、校验和清理；缺产物会触发重编并给出 `-fr` 提示。
+- PDF 修复只处理项目内被真实引用的文件，失败保留原件；辅助文件自愈不再把注释里的花括号误判成截断。
+- 投稿包强制包含主入口 `.tex` 与项目内全部 `.bib`；原样模式按字节复制，不再把 CRLF 归一成 LF。
 
-### 2026-11-22 PyTeXLogs 0.6.2 同步：等级口径 / hint 作用域 / 报告实况
+**清理与文件**
 
-- **依赖**：`pytexlogs>=0.6.2`，`uv.lock` 由 0.6.1 升到 0.6.2（`run_pipeline`、`ProjectStateStore`、`hint_for_entry` 签名本身未变，破坏点都在语义层）。
-- **等级顺序**：`diagnostics._iter_entries` 不再自带 `{"typesetting": 2, "info": 3}` 表，改用 `pytexlogs.level_from_value(...).severity`。0.6.1 起 `ERROR < WARNING < INFO < TYPESET < FONT < GRAPHIC < PAGE`，旧表把 `TYPESET` 排在 `INFO` 前，与库口径正好相反。
-- **hint 作用域**：`hint_for_entry` 增加 0.6.2 的 `tool_name=` 透传（条目所属工具的 `ToolResultReport.tool_name`），Biber 的 `WARN -` 不再命中 LaTeX 警告规则。
-- **JSON 定位**：`--json` 的 `issues` 增加 `rule_id`（仅命中规则时出现）。0.6.2 明确该字段是机器消费方的稳定标识，文案改动不影响映射；未命中时保持旧载荷形态。
-- **报告实况**：0.6.2 的 `write_report` 失败不再抛异常，而是回传 `None` + `_report_write_error`。`LogSummary` 新增 `report_path` / `report_error`，成功/失败两条收尾都以 `custom_fields["_report_path"]` 为准，失败时打印“未生成（原因）”而不是虚报一个不存在的路径；`--json` 的 `report` 字段只在真实落盘时给出。
-- **验证**：`ruff check --config pyproject.toml src tests` → `All checks passed!`；`pytest -q tests` → **328 passed in 3.00s**（新增 7 例：等级顺序 ×2、tool_name 透传、rule_id 有/无、报告路径成功/失败）；`uv lock --check` 通过；`python -m pytexmk.cli --version` → `PyTeXMK 1.2.17`；真实 0.6.2 探针：写盘成功 `report_path=<aux>/report.json` 且文件存在，写入非法路径时 `report_path=None`、`report_error=FileNotFoundError: ...`。未提交。
+- 清理恢复 2×2 语义：`-c` 只清辅助文件，`-C` 再加根目录并删输出，`-ca` 递归全项目，`-Ca` 递归并在能确定主文件时删输出；`-c/-C` 缺唯一主文件退出 `1`，`-ca/-Ca` 不再要求。
+- 递归清理只删构建产物：`.xml`、`.tmp`、用户手写 `.ist` 与图片不会被误删；`.bbl`、`.xdv`、`.xdy` 按产物清理。
+- 搬移改为「临时文件 + 原子替换」，失败回滚，任何时刻目标位置都不会出现空窗。
+- 配置、草稿标记与 `.pytexmkrc` 改为原子写；外部命令结束清理 `.pytexmk-tmp`。
 
-### 2026-11-22 `pyproject.toml` 清理：去冗余、补打包缺口
+**索引与参考文献**
 
-- **构建后端**：`requires = ["setuptools"]` 收紧为 `setuptools>=77`。`license = "GPL-3.0-or-later"` 用的是 PEP 639 SPDX 表达式，setuptools<77 不支持该形态，旧下限只是碰巧被本机 84.x 掩盖。
-- **资源清单去重**：删除被 `locale/**/*.mo` 完全覆盖的 `locale/en/LC_MESSAGES/*.mo`；删除与包根 `data/*` 条目重复的 `"pytexmk.data"` 子表；删除 `include-package-data = true`（pyproject 配置下即默认值）。
-- **补打包缺口**：`--readme` 在非中文系统优先打开 `README.en.html`，但旧清单只发 `README.html`，英文环境实际总回退到中文版；改为 `data/*.html`，两份都进 wheel/sdist。
-- **陈旧配置**：删除从未被任何用例使用的 pytest `slow` 标记声明；把“pillow 12.3/13.00 分叉”“未来可扩展”这类历史叙述注释收敛为当前约束（两份 dev 依赖必须一致、由哪个测试守护）。
-- **验证**：`uv build --no-build-isolation` 前后 wheel 104 → 105 项，唯一差异为新增 `pytexmk/data/README.en.html`；sdist 同样只多该文件；METADATA 仅 Keywords 增加 `cli`，`License-Expression` / `Requires-Dist` 不变；`uv lock --check` 通过；`ruff check --config pyproject.toml src tests` → `All checks passed!`；`pytest -q tests` → **321 passed in 3.78s**；`python -m pytexmk.cli --version` → `PyTeXMK 1.2.17`。未提交。
+- 命名索引真正调度（如 `\makeindex[name=author]`），索引工具在辅助目录执行，陈旧根目录副本不再遮蔽新产物。
+- nomencl、makeidx 在 native 构建下同时检查项目根与辅助目录，`\printnomenclature` 不再长期空白。
+- glossaries 的 xindy 后端能正确识别 `.xdy`，遇到 Windows 启动器 `720005` 或 `267` 时自动重试，仍失败才报原始错误。
+- 纯 `glossaries-extra` 项目会调用 `bib2gls`，术语表不再为空；`.bib` 变化会进入依赖快照并触发重编。
+- biber/bib2gls 默认静音，`-nq` 时才把工具输出送到终端。
 
-### 2026-11-20 第十轮：纯风格清理
+**诊断与输出**
 
-- **19 条 `PTH/SIM/PERF/B` 候选清零**：7 处 `try/except/pass` 改 `contextlib.suppress`，2 处嵌套 `if` 合并，3 处 `if/else` 赋值改条件表达式，4 处 `append` 循环改 `extend`/列表推导，测试中的 `os.getcwd()` 改 `Path.cwd()`、`os.symlink` 改 `Path.symlink_to`。
-- **行为保持**：捕获类型、列表顺序、异常边界、符号链接方向均不变；`contextlib.suppress(Exception)` 仍不吞 `KeyboardInterrupt`/`SystemExit`。
-- **验证**：`ruff check --select PTH,SIM,PERF,B` 与全量 `ruff check` 均 `All checks passed`；`compileall` 通过；定向回归 **103 passed in 1.21s**；全量 319 passed / 2 failed（仅当前 PATH 缺 `xelatex` 的环境失败）。未提交。
+- 成功/失败摘要统一分组版式，警告与错误按类别折叠，附建议和可直接执行的命令；日志缺失或解析失败不再当成「零警告」。
+- 计时口径修正：多轮 BibTeX/makeindex 累加而不是覆盖；「Python 运行时长」改为「Python 侧（未细分）」；工具调用次数单独列出。
+- 帮助页固定 96 列，不再随超宽终端拉伸；移除退出码表，改为出错时直接说明原因与下一步；魔法注释说明明确「只扫描主文件前 50 行」。
+- 终端日志按宽度折行，续行与正文首列对齐；安静模式只打一行静态进度，不再转圈，也不会因终端写阻塞而卡死。
 
-### 2026-11-20 第九轮：PEP 758 与 pathlib 现代化
+**CLI 与配置**
 
-- **PEP 758**：17 处不带 `as` 的多异常处理器改为 `except A, B`；带 `as e` 的处理器保留括号（`except A, B as e` 在 3.15.2 仍不合法）。只改语法，不改变异常捕获集合与控制流。
-- **pathlib 现代化**：`file_ops.py`/`pdf_tools.py` 的 `os.replace` 改为 `Path.replace`；`config.py`/`subproject_scanner.py`/`subprocess_runner.py` 的 `open()` 改为 `Path.open()`；`detection.py`/`cli_compile.py`/`cli_config.py`/`cli_workflow.py` 的 `Path(".")` 改为 `Path()`；`latexdiff.check_aux_files()` 改为 `any(...)` 并去掉中间列表。
-- **第三方 API 审计**：未发现旧式 `PdfFileReader`/`PdfFileWriter`/`extractText`/`getPage`；当前 `PdfReader`/`PdfWriter.add_page`/`add_metadata` 与 pypdf 7.1.0 匹配；`RichHelpFormatter` 与 rich-argparse 1.8+、`ProjectStateStore`/`run_pipeline`/`hint_for_entry` 与 pytexlogs 0.6.1 匹配，不做无证据的 API 替换。
-- **验证**：`ruff check --config pyproject.toml src tests` → `All checks passed!`；`compileall` 通过；当前 PowerShell 的 PATH 未含 MiKTeX，完整测试 319 passed / 2 failed，两个失败均在 `shutil.which("xelatex")` 为空的引擎发现处，非本轮代码回归。使用完整 TeX PATH 的历史基线为 321 passed。未提交。
+- `-A` 按 `[subprojects]` 书写顺序编译，不继承 `--watch`，失败不中断其余项目，最终以首个失败子项目的退出码结束。
+- `-s` 支持叶子目录名、大小写不敏感与反斜杠；未知别名退出 `3`。
+- `-ls` 写回时保留手写别名、注释与原顺序；写盘失败以配置错误 `4` 退出。
+- 配置段类型错误、TOML 语法错误以退出码 `4` 结束并说明位置，不再抛 traceback。
+- `-d/-dc` 可省略文件名（沿用 `[latexdiff]` 的 old/new），也可 `-d OLD NEW` 直接给两个文件。
 
-### 2026-11-19 第八轮：五项缺口闭环与 native biber 修复
+**平台与打包**
 
-- **惰性导入启用**：`_launcher.py` 在 `--version` 快速路径之后启用 `sys.set_lazy_imports("all")`；本机 `-h` 中位数由直接 CLI 的 138.7 ms 降到 129.2 ms（20 次），冻结包 `--version`/`-h`/真实编译均通过。`--version` 快速路径未改变。
-- **3.15 API 闭环**：`Path.copy`、`Path.move`、`Path.walk` 等采用；`Path.info` 经探针确认是缓存快照且 `exists` 为方法，明确否决并回退到 `exists()`；`uuid7` 无运行时场景不采用。新增 `docs/python315-api-audit.md`。
-- **D/E 清零**：`_apply_config_file`、`build_pack`/`_build_manifest`、`bib_judgment`、`run_command`、`discover_subprojects`、`_compile` 完成拆分；`radon cc -n D` 无输出，最高 C(20)。
-- **native biber 真机修复**：native 构建的 `.bcf` 在 auxdir，旧命令 `--input-directory .` 导致真实 biber exit 5；改为指向 auxdir 后冻结包端到端 exit 0，`.bbl` 与 PDF 正常，新增 `test_native_biber_reads_control_file_from_auxdir`。
-- **验证**：全量 **321 passed in 4.27s**（新增 1 例）；`ruff All checks passed`；PyInstaller onedir 13.15 s、`pytexmk.exe` 7.33 MB；冻结简单 article 与 `biblatex+biber` 均 exit 0。迁移文档已校准为当前基线，七轮复盘的五项缺口已闭环。未提交。
+- 系统 `TEMP` 不可写时，把 `TEMP/TMP/TMPDIR` 一起指向项目内 `.pytexmk-tmp`，并打印一条警告。
+- `python -m pytexmk --version` 走快速路径；不再自动检查更新，帮助、编译收尾与版本输出均零联网。
+- 打包与依赖对齐 Python 3.15；`pytexmk.data` 同时包含中英文 README，英文环境不再回退到中文。
 
-### 2026-11-19 第七轮持续优化：PDF 边界、`.fls` 去重、流式 I/O
+### ✅ 验证
 
-- **正确性修复**：`source_snapshot` 不再把 `.pdf` 一律当易变产物跳过；主输出 PDF 由 `_iter_source_files()` 按根目录路径身份排除，`\includegraphics{fig.pdf}` 修改后会触发重编。`pdf_tools._referenced_pdfs()` 增加项目根约束，`-pr` 不再把项目外共享 PDF 纳入原地修复。两处均补回归测试。
-- **去重**：新增 `pytexmk/fls.py` 的 `iter_fls_inputs()`，`compile_engine`、`submission`、`pdf_tools` 三份 `.fls` INPUT 解析统一；`file_ops.iter_matched_files()` 统一 `-ca/-Ca` 干跑与真删的遍历/排除规则；submission 的 fallback 后缀与 `.fls` 忽略集改由 `layout` 派生，并统一目录排除语义。
-- **流式 I/O**：`build_state._digest_file()` 与 submission zip 摘要改用 `hashlib.file_digest()`；zip 写入改为 `ZipFile.open()` + `copyfileobj()`，不再逐文件 `read_bytes()`；`_same_bytes()` 改用 `filecmp.cmp(shallow=False)`。
-- **规则单一真相**：detection 的 3 条永久 rerun 正则预编译后同时供 `RERUN_LOG_PATTERNS` 与 `residual_warnings()` 使用，消除 `re.search` 字面量重写。
-- **3.15 收尾**：`compile_engine` 两处 `Path().resolve()` → `Path.cwd()`；删除测试中 2 处已无作用的 `from __future__ import annotations`。惰性导入做过全量测试与 3 次粗测，因真实入口收益不稳定且冻结包未验证，本轮未启用。
-- **回归**：全量 **320 passed**，`ruff All checks passed`；radon ≥C 由 43 降至 42，最高仍为 `_apply_config_file E(34)`。未提交。
-
-### 2026-11-19 构建期翻译与语言探测缓存
-
-- **构建期翻译**：`Makefile` 的 `build` 依赖 `mo`，`whl: clean mo`；改 `.po` 后构建会先重编 `.mo`，避免 wheel/onedir 打进旧译文。新增 `.PHONY` 列表，防止 `make build` 与 PyInstaller 的 `build/` 目录同名而被时间戳误判。
-- **翻译发布质量**：`tools/lang_tool.py` 的 `mo()` 移除 `pybabel compile --use-fuzzy`；fuzzy 条目默认不进入 `.mo`，避免未审校译文发布。
-- **语言探测缓存**：`language.get_locale_lang()` 加 `@functools.cache`；22 个 domain 首次 `set_language()` 时只解析一次环境变量与 `locale.setlocale`，不再每域一次。
-- **回归**：新增 `tests/test_language_cache.py`；全量 **309 passed**，`ruff All checks passed`；`make -n whl` 为 `clean → mo → uv build`，`make -n build` 为 `mo → pack`。
-
-### 2026-11-19 移除自动更新检查（CLI 默认零联网）
-
-- **删除** `src/pytexmk/cli/check_version.py`（`UpdateChecker`、GitHub API 查询、缓存读写、安装渠道探测与升级文案），以及 `cli/__main__.py`、`cli/cli_args.py`、`cli/cli_compile.py`、`__init__.py` 中的全部引用。
-- **行为变化**：`-h/--help`、正常编译收尾、`--version` 都不再发起任何网络请求；帮助页只打印用法与魔法注释表。`PYTEXMK_NO_UPDATE_CHECK` 随功能一起失效（不再需要）。
-- **启动开销**：`-h` 由冷缓存 **1395 ms**（含 GitHub 查询）降到本机 **135–152 ms**；`--version` 新增 `pytexmk._launcher` 快速路径（在导入 rich/argparse 前直接输出），本机 5 次 **46–50 ms**（原约 145 ms）；`-X importtime` 不再出现 `urllib/http.client/packaging/platformdirs/tomli_w`。
-- **依赖收敛**：core dependencies 移除 `packaging`、`platformdirs`、`tomli-w`；`packaging` 仅测试使用，移入 dev 依赖两份表；`uv lock --offline` 同步移除 `platformdirs`、`tomli-w` 两个锁定包；`tools/pack.py` 删除 `--hidden-import=tomli_w`。
-- **翻译目录**：删除 `locale/en/LC_MESSAGES/check_version.po/.mo` 与 `locale/templates/check_version.pot`（域已不存在）。
-- **回归**：`308 passed`（移除 1 个更新检查用例，新增 2 个 `--version` 快速路径用例）；`ruff All checks passed`；`--version`、`-h`、`--completion bash` 实跑通过。
-
-### 2026-11-19 第三轮审查整改：常量收拢、计时契约与 3.15 现代化
-
-- **常量单一真相**：新增 `pytexmk/layout.py`，集中 `OUT/AUX/VOLATILE/SOURCE/DEPENDENCY/INDEX/DIFF` 后缀与 `EXCLUDED/GENERATED/CLEAN_EXCLUDED/WATCH_SKIP` 目录集；`cli_state`、`build_state`、`aux_repair`、`compile_engine`、`cli_compile`、`cli_latexdiff`、`file_ops`、`cli_watch`、`subproject_scanner` 全部改为只读引用。顺带修掉 `build_state` 的裸 `.gz` 与缺失的 glossary 组后缀（`D10`）。
-- **计时与 `--json`**：`runtime_dict` 的键统一为稳定 ASCII slug（`latex_1`、`detect_aux`、`bib_biber`…），显示名在 `time_print()` 里按语言翻译，`--json` 的 `timings` 不再随 locale 漂移（`D5`）；`time_print()` 不再原地把字典值改写成字符串，`machine_report` 始终读到数值（`D2`）。
-- **行为修复**：`--json` 未预期异常也会补发可解析载荷（`D1`）；`-ca/-Ca --dry-run` 与真实删除共用同一份排除目录（`D3`）；`detection._read_aux_like` 首个候选不可读时继续尝试下一个（`D6`）；配置校验拒绝 `bool` 冒充数字（`D9`）；`move_specific_files` 区分"源目录缺失"与"目标目录缺失"（`D12`）；删除 `tex_project` 永不触发的 `except re.error`（`D13`）；`-r` 用 `as_uri()` 并检查浏览器打开结果（`D11`）。
-- **启动与开销**：`--version` 不再打印魔法注释表/触发联网（只有 `-h` 才做），`urllib/packaging/platformdirs/tomli_w` 全部下沉到使用处，`UpdateChecker` 的缓存路径改为惰性属性；`--version` 墙钟由基线 235 ms 降到约 145 ms（本机 5 次取样）。`runtime_env.is_dir_writable` 按路径缓存探针结果，一次构建不再逐条命令写删探针文件。
-- **3.15 现代化**：删除 7 处 `from __future__ import annotations`；修正误标 PEP 758 的注释；`cli_workflow` 的批量编译改用 `contextlib.chdir()` 保证异常路径也回到原 cwd；`timing` 用 `math.ceil` + `itertools.zip_longest` 取代手写折行与 ceil；`get_text_len` 改用 `unicodedata.east_asian_width`。
-- **去重与小重构**：`set_language` 加 `@functools.cache`（cli 侧 7 个模块共用域时不再重复 `setlocale` + `.mo` stat）；`check_version` 显式导入 `urllib.error`、`lstrip("v")` → `removeprefix("v")`；`subproject_scanner` 用 `Path(item).name` 归一化 exclude 并对含分隔符条目告警；`WorkflowState.refresh_file_lists()` 统一输出/辅助清单；`submission.build_pack` 拆出 `_accumulate_remaining / _read_rounds / _build_manifest / _write_zip`，复杂度由 radon `F(58)` 降到 `D(26)`。
-- **回归**：`.venv` 全量 **307 passed**（4.4 s），`ruff check --config pyproject.toml src tests` 为 `All checks passed`；`python -m pytexmk --version` 与空目录 `--json` 均实跑通过。
-- **本轮未做（已记录设计与风险）**：`-d` 改 `nargs=2`（会破坏三条既有语义，保持现状）；`build_parser` 434 行拆分（仅影响可读性，收益/风险比不足）；`_apply_config_file` 表驱动与投稿文案整句模板化（涉及 `.po/.mo` 同步）；13 个文件的 ASCII banner 迁移。
-
-### 2026-11-19 系统临时目录不可写时的编译兜底
-
-- **现象**：`pytexmk -fr -vb` 在第一步就失败，`Auxiliary\main.log` 固定截断在 `[1`（10206 字节、没有 `Output written on ...`），只剩 0 字节的 `main.synctex(busy)`，没有任何 LaTeX 错误条目；把 `TEMP`/`TMP` 指到项目内目录后，同一条命令 0.8s 通过并正常产出 PDF。
-- **根因**：该环境下 Python 进程（以及它拉起的 TeX 工具）写不了 `%TEMP%`，xelatex 在 shipout 阶段被杀掉，日志因此只写到第一页标记；xindy 同样因为临时文件建不出来报 `Win32 error 267`。这不是 PyTeXMK 改了环境变量——`child_env()` 从不碰 `TEMP/TMP/TMPDIR`，是外部程序的默认落点本身不可用。
-- **改动**：`runtime_env.py` 新增 `ensure_writable_temp()`（用探针文件实测 `TEMP` 可写，不可写就把 `TEMP/TMP/TMPDIR` 一起指向调用方给的兜底目录，兜底目录建不出来时保持原环境、不影响编译）；`MySubProcess.run_command` 在 `child_env()` 之后调用它，兜底目录为本次运行的 `run_cwd/.pytexmk-tmp`，改写时打一条 `WARNING 系统临时目录不可写，本次编译改用 ...`。
-- **回归**：`tests/test_runtime_env.py` 新增 3 例（可写时原样返回、不可写时三个变量一起切换且兜底目录被创建、兜底目录不可用时放弃改写）；全量 **302 passed / 1 skipped**，ruff `All checks passed`。
-
-### 2026-11-19 xindy 启动失败的两条重试路径（启动器日志 / 267）
-
-- **现象**：`TEMP` 修好之后，`\usepackage[xindy]{glossaries}` 走到索引一步仍失败，报 `log4cxx ... 720005(拒绝访问)` + `Sorry, but xindy did not succeed.`，`.gls` 不产出。
-- **根因**：MiKTeX 的 `xindy.exe` 只是启动器，启动时要先写 `<texmfs>/data/miktex/log/xindy.log`；该路径不可写时启动器直接放弃（**xindy 内核根本没被执行**）。xelatex 遇到同一问题只记一条告警照常编译，所以这条只在 xindy 上暴露。
-- **改动**：`compile.py` 新增 `xindy_perl_command()`（从 `xindy.exe` 的位置推导 `scripts/xindy/xindy.pl`，用系统 `perl` 直调，绕开启动器的日志前置动作）；`_retry_xindy()` 统一处理两类启动期失败——`720005`/`log4cxx` 走 perl 形态、`267`/`ERROR_DIRECTORY` 走绝对参数形态，两者都在「原目录 + 兜底目录」里逐个重试，且只对 `is_dir_writable()` 为真的目录尝试。非启动期错误（`.xdy` 内容错、输入缺失）仍然不重试。
-- **回归**：`tests/test_xindy_fallback.py` 增至 9 例（新增 720005 走 perl、`xindy_perl_command` 的路径推导与缺 perl 返回 None）；全量 **306 passed / 1 skipped**，ruff `All checks passed`。
-- **产物级验证**：索引矩阵 7 例全部 `exit 0`，PDF 文本均检出索引内容——`a_makeidx`（`Index`：alpha/beta/delta/gamma）、`b_nomencl`（`Nomenclature`：α/β）、`c_imakeidx`（`Subject Index`）、`d_glossaries`（makeindex 后端，`Glossary` + `Acronyms`）、`e_ctex_nomencl`（中文术语）、`f_imakeidx_named`（`Subject Index` + `Author Index` 双索引）、`g_xindy`（`Glossary`：`Alpha first letter. 1 / Beta second letter. 1`）。xindy 一例在项目辅助目录报 267 后自动改到 `C:\WINDOWS\Temp` 重试成功（0.55s），`Auxiliary\main.gls` 2190 字节。
-- **环境备注**：本次故障的最后一环是**进程完整性级别**——项目目录内的 `.venv` 原先带低完整性强制标签，其 `python.exe` 以 `Low Mandatory Level` 运行，xelatex/xindy 因此写不了 `%TEMP%`、`C:\Windows\Temp` 与 MiKTeX 数据目录。已由管理员执行 `icacls ... /setintegritylevel "(OI)(CI)Medium"` 修复，venv 内的 python 恢复 `Medium`，上述矩阵即在修复后的 venv 上复跑。
-
-### 2026-11-18 xindy 启动脚本路径兜底（glossaries 的 xindy 后端）
-
-- **现象**：`\usepackage[xindy]{glossaries}` 项目在项目目录里编译时，`glossaries (main, xindy)` 一条必定失败，输出 `*** - Win32 error 267 (ERROR_DIRECTORY)`。实测同一份 `.glo`/`.xdy`、同一组参数，在 `C:\Windows\Temp` 下可以正常产出 `.gls`，说明不是 xindy 二进制损坏，也不是命令拼装错误。
-- **根因**：MiKTeX 的 `xindy.pl` 在 Windows 上把 xindy 表达式写到**当前目录**的临时文件，再交给 `xindy-lisp.exe` 载入；部分目录（项目目录、含空格/深层路径、含 `.tmp` 段）在载入这一步返回 267，换目录就恢复正常。
-- **改动**：`compile.py` 新增 `is_xindy_command()` / `xindy_fallback_workdirs()` / `absolutize_xindy_tokens()`；`compile_index()` 首次执行失败且命令是 `xindy`/`texindy`、输出里出现 `267` / `ERROR_DIRECTORY` 时，按候选目录重试——先 `%TEMP%\pytexmk-xindy`，再 `%SystemRoot%\Temp`，重试时把 `-M/-t/-o/-x/-i/-s` 与输入文件全部转成绝对路径，产物仍落在项目辅助目录。`makeindex` / `bib2gls` 等其它工具不进入这条重试；真正的样式/输入错误（非 267）也不重试，避免把原始报错刷掉。
-- **回归**：新增 `tests/test_xindy_fallback.py`（7 例：工具名识别、参数绝对化保留 `-L/-I` 取值、输入缺失不伪造路径、非 Windows 不启用、267 失败后重试一次且 cwd 正确、makeindex 不重试、非 267 的 xindy 错误不重试）；全量 **299 passed / 1 skipped**，ruff `All checks passed`。
-
-### 2026-11-18 第二轮全仓复审修复（latexdiff / bib2gls / 清理安全）
-
-- **latexdiff 不再被 stderr 污染（P1）**：`MySubProcess.run_command` 的重定向分支原来写死 `stderr=subprocess.STDOUT`，latexdiff 的告警（MiKTeX 的 log4cxx"数据目录不可写"每次必报）被并进 `LaTeXDiff.tex`，xelatex 必然报 `Missing \begin{document}`（`--diff-style 1/2` 全部失败，退出码 5）。现在 stderr 走独立管道、只进 debug 日志与失败异常，生成稿只含 latexdiff 的 stdout。
-- **LaTeXDiffRUN 不再对不存在的 `.xdv` 调 dvipdfmx（P2）**：`RUN` 有 `XeLaTeX and not native` 守卫，`LaTeXDiffRUN` 漏了 `not native`；native 构建下 xelatex 直接产 PDF，dvipdfmx 拿 `Auxiliary\LaTeXDiff.xdv` 失败并以退出码 5 结束。两处判断统一收进 `_run_xdv_if_needed()`，避免再次各写一遍。
-- **`-d/-dc` 在未编译项目上不再崩（P2）**：`move_matched_files` 在源目录不存在时抛 `FileNotFoundError`，被 `time_count` 包成"执行函数 {'move_matched_files'} 时出错"。现在源目录缺失返回 0（`finally` 里的反向搬移同样受益）。
-- **`-dc` 产物归档到输出目录**：`cli_latexdiff` 原来只从项目根目录搬 PDF，native 构建把 PDF 留在辅助目录，结果"编译成功但 `Build/` 里没有 `LaTeXDiff.pdf`"。现改为与主流程同口径（native 从 auxdir、非 native 从根目录）。
-- **bib2gls 真正被调用（P1，含识别缺口）**：`_run_bib_if_needed` 读的是 `DetectionResult` 上并不存在的 `bib2gls_mode`（`getattr(..., False)` 恒为假），且 `bib_judgment` 把 bib2gls 识别嵌在 biber 分支里——纯 `glossaries-extra` record 项目只写 `\glsxtr@record`、不写 `\abx@aux@refcontext`，于是既不跑索引工具、也不跑 bib2gls，术语表静默为空。现在识别与 biber 解耦（`.aux` 的 `\glsxtr@record` 或 `.bcf` 的 `<bcf:glossary`），纯 bib2gls 项目返回 2 轮额外 LaTeX，引擎读 `detector.bib2gls_mode` 并调用 `bib2gls`。真机验证：`\gls{alpha}` 从 `??` 变为 `Alpha`，术语表条目与描述正常排出。
-- **用户手写 `.ist` / `.xdy` 不再被静默删除（P2）**：`SUFFIXES_AUX` 移除 `.ist`（makeindex 的样式文件是用户输入，`-c/-C` 不再连带删除）；`_sweep_stale_root_aux` 对 `.xdy` 这类"既可能由 makeglossaries 生成、也可能手写"的后缀，只在根目录副本与 auxdir 内容完全一致时才删，不同则保留并提示。
-- **SyncTeX 缺产物提示改用结构化标记（P3）**：`SyncTeXReport.missing_artifact`（`pdf`/`synctex`/`tex`）替代 `any("不存在" in error ...)` 的中文字面量匹配，`LANGUAGE=en` 下也能给出"加 `-fr` 重编"的正确提示。
-- **`[submission]` 配置接通、`[index]` 死键清除（P3）**：`unicode_to_latex / include_bbl / reproducible` 逐键接到 `WorkflowState` 并传给 `build_pack`（此前 `convert_unicode/include_bbl` 硬编码 True，配置无效）；`[index] input_suffix/output_suffix` 从 `DEFAULT_CONFIG` 与两份模板删除（后缀由 detection 注册表按索引包决定），两份模板补上 `[submission]` 段示例。
-- **死代码与重复收敛**：删除 `build_state._digest_text`、`detection.log_has_rerun_warnings`、`subproject_scanner.DEFAULT_EXCLUDE_FILES`/`DEFAULT_EXCLUDE_FILE_SUFFIXES`；`detection` 的索引摘要循环抽成 `_update_index_digest()`（`index_signature` 与 `state_fingerprint` 共用）；`diagnostics` 里"PyTeXLogs 0.5"的陈旧注释改为 `>=0.6.1`；RUN 与 LaTeXDiffRUN 的 xdv 判断合并。
-- **回归**：新增 `tests/test_review2_fixes.py`（12 例，覆盖上述 R1–R7）；全量 **292 passed / 1 skipped**（skip 仍是 Windows 无权建符号链接），ruff `All checks passed`。
-
-### 2026-11-18 索引编译适配（多索引包 + 多命名索引）
-
-- **命名索引**：`IndexSpec` 增加 `stem`（`None` 表示 jobname）与 `in_name()/out_name()`；`_discover_index_stems(auxdir)` 扫描 CWD + 辅助目录的全部 `*.idx`，`imakeidx` 的 `\makeindex[name=author]` 现在会跑 `makeindex author.idx`，时长表里显示为 `makeidx (author)`。此前只有 jobname 一个主干，命名索引从不调度，`\printindex[author]` 长期空白。
-- **执行目录**：`compile_index` 删除按 jobname 前缀猜路径的 `_resolve_index_token`，native 构建改为在辅助目录里执行索引工具（命令写相对该目录的文件名），non-native 仍在项目根目录。
-- **定位权威**：`CompilationDetector` 增加 `native` 标志，`_ordered_candidates()` 决定 auxdir 优先还是 CWD 优先；`_locate` / `_locate_named` / `_candidate_paths` 统一走它。修掉"切过 `--no-native` 后根目录同名 `author.idx` 遮蔽辅助目录新文件、命名索引永不重跑"。
-- **辅助文件归位**：`SUFFIXES_AUX` 补 `.glg .alg .acn .acr .xdy`；新增 `_collect_named_index_aux(state)`（把命名索引主干的 `.idx/.ind/.ilg` 补进清理/搬运清单，native 编译前、non-native 后处理前、`_clean` 开头三处调用）与 `_sweep_stale_root_aux(state)`（native 编译前删掉被辅助目录遮蔽的根目录旧索引产物，或把孤立产物搬进辅助目录；`.bbl/.aux` 不动）。
-- **glossaries 的 xindy 后端**：`_resolve_glossaries_backend` 改为同时查 CWD 与辅助目录的 `<jobname>.xdy`（glossaries 只在 xindy 后端写 `.xdy`，makeindex 后端写 `.ist`）。此前 native 构建拿不到 `.xdy`，被判成 makeindex 后拿不存在的 `main.ist` 直接失败；现在正确切到 `xindy -L <lang> -I xindy -M main.xdy -t main.glg -o main.gls main.glo`。
-- **`--no-shell-escape` 真正生效**：新增 `normalize_shell_escape_flag()` + `SHELL_ESCAPE_FALSE_VALUES`，`RUN`、latexdiff 路径、构建键统一归一化。此前字符串 `"false"` 被 `bool()` 判真，`--no-shell-escape` 等于没写。
-- **索引工具失败诊断**：`run_command(..., log_hint=False)` 不再提示"查看 LaTeX 日志"（索引错误不进 `.log`），改为 `%(prog)s 执行失败 (退出码 %(code)s)`；`compile.py` 新增 `_on_index_failure()`，打印 `索引工具执行失败: <名称>` + 工具输出末尾 12 行。此前索引失败只会打印"日志里没有解析出 error 条目"，把 xindy 报出的 Win32 267 这类环境原因完全藏住。
-- **`-c / -C`**：清理前先 `_collect_named_index_aux(state)`，命名索引产物与多套 glossary 产物一并清掉。
-- **测试**：新增 `tests/test_index_named.py`（9 例）；`tests/test_preflight_latexdiff.py` 两例随签名变更调整。全量 **280 passed / 1 skipped**，ruff `All checks passed`。
-
-### 2026-11-18 与 PyTeXLogs 0.6.1 对齐的缺陷修复
-
-- **依赖**：`pytexlogs>=0.6.1`（0.6.1 删除了 `run_log_pipeline`、旧 `run_pipeline` 位置参数、`write_report` 旧名、`StateFileCorrupted` 与 CLI 别名，PyTeXMK 侧不做任何旧版本兼容层）。
-- **`--fail-on` 分级**：`TYPESET` 明确为"提示"后，`--fail-on warning` 只看真正的 warning（Overfull/Underfull 不再让 CI 变红）；新增 `--fail-on typesetting` 供需要卡排版提示的流水线使用。
-- **主文件名**：`check_project_name` 改用 `Path.with_suffix("")`，修 `main.tex` → `main` 之外 `text.tex` 之类被 `rstrip(".tex")` 吃成空串的问题。
-- **索引/术语/目录规则**：`IndexRule.trigger` 增加 `(proj, aux_content, auxdir)` 形参，扩展名触发同时查 CWD 与辅助目录；`.idx`/`.toc` 快照统一走 `_locate()`（native 构建的实际位置）。
-- **latexdiff**：`compile_LaTeXDiff` 删除虚构的 `--style=1/2`（latexdiff 的 `--style` 是样式文件路径）；编译分支补 `shell_escape/synctex/native/extra_args/interaction/jobname`，并在 `finally` 中还原 `draft`。
-- **索引命令**：`compile_index` 用 `shlex.split(..., posix=False)` 并去掉外层引号，路径含空格不再被拆开。
-- **`restore_draft`**：改为"在当前内容上摘除 draft token"，不再整份回写旧快照（编译期间的手动编辑不会被覆盖）。
-- **`--max-runs 0`**：允许 0（首轮后不再追加编译），不再被 `max(1, ...)` 悄悄改成 1。
-- **构建基线**：`_artifact_path` 在根目录与辅助目录都有产物时取 mtime 较新者（native 构建的新产物在辅助目录，旧实现比的是根目录旧副本 → 误判"未变化"）。
-- **file_ops**：`remove_matched_files` 由"每个 pattern 一次全树 rglob"改为单次遍历；`_replace` 改为"临时文件 + `os.replace` 原子覆盖"，失败回滚，不再先 `unlink` 目标（中途失败会连旧 PDF 一起丢）。
-- **subprocess_runner**：删除无调用路径的 `SubprocessFailedError.timed_out()` 与 `except TimeoutExpired` 死分支；`run_command(out_files/aux_files)` 注解修正为 `list[str]`；`_quote_arg` docstring 明确"仅展示层加引号，不承诺可粘贴"。
-- **CLI 启动**：删 `builtins.print = print` 空语句；`UpdateChecker` 由模块级移入 `main()`；Windows UTF-8 重包装保留原件引用，避免旧 `TextIOWrapper` 被 GC 后关闭底层 buffer。
-- **`--json` 机器可读输出**：新增 `machine_report`（`schema_version=1`）：`stdout` 只输出一个 JSON（`status`/`exit_code`/`project`/`build`/`diagnostics`/`issues`/`timings`/`out_files`），进度与错误全部转到 `stderr`；`emit` 幂等、失败退出码非 0 时强制 `status="failed"`；覆盖 `-c/-C/-ca/-Ca`（`action`）、`-A`（`subprojects`）、`--doctor`（`checks`/`missing_critical`/`config_errors`）、`--explain`、成功/失败/跳过三条编译路径。`issues` 带前 20 条 error/warning 的 `level/file/line/text`（`text` 压成单行），失败时也照样给出——编辑器插件与 CI 注释可直接跳到出错行，不必再解析 stderr。rich `Console` 改持 `_SwappableStream` 代理（未切换时跟随 `sys.stdout`），`--json` 时切到 `stderr`，避免混进 stdout 且不破坏 `capsys`/`redirect_stdout`。
-- **i18n 补齐**：新建 `diagnostics` 域英文目录（`diagnostics.po/.mo` + `templates/diagnostics.pot`，9 条），`cli_args`/`cli_workflow` 各补 2 条；`diagnostics.py` 的 `_()` 原本指向不存在的域，等于英文环境仍输出中文；`cli_compile.py` 归类为 `cli_workflow` 域（与 `cli_workflow.py` 共用）；`preflight.py`/`submission.py` 删掉定义了却 0 调用的 `set_language`/`_`。
-
-### 2026-11-18 `-q` / `-nq` 只管"编译过程可见性"（控制台级别回归 1.2.7）
-
-- **`-nq` 现在真的会显示编译日志**：由 `MySubProcess(stream_output=state.non_quiet)` 决定——非安静模式逐行 `console.print` TeX/biber/makeindex 的输出，安静模式照常读取但不显示（失败诊断仍拿得到全文）。逐行输出时不再套 `console.status` 的 Live 渲染，避免在真实终端里日志"时有时无"。
-- **安静模式不再改控制台日志级别**：级别只由 `-vb` 决定，与 1.2.7 一致（`-vb` → INFO，否则 WARNING；不再升 DEBUG）。删除 `logger_config.set_quiet_verbosity()`，`-q`/`-nq` 与日志级别彻底解耦；`setup_logger` 在"已有 handler"的早退分支也补落一次级别，`--watch` 重入或二次调用时 `-vb` 不会被上一轮的级别吃掉。
-- **日志不再自相打脸**：只在命令行显式给出 `-q` / `-nq` 时输出一行结论（哪一侧覆盖了 `quiet_mode`）；由配置文件驱动的默认行为保持安静，需要结论用 `--explain`。
-- **`-q` 覆盖所有命令**：不再等到编译阶段才改 `state.non_quiet`，`-ls` / `-c` / `--explain` 等不走编译的命令同样按安静模式处理。
-- **`-q` 与 `-nq` 互斥**：argparse 互斥组，同时给出直接报参数错误并退出 2，不再让"后解析的那个"悄悄胜出。
-- **`-iu` 生成的用户配置不再含死键**：`default_user_config.toml` 里写的是早年的 `non_quiet`（运行时只认 `quiet_mode`），导致 `pytexmk -iu` 生成的文件一上来就被 `--validate-config` 判"未知配置项"；模板统一改为 `quiet_mode`，项目模板同步补充语义注释。
-- **i18n 抽取清单补漏**：`cli_context.py` 使用 `cli_workflow` 域，却一直不在抽取清单里；本轮把同域另外 5 个文件（`cli_config.py` / `cli_doctor.py` / `cli_early.py` / `cli_latexdiff.py` / `cli_watch.py`）也纳入抽取——不纳入时 `babel update` 会把它们的旧翻译打成 `#~` 弃用条目，`compile` 阶段直接丢弃，英文环境下这些提示会莫名退回中文。纳入后旧翻译全部保留（实测 `cli_workflow` 目录 69 条生效），仍空待译的有 `cli_workflow` 96 条、`cli_args` 31 条（帮助文本居多），单独一轮补齐。
-- **文档里的长选项写错**：`README.md` / `README.en.md` / `src/pytexmk/data/README*.html` 一直写作 `--non_quiet`，而 argparse 注册的是 `--non-quiet`——照文档抄会直接 `error: unrecognized arguments: --non_quiet`；已统一为 `--non-quiet`，并补上此前完全没写的 `-q` / `--quiet` 行，同时把 `-q`/`-nq`/`-vb` 三者的职责写清。
-- **测试**：`tests/test_quiet_mode.py`（11 例：优先级矩阵、`-vb` 只到 INFO、`-q`/`-nq` 不改级别、子进程输出开关、互斥参数）、`tests/test_config_templates.py`（3 例：随包模板必须通过 `--validate-config` 同一套检查）；`test_packaging_metadata.py` 的 pytest 下限断言改为"不低于 9.1"，不再因为 dev 依赖升级而需要手改测试。
-- **索引（nomencl / makeidx）在默认配置下恢复触发**：1.2.17 的扩展名 trigger 只查 CWD，而 `native=auto` 把 `.nlo`/`.idx` 写进 `Auxiliary/`，于是 `\printnomenclature` 永远等不到 makeindex——用户看到的就是"nomencl 没有编译"。现在 trigger 同时查 CWD 与辅助目录，新增 `tests/test_index_nomencl.py`（7 例：两种布局、已收敛不重跑、输入变化重跑、`[index] index_style_file` 带空格路径进 `-s`）。
-- **删除兼容/死代码**：`BuildState.record_fingerprint`、`remove_state_file_if_empty`、`Diagnostics.report_success`、`ConfigParser.init_config_file`、`detection.locate_aux`、`file_ops.move_by_extensions`、`print_compile_report` 的 `prog`/`stalled` 旧参数、`cli_compile._iter_tex_sources` 薄包装。
-- **文档**：README 的 `Python 3.14+` 改为 `3.15+`（与 `requires-python` 一致）；CLI 参数表补 `--json` 与 `--fail-on typesetting`；`docs/python315-migration.md` 去掉已删除的 `Timed.unwrap()` / `timed_out()` 描述。
-- **测试**：新增 `tests/test_2026_11_18_p0_fixes.py`（12 例）、`tests/test_json_output.py`（10 例，含失败编译的 `issues` 定位与 `--doctor`/`--explain` 载荷）与 `--fail-on` 分级 2 例；全量 **271 passed, 1 skipped**。
-
-### 运行命令打印只求对齐
-
-- **按横幅宽度折行**：`运行命令: …` 块按 `total_len`（78 列）折行，优先在参数之间断行；缩进与 `运行命令: ` 前缀同宽，因此每行都不超过横幅宽度，与 `======` 分隔线视觉齐平。
-- **超长参数按显示宽度切开**：外部 `auxdir` 的深路径这类单参数超宽时，按显示宽度切成几片续行（只折行、不丢字符），不再让整行溢出或超出终端。
-- 折行块定位为“阅读/记录用”，不再承诺原样粘贴进 bash/pwsh/cmd 执行；相应地移除了 shell 进程链探测、续行符开关（`--command-line-continuation`）与 shell 特化转义。
-
-### 打印信息与实现对齐
-
-- **`--fail-on error` 真正生效**：原先 `choices` 里有 `error`，代码却只判 `warning`。现在成功路径上日志仍有 error 级条目即退出 6；`--fail-on warning` 改用警告+排版提示总数。成功摘要主体抽成 `diagnostics.report_summary() -> LogSummary(errors/warnings/typesetting)`，`report_success()` 保留旧返回值口径。
-- **`--doctor` 配置检查不再恒 ✓**：`ConfigParser` 新增 `load_errors`，`_load_toml` 解析失败时记录原因；`--doctor` 据此打 ✗ 并以退出码 1 结束，不再在配置写坏时照样说“体检通过”。
-- **PyTeXLogs 命令可执行**：失败提示与成功摘要里的 `pytexlogs <log> --format json` / `--open` 在 0.5.x 会被 argparse 拒掉（`invalid choice`），改为 `pytexlogs export <log> --format json`、`pytexlogs check <log> --open`、`pytexlogs summary <log> --max-entries 0`（路径含空格自动加引号）。
-- **`--explain` 交互模式**：未显式设置时按实际生效值显示（安静模式 `batchmode`、`-nq` 为 `nonstopmode`），不再恒显示 `nonstopmode`。
-- **`-ls` 不再谎报“已更新”**：对比写入前后的 `.pytexmkrc`，无变化时提示“已是当前清单，未改动”；帮助与模板注释同步为“重建 `[subprojects]`、保留仍指向真实路径的手写条目”。
-- **归档提示跟随 SyncTeX 开关**：`--no-synctex` 时只说“归档 PDF 到输出目录”，不再提 synctex。
-- **帮助不再吞字**：`-A` 帮助里的 `[subprojects]` 只转义左方括号（rich 不认 `\]`，会留下反斜杠）；`-h` 的退出码表补上 `2=命令行参数解析错误`，`6` 改为“诊断阈值”。
-- **诊断报告路径校验**：`--report` 写入失败时明确提示“诊断报告未生成（写入失败）”，不再打印一个并不存在的路径。
-
-### SyncTeX 校验与产物归档加固
-
-- **假失败修复**：`--synctex-check` 的取样行改为从 `\begin{document}` 之后挑选正文行（原先取第 2 行的 `\usepackage`，前言行没有版面盒子，反向必然落到 `\begin{document}`，几十行前言就会报“行号偏差过大”）；并改为多候选重试，任一候选通过即判定可用。
-- **多文件论文**：反向落在项目内的 `.tex`（`\input`/`\include` 子文件）不再判为“定位到错误文件”，只在回到主文件时比较行号，容差 5 行。
-- **产物自愈**：`_can_skip_compile` 现在同时要求 outdir 里有 PDF 与 `.synctex.gz`；缺 synctex 会重新编译，而不是跳过编译后永远无法反向跳转。
-- **校验不再被跳过**：`--synctex-check` 移到编译后的统一收尾，命中“源文件未变、跳过编译”分支时同样会执行。
-- **`outdir` 与 `auxdir` 同目录不再删产物**：归档前先判定两个目录是否同一位置（`file_ops._replace` 也加了同文件保护），修复“先 unlink 目标再 move 源”把刚编译出的 PDF/SyncTeX 删掉、退出码仍为 0 的问题；归档失败改为以退出码 5 明确报出。
-- **诊断更准**：缺失 `.synctex.gz` 时直接提示“需要重新编译”并给出 `-fr` 建议；陈旧 synctex 给黄色警告；失败回显只保留 `Page / Input / Line` 等有用行。
-- **清理不再误伤**：`SUFFIXES_AUX` 去掉裸 `.gz`（`-ca` 不再删用户自己的 `*.gz`），`-ca` 单独精确匹配 `*.synctex.gz`。
-- 新增 `tests/test_synctex_regressions.py`（12 例）：前言取样、子文件落点、缺失/陈旧产物、同目录归档、跳过编译前置条件。
+- `python -m pytest -q tests`：**605 passed**。
+- `ruff check --config pyproject.toml src tests`：`All checks passed!`。
+- `python -m compileall -q src\pytexmk`：通过。
+- `python -m pytexmk.cli --version`：`PyTeXMK 1.2.18`。
+- 真机 MiKTeX 验证：`-x` 编译、`-dr` 草稿、`-d/-dc` 对比稿、xindy/glossaries、投稿包与 `-r` 报告均通过。
 
 ## v1.2.17 - 2026-11-16
 
