@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-24 16:10+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,10 +17,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-msgid "清除所有的辅助文件"
-msgstr ""
-
-msgid "清除文件夹内输出文件"
+#, python-format
+msgid "有 %(n)s 个文件未能删除（可能被占用）："
 msgstr ""
 
 msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]"
@@ -29,13 +27,40 @@ msgstr ""
 msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]"
 msgstr ""
 
-msgid "修复 PDF 文件"
+msgid "投稿包已生成"
 msgstr ""
 
-msgid "清除文件夹内辅助文件"
+msgid "文件数"
 msgstr ""
 
-msgid "清除根目录内辅助文件"
+msgid "体积"
+msgstr ""
+
+msgid "页数"
+msgstr ""
+
+msgid "编译轮数"
+msgstr ""
+
+msgid "Unicode 转换"
+msgstr ""
+
+msgid "导言区净化"
+msgstr ""
+
+msgid "仍有 "
+msgstr ""
+
+msgid " 个非 ASCII 字符无法转换，pdflatex 会失败"
+msgstr ""
+
+msgid "中文/日文等正文需 ctex/xeCJK，pdflatex 无法处理"
+msgstr ""
+
+msgid "原稿使用了 Xe/Lua 专属宏包，提交副本中已自动处理（详见包内说明）"
+msgstr ""
+
+msgid "仍有 pdflatex 无法处理的项，请查看包内说明文件"
 msgstr ""
 
 msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]"
@@ -47,7 +72,11 @@ msgstr ""
 msgid "开始预处理"
 msgstr ""
 
-msgid "辅助文件->根目录"
+msgid "开始后处理"
+msgstr ""
+
+#, python-format
+msgid "原生目录构建：辅助文件直接写入 %(d)s"
 msgstr ""
 
 msgid "未检测到已有辅助文件，进行初始化"
@@ -64,34 +93,207 @@ msgstr ""
 msgid "已移动 %(n)s 个辅助文件到项目根目录"
 msgstr ""
 
-msgid "开始后处理"
+msgid "PDF / synctex"
 msgstr ""
 
-msgid "移动结果文件到输出目录..."
+#, python-format
+msgid "输出目录与辅助目录相同，%(p)s 已在目标位置，跳过归档"
 msgstr ""
 
-msgid "结果文件->输出目录"
+#, python-format
+msgid "归档 %(p)s 到输出目录..."
 msgstr ""
 
 msgid "移动辅助文件到辅助目录..."
 msgstr ""
 
-msgid "辅助文件->辅助目录"
+#, python-format
+msgid "编译产物归档失败：%(p)s 仍留在 %(s)s（可能被占用或目录不可写）"
+msgstr ""
+
+msgid "输出目录里没有 PDF（编译可能未产出页面）"
+msgstr ""
+
+msgid "PDF 是空文件"
+msgstr ""
+
+msgid "PDF 文件内容不是有效的 PDF（可能被其他程序覆盖）"
+msgstr ""
+
+msgid "PDF 没有页面（文档为空或只含不可排版内容）"
+msgstr ""
+
+msgid "PDF 结构损坏，无法解析"
+msgstr ""
+
+msgid "PDF 无法读取（可能被占用）"
+msgstr ""
+
+msgid "PDF 校验失败"
+msgstr ""
+
+#, python-format
+msgid "编译产物校验失败: %(p)s（%(r)s）"
+msgstr ""
+
+msgid "无法读取 PDF 时间戳: "
+msgstr ""
+
+msgid "输出目录里的 PDF 是上一轮产物（本轮编译没有生成新 PDF）: "
+msgstr ""
+
+#, python-format
+msgid "提示：输出目录里缺少 SyncTeX 定位文件（%(n)s.synctex 或 .synctex.gz），编辑器将无法反向跳转"
+msgstr ""
+
+#, python-format
+msgid "提示：%(p)s 是上次编译留下的旧文件（本次已关闭 SyncTeX），如需彻底停用编辑器跳转请手动删除"
+msgstr ""
+
+#, python-format
+msgid "检测到 %(e)s 个错误，详见编译日志中的 ERROR 条目。"
+msgstr ""
+
+msgid "编译前检查提示"
+msgstr ""
+
+msgid "编译前检查发现阻断性问题，已停止编译"
+msgstr ""
+
+msgid "确认无误时可在配置中设 [preflight] enabled = false 跳过检查"
+msgstr ""
+
+msgid "SyncTeX 已关闭：本次不生成 .synctex.gz，编辑器将无法正/反向跳转"
+msgstr ""
+
+#, python-format
+msgid "根目录 %(f)s 与辅助目录同名但内容不同，已保留（疑似手写样式文件）"
+msgstr ""
+
+#, python-format
+msgid "清理根目录残留的辅助文件: %(f)s"
+msgstr ""
+
+#, python-format
+msgid "检测到 %(n)s 个被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建。"
+msgstr ""
+
+msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。"
+msgstr ""
+
+#, python-format
+msgid "当前 PDF：%(p)s"
 msgstr ""
 
 msgid "警告：检测到上次编译可能被中断，辅助文件可能不完整。"
 msgstr ""
 
-msgid "建议先运行 [bold cyan]pytexmk -c[/bold cyan] 清理后再重试。[/yellow]"
+msgid "建议先运行 [bold cyan]pytexmk -c[/bold cyan] 清理后再重试。"
 msgstr ""
 
-msgid "可运行 pytexmk -ls 同步子项目清单, 或检查根配置 \\[subprojects\\] 段"
+msgid "配置来源"
+msgstr ""
+
+msgid "合并后的配置"
+msgstr ""
+
+msgid "配置校验失败"
+msgstr ""
+
+msgid "本次编译的有效配置"
+msgstr ""
+
+msgid "项目"
+msgstr ""
+
+msgid "取值"
+msgstr ""
+
+msgid "主文件"
+msgstr ""
+
+msgid "输出文件名"
+msgstr ""
+
+msgid "编译器"
+msgstr ""
+
+msgid "构建模式"
+msgstr ""
+
+msgid "原生目录构建"
+msgstr ""
+
+msgid "两段式搬运"
+msgstr ""
+
+msgid "输出目录"
+msgstr ""
+
+msgid "辅助目录"
+msgstr ""
+
+msgid "shell-escape"
+msgstr ""
+
+msgid "SyncTeX"
+msgstr ""
+
+msgid "开启"
+msgstr ""
+
+msgid "关闭"
+msgstr ""
+
+msgid "交互模式"
+msgstr ""
+
+msgid "额外参数"
+msgstr ""
+
+msgid "最大编译轮次"
+msgstr ""
+
+msgid "编译前检查"
+msgstr ""
+
+msgid "投稿目录"
+msgstr ""
+
+msgid "草稿模式"
+msgstr ""
+
+msgid "是"
+msgstr ""
+
+msgid "否"
+msgstr ""
+
+msgid "编译后预览"
+msgstr ""
+
+msgid "安静模式"
+msgstr ""
+
+msgid "最终 PDF: "
+msgstr ""
+
+msgid "参数优先级：命令行 > 项目 .pytexmkrc > 用户 ~/.pytexmkrc > 内置默认；主文件魔法注释仅覆盖引擎等少数项"
+msgstr ""
+
+msgid "可运行 pytexmk -ls 写回子项目清单, 或检查根配置 [subprojects] 段"
 msgstr ""
 
 msgid "子项目调用: 忽略子项目目录下的本地 .pytexmkrc, 以根配置为准"
 msgstr ""
 
-msgid "非安静模式运行"
+msgid "通过子项目条目指定主文件为: "
+msgstr ""
+
+msgid "通过命令行指定子目录主文件为: "
+msgstr ""
+
+msgid "非安静模式: TeX 编译过程将实时显示在终端（-nq 覆盖 quiet_mode）"
 msgstr ""
 
 msgid "提取魔法注释: "
@@ -112,7 +314,8 @@ msgstr ""
 msgid "通过配置文件设置编译器为: "
 msgstr ""
 
-msgid "通过配置文件设置安静模式为: "
+#, python-format
+msgid "构建模式: native=%(n)s, shell_escape=%(s)s, synctex=%(x)s"
 msgstr ""
 
 msgid "通过配置文件设置输出目录为: "
@@ -127,6 +330,15 @@ msgstr ""
 msgid "通过配置文件设置 PDF 预览器为: "
 msgstr ""
 
+msgid "通过配置文件设置投稿包输出目录为: "
+msgstr ""
+
+msgid "通过配置文件设置索引样式文件为: "
+msgstr ""
+
+msgid "通过配置文件设置 glossaries 工具为: "
+msgstr ""
+
 msgid "通过配置文件设置 LaTeXDiff 旧文件为: "
 msgstr ""
 
@@ -137,11 +349,7 @@ msgid "通过配置文件设置 LaTeXDiff 对比文件为: "
 msgstr ""
 
 #, python-format
-msgid "LaTeXDiff 需恰好 2 个文件名，当前收到 %(n)s 个"
-msgstr ""
-
-#, python-format
-msgid "LaTeXDiff-compile 需恰好 2 个文件名，当前收到 %(n)s 个"
+msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
 msgstr ""
 
 msgid "命令行未指定 LaTeXDiff 相关参数"
@@ -162,24 +370,16 @@ msgstr ""
 msgid "[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]"
 msgstr ""
 
-#, python-format
-msgid "README.html / README.en.html 文件均未找到，目录: %(args)s"
+msgid "[bold red]无法创建根配置文件 .pytexmkrc[/bold red]"
 msgstr ""
 
-msgid "[bold green]正在打开 README 文件...[/bold green]"
+msgid "[bold green].pytexmkrc 中的 \\[subprojects] 段已是当前清单，未改动[/bold green]"
 msgstr ""
 
-#, python-format
-msgid "README 本地路径: %(args)s"
+msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects] 段[/bold green]"
 msgstr ""
 
-msgid "打开 README 文件出错: "
-msgstr ""
-
-msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]"
-msgstr ""
-
-msgid "[yellow]未找到根 .pytexmkrc , 请先运行 pytexmk -i 后再运行 -ls[/yellow]"
+msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]"
 msgstr ""
 
 msgid "不能对同一个文件进行比较, 请检查文件名是否正确"
@@ -188,23 +388,13 @@ msgstr ""
 msgid "LaTeXDiff 预处理"
 msgstr ""
 
-msgid "全辅助文件->根目录"
-msgstr ""
-
-msgid ""
-"请输入 LaTeXDiff 的显示风格：\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改\n"
-"请选择 (1 或者 2): "
-msgstr ""
-
 msgid "LaTeXDiff 运行"
 msgstr ""
 
 msgid "LaTeXDiff 后处理"
 msgstr ""
 
-msgid "删除 Flatten 后的文件..."
+msgid "清理压平临时文件..."
 msgstr ""
 
 msgid "开始预处理命令"
@@ -216,7 +406,26 @@ msgid ""
 "  2 - 不显示参考文献/符号说明的修改"
 msgstr ""
 
+msgid "移动结果文件到输出目录..."
+msgstr ""
+
 msgid "LaTeXDiff 编译出错: "
+msgstr ""
+
+msgid "非交互环境，LaTeXDiff 使用默认风格 2"
+msgstr ""
+
+msgid ""
+"请输入 LaTeXDiff 的显示风格：\n"
+"  1 - 显示参考文献/符号说明的修改\n"
+"  2 - 不显示参考文献/符号说明的修改\n"
+"请选择 (1 或者 2，直接回车默认 2): "
+msgstr ""
+
+msgid "未读取到输入，使用默认风格 2"
+msgstr ""
+
+msgid "风格只能是 1 或 2，收到: "
 msgstr ""
 
 #, python-format
@@ -224,7 +433,35 @@ msgid "%(args)s 的辅助文件存在"
 msgstr ""
 
 #, python-format
-msgid "%(args)s 的辅助文件不存在, 请检查编译"
+msgid "%(args)s 的辅助文件不存在，差异结果可能缺少参考文献/索引内容"
+msgstr ""
+
+msgid "无法确定主文件，不能定位最近一次编译日志"
+msgstr ""
+
+#, python-format
+msgid "无法从最近一次编译日志生成报告: %(r)s"
+msgstr ""
+
+msgid "诊断报告已生成"
+msgstr ""
+
+msgid "JSON: "
+msgstr ""
+
+msgid "Markdown: "
+msgstr ""
+
+msgid "编译期间检测到新的源文件变化，立即重新编译…"
+msgstr ""
+
+msgid "监视中：修改源文件后自动重编译（Ctrl+C 退出）"
+msgstr ""
+
+msgid "检测到源文件变化，重新编译…"
+msgstr ""
+
+msgid "已退出监视模式"
 msgstr ""
 
 #, python-format
@@ -234,31 +471,28 @@ msgstr ""
 msgid "[bold green]PyTeXMK 开始运行...[/bold green]"
 msgstr ""
 
+msgid "根配置里没有 [subprojects] 清单，无法批量编译；可先运行 pytexmk -ls"
+msgstr ""
+
+msgid "成功"
+msgstr ""
+
 #, python-format
-msgid "检测到 %(n)s 个被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建。"
+msgid "失败（退出码 %(c)s）"
 msgstr ""
 
-msgid "通过子项目条目指定主文件为: "
+msgid "批量编译汇总"
 msgstr ""
 
-msgid "[bold green]已自动创建根配置文件 [/bold green]"
+msgid "子项目"
 msgstr ""
 
-msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]"
+msgid "结果"
 msgstr ""
 
-#: src/pytexmk/cli_workflow.py
-msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。"
-msgstr "Sources are unchanged since the last build; compilation skipped (use [bold cyan]-fr[/bold cyan] to force a rebuild)."
+msgid "退出码"
+msgstr ""
 
-#: src/pytexmk/cli_workflow.py
-msgid "当前 PDF：%(p)s"
-msgstr "Current PDF: %(p)s"
+msgid "失败子项目: "
+msgstr ""
 
-#: src/pytexmk/cli_workflow.py
-msgid "未找到子项目: %(name)s"
-msgstr "Subproject not found: %(name)s"
-
-#: src/pytexmk/cli_workflow.py
-msgid "，可用别名: %(s)s"
-msgstr ", available aliases: %(s)s"

@@ -24,7 +24,7 @@ msgstr ""
 msgid "LaTeX 编译时长"
 msgstr ""
 
-msgid "Python 运行时长"
+msgid "Python 侧（未细分）"
 msgstr ""
 
 msgid "PyTeXMK 运行时长"
@@ -42,6 +42,7 @@ msgstr ""
 msgid "PyTeXMK 运行时长: "
 msgstr ""
 
-msgid "运行 LaTeX 程序数目: "
+#, python-format
+msgid "外部工具调用 %(total)s 次（%(detail)s）"
 msgstr ""
 

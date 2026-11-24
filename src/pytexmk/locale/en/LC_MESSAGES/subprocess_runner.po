@@ -41,6 +41,22 @@ msgid "执行超时"
 msgstr "Execution timed out"
 
 #, python-format
+msgid "正在%(prog)s…"
+msgstr "Running %(prog)s..."
+
+#, python-format
+msgid "已 %(sec)d 秒没有输出，%(prog)s 仍在运行（加 -nq 可看实时日志）"
+msgstr "No output for %(sec)d s; %(prog)s is still running (add -nq to see live logs)"
+
+#, python-format
+msgid ""
+"%(prog)s 已结束，但输出管道仍未关闭（可能派生了后台进程），已停止等待；"
+"后续输出可能未收集"
+msgstr ""
+"%(prog)s has exited, but its output pipe is still open (a spawned process "
+"may hold it); stopped waiting, later output may be incomplete"
+
+#, python-format
 msgid "%(prog)s 无法启动: %(err)s"
 msgstr "%(prog)s failed to start: %(err)s"
 

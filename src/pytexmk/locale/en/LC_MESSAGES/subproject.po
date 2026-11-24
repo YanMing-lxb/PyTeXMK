@@ -27,3 +27,6 @@ msgstr "Name"
 msgid "相对路径"
 msgstr "Relative path"
 
+msgid "写入子项目清单失败: "
+msgstr "Failed to write subproject list: "
+

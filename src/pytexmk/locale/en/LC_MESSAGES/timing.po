@@ -25,8 +25,8 @@ msgstr "Error executing function %(args)s: "
 msgid "LaTeX 编译时长"
 msgstr "LaTeX time"
 
-msgid "Python 运行时长"
-msgstr "Python time"
+msgid "Python 侧（未细分）"
+msgstr "Python side (unsegmented)"
 
 msgid "PyTeXMK 运行时长"
 msgstr "PyTeXMK time"
@@ -43,6 +43,7 @@ msgstr "Duration"
 msgid "PyTeXMK 运行时长: "
 msgstr "PyTeXMK runtime: "
 
-msgid "运行 LaTeX 程序数目: "
-msgstr "Number of LaTeX programs run: "
+#, python-format
+msgid "外部工具调用 %(total)s 次（%(detail)s）"
+msgstr "%(total)s external tool calls (%(detail)s)"
 

@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-24 15:42+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,89 +19,111 @@ msgstr ""
 
 msgid ""
 "\n"
-"PyTeXMK-支持使用魔法注释来定义待编译主文件、编译程序、编译结果存放位置等（仅支持检索文档前 50 行）\n"
+"魔法注释：只扫描每个主文件的前 50 行，可指定编译引擎、根文件、输出目录和辅助目录。\n"
 msgstr ""
 
 msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
 msgstr ""
 
-msgid ""
-"如欲了解魔法注释以及其他详细说明信息请运行 -r 参数，阅读 README 文件。发现 BUG 请及时更新到最新版本，欢迎在 Github 仓库中提交 Issue：https://github.com/YanMing-"
-"lxb/PyTeXMK/issues"
+msgid "提示：运行出错时会直接说明原因与下一步；问题反馈：https://github.com/YanMing-lxb/PyTeXMK/issues"
 msgstr ""
 
-msgid "显示 PyTeXMK 的版本号并退出"
+msgid "显示版本并退出"
 msgstr ""
 
-msgid "显示 PyTeXMK 的帮助信息并退出"
+msgid "显示本帮助并退出"
 msgstr ""
 
-msgid "显示README文件"
+msgid "从最近一次编译日志生成报告（不触发编译）"
 msgstr ""
 
-msgid "PdfLaTeX 进行编译"
+msgid "用 PdfLaTeX 编译"
 msgstr ""
 
-msgid "XeLaTeX 进行编译"
+msgid "用 XeLaTeX 编译"
 msgstr ""
 
-msgid "LuaLaTeX 进行编译"
+msgid "用 LuaLaTeX 编译"
 msgstr ""
 
-msgid "使用 LaTeXDiff 进行编译, 生成改动对比文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+msgid "生成 LaTeXDiff 对比稿：写 -d OLD NEW；省略文件名时用配置中的 old/new。两个文件名须紧跟 -d"
 msgstr ""
 
-msgid "使用 LaTeXDiff 进行编译, 生成改动对比文件并编译新文件，当在配置文件中配置相关参数时可省略 'OLD_FILE' 和 'NEW_FILE'"
+msgid "生成 LaTeXDiff 对比稿并编译；文件名写法同 -d，省略时用配置中的 old/new"
 msgstr ""
 
-msgid "启用草稿模式进行编译，提高编译速度 (无图显示)"
+msgid "草稿模式：跳过图片加载，编译更快"
 msgstr ""
 
-msgid "清除所有主文件的辅助文件"
+msgid "清除当前主文件的辅助文件（仅辅助目录）"
 msgstr ""
 
-msgid "清除所有主文件的辅助文件（包含根目录）和输出文件"
+msgid "清除当前主文件的辅助文件与输出文件（辅助目录 + 根目录）"
 msgstr ""
 
-msgid "清除所有带辅助文件后缀的文件"
+msgid "递归清理全项目的辅助文件（不要求唯一主文件）"
 msgstr ""
 
-msgid "清除所有带辅助文件后缀的文件（包含根目录）和主文件输出文件"
+msgid "递归清理全项目的辅助文件与主文件输出"
 msgstr ""
 
-msgid "非安静模式运行, 此模式下终端显示日志信息"
+msgid "实时显示 TeX/biber/makeindex 的输出"
 msgstr ""
 
-msgid "显示 PyTeXMK 运行过程中的详细信息"
+msgid "传给引擎的 -interaction 模式"
 msgstr ""
 
-msgid "尝试修复所有根目录以外的 PDF 文件, 当 LaTeX 编译过程中警告 invalid X X R object 时, 可使用此参数尝试修复所有 pdf 文件"
+msgid "向引擎追加一个参数，可重复（如 --pass-arg=-8bit）"
 msgstr ""
 
-msgid ""
-"尝试编译结束后调用 Web 浏览器或者本地 PDF 阅读器预览生成的PDF文件 (如需指定在命令行中指定待编译主文件, 则 -pv 命令, 需放置 document 后面并无需指定参数, 示例: pytexmk main -pv; "
-"如无需在命令行中指定待编译主文件, 则直接输入 -pv 即可, 示例: pytexmk -pv), 如有填写 [dark_cyan]FILE_NAME[/dark_cyan] 则不进行编译打开指定文件 (注意仅支持输出目录下的 PDF"
-" 文件, 示例: pytexmk -pv main)"
+msgid "生成期刊投稿包 zip（按 .fls 收集依赖，并处理 Unicode）"
 msgstr ""
 
-msgid "从根配置 \\[subprojects\\] 中选中一个子项目并在其目录编译；可与待编译主文件名共存"
+msgid "监视源文件并自动重编（Ctrl+C 退出）"
 msgstr ""
 
-msgid "扫描子项目并展示清单；若根 .pytexmkrc 存在则整体替换 \\[subprojects\\] 段"
+msgid "打包后用 pdflatex 试编译一次做验证"
 msgstr ""
 
-msgid "生成根项目 .pytexmkrc 配置文件"
+msgid "只显示本次编译配置，不编译"
 msgstr ""
 
-msgid "生成用户级 ~/.pytexmkrc 配置文件"
+msgid "显示合并后的配置（默认 < 用户 < 项目）"
 msgstr ""
 
-msgid "配合 -i/-iu 强制覆盖已存在的配置文件"
+msgid "编译根配置 \\[subprojects] 中的全部子项目"
+msgstr ""
+
+msgid "投稿包同时包含 .bib 源文件（默认只带 .bbl）"
+msgstr ""
+
+msgid "LaTeXDiff 显示风格；非交互默认 2"
+msgstr ""
+
+msgid "显示详细运行信息"
+msgstr ""
+
+msgid "修复被项目真实引用的 PDF（按 .fls 判定范围）。不带文件名时只修复被引用的文件；可指定一个或多个 PDF"
+msgstr ""
+
+msgid "忽略构建缓存，强制重新编译"
+msgstr ""
+
+msgid "编译后打开 PDF 预览。指定 FILE_NAME 时只打开该文件（限输出目录），不再编译；主文件名可写在 document 位置，如 pytexmk main -pv"
+msgstr ""
+
+msgid "编译根配置 \\[subprojects] 中指定的子项目"
+msgstr ""
+
+msgid "列出并写回根配置的 \\[subprojects] 清单"
+msgstr ""
+
+msgid "生成项目配置 .pytexmkrc（覆盖已有文件）"
+msgstr ""
+
+msgid "生成用户配置 ~/.pytexmkrc（覆盖已有文件）"
 msgstr ""
 
 msgid "待编译主文件名"
 msgstr ""
 
-#: src/pytexmk/cli_args.py
-msgid "强制重新编译, 忽略构建状态中记录的“源文件未改动”判断"
-msgstr "Force a rebuild, ignoring the \\\"sources unchanged\\\" shortcut from the build state"
