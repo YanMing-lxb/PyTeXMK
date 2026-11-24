@@ -24,7 +24,7 @@ msgstr ""
 msgid "LaTeX 编译时长"
 msgstr ""
 
-msgid "Python 侧（未细分）"
+msgid "Python 运行时长"
 msgstr ""
 
 msgid "PyTeXMK 运行时长"

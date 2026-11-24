@@ -168,7 +168,7 @@ def time_print(
     }
     if latex_steps:
         rows[_("LaTeX 编译时长")] = latex_seconds
-    rows[_("Python 侧（未细分）")] = python_seconds
+    rows[_("Python 运行时长")] = python_seconds
     rows[_("PyTeXMK 运行时长")] = total_seconds
 
     max_whole_digits = max(len(str(int(value or 0))) for value in rows.values())
