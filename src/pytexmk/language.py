@@ -23,11 +23,16 @@ Description  :
  -----------------------------------------------------------------------
 """
 
+import contextlib
+import functools
 import gettext
 import locale
+import logging
 import os
 import sys
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Windows GetLocaleInfo (LOCALE_SENGLISHNAME) → POSIX 语言前缀的映射表
 # Python locale.getlocale() 在 Windows 上返回 Windows 本地化名称（如
@@ -85,12 +90,17 @@ def _normalize_windows_locale(raw: str) -> str:
     return raw
 
 
+@functools.cache
 def get_locale_lang() -> str:
     """获取系统 locale 的语言前缀（如 zh_CN → zh）。
 
     优先读取 LANGUAGE / LC_ALL / LC_CTYPE / LANG 环境变量（POSIX 标准）；
     兜底回退到 locale.getlocale() 并对 Windows 本地化名称做归一化。
     避免使用 Python 3.15 将移除的 locale.getdefaultlocale()。
+
+    结果缓存：``set_language`` 按 domain 缓存，但 22 个 domain 首次加载时仍会
+    各调一次本函数；缓存后 ``locale.setlocale`` 与环境变量解析只做一次。
+    本项目没有运行时切换语言的入口，与进程生命周期内的真实 locale 等价。
     """
     for env_var in ("LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG"):
         val = os.environ.get(env_var)
@@ -103,10 +113,8 @@ def get_locale_lang() -> str:
             lang = lang.split("@")[0]
             if lang and lang != "C":
                 return lang
-    try:
+    with contextlib.suppress(locale.Error):
         locale.setlocale(locale.LC_ALL, "")
-    except locale.Error:
-        pass
     raw = locale.getlocale()[0] or ""
     return _normalize_windows_locale(raw)
 
@@ -114,8 +122,14 @@ def get_locale_lang() -> str:
 # --------------------------------------------------------------------------------
 # 定义系统语言检查函数
 # --------------------------------------------------------------------------------
+@functools.cache
 def set_language(lang_file):
-    """根据系统区域设置动态选择翻译；源码默认中文，zh→NullTranslations，其他按优先级查找 .mo。"""
+    """根据系统区域设置动态选择翻译；源码默认中文，zh→NullTranslations，其他按优先级查找 .mo。
+
+    结果按 ``lang_file`` 缓存：cli 层有 7 个模块共用 ``cli_workflow`` 域，不缓存
+    就会重复执行 ``locale.setlocale`` 与逐语言 ``.mo`` stat。语言在进程生命周期内
+    不变化（无运行时切换入口），缓存与 gettext 语义等价。
+    """
     raw = get_locale_lang()
     if hasattr(sys, "_MEIPASS"):
         locale_path = Path(sys._MEIPASS) / "locale"
@@ -140,6 +154,14 @@ def set_language(lang_file):
     languages: list[str] = [c for c in candidates if not (c in seen or seen.add(c))]
 
     fallback = gettext.NullTranslations()
+    # 目录缺失时 gettext 会静默回退到中文原文（英文界面里冒出中文）。这里留一条
+    # debug 级信号，便于用 `make pot/mo` 补齐缺失的 domain（如 diagnostics /
+    # preflight / submission 目前还没有 .po）。
+    mo_missing = not any(
+        (locale_path / lang / "LC_MESSAGES" / f"{lang_file}.mo").exists() for lang in languages
+    )
+    if mo_missing:
+        logger.debug("翻译域 %s 缺少 .mo（%s），将显示源语言原文", lang_file, ",".join(languages))
     try:
         translation = gettext.translation(
             lang_file,
@@ -147,6 +169,6 @@ def set_language(lang_file):
             languages=languages,
             fallback=fallback,
         )
-    except (FileNotFoundError, OSError, ValueError):
+    except FileNotFoundError, OSError, ValueError:
         translation = fallback
     return translation.gettext

@@ -46,27 +46,12 @@ import logging
 from pathlib import Path
 
 from pytexmk.language import set_language
+from pytexmk.layout import CHECKED_AUX_SUFFIXES
 
 _ = set_language("aux_repair")
 
-# 只检查"行式写入、括号必须配平"的辅助文件。
-# 不检查 .log / .pdf / .synctex.gz 等非结构化或二进制产物。
-CHECKED_SUFFIXES: tuple[str, ...] = (
-    ".aux",
-    ".toc",
-    ".lof",
-    ".lot",
-    ".out",
-    ".bbl",
-    ".idx",
-    ".ind",
-    ".nlo",
-    ".nls",
-    ".glo",
-    ".gls",
-    ".nav",
-    ".snm",
-)
+# 只检查"行式写入、括号必须配平"的辅助文件（定义见 pytexmk.layout）。
+CHECKED_SUFFIXES: tuple[str, ...] = CHECKED_AUX_SUFFIXES
 
 # 辅助文件按行写入，正常情况下总以换行结束。
 # 若文件大小正好落在缓冲区边界上又没有结尾换行，几乎必然是写入中途被打断。
@@ -76,25 +61,37 @@ _BUFFER_BOUNDARY = 4096
 def _brace_balance(text: str) -> int:
     """统计未转义花括号的净值（`{` 计 +1，`}` 计 -1）。
 
-    需要正确跳过 `\\{` / `\\}` 这类转义花括号，以及 `\\\\{`（换行命令后紧跟
-    真正生效的左括号）这种情况，因此按"前置反斜杠个数的奇偶性"判断：
-    奇数个反斜杠表示该花括号被转义，偶数个表示它是结构性的花括号。
+    需要正确跳过：
+
+    * `\\{` / `\\}` 这类转义花括号，以及 `\\\\{`（换行命令后紧跟真正生效的
+      左括号）；按"前置反斜杠个数的奇偶性"判断，奇数个表示被转义，偶数个表示
+      结构性的花括号。
+    * TeX 注释：未转义的 `%` 到行尾。合法的 `.bbl` 常带
+      ``% template note: { is a brace`` 这样的模板说明，注释里的花括号不参与
+      配平；旧实现把它当成截断文件删除，等于删掉作者的参考文献。
     """
     balance = 0
     backslashes = 0
+    in_comment = False
     for ch in text:
+        if in_comment:
+            if ch in "\r\n":
+                in_comment = False
+            continue
         if ch == "\\":
             backslashes += 1
             continue
-        if ch == "{":
-            if backslashes % 2 == 0:
-                balance += 1
-        elif ch == "}":
-            if backslashes % 2 == 0:
-                balance -= 1
-                # 出现"多出来的右括号"时不必继续统计，已经能断定文件损坏
-                if balance < 0:
-                    return balance
+        if ch == "%" and backslashes % 2 == 0:
+            in_comment = True
+            backslashes = 0
+            continue
+        if ch == "{" and backslashes % 2 == 0:
+            balance += 1
+        elif ch == "}" and backslashes % 2 == 0:
+            balance -= 1
+            # 出现"多出来的右括号"时不必继续统计，已经能断定文件损坏
+            if balance < 0:
+                return balance
         backslashes = 0
     return balance
 
@@ -134,10 +131,11 @@ def find_truncated_aux_files(dirs: list[Path], project_name: str | None = None) 
         if not base.is_dir():
             continue
         for suffix in CHECKED_SUFFIXES:
-            if project_name:
-                candidates = [base / f"{project_name}{suffix}"]
-            else:
-                candidates = sorted(base.glob(f"*{suffix}"))
+            candidates = (
+                [base / f"{project_name}{suffix}"]
+                if project_name
+                else sorted(base.glob(f"*{suffix}"))
+            )
             for path in candidates:
                 if not path.is_file() or path in seen:
                     continue

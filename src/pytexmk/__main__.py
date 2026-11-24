@@ -26,10 +26,10 @@ Description  :
  -----------------------------------------------------------------------
 '''
 
-"""Thin forwarder: `python -m pytexmk` keeps equivalent to `pytexmk.cli.__main__.main()`."""
+"""Thin forwarder: `python -m pytexmk` keeps equivalent to `pytexmk._launcher.main()`."""
 
-# ruff: noqa: E402  —— 维护记录块（作者/路径头）之后才排 import，属项目约定
-from pytexmk.cli.__main__ import main
+
+from pytexmk._launcher import main  # noqa: E402
 
 if __name__ == "__main__":
     main()

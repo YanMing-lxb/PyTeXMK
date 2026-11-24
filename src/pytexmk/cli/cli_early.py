@@ -1,12 +1,10 @@
-"""PyTeXMK CLI 早退出子命令：README / 配置初始化 / 子项目清单。"""
+"""PyTeXMK CLI 早退出子命令：配置初始化 / 子项目清单 / 配置查看。"""
 
-import webbrowser
 from pathlib import Path
 
 from ..config import ConfigParser
-from ..language import get_locale_lang, set_language
-from ..lifecycle import exit_pytexmk
-from ..paths import get_app_path
+from ..language import set_language
+from ..lifecycle import EXIT_CONFIG_ERROR, exit_pytexmk
 from ..subproject_scanner import (
     discover_subprojects,
     print_subproject_table,
@@ -18,113 +16,78 @@ _ = set_language("cli_workflow")
 
 
 def handle(args, cp: ConfigParser, logger) -> None:
-    """处理 --doctor / -r / -i / -iu / -ls 早退出子命令。
+    """处理 -i / -iu / -ls / --show-config 早退出子命令。
 
     命中任意一个子命令都会在执行完后直接结束进程；全部未命中时直接返回，
-    由调用方继续编译流程。
+    由调用方继续编译流程，普通运行不会自动创建用户 / 项目配置文件。
     """
-    if getattr(args, "doctor", False):
-        from .cli_doctor import run as doctor_run
-
-        doctor_run(args, cp, logger)
-        exit_pytexmk()
-
-    if args.readme:
-        _open_readme(logger)
-        exit_pytexmk()
-
     logger.info("-" * 70)
     if getattr(args, "show_config", False):
         from .cli_config import show_config
 
         show_config(cp)
-        exit_pytexmk()
-    if getattr(args, "validate_config", False):
-        from ..lifecycle import EXIT_CONFIG_ERROR
-        from .cli_config import validate_config
-
-        if not validate_config(cp):
+        if cp.load_errors:
             exit_pytexmk(EXIT_CONFIG_ERROR)
         exit_pytexmk()
     if args.init:
-        if cp.init_project_config(args.force):
-            console.print(
-                _("[bold green]已生成根项目配置文件 [/bold green]")
-                + str(Path.cwd() / ".pytexmkrc")
-            )
+        if not cp.init_project_config():
+            exit_pytexmk(EXIT_CONFIG_ERROR)
+        console.print(
+            _("[bold green]已生成根项目配置文件 [/bold green]")
+            + str(Path.cwd() / ".pytexmkrc")
+        )
         exit_pytexmk()
     if args.init_user:
-        if cp.init_user_config(args.force):
-            console.print(
-                _("[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]")
-            )
+        if not cp.init_user_config():
+            exit_pytexmk(EXIT_CONFIG_ERROR)
+        console.print(
+            _("[bold green]已生成用户配置文件 ~/.pytexmkrc[/bold green]")
+        )
         exit_pytexmk()
     if args.list_subprojects:
         _list_subprojects(cp)
 
 
-def _open_readme(logger) -> None:
-    """根据系统语言打开对应的本地 README.html；出错只记录日志，不中断退出流程。
-
-    中文系统 → README.html，其他语言 → README.en.html，目标文件不存在时 fallback 到另一个。
-    """
-    try:
-        app_path = get_app_path()
-        data_dir = app_path / "data"
-
-        # 根据系统语言优先选择对应的 README
-        locale_lang = get_locale_lang()
-        if locale_lang.startswith("zh"):
-            preferred = "README.html"
-            fallback = "README.en.html"
-        else:
-            preferred = "README.en.html"
-            fallback = "README.html"
-
-        # 优先尝试首选文件，不存在则回退到另一个
-        readme_path = data_dir / preferred
-        if not readme_path.exists():
-            fallback_path = data_dir / fallback
-            if fallback_path.exists():
-                readme_path = fallback_path
-            else:
-                logger.error(
-                    _("README.html / README.en.html 文件均未找到，目录: %(args)s")
-                    % {"args": str(data_dir)}
-                )
-                return
-
-        console.print(_("[bold green]正在打开 README 文件...[/bold green]"))
-        local_path = f"file://{readme_path.resolve().as_posix()}"
-        logger.info(_("README 本地路径: %(args)s") % {"args": local_path})
-        webbrowser.open(local_path)
-    except Exception as e:  # noqa: BLE001
-        logger.error(_("打开 README 文件出错: ") + str(e))
-
-
 def _list_subprojects(cp: ConfigParser) -> None:
-    """发现子项目并输出清单，同时把结果写回根 .pytexmkrc 的 [subprojects] 段。
+    """发现子项目，输出清单并写回根配置的 ``[subprojects]`` 段。
 
-    根配置文件不存在时会先用模板创建一份：历史实现只打印"请先运行 pytexmk -i"，
-    结果是 `-ls` 扫描出了清单却什么都没保存，紧接着的 `-s <名字>` 必然失败。
+    写回会保留手写别名、段内注释与原有条目次序，避免一次同步改变 ``-A``
+    的编译顺序。配置缺失时先用内置模板创建根配置，再写入清单；配置解析
+    失败以配置错误码退出，绝不用默认配置覆盖用户文件。
     """
     root_path = Path.cwd()
     entries = discover_subprojects(root_path, cp.load_config(root_path))
     rc_path = root_path / ".pytexmkrc"
+    print_subproject_table(entries)
+
+    if getattr(cp, "load_errors", None):
+        exit_pytexmk(EXIT_CONFIG_ERROR)
+        return
 
     if not rc_path.exists():
-        if cp.init_project_config(force=False):
-            console.print(
-                _("[bold green]已自动创建根配置文件 [/bold green]") + str(rc_path)
-            )
-
-    if write_subprojects_to_rc(rc_path, entries):
+        if not cp.init_project_config():
+            console.print(_("[bold red]无法创建根配置文件 .pytexmkrc[/bold red]"))
+            exit_pytexmk(EXIT_CONFIG_ERROR)
+            return
         console.print(
-            _("[bold green]已更新 .pytexmkrc 中的 \\[subprojects\\] 段[/bold green]")
+            _("[bold green]已生成根项目配置文件 [/bold green]") + str(rc_path)
         )
+
+    before = rc_path.read_text(encoding="utf-8")
+    if write_subprojects_to_rc(rc_path, entries):
+        after = rc_path.read_text(encoding="utf-8")
+        if before == after:
+            console.print(
+                _("[bold green].pytexmkrc 中的 \\[subprojects] 段已是当前清单，未改动[/bold green]")
+            )
+        else:
+            console.print(
+                _("[bold green]已更新 .pytexmkrc 中的 \\[subprojects] 段[/bold green]")
+            )
     else:
         console.print(
             _("[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]")
         )
-    print_subproject_table(entries)
+        exit_pytexmk(EXIT_CONFIG_ERROR)
+        return
     exit_pytexmk()

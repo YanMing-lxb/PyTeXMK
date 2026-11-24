@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from pytexmk.file_ops import atomic_write_text
 from pytexmk.language import set_language
 from pytexmk.paths import get_app_path
 
@@ -17,10 +18,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "quiet_mode": True,
     "pdf": {"pdf_preview_status": False, "pdf_viewer": "default"},
     "folder": {"auxdir": "./Auxiliary/", "outdir": "./Build/"},
-    # 构建行为：原生目录构建 / shell-escape / 轮次上限 / 引擎参数
+    # 构建行为：原生目录构建 / shell-escape / SyncTeX / 轮次上限 / 引擎参数
     "build": {
         "native": "auto",
         "shell_escape": "auto",
+        "synctex": True,          # 是否让引擎写 .synctex.gz（投稿版可关掉省体积）
         "interaction": "",
         "extra_args": [],
         "max_extra_compilations": 8,
@@ -28,13 +30,19 @@ DEFAULT_CONFIG: dict[str, Any] = {
     # 投稿打包：按 .fls 收依赖；遇到 pdflatex 不兼容的 Unicode 时生成转换副本
     "submission": {
         "unicode_to_latex": True,
-        "include_bbl": True,
+        "include_bbl": False,     # 默认只带 .bib；期刊要求预编译 .bbl 时再开
         "reproducible": True,
+        "output_dir": "./Submission/",
+        "keep_preamble": False,
+    },
+    # 编译前静态检查（缺失的 \end{document}/.bib/图片等）
+    "preflight": {
+        "enabled": True,
     },
     "index": {
+        # 输入/输出后缀由 detection 的索引注册表按索引包决定（makeidx/nomencl/
+        # imakeidx/glossaries 各不相同），配置层面只保留样式文件与工具选择。
         "index_style_file": "nomencl.ist",
-        "input_suffix": ".nlo",
-        "output_suffix": ".nls",
         "glossaries_tool": "makeindex",
     },
     "latexdiff": {
@@ -64,7 +72,10 @@ def _merge_dict(base: dict, override: dict) -> dict:
 class ConfigParser:
     """
     配置解析器类，用于加载用户配置和项目配置文件。
-    正常运行只读取合并，绝不自动生成文件、绝不调用 input()。
+
+    常规流程（``load_config``）只读取并合并用户级与项目级配置，绝不自动生成文件、
+    绝不调用 ``input()``。唯一的例外是显式的写盘入口：``-i`` / ``-iu`` 初始化，
+    两者都由用户命令直接触发，并默认覆盖已有文件。
     """
 
     def __init__(self):
@@ -72,26 +83,33 @@ class ConfigParser:
         self.logger = logging.getLogger(__name__)
         self.user_config_path = self._get_user_config_path()
         self.data_dir = get_app_path() / "data"
+        #: 最近一次 load_config 里读取/解析失败的配置文件 → 失败原因
+        self.load_errors: dict[Path, str] = {}
         self.logger.info(_("PyTeXMK 配置模块已初始化"))
 
     def _get_user_config_path(self) -> Path | None:
         """获取用户配置文件路径（~/.pytexmkrc），失败返回 None。"""
         try:
             return Path.home() / ".pytexmkrc"
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
             self.logger.error(_("获取用户主目录路径失败: ") + str(e))
             return None
 
     def _load_toml(self, path: Path) -> dict[str, Any] | None:
-        """读取 TOML 文件，不存在或解析失败返回 None（不抛异常、不写盘）。"""
+        """读取 TOML 文件，不存在或解析失败返回 None（不抛异常、不写盘）。
+
+        解析/读取失败的原因会记入 ``load_errors[path]``：运行期只记日志不影响
+        编译，但 ``--doctor`` 需要据此把结果判成失败（否则配置写坏了也显示 ✓）。
+        """
         if path is None or not path.exists():
             return None
         try:
-            with open(path, "rb") as f:
+            with path.open("rb") as f:
                 config = tomllib.load(f)
             self.logger.info(_("成功加载配置文件: ") + str(path))
-        except (OSError, tomllib.TOMLDecodeError) as e:
+        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as e:
             self.logger.error(_("加载配置文件失败: ") + f"{path} --> {e}")
+            self.load_errors[path] = f"{path} --> {e}"
             return None
         else:
             return config
@@ -102,6 +120,7 @@ class ConfigParser:
         注意：运行期不自动生成文件、不发起 input()；缺失配置用默认值
         静默运行，键不匹配仅记录日志警告，永不写盘。
         """
+        self.load_errors.clear()
         final = deepcopy(DEFAULT_CONFIG)
 
         user_config = self._load_toml(self.user_config_path)
@@ -119,43 +138,34 @@ class ConfigParser:
         self.logger.info(_("配置文件加载完成"))
         return final
 
-    # 兼容别名：load_config(Path.cwd())，等价于加载当前目录项目配置。
-    def init_config_file(self) -> dict[str, Any]:
-        return self.load_config(Path.cwd())
-
     # ------------------------------------------------------------------
-    # 手动初始化（-i / -iu，配合 -f 覆盖）
+    # 手动初始化（-i / -iu，默认覆盖已有文件）
     # ------------------------------------------------------------------
-    def _write_template(self, path: Path, template_name: str, force: bool) -> bool:
-        """将内置模板写入 path；已存在且未加 force 时跳过不写入。"""
-        if path.exists() and not force:
-            self.logger.warning(
-                _("配置文件已存在, 如需覆盖请添加 -f 参数: ") + str(path)
-            )
-            return False
+    def _write_template(self, path: Path, template_name: str) -> bool:
+        """将内置模板写入 path，已有文件直接覆盖（不备份）。"""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             template = (self.data_dir / template_name).read_text(
                 encoding="utf-8"
             )
-            path.write_text(template, encoding="utf-8")
+            atomic_write_text(path, template)
             self.logger.info(_("已创建配置文件: ") + str(path))
             return True
         except OSError as e:
             self.logger.error(_("创建配置文件失败: ") + f"{path} --> {e}")
             return False
 
-    def init_project_config(self, force: bool = False) -> bool:
-        """生成根项目 .pytexmkrc。"""
+    def init_project_config(self) -> bool:
+        """生成根项目 .pytexmkrc（覆盖已有文件）。"""
         return self._write_template(
-            Path.cwd() / ".pytexmkrc", "default_project_config.toml", force
+            Path.cwd() / ".pytexmkrc", "default_project_config.toml"
         )
 
-    def init_user_config(self, force: bool = False) -> bool:
-        """生成用户级 ~/.pytexmkrc。"""
+    def init_user_config(self) -> bool:
+        """生成用户级 ~/.pytexmkrc（覆盖已有文件）。"""
         if self.user_config_path is None:
             self.logger.error(_("无法确定用户主目录, 无法生成用户配置文件"))
             return False
         return self._write_template(
-            self.user_config_path, "default_user_config.toml", force
+            self.user_config_path, "default_user_config.toml"
         )

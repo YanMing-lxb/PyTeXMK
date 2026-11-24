@@ -35,6 +35,7 @@ STOP_REASON_MESSAGES: dict[str, str] = {
     "fixed_point": _("本轮编译未改变任何辅助文件（已到达不动点），继续编译不会产生新结果，已提前停止。"),
     "cycle": _("检测到辅助文件在两种状态之间循环震荡，继续编译无法收敛，已提前停止。"),
     "log_stalled": _("日志中只剩未定义引用/重复标签这类必须改源码才能消除的信号，再编译不会改变结果，已提前停止。"),
+    "tool-pending": _("外部工具（BibTeX/索引等）刚生成了新的辅助文件，但额外编译预算已用尽；TeX 尚未把这些结果读进 PDF，构建未完全收敛。"),
     "limit": _("已达额外编译安全上限，停止调度。"),
 }
 
@@ -46,15 +47,11 @@ def print_compile_report(
     dims: dict[str, int],
     compiled_program: str = "",
     *,
-    prog: str = "",
+    max_extra: int,
     reached_limit: bool = False,
-    stalled: bool = False,
-    max_extra: int = 10,
     stop_reason: str = "",
-    residual_notes: list[str] | None = None,
 ) -> None:
-    raw_program = compiled_program if compiled_program else prog
-    actual_program = standardize_name(raw_program)
+    actual_program = standardize_name(compiled_program)
 
     console.print(
         "[bold magenta][" + _("检测报告") + "][/bold magenta] "
@@ -83,10 +80,7 @@ def print_compile_report(
     active_vals = [dims.get(tag, -1) for _, tag, _ in ORDER if dims.get(tag, -1) >= 0]
     all_zero = all(v == 0 for v in active_vals) if active_vals else True
 
-    # stalled 是旧调用点的兼容参数：等价于 stop_reason="log_stalled"
-    reason = stop_reason or ("log_stalled" if stalled else "")
-    if not reason:
-        reason = "converged" if all_zero else ""
+    reason = stop_reason or ("converged" if all_zero else "")
     if not reason and reached_limit:
         reason = "limit"
 
@@ -120,6 +114,3 @@ def print_compile_report(
         console.print(
             "[bold red]" + _("已达 %(max_extra)s 次额外编译安全上限，停止调度。") % {"max_extra": max_extra} + "[/bold red]"
         )
-
-    for note in residual_notes or []:
-        console.print("[bold yellow]" + _("提示：") + f"[/bold yellow][yellow]{note}[/yellow]")

@@ -41,6 +41,9 @@ import sys
 #      在这里提前 reconfigure / 重包装 TextIOWrapper 是最彻底的修复。
 # ---------------------------------------------------------------------------
 if sys.platform == "win32":
+    # 只影响本进程之后的子进程（TeX 工具链）：PYTHONUTF8/PYTHONIOENCODING 在解释器
+    # 启动时就已经读取完毕，对当前进程的 stdio 不再生效。当前进程真正靠下面的
+    # _force_utf8() 重设编码。
     os.environ.setdefault("PYTHONUTF8", "1")
     os.environ.setdefault("PYTHONIOENCODING", "utf-8:replace")
 
@@ -56,9 +59,9 @@ if sys.platform == "win32":
 
         # 优先走 Python 3.7+ 的 TextIOWrapper.reconfigure（更干净，不破坏 isatty）
         try:
-            if readable and writable or writable or readable:
+            if readable or writable:
                 stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, io.UnsupportedOperation):
+        except AttributeError, io.UnsupportedOperation:
             pass
         else:
             return stream
@@ -76,23 +79,46 @@ if sys.platform == "win32":
         )
         return new_stream
 
-    sys.stdout = _force_utf8("stdout", sys.stdout, readable=False, writable=True)
-    sys.stderr = _force_utf8("stderr", sys.stderr, readable=False, writable=True)
-    sys.stdin  = _force_utf8("stdin",  sys.stdin,  readable=True,  writable=False)
-    # argparse / click 等库会从 sys.stdout 取 encoding，确保它们也感知到 UTF-8
-    import builtins
-    builtins.print = print  # no-op，确保上面的 reassign 生效
+    #: 保留被替换掉的原始 TextIOWrapper 引用：旧包装器一旦被 GC 回收会连带
+    #: 关闭底层 buffer，导致新的包装器读到 "I/O operation on closed file"。
+    _REPLACED_STREAMS: list[object] = []
 
-from pytexmk.cli.check_version import UpdateChecker
-from pytexmk.cli.cli_args import parse_args
-from pytexmk.language import set_language
+    def _swap(name: str, stream, readable: bool, writable: bool):
+        new_stream = _force_utf8(name, stream, readable=readable, writable=writable)
+        if new_stream is not stream:
+            _REPLACED_STREAMS.append(stream)
+        return new_stream
 
-UC = UpdateChecker(1, 6)
-_ = set_language("__main__")
+    sys.stdout = _swap("stdout", sys.stdout, readable=False, writable=True)
+    sys.stderr = _swap("stderr", sys.stderr, readable=False, writable=True)
+    sys.stdin = _swap("stdin", sys.stdin, readable=True, writable=False)
+
+_VERSION_FLAGS = frozenset({"-v", "--version"})
+
+
+def _print_version_and_return() -> bool:
+    """``python -m pytexmk.cli --version`` 的轻量快速路径。
+
+    ``_launcher`` 只覆盖安装入口与 ``python -m pytexmk``；直接跑
+    ``python -m pytexmk.cli`` 时曾先导入 ``cli_args``（连带 rich/argparse），
+    使版本号查询多花约 70 ms。这里在导入 CLI 解析器之前直接返回。
+    """
+    if len(sys.argv) == 2 and sys.argv[1] in _VERSION_FLAGS:
+        from pytexmk.version import __version__, script_name
+
+        print(f"{script_name} {__version__}")
+        return True
+    return False
 
 
 def main():
-    args = parse_args(UC)
+    if _print_version_and_return():
+        return
+
+    from pytexmk.cli.cli_args import parse_args
+
+    args = parse_args()
+
     from pytexmk.cli.cli_workflow import run_workflow
 
     try:
@@ -104,7 +130,7 @@ def main():
 
             console.print()
             console.print("[bold yellow]PyTeXMK 已被用户中断[/bold yellow]")
-        except Exception:  # noqa: BLE001
+        except Exception:
             # console 还没初始化成功就被 Ctrl+C，直接 print 兜底
             print("\nPyTeXMK 已被用户中断", file=sys.stderr)
         sys.exit(130)  # 标准 SIGINT 退出码 (128 + 2)

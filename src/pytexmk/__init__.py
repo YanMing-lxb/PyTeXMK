@@ -1,56 +1,25 @@
-"""PyTeXMK 入口模块：版本号与公共 API 声明.
+"""PyTeXMK 入口模块：版本号与惰性公共 API。
 
- =======================================================================
- ····Y88b···d88P················888b·····d888·d8b·······················
- ·····Y88b·d88P·················8888b···d8888·Y8P·······················
- ······Y88o88P··················88888b·d88888···························
- ·······Y888P··8888b···88888b···888Y88888P888·888·88888b·····d88b·······
- ········888······"88b·888·"88b·888·Y888P·888·888·888·"88b·d88P"88b·····
- ········888···d888888·888··888·888··Y8P··888·888·888··888·888··888·····
- ········888··888··888·888··888·888···"···888·888·888··888·Y88b·888·····
- ········888··"Y888888·888··888·888·······888·888·888··888··"Y88888·····
- ·······························································888·····
- ··························································Y8b·d88P·····
- ···························································"Y88P"······
- =======================================================================
-
- -----------------------------------------------------------------------
-Author       : 焱铭
-Date         : 2024-02-29 12:27:07 +0800
-LastEditTime : 2025-01-30 15:49:15 +0800
-Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/src/pytexmk/__init__.py
-Description  :
- -----------------------------------------------------------------------
-
-pytexmk: LaTeX 编译 CLI 工具
-
-不能再在这个程序上花时间了, 该看论文学技术了, 要不然博士怎么毕业啊, 吐了。---- 焱铭,2024-07-28 21:02:30
-吐了, 又在这个功能上花费了一上午的时间。---- 焱铭,2024-08-02 12:48:23
-吐了啊，又搞了两天，我该好好学学 CAN 通信了，该死的强迫症，啊啊啊啊啊啊！ ---- 焱铭,2024-08-07 21:40:29
-回家的这几天，尽量更新更新，把一些必要的大块的功能完善一下，开学后尽量只进行小修小改。 ---- 焱铭,2024-08-16 20:20:48
-
-
-
-
-python -m nuitka --standalone --onefile --nofollow-import-to=numpy --remove-output --include-data-dir=./src/pytexmk/data=data --include-data-dir=./src/pytexmk/locale/=locale --company-name="YanMing" --product-name="pytexmk-cli" --file-version="1.0" --product-version="1.0" --file-description="LaTeX 编译 CLI 工具" ./src/pytexmk/__main__.py
-pipreqs ./src/pytexmk/ --encoding=utf8  --force
+`import pytexmk` 不应拉起 rich / argparse / pypdf 等重依赖，因此包级只做惰性转发
+（见 ``__getattr__``），真正的 CLI 在 ``pytexmk.cli`` 下。
 """
 
 
+def main() -> None:
+    """CLI 入口（`pytexmk:main`）：版本快速路径 + 延迟加载 cli 子包。"""
+    from ._launcher import main as _main
+
+    _main()
+
+
 def __getattr__(name: str):
-    """包级惰性导出：`pytexmk.main` / `pytexmk.cli_args` 在首次访问时才真正 import。
+    """包级惰性导出：`pytexmk.cli_args` 在首次访问时才真正 import。
 
     子模块本身就是惰性的（`from .cli import ...` 才会加载），因此这里只做一层转发；
-    好处是 `import pytexmk` 不会拉起 rich / pypdf / argparse 等重依赖，
-    `pytexmk --version` 这类冷启动路径因此快得多。
+    好处是 `import pytexmk` 不会拉起 rich / pypdf / argparse 等重依赖。
     """
-    if name in {"cli_args", "cli_workflow", "check_version", "__main__"}:
+    if name in {"cli_args", "cli_workflow", "__main__"}:
         import importlib
 
         return importlib.import_module(f".cli.{name}", __name__)
-    if name == "main":
-        from .cli.__main__ import main
-
-        return main
     raise AttributeError(f"{__name__!r}.{name!r}")

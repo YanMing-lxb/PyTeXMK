@@ -18,9 +18,12 @@ lualatex / xelatex / biber / dvipdfmx 等外部程序，于是优先加载了打
 
 import contextlib
 import ctypes
+import functools
 import os
 import sys
+import time
 from collections.abc import Iterator
+from pathlib import Path
 
 _ORIG_SUFFIX = "_ORIG"
 _LIB_PATH_VARS = ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "LIBPATH")
@@ -62,6 +65,61 @@ def child_env(base_env: dict[str, str] | None = None) -> dict[str, str]:
             env.pop(var, None)
 
     return env
+
+
+_TEMP_VARS = ("TEMP", "TMP", "TMPDIR")
+
+
+def is_dir_writable(path: Path | str) -> bool:
+    """真正建一个探针文件来判断目录可写（Windows ACL 下 os.access 会误判）。
+
+    结果按绝对路径缓存：一次构建会调起 2–9 个外部命令，逐次写+删探针文件纯属
+    重复 I/O。同一进程内目录权限不会中途改变（没有运行时改 ACL 的入口），
+    缓存与"每次实测"等价；跨进程（--watch 的每轮）仍是新进程，自然重新探测。
+    """
+    return _is_dir_writable_cached(str(Path(path).absolute()))
+
+
+@functools.cache
+def _is_dir_writable_cached(path: str) -> bool:
+    try:
+        probe = Path(path) / f".pytexmk_tmp_probe_{os.getpid()}_{time.time_ns()}"
+        probe.write_text("", encoding="utf-8")
+        probe.unlink()
+    except OSError:
+        return False
+    return True
+
+
+def ensure_writable_temp(
+    env: dict[str, str], fallback: Path | str
+) -> tuple[dict[str, str], str | None]:
+    """保证子进程拿到的 ``TEMP/TMP/TMPDIR`` 可写，不可写时改用项目内目录。
+
+    背景：部分 Windows 环境（受限令牌、安全软件拦截）里，Python 进程和它
+    启动的 TeX 工具都写不了 ``%TEMP%``，xelatex 会在 shipout 阶段直接死掉，
+    只留下截断的 ``main.log`` 与 ``main.synctex(busy)``；xindy 也会因为临时
+    文件建不出来报 ``Win32 error 267``。这里先探测当前值，不可写就把三个变量
+    统一指向调用方给的兜底目录，子进程不再依赖系统临时目录。
+
+    返回 ``(env, 兜底目录或 None)``；未改写时第二项为 ``None``，便于调用方
+    只在真正改写时提示一次。
+    """
+    current = env.get("TEMP") or env.get("TMP")
+    if current and is_dir_writable(current):
+        return env, None
+
+    target = Path(fallback)
+    try:
+        target.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return env, None
+    if not is_dir_writable(target):
+        return env, None
+
+    for var in _TEMP_VARS:
+        env[var] = str(target)
+    return env, str(target)
 
 
 @contextlib.contextmanager

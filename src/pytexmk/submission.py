@@ -13,24 +13,24 @@ for use with LaTeX`` 之类的报错。
 3. **导言区净化**：注释掉 fontspec/unicode-math/ctex 等只能 Xe/Lua 的宏包，
    补上 ``fontenc``/``inputenc``/``textcomp``，让转换副本能真的被 pdflatex 吃下；
 4. **打包**：按 ``.fls`` 的 INPUT 记录收集真实依赖（图片、bib、bst、cls…），
-   连同转换后的 ``.bbl`` 打成 zip，并给出 PDF 页数/体积/编译轮数摘要。
+   连同源 ``.bib`` 打成 zip（``include_bbl`` 时再附 ``.bbl``），并给出 PDF
+   页数/体积/编译轮数摘要。
 """
 
-from __future__ import annotations
-
 import hashlib
+import json
 import re
 import shutil
-import subprocess
 import tempfile
+import time
 import unicodedata
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pytexmk.language import set_language
-
-_ = set_language("submission")
+from .fls import iter_fls_inputs
+from .layout import FLS_IGNORED_SUFFIXES, SUBMISSION_EXCLUDED_DIRS, SUBMISSION_FALLBACK_SUFFIXES
+from .tex_source import first_comment_index, mask_tex_noncode
 
 #: pdflatex 无法直接使用的宏包/机制（命中即需要在提交副本里处理）
 PDFLATEX_INCOMPATIBLE = {
@@ -46,6 +46,10 @@ PDFLATEX_INCOMPATIBLE = {
 }
 
 _PACKAGE_RE = re.compile(r"\\(?:usepackage|RequirePackage)(?:\[[^\]]*\])?\{([^}]*)\}")
+
+#: 投稿说明里"首次出现位置"最多列 40 条，避免清单本身变成垃圾
+_MAX_LOCATION_SAMPLES = 40
+
 _PACKAGE_LINE_RE = re.compile(
     r"^\s*\\(?:usepackage|RequirePackage)(?:\[[^\]]*\])?\{([^}]*)\}(?P<rest>.*)$"
 )
@@ -202,9 +206,6 @@ class PackResult:
     remaining_locations: list[str] = field(default_factory=list)
     #: 导言区被注释/补丁的命令
     sanitized: list[str] = field(default_factory=list)
-    #: 在临时目录里跑 pdflatex 的验证结果
-    verify_ok: bool | None = None
-    verify_tail: list[str] = field(default_factory=list)
 
 
 def _iter_tex_sources(root: Path, project_name: str) -> list[Path]:
@@ -225,12 +226,15 @@ def _iter_tex_sources(root: Path, project_name: str) -> list[Path]:
 
 def _strip_comments(line: str) -> str:
     """去掉行内注释（不做完整 TeX 词法，只为兼容性扫描降噪）。"""
-    match = re.search(r"(?<!\\)%", line)
-    return line[: match.start()] if match else line
+    return line[: first_comment_index(line)]
 
 
 def _package_names(text: str) -> set[str]:
-    """取出文档加载的所有宏包名（支持一行多个、``\\RequirePackage``）。"""
+    """取出文档加载的所有宏包名（支持一行多个、``\\RequirePackage``）。
+
+    调用方必须传入已经屏蔽注释/verbatim 的文本；``% \\usepackage{fontspec}``
+    只是说明文字，不是真实依赖。
+    """
     names: set[str] = set()
     for match in _PACKAGE_RE.finditer(text):
         for name in match.group(1).split(","):
@@ -250,7 +254,8 @@ def scan_compat(root: Path, project_name: str) -> CompatReport:
             text = tex.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        for name in _package_names(text):
+        # 注释里的 \usepackage 是说明，不是加载；verbatim 里的内容也只是示例。
+        for name in _package_names(mask_tex_noncode(text)):
             if PDFLATEX_INCOMPATIBLE.get(name):
                 report.incompatible_packages[name] = PDFLATEX_INCOMPATIBLE[name]
         for line in text.splitlines():
@@ -382,8 +387,9 @@ def sanitize_preamble(text: str) -> tuple[str, list[str]]:
             bad = [n for n in names if PDFLATEX_INCOMPATIBLE.get(n)]
             if bad:
                 good = [n for n in names if n not in bad]
-                for name in bad:
-                    notes.append(f"注释不兼容宏包 \\usepackage{{{name}}}")
+                notes.extend(
+                    f"注释不兼容宏包 \\usepackage{{{name}}}" for name in bad
+                )
                 if good:
                     return f"\\usepackage{{{','.join(good)}}}{match.group('rest')}"
                 return f"% [pytexmk] {line.lstrip().rstrip()}\n"
@@ -411,38 +417,39 @@ def sanitize_preamble(text: str) -> tuple[str, list[str]]:
     if additions:
         block = "% [pytexmk] pdflatex compatibility patch\n" + "\n".join(additions) + "\n"
         doc = re.search(r"\\documentclass(?:\[[^\]]*\])?\{[^}]*\}", preamble)
-        if doc:
-            preamble = preamble[: doc.end()] + "\n" + block + preamble[doc.end():]
-        else:
-            preamble = block + preamble
+        preamble = (
+            preamble[: doc.end()] + "\n" + block + preamble[doc.end():]
+            if doc
+            else block + preamble
+        )
 
     return preamble + body, notes
+
+
+def _is_excluded_submission_path(relative: Path) -> bool:
+    """投稿包收集时的目录排除规则（两种来源共用同一套语义）。"""
+    return any(
+        part.startswith(".") or part in SUBMISSION_EXCLUDED_DIRS
+        for part in relative.parts[:-1]
+    )
 
 
 def _fls_files(root: Path, fls: Path) -> list[Path]:
     """从 .fls 的 INPUT 行收集依赖（只保留项目内、且非辅助产物）。"""
     files: list[Path] = []
     seen: set[str] = set()
-    try:
-        lines = fls.read_text(encoding="utf-8", errors="ignore").splitlines()
-    except OSError:
-        return files
-    volatile = {".aux", ".log", ".out", ".toc", ".fls", ".xdv", ".synctex.gz", ".bbl",
-                ".nlo", ".nls", ".glo", ".gls", ".ilg", ".ind", ".idx"}
-    for line in lines:
-        if not line.startswith("INPUT "):
-            continue
-        raw = line[len("INPUT "):].strip()
+    root_resolved = root.resolve()
+    for raw in iter_fls_inputs(fls):
         path = Path(raw)
         try:
             resolved = path.resolve()
-            relative = resolved.relative_to(root.resolve())
-        except (OSError, ValueError):
+            relative = resolved.relative_to(root_resolved)
+        except OSError, ValueError:
             continue
-        if relative.parts and relative.parts[0] in {"Build", "Auxiliary", "Submission", ".git"}:
+        if _is_excluded_submission_path(relative):
             continue
         key = relative.as_posix()
-        if key in seen or resolved.suffix.lower() in volatile:
+        if key in seen or resolved.suffix.lower() in FLS_IGNORED_SUFFIXES:
             continue
         seen.add(key)
         if resolved.is_file():
@@ -452,14 +459,12 @@ def _fls_files(root: Path, fls: Path) -> list[Path]:
 
 def _fallback_files(root: Path) -> list[Path]:
     """没有 .fls 时的兜底：按常见后缀收集项目文件。"""
-    suffixes = {".tex", ".bib", ".bst", ".cls", ".sty", ".def", ".clo", ".cfg", ".ist",
-                ".pdf", ".png", ".jpg", ".jpeg", ".eps", ".svg", ".tikz", ".bbx", ".cbx"}
     files: list[Path] = []
     for path in root.rglob("*"):
-        if not path.is_file() or path.suffix.lower() not in suffixes:
+        if not path.is_file() or path.suffix.lower() not in SUBMISSION_FALLBACK_SUFFIXES:
             continue
         rel = path.relative_to(root)
-        if any(p.startswith(".") or p in {"Build", "Auxiliary", "Submission"} for p in rel.parts[:-1]):
+        if _is_excluded_submission_path(rel):
             continue
         files.append(path)
     return files
@@ -474,7 +479,7 @@ def _pdf_summary(pdf: Path | None) -> tuple[int | None, int | None]:
         from pypdf import PdfReader
 
         pages = len(PdfReader(str(pdf)).pages)
-    except Exception:  # noqa: BLE001
+    except Exception:
         pages = None
     return pages, size
 
@@ -499,36 +504,45 @@ def _scan_remaining(text: str, relative: str) -> tuple[dict[str, int], list[str]
 def _convert_staged_file(
     source: Path, target: Path, relative: str, *, do_convert: bool,
 ) -> tuple[list[ConversionRecord], str, dict[str, int], list[str]]:
-    """复制/转换单个文本文件，返回（转换记录、最终文本、残留字符计数、残留位置）。"""
+    """复制/转换单个文本文件，返回（转换记录、最终文本、残留字符计数、残留位置）。
+
+    ``do_convert=False``（用户要求原样打包）必须**按字节复制**：用
+    ``read_text`` + ``write_text`` 会走 Python 的换行解码，把 CRLF 归一成 LF，
+    即使没做任何 Unicode 转换也会改变源文件哈希。
+    """
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not do_convert:
+        target.write_bytes(source.read_bytes())
+        text = source.read_text(encoding="utf-8", errors="replace")
+        counts, locations = _scan_remaining(text, relative)
+        return [], text, counts, locations
+
     text = source.read_text(encoding="utf-8", errors="replace")
     records: list[ConversionRecord] = []
-    notes: list[str] = []
-    if do_convert:
-        in_verbatim = False
-        converted_lines: list[str] = []
-        seen: set[tuple[int, str]] = set()
-        for line_no, line in enumerate(text.splitlines(keepends=True), start=1):
-            if any(f"\\begin{{{env}}}" in line for env in _VERBATIM_ENVS):
-                in_verbatim = True
-            if in_verbatim:
-                converted_lines.append(line)
-                if any(f"\\end{{{env}}}" in line for env in _VERBATIM_ENVS):
-                    in_verbatim = False
+    in_verbatim = False
+    converted_lines: list[str] = []
+    seen: set[tuple[int, str]] = set()
+    for line_no, line in enumerate(text.splitlines(keepends=True), start=1):
+        if any(f"\\begin{{{env}}}" in line for env in _VERBATIM_ENVS):
+            in_verbatim = True
+        if in_verbatim:
+            converted_lines.append(line)
+            if any(f"\\end{{{env}}}" in line for env in _VERBATIM_ENVS):
+                in_verbatim = False
+            continue
+        new_line, repl = convert_text(line)
+        for char, replacement in repl:
+            if (line_no, char) in seen:
                 continue
-            new_line, repl = convert_text(line)
-            for char, replacement in repl:
-                if (line_no, char) in seen:
-                    continue
-                seen.add((line_no, char))
-                records.append(
-                    ConversionRecord(
-                        file=relative, line=line_no, char=char,
-                        codepoint=f"U+{ord(char):04X}", replacement=replacement,
-                    )
+            seen.add((line_no, char))
+            records.append(
+                ConversionRecord(
+                    file=relative, line=line_no, char=char,
+                    codepoint=f"U+{ord(char):04X}", replacement=replacement,
                 )
-            converted_lines.append(new_line)
-        text = "".join(converted_lines)
-        notes.append(relative)
+            )
+        converted_lines.append(new_line)
+    text = "".join(converted_lines)
 
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(text, encoding="utf-8")
@@ -536,25 +550,282 @@ def _convert_staged_file(
     return records, text, counts, locations
 
 
-def _verify_pdflatex(staging: Path, project_name: str, timeout: int = 240) -> tuple[bool | None, list[str]]:
-    """在 staging 里真跑一次 pdflatex；引擎不存在时返回 (None, [])。"""
-    engine = shutil.which("pdflatex")
-    if not engine:
-        return None, ["未找到 pdflatex，跳过编译验证"]
+def _accumulate_remaining(
+    counts: dict[str, int],
+    locations: list[str],
+    acc_chars: dict[str, int],
+    acc_locations: list[str],
+) -> None:
+    """把单个文件的"未转换字符/首现位置"并入总账（去重，位置上限 40）。"""
+    for char, count in counts.items():
+        acc_chars[char] = acc_chars.get(char, 0) + count
+    for item in locations:
+        if item not in acc_locations and len(acc_locations) < _MAX_LOCATION_SAMPLES:
+            acc_locations.append(item)
+
+
+def _read_rounds(auxdir: Path) -> int | None:
+    """从共享状态文件读上一次构建的轮数；缺失/损坏时返回 None。"""
     try:
-        proc = subprocess.run(  # noqa: S603 - 固定命令，无用户可控 shell
-            [engine, "-interaction=nonstopmode", "-halt-on-error", f"{project_name}.tex"],
-            cwd=staging,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
+        state = json.loads((auxdir / ".pytexmk_refcache.json").read_text(encoding="utf-8"))
+        return (state.get("pytexmk") or {}).get("build", {}).get("round")
+    except Exception:
+        return None
+
+
+def _build_manifest(
+    *,
+    project_name: str,
+    convert_unicode: bool,
+    sanitize: bool,
+    conversions: list[ConversionRecord],
+    sanitized: list[str],
+    remaining_chars: dict[str, int],
+    remaining_locations: list[str],
+    compat: CompatReport,
+    include_bbl: bool,
+) -> str:
+    """生成包内 ``pytexmk-submission-notes.txt`` 的全文。"""
+    lines = _manifest_header(project_name, convert_unicode, sanitize)
+    if conversions:
+        lines.extend(_conversion_manifest_lines(conversions))
+    if sanitized:
+        lines.extend(_sanitize_manifest_lines(sanitized))
+    if remaining_chars:
+        lines.extend(_remaining_manifest_lines(remaining_chars, remaining_locations))
+    if not compat.ok:
+        lines.extend(_compat_manifest_lines(compat))
+    lines.extend(_manifest_checklist(include_bbl))
+    return "\n".join(lines) + "\n"
+
+
+def _manifest_header(
+    project_name: str, convert_unicode: bool, sanitize: bool
+) -> list[str]:
+    """说明文件的前 4 行与空行。"""
+    return [
+        "# PyTeXMK 投稿包说明",
+        f"# 项目: {project_name}",
+        f"# 转换 Unicode: {'是' if convert_unicode else '否'}",
+        f"# 导言区净化: {'是' if sanitize and convert_unicode else '否'}",
+        "",
+    ]
+
+
+def _conversion_manifest_lines(conversions: list[ConversionRecord]) -> list[str]:
+    """Unicode → LaTeX 转换清单：先按文件计数，再列逐处记录。"""
+    lines = ["## Unicode → LaTeX 转换清单"]
+    per_file: dict[str, int] = {}
+    for record in conversions:
+        per_file[record.file] = per_file.get(record.file, 0) + 1
+    for name, count in sorted(per_file.items()):
+        lines.append(f"- {name}: {count} 处")
+    lines.append("")
+    lines.extend(
+        f"{record.file}:{record.line}  {record.char} ({record.codepoint}) -> {record.replacement}"
+        for record in conversions
+    )
+    lines.append("")
+    return lines
+
+
+def _sanitize_manifest_lines(sanitized: list[str]) -> list[str]:
+    """导言区净化记录。"""
+    return ["## 导言区净化", *(f"- {note}" for note in sanitized), ""]
+
+
+def _remaining_manifest_lines(
+    remaining_chars: dict[str, int], remaining_locations: list[str]
+) -> list[str]:
+    """pdflatex 仍无法处理字符的警告与首次出现位置。"""
+    lines = ["## ⚠ 仍无法用 pdflatex 处理的字符（必须手工处理）"]
+    for char, count in sorted(remaining_chars.items(), key=lambda kv: -kv[1]):
+        lines.append(f"- {char} (U+{ord(char):04X}) × {count}")
+    lines.extend(
+        [
+            "",
+            "首次出现位置：",
+            *(f"- {item}" for item in remaining_locations),
+            "",
+            "中文/日文/俄文等非拉丁正文需要 ctex/xeCJK/babel 等方案；",
+            "期刊只收 pdflatex 时需改为英文稿或与编辑确认。",
+            "",
+        ]
+    )
+    return lines
+
+
+def _compat_manifest_lines(compat: CompatReport) -> list[str]:
+    """pdflatex 兼容性警告：未转换字符与不兼容宏包。"""
+    lines = ["## pdflatex 兼容性警告"]
+    for char, count in sorted(compat.unsupported_chars.items(), key=lambda kv: -kv[1]):
+        lines.append(f"- 未转换字符 {char} (U+{ord(char):04X}) × {count}")
+    for package, reason in compat.incompatible_packages.items():
+        lines.append(f"- 不兼容宏包 {package}: {reason}")
+    lines.append("")
+    return lines
+
+
+def _manifest_checklist(include_bbl: bool) -> list[str]:
+    """提交前检查清单；是否附 ``.bbl`` 决定参考文献由谁编译。"""
+    reference_line = (
+        "- [ ] 若包内含 .bbl，不要删除或重命名；参考文献以 .bbl 为准"
+        if include_bbl
+        else "- [ ] 包内未附 .bbl：期刊端需运行 bibtex/biber 后重新编译参考文献"
+    )
+    return [
+        "## 提交前检查清单",
+        "- [ ] 在期刊系统允许的 pdflatex 版本上完整编译一次",
+        "- [ ] 确认图片路径/文件名大小写与包内一致",
+        reference_line,
+        "- [ ] 检查版权/基金信息是否随投稿系统要求单独填写",
+        "",
+    ]
+
+
+def _write_zip(staging: Path, staged: list[str], zip_path: Path, *, reproducible: bool) -> None:
+    """把暂存目录打成 zip（先写 ``.zip.tmp`` 再原子替换）。
+
+    ``reproducible=False`` 时使用源文件的修改时间。旧实现两个分支都落回
+    ``ZipInfo`` 的默认 1980-01-01，开关等于没生效；现在关闭可复现才真的写入
+    时间戳，开启时仍固定时间并按名称排序，保证同一内容两次打包哈希一致。
+    """
+    tmp_zip = zip_path.with_suffix(".zip.tmp")
+    try:
+        with zipfile.ZipFile(tmp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for name in sorted(set(staged)):
+                info = zipfile.ZipInfo(name)
+                if reproducible:
+                    info.date_time = (1980, 1, 1, 0, 0, 0)  # 固定时间戳，便于复现
+                else:
+                    info.date_time = _zip_date_time(staging / name)
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o644 << 16
+                with zf.open(info, "w") as dest, (staging / name).open("rb") as src:
+                    shutil.copyfileobj(src, dest)
+        tmp_zip.replace(zip_path)
+    finally:
+        tmp_zip.unlink(missing_ok=True)
+
+
+def _zip_date_time(path: Path) -> tuple[int, int, int, int, int, int]:
+    """文件的本地修改时间 → ZIP 可接受的时间戳（1980–2107，偶数秒）。"""
+    try:
+        stamp = time.localtime(path.stat().st_mtime)[:6]
+    except OSError:
+        return (1980, 1, 1, 0, 0, 0)
+    year, month, day, hour, minute, second = stamp
+    if year < 1980:
+        return (1980, 1, 1, 0, 0, 0)
+    if year > 2107:
+        return (2107, 12, 31, 23, 59, 58)
+    # ZIP 的 DOS 时间字段只保存 2 秒精度；先截断，读回时才不会出现 1 秒偏差。
+    return (year, month, day, hour, minute, second - second % 2)
+
+
+@dataclass
+class _SubmissionStager:
+    """把候选文件转换并写入 staging，同时累计说明文件所需的统计。
+
+    原先这些状态散落在 ``build_pack`` 的局部变量里，导致函数同时负责候选过滤、
+    Unicode 转换、导言区净化和 .bbl/.bib 补充；拆出来后每个分支只做一件事。
+    """
+
+    root: Path
+    staging: Path
+    convert_unicode: bool
+    sanitize: bool
+    conversions: list[ConversionRecord] = field(default_factory=list)
+    staged: list[str] = field(default_factory=list)
+    sanitized: list[str] = field(default_factory=list)
+    remaining_chars: dict[str, int] = field(default_factory=dict)
+    remaining_locations: list[str] = field(default_factory=list)
+
+    def stage_candidate(self, source: Path) -> None:
+        """按后缀处理一个 ``.fls``/fallback 候选。"""
+        try:
+            relative = source.relative_to(self.root)
+        except ValueError:
+            return
+        suffix = source.suffix.lower()
+
+        target = self.staging / relative
+        counts: dict[str, int] = {}
+        locations: list[str] = []
+        if suffix == ".tex":
+            counts, locations = self._stage_tex(source, target, relative.as_posix())
+        elif suffix == ".bbl" and self.convert_unicode:
+            counts, locations = self._stage_text(source, target, relative.as_posix())
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            source.copy(target, preserve_metadata=True)
+        if suffix in {".tex", ".bbl"}:
+            _accumulate_remaining(counts, locations, self.remaining_chars, self.remaining_locations)
+        self.staged.append(relative.as_posix())
+
+    def _stage_tex(self, source: Path, target: Path, relative: str) -> tuple[dict[str, int], list[str]]:
+        """转换 TeX 文件，并按需净化导言区。"""
+        records, text, counts, locations = _convert_staged_file(
+            source, target, relative, do_convert=self.convert_unicode
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return False, [f"pdflatex 运行失败: {exc}"]
-    output = (proc.stdout or "") + (proc.stderr or "")
-    tail = [line for line in output.splitlines() if line.strip()][-12:]
-    return proc.returncode == 0, tail
+        self.conversions.extend(records)
+        if not (self.sanitize and self.convert_unicode):
+            return counts, locations
+
+        cleaned, notes = sanitize_preamble(text)
+        if not notes:
+            return counts, locations
+        self.sanitized.extend(f"{relative}: {note}" for note in notes)
+        target.write_text(cleaned, encoding="utf-8")
+        return _scan_remaining(cleaned, relative)
+
+    def _stage_text(self, source: Path, target: Path, relative: str) -> tuple[dict[str, int], list[str]]:
+        """转换 .bbl 等纯文本文件，并记录转换清单。"""
+        records, _text, counts, locations = _convert_staged_file(
+            source, target, relative, do_convert=True
+        )
+        self.conversions.extend(records)
+        return counts, locations
+
+    def stage_bbl(self, auxdir: Path, build_name: str, project_name: str) -> None:
+        """补入与源主文件同名的 .bbl；已有同名文件时不重复。"""
+        bbl = auxdir / f"{build_name}.bbl"
+        target_name = Path(f"{project_name}.bbl").as_posix()
+        if not bbl.exists() or target_name in {Path(n).as_posix() for n in self.staged}:
+            return
+
+        target = self.staging / target_name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if self.convert_unicode:
+            counts, locations = self._stage_text(bbl, target, target_name)
+            _accumulate_remaining(counts, locations, self.remaining_chars, self.remaining_locations)
+        else:
+            bbl.copy(target, preserve_metadata=True)
+        self.staged.append(target_name)
+
+    def stage_bib(self, project_name: str) -> None:
+        """补入项目内**所有** .bib（不依赖 ``--include-bib``，始终执行）。
+
+        期刊常要求把 ``\\bibliography{a,b}`` 的所有数据库一起上传；旧实现只
+        补 ``<project_name>.bib``，多库项目会缺文件。已在候选阶段收过的
+        （.fls 记录）按 ``staged`` 去重。
+        """
+        seen = set(self.staged)
+        for bib in sorted(self.root.rglob("*.bib")):
+            try:
+                relative = bib.relative_to(self.root)
+            except ValueError:
+                continue
+            if _is_excluded_submission_path(relative):
+                continue
+            name = relative.as_posix()
+            if name in seen:
+                continue
+            target = self.staging / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            bib.copy(target, preserve_metadata=True)
+            self.staged.append(name)
+            seen.add(name)
 
 
 def build_pack(
@@ -566,13 +837,15 @@ def build_pack(
     pdf_name: str | None = None,
     submit_dir: str | Path = "./Submission",
     convert_unicode: bool = True,
-    include_bbl: bool = True,
-    include_bib: bool = False,
+    include_bbl: bool = False,
     sanitize: bool = True,
-    verify: bool = False,
     reproducible: bool = True,
 ) -> PackResult:
-    """生成投稿 zip；``convert_unicode`` 时输出 pdflatex 可编译的转换副本。"""
+    """生成投稿 zip；``convert_unicode`` 时输出 pdflatex 可编译的转换副本。
+
+    ``include_bbl=False``（默认）只带源 ``.bib``；期刊明确要求预编译好的
+    ``.bbl`` 时由配置层打开。
+    """
     root = Path(root).resolve()
     outdir = Path(outdir)
     auxdir = Path(auxdir)
@@ -588,155 +861,44 @@ def build_pack(
         candidates = _fallback_files(root)
 
     compat = scan_compat(root, project_name)
-    conversions: list[ConversionRecord] = []
-    staged: list[str] = []
-    sanitized: list[str] = []
-    remaining_chars: dict[str, int] = {}
-    remaining_locations: list[str] = []
+    stager = _SubmissionStager(
+        root=root,
+        staging=staging,
+        convert_unicode=convert_unicode,
+        sanitize=sanitize,
+    )
 
     try:
         for source in sorted(set(candidates)):
-            try:
-                relative = source.relative_to(root)
-            except ValueError:
-                continue
-            target = staging / relative
-            suffix = source.suffix.lower()
-            if suffix == ".bib" and not include_bib:
-                continue
-            if suffix == ".tex":
-                records, text, counts, locations = _convert_staged_file(
-                    source, target, relative.as_posix(), do_convert=convert_unicode
-                )
-                if sanitize and convert_unicode:
-                    cleaned, notes = sanitize_preamble(text)
-                    if notes:
-                        sanitized.extend(f"{relative.as_posix()}: {note}" for note in notes)
-                        target.write_text(cleaned, encoding="utf-8")
-                        text = cleaned
-                        counts, locations = _scan_remaining(text, relative.as_posix())
-                conversions.extend(records)
-            elif suffix == ".bbl" and convert_unicode:
-                records, text, counts, locations = _convert_staged_file(
-                    source, target, relative.as_posix(), do_convert=True
-                )
-                conversions.extend(records)
-            else:
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source, target)
-                counts, locations = {}, []
-            if suffix in {".tex", ".bbl"}:
-                for char, count in counts.items():
-                    remaining_chars[char] = remaining_chars.get(char, 0) + count
-                for item in locations:
-                    if item not in remaining_locations and len(remaining_locations) < 40:
-                        remaining_locations.append(item)
-            staged.append(relative.as_posix())
-
+            stager.stage_candidate(source)
+        # 投稿系统要求包内存在可编译的主入口：.fls 漏记主文件（或候选被过滤器
+        # 排除）时，必须显式补进 <project_name>.tex，否则包里有 PDF 没有入口。
+        main_source = root / f"{project_name}.tex"
+        if not main_source.exists():
+            raise FileNotFoundError(f"主文件不存在，无法生成投稿包: {main_source}")
+        # zip 内的名字统一用 POSIX 分隔符；Windows 的 `project_name` 可能带 `\`。
+        main_entry = Path(f"{project_name}.tex").as_posix()
+        if main_entry not in {Path(name).as_posix() for name in stager.staged}:
+            stager.stage_candidate(main_source)
         if include_bbl:
-            bbl = auxdir / f"{build_name}.bbl"
-            # 投稿系统会用 main.tex 重新编译，bbl 必须落成 <源主文件>.bbl，
-            # 不能沿用 --jobname 的输出名，否则 journal 端会提示缺少 .bbl。
-            bbl_target_name = f"{project_name}.bbl"
-            if bbl.exists() and bbl_target_name not in {Path(n).name for n in staged}:
-                target = staging / bbl_target_name
-                if convert_unicode:
-                    records, _text, counts, locations = _convert_staged_file(
-                        bbl, target, bbl_target_name, do_convert=True
-                    )
-                    conversions.extend(records)
-                    for char, count in counts.items():
-                        remaining_chars[char] = remaining_chars.get(char, 0) + count
-                    for item in locations:
-                        if item not in remaining_locations and len(remaining_locations) < 40:
-                            remaining_locations.append(item)
-                else:
-                    shutil.copy2(bbl, target)
-                staged.append(bbl_target_name)
+            stager.stage_bbl(auxdir, build_name, project_name)
+        stager.stage_bib(project_name)
 
-        if include_bib:
-            bib = root / f"{project_name}.bib"
-            if bib.exists():
-                target = staging / f"{project_name}.bib"
-                shutil.copy2(bib, target)
-                staged.append(f"{project_name}.bib")
-
-        verify_ok: bool | None = None
-        verify_tail: list[str] = []
-        if verify and convert_unicode:
-            verify_ok, verify_tail = _verify_pdflatex(staging, project_name)
-
-        manifest_lines = [
-            "# PyTeXMK 投稿包说明",
-            f"# 项目: {project_name}",
-            f"# 转换 Unicode: {'是' if convert_unicode else '否'}",
-            f"# 导言区净化: {'是' if sanitize and convert_unicode else '否'}",
-            "",
-        ]
-
-        if conversions:
-            manifest_lines.append("## Unicode → LaTeX 转换清单")
-            per_file: dict[str, int] = {}
-            for record in conversions:
-                per_file[record.file] = per_file.get(record.file, 0) + 1
-            for name, count in sorted(per_file.items()):
-                manifest_lines.append(f"- {name}: {count} 处")
-            manifest_lines.append("")
-            for record in conversions:
-                manifest_lines.append(
-                    f"{record.file}:{record.line}  {record.char} ({record.codepoint}) -> {record.replacement}"
-                )
-            manifest_lines.append("")
-
-        if sanitized:
-            manifest_lines.append("## 导言区净化")
-            for note in sanitized:
-                manifest_lines.append(f"- {note}")
-            manifest_lines.append("")
-
-        if remaining_chars:
-            manifest_lines.append("## ⚠ 仍无法用 pdflatex 处理的字符（必须手工处理）")
-            for char, count in sorted(remaining_chars.items(), key=lambda kv: -kv[1]):
-                manifest_lines.append(f"- {char} (U+{ord(char):04X}) × {count}")
-            manifest_lines.append("")
-            manifest_lines.append("首次出现位置：")
-            manifest_lines.extend(f"- {item}" for item in remaining_locations)
-            manifest_lines.append("")
-            manifest_lines.append("中文/日文/俄文等非拉丁正文需要 ctex/xeCJK/babel 等方案；")
-            manifest_lines.append("期刊只收 pdflatex 时需改为英文稿或与编辑确认。")
-            manifest_lines.append("")
-
-        if not compat.ok:
-            manifest_lines.append("## pdflatex 兼容性警告")
-            for char, count in sorted(compat.unsupported_chars.items(), key=lambda kv: -kv[1]):
-                manifest_lines.append(f"- 未转换字符 {char} (U+{ord(char):04X}) × {count}")
-            for package, reason in compat.incompatible_packages.items():
-                manifest_lines.append(f"- 不兼容宏包 {package}: {reason}")
-            manifest_lines.append("")
-
-        if verify and convert_unicode:
-            manifest_lines.append("## pdflatex 编译验证")
-            if verify_ok is None:
-                manifest_lines.append("- 未找到 pdflatex，未验证")
-            elif verify_ok:
-                manifest_lines.append("- 通过：pytexmk 在临时目录用 pdflatex 编译成功")
-            else:
-                manifest_lines.append("- 失败：请按下面的日志尾部修复（常见原因是缺宏包/缺字体/中文正文）")
-                manifest_lines.extend(f"  {line}" for line in verify_tail)
-            manifest_lines.append("")
-
-        manifest_lines.append("## 提交前检查清单")
-        manifest_lines.append("- [ ] 在期刊系统允许的 pdflatex 版本上完整编译一次")
-        manifest_lines.append("- [ ] 确认图片路径/文件名大小写与包内一致")
-        manifest_lines.append("- [ ] 若包内含 .bbl，不要删除或重命名；参考文献以 .bbl 为准")
-        manifest_lines.append("- [ ] 检查版权/基金信息是否随投稿系统要求单独填写")
-        manifest_lines.append("")
-
-        manifest = "\n".join(manifest_lines) + "\n"
+        manifest = _build_manifest(
+            project_name=project_name,
+            convert_unicode=convert_unicode,
+            sanitize=sanitize,
+            conversions=stager.conversions,
+            sanitized=stager.sanitized,
+            remaining_chars=stager.remaining_chars,
+            remaining_locations=stager.remaining_locations,
+            compat=compat,
+            include_bbl=include_bbl,
+        )
         (staging / "pytexmk-submission-notes.txt").write_text(manifest, encoding="utf-8")
-        staged.append("pytexmk-submission-notes.txt")
+        stager.staged.append("pytexmk-submission-notes.txt")
 
-        pdf_path = Path(outdir) / f"{build_name}.pdf"
+        pdf_path = outdir / f"{build_name}.pdf"
         pages, pdf_bytes = _pdf_summary(pdf_path)
 
         submit = Path(submit_dir)
@@ -744,45 +906,24 @@ def build_pack(
             submit = root / submit
         submit.mkdir(parents=True, exist_ok=True)
         zip_path = submit / f"{project_name}-submission.zip"
-        tmp_zip = zip_path.with_suffix(".zip.tmp")
-        try:
-            with zipfile.ZipFile(tmp_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-                for name in sorted(set(staged)):
-                    path = staging / name
-                    info = zipfile.ZipInfo(name)
-                    if reproducible:
-                        info.date_time = (1980, 1, 1, 0, 0, 0)  # 固定时间戳，便于复现
-                    info.compress_type = zipfile.ZIP_DEFLATED
-                    info.external_attr = 0o644 << 16
-                    zf.writestr(info, path.read_bytes())
-            tmp_zip.replace(zip_path)
-        finally:
-            tmp_zip.unlink(missing_ok=True)
+        _write_zip(staging, stager.staged, zip_path, reproducible=reproducible)
 
-        digest = hashlib.sha256(zip_path.read_bytes()).hexdigest()
-        rounds = None
-        try:
-            import json
-
-            state = json.loads((auxdir / ".pytexmk_refcache.json").read_text(encoding="utf-8"))
-            rounds = (state.get("pytexmk") or {}).get("build", {}).get("round")
-        except Exception:  # noqa: BLE001
-            rounds = None
+        with zip_path.open("rb") as fh:
+            digest = hashlib.file_digest(fh, "sha256").hexdigest()
+        rounds = _read_rounds(auxdir)
 
         return PackResult(
             zip_path=zip_path,
-            files=sorted(set(staged)),
-            conversions=conversions,
+            files=sorted(set(stager.staged)),
+            conversions=stager.conversions,
             compat=compat,
             pdf_pages=pages,
             pdf_bytes=pdf_bytes,
             sha256=digest,
             rounds=rounds,
-            remaining_chars=remaining_chars,
-            remaining_locations=remaining_locations,
-            sanitized=sanitized,
-            verify_ok=verify_ok,
-            verify_tail=verify_tail,
+            remaining_chars=stager.remaining_chars,
+            remaining_locations=stager.remaining_locations,
+            sanitized=stager.sanitized,
         )
     finally:
         shutil.rmtree(staging_parent, ignore_errors=True)

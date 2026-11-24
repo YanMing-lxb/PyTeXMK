@@ -3,12 +3,19 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from pytexmk.file_ops import atomic_write_text
 from pytexmk.language import set_language
 from pytexmk.lifecycle import EXIT_ERROR, exit_pytexmk
 from pytexmk.subproject_scanner import has_magic
 from pytexmk.ui_theme import console
 
 _ = set_language("tex_project")
+
+#: 匹配 ``\documentclass[opts]{class}``（跳过被注释掉的行首命令）。
+#: 开/关草稿模式共用同一个模式与同一个替换函数，避免两处正则漂移。
+_DOCUMENTCLASS_RE = re.compile(
+    r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}"
+)
 
 
 def standardize_name(compiled_program: str) -> str:
@@ -24,8 +31,12 @@ def standardize_name(compiled_program: str) -> str:
 class MainFileOperation:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        #: 草稿模式改写前的原文备份（进程内）；restore_draft 用它精确回滚
-        self._draft_backups: dict[str, str] = {}
+        #: 草稿模式改写过的文件（进程内）；restore_draft 只负责把这些文件里的
+        #: draft 选项摘掉，不回写整份快照（快照会覆盖编译期间用户的其它编辑）
+        self._draft_modified: set[str] = set()
+        #: 跨进程草稿标记：只有 PyTeXMK 自己加过 draft 才写，下次编译据此自愈，
+        #: 不会把作者本来就想要的 draft 选项误删。
+        self._draft_marker: Path | None = None
         self._draft_atexit_registered = False
 
     def check_project_name(self, main_files: list, check_project_name: str, suffix: str) -> str:
@@ -49,11 +60,11 @@ class MainFileOperation:
             exit_pytexmk(EXIT_ERROR)
 
         if base_name in main_files:
-            return check_project_name.rstrip(suffix) if check_project_name.endswith(suffix) else check_project_name
+            return str(path_obj.with_suffix(""))
 
         # 带子目录的相对路径：允许直接命中文件本身
         if path_obj.exists():
-            return str(path_obj).rstrip(suffix) if str(path_obj).endswith(suffix) else str(path_obj)
+            return str(path_obj.with_suffix(""))
 
         self.logger.error(_("未找到主文件 %(args)s") % {"args": f"[bold cyan]{check_project_name}{suffix}[/bold cyan]"})
         exit_pytexmk(EXIT_ERROR)
@@ -75,11 +86,15 @@ class MainFileOperation:
                 exit_pytexmk(EXIT_ERROR)
         except OSError as e:
             self.logger.error(_("文件搜索失败: ") + f"{suffix} --> {e}")
-        except re.error as e:
-            self.logger.error(_("文件搜索正则错误: ") + f"{suffix} --> {e}")
         return suffix_files_in_dir
 
-    def find_tex_commands(self, tex_files_in_root: list) -> list:
+    def find_tex_commands(self, tex_files_in_root: list, *, required: bool = True) -> list:
+        """扫描根目录下的候选主文件。
+
+        ``required=False`` 用于 ``-ca/-Ca``：清理辅助产物不应该依赖“能唯一确定
+        主文件”，没有 ``\\documentclass`` 或存在多个主文件时返回空清单，
+        由调用方按保守所有权规则处理，而不是直接退出。
+        """
         main_tex_files = []
         for file_name in tex_files_in_root:
             try:
@@ -91,10 +106,12 @@ class MainFileOperation:
 
         if main_tex_files:
             self.logger.info(_("发现主文件数量: ") + str(len(main_tex_files)))
-        else:
+        elif required:
             self.logger.error(_("终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!"))
             self.logger.warning(_("当前终端路径: ") + str(Path.cwd()))
             exit_pytexmk(EXIT_ERROR)
+        else:
+            self.logger.info(_("未发现主文件；本次只按后缀清理辅助产物"))
         return main_tex_files
 
     def search_magic_comments(
@@ -195,48 +212,38 @@ class MainFileOperation:
 
         return project_name
 
-    def draft_model(self, project_name: str, draft_run: bool, draft_judgement: bool):
-        """草稿模式开关：临时在 ``\\documentclass`` 上加/去 ``draft`` 选项。
+    def draft_model(
+        self,
+        project_name: str,
+        enabled: bool,
+        auxdir: str | Path = ".",
+    ):
+        """草稿模式开关：``enabled=True`` 临时加 draft，``False`` 只做崩溃自愈。
 
-        C3：旧实现只在编译成功路径上调用 ``draft_model(..., False)``，一旦编译
-        失败（``exit_pytexmk``）或 Ctrl+C，用户仓库里的 ``main.tex`` 就永久带着
-        ``draft``。现在：
-          * 开启时先把**原文完整备份**在内存里；
-          * 注册 ``atexit`` 兜底（连 ``sys.exit`` 路径也能恢复）；
-          * 结束时由 ``restore_draft()`` 精确写回原文，而不是再做一次正则反向替换
-            （反向替换会丢掉用户在这期间的其它编辑）。
+        草稿状态不靠调用方两次“开/关”配对维持，只由一个布尔量表达：
+          * 开启时记录**被改写的文件**（不整份备份原文），在 ``auxdir`` 写
+            ``.pytexmk-draft`` 标记，并注册 ``atexit`` 兜底；
+          * 关闭由 ``restore_draft()`` 在当前内容上**精确摘除 draft 选项**
+            （编译期间用户对文件的其它修改不会被旧快照覆盖）；
+          * ``enabled=False`` 只消费上一次进程崩溃留下的标记：只恢复标记里
+            记录的文件，不碰作者自己写的 draft；没有标记就什么都不做。
+
+        旧实现用两个布尔量分工（``draft_run`` 管执行、``draft_judgement`` 管加不加），
+        调用方漏传一半就会静默失效，``-dr`` 曾因此整条路径不生效。
         """
-        if not draft_run:
-            self.logger.info(_("草稿模式未启用, 跳过处理."))
-            return
+        marker = Path(auxdir) / ".pytexmk-draft"
 
-        if not draft_judgement:
-            if self._draft_backups:
-                self.restore_draft()
-                return
-            # 没有本次运行留下的备份（例如上次进程崩在“关闭”之前）：
-            # 回退为反向替换，保证 -dr 之后的文件至少还能恢复成无 draft 状态。
-            file_path = Path(f"{project_name}.tex")
-            pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}")
-            try:
-                content = file_path.read_text(encoding="utf-8")
-                cleaned = pattern.sub(
-                    lambda m: (
-                        f"\\documentclass[{self._documentclass_options(m['opts'] or '', False)}]{{{m['class']}}}"
-                        if self._documentclass_options(m["opts"] or "", False)
-                        else f"\\documentclass{{{m['class']}}}"
-                    ),
-                    content,
-                )
-                if cleaned != content:
-                    file_path.write_text(cleaned, encoding="utf-8")
-                    self.logger.info(_("关闭草稿模式"))
-            except OSError as exc:
-                self.logger.error(_("关闭草稿模式失败: ") + str(exc))
+        if not enabled:
+            self._recover_from_marker(marker)
             return
 
         file_path = Path(f"{project_name}.tex")
-        pattern = re.compile(r"(?<!%)(?<!% )(?<!%  )\\documentclass(?:\[(?P<opts>[^\]]*)\])?\{(?P<class>[^\}]*)\}")
+        self._draft_marker = marker
+        try:
+            marker.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_text(marker, f"{file_path.resolve()}\n")
+        except OSError as exc:
+            self.logger.warning(_("写入草稿标记失败，崩溃后可能无法自动恢复: ") + str(exc))
 
         def _draft_substitution(match: re.Match[str]) -> str:
             options = self._documentclass_options(match["opts"] or "", True)
@@ -244,13 +251,14 @@ class MainFileOperation:
             return f"\\documentclass{opts}{{{match['class']}}}"
 
         try:
-            content = file_path.read_text(encoding="utf-8")
-            modified_content = pattern.sub(_draft_substitution, content)
+            with file_path.open("r", encoding="utf-8", newline="") as handle:
+                content = handle.read()
+            modified_content = _DOCUMENTCLASS_RE.sub(_draft_substitution, content)
             if modified_content == content:
                 self.logger.info(_("未匹配到内容, 文件未修改."))
                 return
-            self._draft_backups[str(file_path)] = content
-            file_path.write_text(modified_content, encoding="utf-8")
+            self._draft_modified.add(str(file_path))
+            atomic_write_text(file_path, modified_content)
             self.logger.info(_("启用草稿模式"))
             file_size = file_path.stat().st_size / 1024**2
             self.logger.info(
@@ -266,23 +274,93 @@ class MainFileOperation:
             self.logger.error(_("文件未找到: ") + file_path.name)
         except PermissionError:
             self.logger.error(_("权限错误: 无法读取或写入文件: ") + file_path.name)
+        except UnicodeError as exc:
+            self.logger.error(
+                _("草稿模式需要 UTF-8 源文件（请另存为 UTF-8）: ")
+                + f"{file_path.name} --> {exc}"
+            )
         except OSError as e:
             self.logger.error(_("更新草稿模式时出错: ") + str(e))
         except re.error as e:
             self.logger.error(_("草稿模式正则匹配出错: ") + str(e))
 
+    def _strip_draft_file(self, file_path: Path) -> bool:
+        """在单个文件上摘除 draft；返回 False 表示读/写失败、需要保留重试标记。"""
+        if not file_path.exists():
+            return True
+        try:
+            with file_path.open("r", encoding="utf-8", newline="") as handle:
+                content = handle.read()
+            cleaned = _DOCUMENTCLASS_RE.sub(self._undraft_substitution, content)
+            if cleaned != content:
+                atomic_write_text(file_path, cleaned)
+                self.logger.info(_("关闭草稿模式"))
+            return True
+        except UnicodeError as exc:
+            self.logger.error(
+                _("关闭草稿模式失败：源文件不是有效 UTF-8（请另存为 UTF-8）: ")
+                + f"{file_path} --> {exc}"
+            )
+        except OSError as exc:
+            self.logger.error(_("关闭草稿模式失败: ") + str(exc))
+        return False
+
+    def _recover_from_marker(self, marker: Path) -> None:
+        """消费上一次崩溃留下的草稿标记，只恢复标记里记录的文件。
+
+        没有标记就什么都不做：作者自己写在 ``\\documentclass`` 里的 draft
+        不能被“自愈”误删。标记在恢复成功/文件不存在时都会删除，避免反复处理。
+        """
+        if not marker.is_file():
+            return
+        try:
+            name = marker.read_text(encoding="utf-8").strip()
+        except (OSError, UnicodeError) as exc:
+            self.logger.warning(_("读取草稿标记失败: ") + str(exc))
+            return
+        if not name:
+            marker.unlink(missing_ok=True)
+            return
+        file_path = Path(name)
+        if self._strip_draft_file(file_path):
+            marker.unlink(missing_ok=True)
+
     def restore_draft(self) -> None:
-        """把草稿模式改写的源文件恢复为原始内容（可重复调用）。"""
-        for name, original in list(self._draft_backups.items()):
+        """在当前源文件内容上摘除 ``draft`` 选项（可重复调用）。
+
+        只改 ``draft`` 一个 token，编译期间用户对文件的其它修改保持不变。
+        """
+        for name in list(self._draft_modified):
             path = Path(name)
             try:
-                if path.exists() and path.read_text(encoding="utf-8") != original:
-                    path.write_text(original, encoding="utf-8")
+                if not path.exists():
+                    continue
+                with path.open("r", encoding="utf-8", newline="") as handle:
+                    content = handle.read()
+                cleaned = _DOCUMENTCLASS_RE.sub(self._undraft_substitution, content)
+                if cleaned != content:
+                    atomic_write_text(path, cleaned)
                     self.logger.info(_("关闭草稿模式"))
+            except UnicodeError as exc:
+                self.logger.error(
+                    _("恢复草稿模式失败：源文件不是有效 UTF-8（请手动检查 %(f)s）: %(e)s")
+                    % {"f": name, "e": exc}
+                )
             except OSError as exc:
                 self.logger.error(_("恢复草稿模式失败（请手动检查 %(f)s）: %(e)s") % {"f": name, "e": exc})
             finally:
-                self._draft_backups.pop(name, None)
+                self._draft_modified.discard(name)
+        if self._draft_marker is not None:
+            try:
+                self._draft_marker.unlink(missing_ok=True)
+            except OSError as exc:
+                self.logger.warning(_("删除草稿标记失败: ") + str(exc))
+
+    def _undraft_substitution(self, match: re.Match[str]) -> str:
+        """把一个 ``\\documentclass`` 匹配去掉 draft 选项。"""
+        options = self._documentclass_options(match["opts"] or "", False)
+        opts = f"[{options}]" if options else ""
+        return f"\\documentclass{opts}{{{match['class']}}}"
 
     @staticmethod
     def _documentclass_options(options: str, enable_draft: bool) -> str:

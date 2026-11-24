@@ -25,6 +25,19 @@ class ProjectNotFoundError(Exception):
         super().__init__(_("未找到子项目: %(name)s") % {"name": name} + suggestions)
 
 
+class AmbiguousProjectError(ProjectNotFoundError):
+    """子项目简称命中了多个不同目标。"""
+
+    def __init__(self, name: str, matches: list[str]):
+        self.name = name
+        self.available = matches
+        Exception.__init__(
+            self,
+            _("子项目 %(name)s 匹配多个目标，请指定完整别名: %(matches)s")
+            % {"name": name, "matches": ", ".join(sorted(matches))},
+        )
+
+
 @dataclass
 class ProjectContext:
     """一次 PyTeXMK 运行所需的统一上下文。
@@ -89,8 +102,8 @@ class ContextResolver:
     def discover_subprojects(self, config, root: Path) -> dict[str, Path]:
         """扫描目录树得到 别名->路径 映射（不依赖根配置是否已写入 [subprojects]）。
 
-        这是 `-s` 的兜底路径：用户直接敲 `pytexmk -s Review -l` 而不先跑 `-ls`
-        时，仍然应该能找到子项目，而不是报"未找到子项目"。
+        这是 `-s` 的兜底路径：用户直接敲 `pytexmk -s Review -l` 而不先跑
+        `-ls` 时，仍然应该能找到子项目，而不是报"未找到子项目"。
         """
         from pytexmk.subproject_scanner import discover_subprojects
 
@@ -113,23 +126,27 @@ class ContextResolver:
     def _match(name: str, candidates: dict[str, Path]) -> tuple[str, Path] | None:
         """按 精确别名 → 大小写不敏感别名 → 相对路径后缀 → 叶子目录名 的顺序匹配。
 
-        最后两级匹配是必要的：`-ls` 把深层子项目的别名记成完整相对路径
+        最后两级匹配是必要的：扫描同步把深层子项目的别名记成完整相对路径
         （如 `Section/en02`），用户更可能直接写 `-s en02`。
         """
         if name in candidates:
             return name, candidates[name]
 
         lowered = name.lower().replace("\\", "/")
-        for alias, path in candidates.items():
-            if alias.lower().replace("\\", "/") == lowered:
-                return alias, path
-
-        for alias, path in candidates.items():
-            rel = alias.lower().replace("\\", "/")
-            if rel.endswith("/" + lowered) or path.name.lower() == lowered:
-                return alias, path
-
-        return None
+        normalized = {
+            alias: alias.lower().replace("\\", "/") for alias in candidates
+        }
+        matches = [alias for alias, rel in normalized.items() if rel == lowered]
+        if not matches:
+            matches = [
+                alias for alias, rel in normalized.items()
+                if rel.endswith("/" + lowered) or candidates[alias].name.lower() == lowered
+            ]
+        if not matches:
+            return None
+        if len({candidates[alias] for alias in matches}) > 1:
+            raise AmbiguousProjectError(name, matches)
+        return matches[0], candidates[matches[0]]
 
     def resolve(self, args, cwd: Path | None = None) -> ProjectContext:
         """解析运行上下文，未命中 `-s` 别名时抛出 ProjectNotFoundError。"""
@@ -163,8 +180,12 @@ class ContextResolver:
                 # 条目直接指向 .tex：工作目录取它的父目录，并记下该主文件
                 work_file = target
                 work_root = target.parent
-            else:
+            elif target.is_dir():
                 work_root = target
+            else:
+                # 文件型别名指向不存在的文件：必须报“项目未找到”，不能落到
+                # 一个不存在的目录里继续扫描（那样会选错主文件或报无关错误）。
+                raise ProjectNotFoundError(requested, list(candidates.keys()))
 
             # `-s Review ./Review/main.tex` 这类重复指定：只有该文件确实落在
             # -s 已选定的目录内才接管，否则视为与 -s 冲突，交给后续流程报错
@@ -220,7 +241,7 @@ class ContextResolver:
         try:
             resolved = probe.resolve()
             resolved.relative_to(root)
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return None
         if resolved == root:
             return None

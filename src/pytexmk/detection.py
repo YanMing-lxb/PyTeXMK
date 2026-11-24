@@ -78,7 +78,7 @@ class BibEngine(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class IndexRule:
-    """索引系统注册表的一条规则（glossaries / nomencl / makeidx）。
+    """索引系统注册表的一条规则（glossaries / nomencl / makeidx / imakeidx）。
 
     原先用 dict 存放三个 callable，取值靠 `rule["trigger"](...)` 这类字符串下标，
     键名拼错、少写一个键都只有在运行到那条分支时才会暴露；改成不可变 dataclass 后
@@ -87,18 +87,33 @@ class IndexRule:
     """
 
     name: str
-    trigger: Callable[[str, str], bool]
-    discover: Callable[[str, str, str], list[IndexSpec]]
-    cmd_builder: Callable[[str, str, str, object], list[str]]
+    #: (jobname, 主 .aux 内容, auxdir) → 该索引系统本轮是否需要跑
+    trigger: Callable[[str, str, Path], bool]
+    #: (jobname, 主 .aux 内容, .log 内容, auxdir) → 本轮的每一套索引
+    discover: Callable[[str, str, str, Path], list[IndexSpec]]
+    #: (jobname, spec) → [显示名, shell 命令]
+    cmd_builder: Callable[[str, IndexSpec], list[str]]
 
 
 @dataclass(frozen=True, slots=True)
 class IndexSpec:
-    """索引系统的一套「输入扩展名 / 输出扩展名 / 透传上下文」。"""
+    """索引系统的一套「输入扩展名 / 输出扩展名 / 透传上下文」。
+
+    ``stem`` 是索引文件名的主干，``None`` 表示与 jobname 同名（makeidx 默认、
+    nomencl、glossaries 都是这种）。imakeidx 的命名索引（``\\makeindex[name=author]``）
+    会产出 ``author.idx`` / ``author.ind``，主干与 jobname 不同，必须显式带上。
+    """
 
     ext_in: str
     ext_out: str
     ctx: object = None
+    stem: str | None = None
+
+    def in_name(self, jobname: str) -> str:
+        return f"{self.stem or jobname}.{self.ext_in}"
+
+    def out_name(self, jobname: str) -> str:
+        return f"{self.stem or jobname}.{self.ext_out}"
 
 
 BIBER_PATTERN = re.compile(r"\\abx@aux@refcontext")
@@ -106,6 +121,7 @@ BIBTEX_PATTERN = re.compile(r"\\bibdata")
 
 BIBER_BIB_PATTERN = re.compile(r"<bcf:datasource[^>]*>\s*(.*?)\s*</bcf:datasource>")
 BIBTEX_BIB_PATTERN = re.compile(r"\\bibdata\{(.*)\}")
+BIBTEX_STYLE_PATTERN = re.compile(r"\\bibstyle\{([^}]*)\}")
 
 # ── bib2gls (glossaries-extra) 检测 ──────────────────────────────
 # bib2gls 是 glossaries-extra 的后端，必须配合 biber 使用。
@@ -122,6 +138,12 @@ _CITE_PATTERNS = (
     re.compile(r"\\bibcite\{(.*?)\}"),  # thebibliography
 )
 
+# 三条“永久信号”预编译后同时用于 rerun 检测与 residual_warnings，
+# 避免同一个正则字面量在业务函数里再写一遍。
+_RERUN_UNDEFINED_REFERENCES = re.compile(r"LaTeX Warning: There were undefined references\.")
+_RERUN_UNDEFINED_CITATION = re.compile(r"LaTeX Warning: Citation .* undefined")
+_RERUN_MULTIPLY_DEFINED_LABELS = re.compile(r"LaTeX Warning: There were multiply-defined labels\.")
+
 # ── LaTeX log 中触发额外编译的警告模式 ──────────────────────────────
 # 每条为 (包名, 正则)：
 #   包名 = None  → 通用警告（LaTeX 核心引擎产生，任何项目都可能出现，始终检查）
@@ -129,10 +151,10 @@ _CITE_PATTERNS = (
 # 正则按警告出现频率排序，高频通用模式靠前可提前短路返回 True。
 RERUN_LOG_PATTERNS: list[tuple[str | None, re.Pattern[str]]] = [
     # ── 通用模式（LaTeX 核心引擎，始终检查）─────────────────────────
-    (None, re.compile(r"LaTeX Warning: There were undefined references\.")),
+    (None, _RERUN_UNDEFINED_REFERENCES),
     (None, re.compile(r"LaTeX Warning: Label\(s\) may have changed\. Rerun to get cross-references right\.")),
-    (None, re.compile(r"LaTeX Warning: Citation .* undefined")),
-    (None, re.compile(r"LaTeX Warning: There were multiply-defined labels\.")),
+    (None, _RERUN_UNDEFINED_CITATION),
+    (None, _RERUN_MULTIPLY_DEFINED_LABELS),
     (None, re.compile(r"Package lastpage Warning: Rerun to get the references right")),
     (None, re.compile(r"Package rerunfilecheck Warning: .* Rerun")),
     # ── 参考文献相关包 ─────────────────────────────────────────────
@@ -171,9 +193,9 @@ _UNDEFINED_REF_PATTERN = re.compile(r"LaTeX Warning: (?:Reference|Citation) `([^
 # 安全上限。这是省掉"确认轮"的关键依据（见 classify_signals）。
 _PERMANENT_SIGNAL_PATTERNS = frozenset(
     {
-        r"LaTeX Warning: There were undefined references\.",
-        r"LaTeX Warning: Citation .* undefined",
-        r"LaTeX Warning: There were multiply-defined labels\.",
+        _RERUN_UNDEFINED_REFERENCES.pattern,
+        _RERUN_UNDEFINED_CITATION.pattern,
+        _RERUN_MULTIPLY_DEFINED_LABELS.pattern,
     }
 )
 
@@ -183,6 +205,19 @@ _PERMANENT_PATTERN_TOKENS: frozenset[str] = frozenset(
     f"pat{idx}"
     for idx, (_pkg, _pattern) in enumerate(RERUN_LOG_PATTERNS)
     if _pattern.pattern in _PERMANENT_SIGNAL_PATTERNS
+)
+
+# ── .aux/.out 归一化用常量（逐行调用，必须预编译） ──────────────────────
+#: 第一个"前面不是反斜杠"的 % 起为注释；`\%` 是转义百分号，不切。
+_COMMENT_SPLIT = re.compile(r"(?<!\\)%")
+#: 这些行不携带任何引用/版面信息，比对时直接丢掉
+_RELAX_TOKENS = frozenset({r"\relax", r"\relax{}"})
+#: 每次编译都会变化、与"内容是否真的变了"无关的噪声行
+_AUX_NOISE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\\bookmarksetup\{.*\}"),
+    re.compile(r"\\@outlinefile\s*\{.*\}"),
+    re.compile(r"\\[gx]def\s*\\@abspage@last\{.*\}"),
+    re.compile(r"\\global\\\@namedef\{ver@.*\}\{.*\}"),
 )
 
 # ── 索引系统注册表（数据驱动） ──────────────────────────────────────────
@@ -263,7 +298,7 @@ def _detect_xindy_language(log_content: str) -> str:
 
 
 def _resolve_glossaries_backend(
-    proj: str, bracket_arg: str | None, aux_content: str, log_content: str
+    proj: str, bracket_arg: str | None, aux_content: str, log_content: str, auxdir: Path | str = "."
 ) -> dict[str, str]:
     """为单个 glossary 类型判断后端（makeindex vs xindy）并返回参数。
 
@@ -271,11 +306,13 @@ def _resolve_glossaries_backend(
       backend : "makeindex" | "xindy"
       lang    : （仅 xindy）语言参数
     判断条件（任一命中即 xindy）：
-      1. .xdy 文件存在
+      1. ``<proj>.xdy`` 存在（CWD 或 auxdir）—— glossaries 只在 xindy 后端写它，
+         makeindex 后端写的是 ``<proj>.ist``，这是最可靠的文件级信号
       2. \\@newglossary 方括号参数含 "xindy"
       3. .aux 中有 xindy 专属宏
     """
-    is_xindy = Path(f"{proj}.xdy").exists()
+    is_xindy = (Path(f"{proj}.xdy").exists()
+                or (Path(auxdir) / f"{proj}.xdy").exists())
     if not is_xindy and bracket_arg and _XINDY_IN_BRACKET.search(bracket_arg):
         is_xindy = True
     if not is_xindy and _XINDY_AUX_MACRO.search(aux_content):
@@ -289,12 +326,14 @@ def _resolve_glossaries_backend(
 # ── Registry 辅助函数（各规则的 trigger / discover / cmd_builder 工厂） ────
 
 
-def _glossaries_trigger(proj: str, aux_content: str) -> bool:
+def _glossaries_trigger(proj: str, aux_content: str, _auxdir: Path) -> bool:
     """glossaries 触发条件：.aux 中存在 \\@newglossary 行。"""
     return bool(_NGLOSSARY_PATTERN.search(aux_content))
 
 
-def _glossaries_discover(proj: str, aux_content: str, log_content: str) -> list[IndexSpec]:
+def _glossaries_discover(
+    proj: str, aux_content: str, log_content: str, auxdir: Path
+) -> list[IndexSpec]:
     """发现 .aux 中所有 glossary 类型（可能多套：main / acronym / 自定义 ...）。
 
     glossaries v4+ 的 \\@newglossary 行格式：
@@ -310,7 +349,9 @@ def _glossaries_discover(proj: str, aux_content: str, log_content: str) -> list[
         bracket_arg = match.group("opts")
         name = match.group("name")
         glg = match.group("glg")
-        backend = _resolve_glossaries_backend(proj, bracket_arg, aux_content, log_content)
+        backend = _resolve_glossaries_backend(
+            proj, bracket_arg, aux_content, log_content, auxdir
+        )
         results.append(
             IndexSpec(
                 ext_in=match.group("glo"),
@@ -325,17 +366,19 @@ def _glossaries_discover(proj: str, aux_content: str, log_content: str) -> list[
     return results
 
 
-def _index_glossaries_cmd_builder_v2(proj: str, ext_o: str, ext_i: str, ctx: dict) -> list[str]:
-    """glossaries v2：ctx 里携带 backend + glossary 名称 + glg。
+def _index_glossaries_cmd_builder_v2(proj: str, spec: IndexSpec) -> list[str]:
+    """glossaries v2：spec.ctx 里携带 backend + glossary 名称 + glg。
 
     参数语义（统一）：
-        ext_o = gls_out  (输出扩展名：gls / acr / 自定义)
-        ext_i = glo_in   (输入扩展名：glo / acn / 自定义)
-        ctx["glg"]       = log 扩展名  (glg / alg / 自定义)
+        spec.ext_out = gls_out  (输出扩展名：gls / acr / 自定义)
+        spec.ext_in  = glo_in   (输入扩展名：glo / acn / 自定义)
+        ctx["glg"]   = log 扩展名  (glg / alg / 自定义)
     """
+    ctx = spec.ctx
     backend = ctx["backend"]
     _name = ctx["name"]
     _glg = ctx.get("glg", "")
+    ext_o, ext_i = spec.ext_out, spec.ext_in
     if _INDEX_OPTIONS.get("glossaries_tool") == "makeglossaries":
         # makeglossaries 会自己解析 .aux 里的全部 glossary 类型（含自定义/xindy），
         # 多 glossary 项目比逐个手写 makeindex/xindy 更稳；调用处会去重。
@@ -357,31 +400,69 @@ def _index_glossaries_cmd_builder_v2(proj: str, ext_o: str, ext_i: str, ctx: dic
 
 
 def _make_extension_trigger(extensions: list[str]):
-    """工厂：基于文件扩展名存在性的 trigger。用于 nomencl / makeidx。"""
+    """工厂：基于文件扩展名存在性的 trigger。用于 nomencl / makeidx。
 
-    def trigger(proj: str, _aux_content: str) -> bool:
-        return any(Path(f"{proj}{ext}").exists() for ext in extensions)
+    必须同时查 auxdir 与 CWD：native 构建（``-output-directory``）把
+    ``.nlo`` / ``.idx`` 写在 Auxiliary 里，0.5 只查 CWD 会让
+    ``\\printnomenclature`` / ``\\makeindex`` 在默认配置下永不触发。
+    """
+
+    def trigger(proj: str, _aux_content: str, auxdir: Path) -> bool:
+        for ext in extensions:
+            file_name = f"{proj}{ext}"
+            if (Path() / file_name).exists() or (Path(auxdir) / file_name).exists():
+                return True
+        return False
 
     return trigger
 
 
 def _make_fixed_discover(ext_i: str, ext_o: str):
-    """工厂：固定 ext_i / ext_o 的 discover。nomencl / makeidx 各只有一套。"""
+    """工厂：固定 ext_i / ext_o 的 discover。nomencl 只有一套。"""
 
-    def discover(_proj: str, _aux_content: str, _log_content: str) -> list[IndexSpec]:
+    def discover(
+        _proj: str, _aux_content: str, _log_content: str, _auxdir: Path
+    ) -> list[IndexSpec]:
         return [IndexSpec(ext_in=ext_i, ext_out=ext_o)]
 
     return discover
 
 
-def _make_fixed_cmd_builder(display: str, cmd_template: str):
-    """工厂：固定模板的 cmd_builder。忽略 ctx。"""
+def _discover_index_stems(auxdir: Path | str) -> list[str]:
+    """收集所有 ``*.idx`` 的主干（按名排序，去重）。
 
-    def cmd_builder(proj: str, _ext_o: str, _ext_i: str, _ctx: object) -> list[str]:
-        return [display, cmd_template.format(proj=proj)]
+    覆盖 makeidx 与 imakeidx：``\\makeindex`` 写 ``<jobname>.idx``，
+    而 ``\\makeindex[name=author]`` 写 ``author.idx``——这是过去只按 jobname
+    拼文件名时被整个漏掉的一类。glossaries 用 ``.glo/.acn``、nomencl 用
+    ``.nlo``，都不会落进这里，因此不需要额外的排除规则。
+    """
+    stems = {
+        path.stem
+        for base in (Path(), Path(auxdir))
+        for path in base.glob("*.idx")
+        if path.is_file()
+    }
+    return sorted(stems)
 
-    return cmd_builder
 
+def _makeidx_discover(
+    proj: str, _aux_content: str, _log_content: str, auxdir: Path
+) -> list[IndexSpec]:
+    """makeidx / imakeidx：每个 ``*.idx`` 一套 spec（命名索引各自一个主干）。"""
+    stems = _discover_index_stems(auxdir)
+    if not stems:
+        # 触发条件已保证至少有一个 .idx；这里兜底成 jobname，避免空列表
+        # 让"索引未生成"这类首次编译场景失去判断依据。
+        return [IndexSpec(ext_in="idx", ext_out="ind")]
+    return [IndexSpec(ext_in="idx", ext_out="ind", stem=stem) for stem in stems]
+
+
+def _makeidx_cmd_builder(proj: str, spec: IndexSpec) -> list[str]:
+    """makeidx / imakeidx：``makeindex <stem>.idx``，输出默认落在同名 ``.ind``。"""
+    stem = spec.stem or proj
+    # 命名索引在时长统计表里带上主干名，否则多个索引会显示成同一条 "makeidx"
+    display = "makeidx" if stem == proj else f"makeidx ({stem})"
+    return [display, f"makeindex {stem}.{spec.ext_in}"]
 
 #: `[index]` 的可运行时覆盖（nomencl 样式文件 / glossaries 后端工具）
 _INDEX_OPTIONS: dict[str, str] = {
@@ -398,11 +479,21 @@ def configure_index(nomencl_ist: str | None = None, glossaries_tool: str | None 
         _INDEX_OPTIONS["glossaries_tool"] = glossaries_tool
 
 
-def _nomencl_cmd_builder(proj: str, ext_o: str, ext_i: str, _ctx: object) -> list[str]:
-    """nomencl 命令：样式文件取自 ``[index] index_style_file``，不再硬编码。"""
+def _quote_cmd_path(path: str) -> str:
+    """命令串里的路径：含空白时加引号，供后续分词还原成一个参数。"""
+    return f'"{path}"' if any(ch.isspace() for ch in path) else path
+
+
+def _nomencl_cmd_builder(proj: str, spec: IndexSpec) -> list[str]:
+    """nomencl 命令：样式文件取自 ``[index] index_style_file``，不再硬编码。
+
+    样式文件可能是 ``C:\\Program Files\\...\\nomencl.ist`` 这类带空格的绝对
+    路径，命令串里必须加引号，否则分词后会被拆成两个参数。
+    """
+    ist = _quote_cmd_path(str(_INDEX_OPTIONS["nomencl_ist"]))
     return [
         "nomencl",
-        f"makeindex -s {_INDEX_OPTIONS['nomencl_ist']} -o {proj}.{ext_o} {proj}.{ext_i}",
+        f"makeindex -s {ist} -o {proj}.{spec.ext_out} {proj}.{spec.ext_in}",
     ]
 
 
@@ -424,8 +515,8 @@ _INDEX_REGISTRY: tuple[IndexRule, ...] = (
     IndexRule(
         name="makeidx",
         trigger=_make_extension_trigger([".idx"]),
-        discover=_make_fixed_discover("idx", "ind"),
-        cmd_builder=_make_fixed_cmd_builder("makeidx", "makeindex {proj}.idx"),
+        discover=_makeidx_discover,
+        cmd_builder=_makeidx_cmd_builder,
     ),
 )
 
@@ -449,7 +540,7 @@ def _read_file_content(path: str | Path) -> str:
     for enc in dict.fromkeys(("utf-8", local_encoding)):
         try:
             return data.decode(enc)
-        except (UnicodeDecodeError, LookupError):
+        except UnicodeDecodeError, LookupError:
             continue
     return data.decode("utf-8", errors="replace")
 
@@ -499,12 +590,17 @@ class CompilationDetector:
         non_quiet,
         MRO,
         jobname=None,
+        native=True,
     ):
         self.logger = logging.getLogger(__name__)
 
         self.project_name = project_name
         # jobname 决定 .aux/.log/.toc 等辅助文件名；--jobname 时与源主文件名不同
         self.jobname = jobname or project_name
+        # native=True 时辅助文件的权威位置是 auxdir；False 时是项目根目录。
+        # 两种布局的旧文件可能同时存在（切换过 --native / --no-native 之后），
+        # 谁是权威必须由构建模式决定，不能一律"CWD 优先"。
+        self.native = bool(native)
         self.compiled_program = compiled_program
         self.out_files = out_files
         self.aux_files = aux_files
@@ -518,18 +614,36 @@ class CompilationDetector:
         self.bib2gls_mode = False  # bib2gls (glossaries-extra) 标记，由 bib_judgment 刷新
 
     def _locate(self, suffix: str) -> Path:
-        """定位 ``<project><suffix>``：先看项目根目录，再看 auxdir。
+        """定位 ``<project><suffix>``：按 ``_candidate_paths`` 的顺序取第一个存在的。
 
         原生目录构建（``-output-directory``）把辅助文件直接写在 auxdir 里，
         而传统流程会先把它们搬回根目录；两种布局都要能读到，所以这里做双查。
-        都不存在时返回根目录路径（保持旧行为，便于错误信息显示）。
+        都不存在时返回第一个候选（根目录路径），便于错误信息显示。
         """
-        name = f"{self.jobname}{suffix}"
-        for base in (Path("."), Path(self.auxdir)):
-            candidate = base / name
+        candidates = self._candidate_paths(suffix)
+        for candidate in candidates:
             if candidate.exists():
                 return candidate
-        return Path(name)
+        return candidates[0]
+
+    def _locate_named(self, name: str) -> Path:
+        """按完整文件名定位辅助文件，候选顺序由构建模式决定。
+
+        命名索引（imakeidx 的 ``author.idx``）的主干与 jobname 不同，不能复用
+        ``_locate``（它只会拼 ``<jobname><suffix>``）。native 构建 / 传统构建
+        的权威位置不同，切换过构建模式后两边都可能残留同名文件，因此顺序不能写死。
+        """
+        candidates = self._ordered_candidates(name)
+        for candidate in candidates:
+            if candidate.exists():
+                return candidate
+        return candidates[0]
+
+    def _ordered_candidates(self, name: str) -> tuple[Path, Path]:
+        """同一辅助文件在两个位置上的候选，按当前构建模式的权威顺序排列。"""
+        if self.native:
+            return Path(self.auxdir) / name, Path(name)
+        return Path(name), Path(self.auxdir) / name
 
     def prepare_LaTeX_output_files(self):
         aux_file_path = self._locate(".aux")
@@ -540,10 +654,7 @@ class CompilationDetector:
             cite_counter = {f"{self.jobname}.aux": defaultdict(int)}
             index_aux_content_dict_old = {}
         toc_file_path = self._locate(".toc")
-        if toc_file_path.exists():
-            toc_file = _read_file_content(toc_file_path)
-        else:
-            toc_file = ""
+        toc_file = _read_file_content(toc_file_path) if toc_file_path.exists() else ""
 
         return cite_counter, toc_file, index_aux_content_dict_old
 
@@ -595,21 +706,23 @@ class CompilationDetector:
             # bib2gls 下 glossaries 不写 .glo/.xdy，跳过快照采集
             if self.bib2gls_mode and rule.name == "glossaries":
                 continue
-            if not rule.trigger(self.jobname, main_aux):
+            if not rule.trigger(self.jobname, main_aux, Path(self.auxdir)):
                 continue
-            for spec in rule.discover(self.jobname, main_aux, log_content):
-                # 快照只关心 ext_in（输入文件）的旧内容
-                infile_path = Path(f"{self.jobname}.{spec.ext_in}")
+            for spec in rule.discover(self.jobname, main_aux, log_content, Path(self.auxdir)):
+                # 快照只关心 ext_in（输入文件）的旧内容；路径统一过 _locate_named，
+                # 否则 native 构建下 Auxiliary 里的 .nlo/.idx 永远快照不到，
+                # 命名索引（author.idx）也会被漏掉。
+                infile_path = self._locate_named(spec.in_name(self.jobname))
                 if infile_path.exists():
                     index_aux_content_dict_old[infile_path.name] = _read_file_content(infile_path)
 
         return index_aux_content_dict_old
 
     def toc_changed_judgment(self, toc_file):
-        file_name = Path(self.jobname).with_suffix(".toc")
-        return file_name.exists() and _read_file_content(file_name) != toc_file
+        file_path = self._locate(".toc")
+        return file_path.exists() and _read_file_content(file_path) != toc_file
 
-    def _resolve_bib_files(self, raw: str) -> list[Path]:
+    def _resolve_bib_files(self, raw: str, suffix: str = ".bib") -> list[Path]:
         """把 .aux/.bcf 里声明的文献数据名解析成真实存在的 .bib 文件。
 
         ``\\bibdata{References}`` 只给出不带扩展名的名字（还可能用逗号分隔多个），
@@ -622,7 +735,7 @@ class CompilationDetector:
             name = name.strip()
             if not name:
                 continue
-            for candidate in (Path(f"{name}.bib"), Path(name)):
+            for candidate in (Path(f"{name}{suffix}"), Path(name)):
                 if candidate.is_file():
                     resolved.append(candidate)
                     break
@@ -635,18 +748,18 @@ class CompilationDetector:
                 return candidate
         return None
 
-    def _bib_needs_refresh(self) -> bool:
-        """.bbl 缺失或比任一 .bib 旧时，说明文献需要重新生成。"""
+    def _bib_needs_refresh(self, styles: list[Path]) -> bool:
+        """.bbl 缺失或早于本地文献输入、样式时重新生成。"""
         bbl_path = self._bib_output_path()
         if bbl_path is None:
             return True
         try:
-            bbl_mtime = bbl_path.stat().st_mtime
+            bbl_mtime = bbl_path.stat().st_mtime_ns
         except OSError:
             return True
-        for bib_path in self.bib_files:
+        for bib_path in (*self.bib_files, *styles):
             try:
-                if bib_path.stat().st_mtime > bbl_mtime:
+                if bib_path.stat().st_mtime_ns > bbl_mtime:
                     return True
             except OSError:
                 continue
@@ -665,62 +778,83 @@ class CompilationDetector:
                "Citation undefined" 且 .bbl 不比 .bib 旧 → 归零
             4. 其余情况 → 需要 2 次（跑一次 bibtex/biber + 重新编译）
         """
-        bib_engine = None
-        target_name_bib = None
-        latex_compilation_times = 0
         self.bib2gls_mode = False  # bib2gls (glossaries-extra) 检测标记
         self.bib_files = []
 
+        aux_content, bcf_content = self._read_bib_inputs()
+        if aux_content is None:
+            return None, 0, None
+
+        bib_engine, target_name_bib = self._detect_bib_engine(aux_content, bcf_content)
+        if bib_engine is None:
+            if self.bib2gls_mode:
+                # 纯 bib2gls：.glstex 由 bib2gls 生成，之后至少两轮 LaTeX 才能
+                # 把术语表排进 PDF（一轮读入 .glstex、一轮收敛交叉引用/页码）
+                self.logger.info(_("检测到 bib2gls 术语表（record 模式），将调用 bib2gls"))
+                return None, 2, None
+            return None, self._bibcite_compilations(aux_content, old_cite_counter), None
+
+        self.bib_files = self._resolve_bib_files(self.bib_file)
+        styles = []
+        if bib_engine == BibEngine.BIBTEX:
+            styles = self._resolve_bib_files(",".join(BIBTEX_STYLE_PATTERN.findall(aux_content)), ".bst")
+        return bib_engine, self._bib_engine_compilations(bib_engine, old_cite_counter, styles), target_name_bib
+
+    def _read_bib_inputs(self) -> tuple[str | None, str]:
+        """读取 .aux 与（存在时的）.bcf 内容；.aux 缺失返回 ``(None, "")``。"""
         aux_file_path = self._locate(".aux")
         if not aux_file_path.exists():
             self.logger.warning(_("未找到辅助文件: ") + f"{self.jobname}.aux")
-            return bib_engine, latex_compilation_times, target_name_bib
-
+            return None, ""
         aux_content = _read_file_content(aux_file_path)
+        bcf_file_path = self._locate(".bcf")
+        bcf_content = _read_file_content(bcf_file_path) if bcf_file_path.exists() else ""
+        return aux_content, bcf_content
+
+    def _detect_bib_engine(self, aux_content: str, bcf_content: str):
+        """从 .aux/.bcf 判定 biber/bibtex，并设置 bib2gls 标记与 bib_file。"""
+        bib_engine = None
+        target_name_bib = None
+
+        # bib2gls（glossaries-extra 的 record 模式）检测**不能**嵌在 biber 分支里：
+        # record 模式只在 .aux 里写 \glsxtr@record，不会写 \abx@aux@refcontext
+        # （那是 biblatex/biber 的标记），因此"只做术语表、不做文献"的项目
+        # 以前既匹配不到 biber 分支、也永远不会被识别成 bib2gls 项目，
+        # 术语表既不交给 makeindex/xindy、也不交给 bib2gls，静默为空。
+        if BIB2GLS_AUX_PATTERN.search(aux_content) or (
+            bcf_content and BIB2GLS_BCF_PATTERN.search(bcf_content)
+        ):
+            self.bib2gls_mode = True
+
         match_biber = BIBER_PATTERN.search(aux_content)
         match_bibtex = BIBTEX_PATTERN.search(aux_content)
-
         if match_biber:
-            bcf_file_path = self._locate(".bcf")
-            bcf_content = ""
-            if bcf_file_path.exists():
-                bcf_content = _read_file_content(bcf_file_path)
+            if bcf_content:
                 datasources = [
                     item.strip() for item in BIBER_BIB_PATTERN.findall(bcf_content) if item.strip()
                 ]
                 if datasources:
                     self.bib_file = ",".join(datasources)
                     bib_engine = BibEngine.BIBER
-
-            # bib2gls (glossaries-extra) 检测：
-            # .aux 里有 \glsxtr@record 或 .bcf 里有 <bcf:glossary
-            # bib2gls 必须配合 biber 使用，所以只在 biber 分支检测。
-            # bib2gls 不额外增加 LaTeX 次数（和普通 biber 相同），
-            # 它的处理完全由 biber 在同一个 subprocess 里完成。
-            if bib_engine is BibEngine.BIBER:
-                if BIB2GLS_AUX_PATTERN.search(aux_content):
-                    self.bib2gls_mode = True
-                elif BIB2GLS_BCF_PATTERN.search(bcf_content):
-                    self.bib2gls_mode = True
-
         elif match_bibtex:
             match_bibtex_bib = BIBTEX_BIB_PATTERN.search(aux_content)
             if match_bibtex_bib:
                 self.bib_file = match_bibtex_bib.group(1)
                 bib_engine = BibEngine.BIBTEX
 
-        if bib_engine is None:
-            # thebibliography 环境：只用 \bibcite 计数判断是否需要再编译一次
-            if re.search(r"\\bibcite", aux_content):
-                new_cite_counter = self._generate_citation_counter()
-                latex_compilation_times = 0 if old_cite_counter == new_cite_counter else 1
-            return bib_engine, latex_compilation_times, target_name_bib
+        if bib_engine is not None:
+            target_name_bib = bib_engine
+        return bib_engine, target_name_bib
 
-        target_name_bib = bib_engine
-        self.bib_files = self._resolve_bib_files(self.bib_file)
+    def _bibcite_compilations(self, aux_content: str, old_cite_counter) -> int:
+        """thebibliography 环境：只按 ``\\bibcite`` 计数判断是否再编一次。"""
+        if re.search(r"\\bibcite", aux_content):
+            return 0 if old_cite_counter == self._generate_citation_counter() else 1
+        return 0
 
-        new_cite_counter = self._generate_citation_counter()
-        citations_stable = old_cite_counter == new_cite_counter
+    def _bib_engine_compilations(self, bib_engine, old_cite_counter, styles: list[Path]) -> int:
+        """有 biber/bibtex 引擎时，按 .bbl 存在性、引用计数与日志决定 0/2 次。"""
+        citations_stable = old_cite_counter == self._generate_citation_counter()
         log_content = self._read_log_content()
         bbl_missing = bool(re.search(rf"No file {re.escape(self.jobname)}\.bbl", log_content))
         cite_undefined = bool(re.search(r"LaTeX Warning: Citation .* undefined", log_content))
@@ -732,13 +866,10 @@ class CompilationDetector:
                 _("未找到参考文献数据文件(.bib): %(args)s，已跳过 %(engine)s 调用")
                 % {"args": self.bib_file or "?", "engine": bib_engine}
             )
-            latex_compilation_times = 0
-        elif citations_stable and not bbl_missing and not cite_undefined and not self._bib_needs_refresh():
-            latex_compilation_times = 0
-        else:
-            latex_compilation_times = 2
-
-        return bib_engine, latex_compilation_times, target_name_bib
+            return 0
+        if citations_stable and not bbl_missing and not cite_undefined and not self._bib_needs_refresh(styles):
+            return 0
+        return 2
 
     def _index_changed_judgment(self, index_aux_content_dict_old, index_aux_infile, index_aux_outfile):
         """判断单次索引是否需要重跑。
@@ -751,9 +882,11 @@ class CompilationDetector:
 
         历史实现把"输出文件缺失"和"输入文件缺失"合并处理，导致输入文件
         尚未生成时也返回 True，使 idx 维度长期非零、循环无法收敛。
+        入参是完整文件名（如 ``author.idx`` / ``main.nlo``），命名索引与
+        jobname 不同的主干因此也能正确判定。
         """
-        infile_path = self._locate(f".{index_aux_infile.rsplit('.', 1)[-1]}")
-        outfile_path = self._locate(f".{index_aux_outfile.rsplit('.', 1)[-1]}")
+        infile_path = self._locate_named(index_aux_infile)
+        outfile_path = self._locate_named(index_aux_outfile)
         if not infile_path.exists():
             return False
         if not outfile_path.exists():
@@ -777,18 +910,18 @@ class CompilationDetector:
             # bib2gls 下 glossaries 的条目由 biber 处理，跳过 makeindex/xindy 调用
             if self.bib2gls_mode and rule.name == "glossaries":
                 continue
-            if not rule.trigger(self.jobname, main_aux):
+            if not rule.trigger(self.jobname, main_aux, Path(self.auxdir)):
                 continue
-            for spec in rule.discover(self.jobname, main_aux, log_content):
+            for spec in rule.discover(
+                self.jobname, main_aux, log_content, Path(self.auxdir)
+            ):
                 make_index = self._index_changed_judgment(
                     index_aux_content_dict_old,
-                    f"{self.jobname}.{spec.ext_in}",
-                    f"{self.jobname}.{spec.ext_out}",
+                    spec.in_name(self.jobname),
+                    spec.out_name(self.jobname),
                 )
                 if make_index:
-                    command = rule.cmd_builder(
-                        self.jobname, spec.ext_out, spec.ext_in, spec.ctx
-                    )
+                    command = rule.cmd_builder(self.jobname, spec)
                     # makeglossaries 一次处理全部类型；相同命令只保留一条
                     if command not in run_index_list_cmd:
                         run_index_list_cmd.append(command)
@@ -796,9 +929,8 @@ class CompilationDetector:
         return run_index_list_cmd
 
     def _candidate_paths(self, suffix: str) -> tuple[Path, Path]:
-        """辅助文件的候选路径：先当前目录，再 auxdir（LaTeX 的 auxdir/outdir 双写习惯）。"""
-        name = f"{self.jobname}{suffix}"
-        return Path(name), Path(self.auxdir) / name
+        """辅助文件的候选路径：权威位置按构建模式决定（native → auxdir）。"""
+        return self._ordered_candidates(f"{self.jobname}{suffix}")
 
     def _read_aux_like(self, suffix: str) -> str:
         """读取 .aux / .out / .log 等辅助文件；全部候选缺失或不可读时返回空串。"""
@@ -806,13 +938,11 @@ class CompilationDetector:
             try:
                 if candidate.exists():
                     return _read_file_content(candidate)
-            except (OSError, UnicodeDecodeError):
-                return ""
+            except OSError, UnicodeDecodeError:
+                # 第一个候选被占用/编码异常时不要直接放弃：下一个候选（auxdir 或
+                # 根目录）可能仍是可读的有效副本，继续尝试。
+                continue
         return ""
-
-    def locate_aux(self, suffix: str) -> Path:
-        """公开的辅助文件定位入口（供 compile 层生成命令时使用）。"""
-        return self._locate(suffix)
 
     def prepare_aux_out_snapshots(self):
         return self._read_aux_like(".aux"), self._read_aux_like(".out")
@@ -824,30 +954,13 @@ class CompilationDetector:
         stripped_lines: list[str] = []
         for raw_line in content.splitlines():
             line = raw_line.strip()
-            if not line:
+            if not line or line.startswith("%"):
                 continue
-            if line.startswith("%"):
+            # 去掉行内注释：第一个"前面不是反斜杠"的 %（等价于旧的手写扫描）
+            line = _COMMENT_SPLIT.split(line, maxsplit=1)[0].strip()
+            if not line or line in _RELAX_TOKENS:
                 continue
-            comment_idx = -1
-            for i, ch in enumerate(line):
-                if ch == "%" and (i == 0 or line[i - 1] != "\\"):
-                    comment_idx = i
-                    break
-            if comment_idx >= 0:
-                line = line[:comment_idx].strip()
-                if not line:
-                    continue
-            if line in (r"\relax", "\\relax", "\\relax{}"):
-                continue
-            if re.fullmatch(r"\\bookmarksetup\{.*\}", line):
-                continue
-            if re.fullmatch(r"\\@outlinefile\s*\{.*\}", line):
-                continue
-            if re.fullmatch(r"\\gdef\s*\\@abspage@last\{.*\}", line) or re.fullmatch(
-                r"\\xdef\s*\\@abspage@last\{.*\}", line
-            ):
-                continue
-            if re.fullmatch(r"\\global\\\@namedef\{ver@.*\}\{.*\}", line):
+            if any(p.fullmatch(line) for p in _AUX_NOISE_PATTERNS):
                 continue
             stripped_lines.append(line)
         return "\n".join(stripped_lines)
@@ -866,7 +979,7 @@ class CompilationDetector:
             return self._read_aux_like(".log")
         try:
             return _read_file_content(Path(log_path))
-        except (OSError, UnicodeDecodeError):
+        except OSError, UnicodeDecodeError:
             return ""
 
     def log_rerun_signature(self, log_path=None) -> tuple[str, ...]:
@@ -899,10 +1012,6 @@ class CompilationDetector:
 
         return tuple(sorted(matched))
 
-    def log_has_rerun_warnings(self, log_path=None) -> bool:
-        """扫描 .log 是否含需要重编译的警告。"""
-        return bool(self.log_rerun_signature(log_path))
-
     def classify_signals(self, log_path=None) -> dict[str, list[str]]:
         """把日志信号分成 ``permanent``（再编译也消不掉）与 ``transient``（有望消除）。
 
@@ -934,11 +1043,6 @@ class CompilationDetector:
                 transient.append(token)
         return {"permanent": sorted(permanent), "transient": sorted(transient)}
 
-    @property
-    def has_permanent_signals(self, log_path=None) -> bool:
-        """日志中是否存在"再编译也消不掉"的信号。"""
-        return bool(self.classify_signals(log_path)["permanent"])
-
     def residual_warnings(self) -> list[str]:
         """返回当前 .log 中"再编译也无法消除"的警告摘要，供最终报告展示。
 
@@ -959,9 +1063,9 @@ class CompilationDetector:
                 _("未定义的交叉引用 %(count)s 个: %(keys)s")
                 % {"count": str(len(undefined_refs)), "keys": preview}
             )
-        if re.search(r"LaTeX Warning: Citation .* undefined", log_content):
+        if _RERUN_UNDEFINED_CITATION.search(log_content):
             messages.append(_("存在未定义的文献引用（.bib 中缺少对应条目）"))
-        if re.search(r"LaTeX Warning: There were multiply-defined labels", log_content):
+        if _RERUN_MULTIPLY_DEFINED_LABELS.search(log_content):
             messages.append(_("存在重复定义的标签"))
         return messages
 
@@ -980,12 +1084,16 @@ class CompilationDetector:
                     break
         return digest.hexdigest()
 
-    def index_signature(self) -> str:
-        """当前索引输入文件的内容摘要，用于避免重复执行 makeindex/xindy。"""
-        digest = hashlib.sha256()
+    def _update_index_digest(self, digest) -> None:
+        """把各索引系统的输入文件内容喂进 digest（两处指纹共用同一口径）。"""
         for name, content in sorted(self._index_aux_content_get().items()):
             digest.update(name.encode("utf-8"))
             digest.update(_stable_digest(content))
+
+    def index_signature(self) -> str:
+        """当前索引输入文件的内容摘要，用于避免重复执行 makeindex/xindy。"""
+        digest = hashlib.sha256()
+        self._update_index_digest(digest)
         return digest.hexdigest()
 
     def state_fingerprint(self) -> str:
@@ -1003,9 +1111,7 @@ class CompilationDetector:
         for suffix in (".aux", ".out", ".toc"):
             digest.update(suffix.encode("utf-8"))
             digest.update(_stable_digest(self._normalize_aux_like(self._read_aux_like(suffix))))
-        for name, content in sorted(self._index_aux_content_get().items()):
-            digest.update(name.encode("utf-8"))
-            digest.update(_stable_digest(content))
+        self._update_index_digest(digest)
         for item in self.log_rerun_signature():
             digest.update(item.encode("utf-8"))
         bbl_path = self._bib_output_path()
@@ -1069,7 +1175,9 @@ class CompilationDetector:
                 BIBER_PATTERN.search(main_aux) or BIBTEX_PATTERN.search(main_aux) or re.search(r"\\bibcite", main_aux)
             )
 
-        idx_enabled = any(rule.trigger(self.jobname, main_aux) for rule in _INDEX_REGISTRY)
+        idx_enabled = any(
+            rule.trigger(self.jobname, main_aux, Path(self.auxdir)) for rule in _INDEX_REGISTRY
+        )
 
         toc_enabled = self._locate(".toc").exists()
 

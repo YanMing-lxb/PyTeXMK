@@ -23,6 +23,7 @@ from typing import Any, NamedTuple
 from pytexlogs import ProjectStateStore
 
 from .language import set_language
+from .layout import SOURCE_SNAPSHOT_EXCLUDED_SUFFIXES
 
 _ = set_language("build_state")
 logger = logging.getLogger(__name__)
@@ -30,16 +31,8 @@ logger = logging.getLogger(__name__)
 #: 参与稳定性比对的辅助产物（按后缀）
 TRACKED_ARTIFACTS: tuple[str, ...] = (".aux", ".out", ".toc", ".nlo", ".bbl", ".nls")
 
-#: 会随每次编译重写的文件，不参与源快照比对
-_VOLATILE_SUFFIXES = frozenset(
-    {
-        ".aux", ".out", ".toc", ".lof", ".lot", ".log", ".pdf", ".synctex.gz",
-        ".bbl", ".blg", ".ilg", ".nlo", ".nls", ".bcf", ".run.xml", ".fls",
-        ".xdv", ".spl", ".nav", ".snm", ".vrb", ".idx", ".ind", ".glo", ".gls",
-        ".bak", ".userbak", ".tmp", ".listing", ".los", ".lol", ".loc", ".ltx",
-        ".ent-x", ".gz", ".fdb_latexmk",
-    }
-)
+#: 不参与源快照比对的产物后缀；.pdf 特意保留（可能是 \includegraphics 输入）
+_SOURCE_SNAPSHOT_EXCLUDED_SUFFIXES = SOURCE_SNAPSHOT_EXCLUDED_SUFFIXES
 
 
 class ArtifactBaseline(NamedTuple):
@@ -54,17 +47,16 @@ class ArtifactBaseline(NamedTuple):
 
 
 def _digest_file(path: Path) -> str | None:
-    """计算文件 sha256；文件不存在返回 None。"""
+    """计算文件 sha256；文件不存在返回 None。
+
+    用 ``hashlib.file_digest`` 流式读取，避免大 PDF/日志整份进内存。
+    """
     try:
-        data = path.read_bytes()
+        with path.open("rb") as fh:
+            digest = hashlib.file_digest(fh, "sha256")
     except OSError:
         return None
-    return "sha256:" + hashlib.sha256(data).hexdigest()
-
-
-def _digest_text(text: str) -> str:
-    """计算字符串 sha256。"""
-    return "sha256:" + hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()
+    return "sha256:" + digest.hexdigest()
 
 
 class BuildState:
@@ -79,11 +71,20 @@ class BuildState:
     # ------------------------------------------------------------ 产物基线
 
     def _artifact_path(self, suffix: str) -> Path:
-        """辅助产物在根目录或 auxdir 中的位置（优先根目录）。"""
-        root_candidate = Path(f"{self.project_name}{suffix}")
-        if root_candidate.exists():
-            return root_candidate
-        return self.auxdir / f"{self.project_name}{suffix}"
+        """辅助产物路径：auxdir 与根目录都存在时取**较新的**那份。
+
+        0.5 无条件优先根目录：native 构建（``-output-directory``）把新产物写在
+        auxdir，根目录残留的是上一轮的旧副本，基线比对因此会"看到旧文件"，
+        误判成"未变化"而跳过一次本该发生的编译。
+        """
+        name = f"{self.project_name}{suffix}"
+        candidates = [p for p in (self.auxdir / name, Path(name)) if p.exists()]
+        if not candidates:
+            return Path(name)
+        try:
+            return max(candidates, key=lambda p: p.stat().st_mtime)
+        except OSError:
+            return candidates[0]
 
     def current_artifact_hashes(self) -> dict[str, str | None]:
         """计算**当前**各辅助产物的内容摘要。"""
@@ -125,6 +126,7 @@ class BuildState:
         converged: bool = False,
         sources: dict[str, Any] | None = None,
         build_key: str = "",
+        diagnostics: dict[str, Any] | None = None,
     ) -> bool:
         """把本轮结束时的状态写进状态文件。"""
         payload: dict[str, Any] = {
@@ -144,6 +146,8 @@ class BuildState:
             }
         if sources is not None:
             payload["sources"] = sources
+        if diagnostics is not None:
+            payload["diagnostics"] = diagnostics
         return self._store.update_build(**payload)
 
     # ------------------------------------------------------------ 源快照
@@ -156,7 +160,7 @@ class BuildState:
         snapshot: dict[str, dict[str, int]] = {}
         for raw in tex_files:
             path = Path(raw)
-            if path.suffix.lower() in _VOLATILE_SUFFIXES:
+            if path.suffix.lower() in _SOURCE_SNAPSHOT_EXCLUDED_SUFFIXES:
                 continue
             try:
                 stat = path.stat()
@@ -199,11 +203,59 @@ class BuildState:
         """
         return str(self._store.get_build().get("build_key") or "")
 
-    # ------------------------------------------------------------ 清理
+    def diagnostics_record(self) -> dict[str, Any]:
+        """上次落盘的诊断可用性记录（``available`` / ``digest`` / ``size``）。"""
+        record = self._store.get_build().get("diagnostics")
+        return record if isinstance(record, dict) else {}
 
-    def record_fingerprint(self, fingerprint: str) -> bool:
-        """只更新指纹（用于源文件未变、整次编译被跳过时刷新时间戳）。"""
-        return self._store.update_build(fingerprint=fingerprint)
+    def record_outputs(self, pdf: Path | None, synctex: Path | None) -> bool:
+        """记录 outdir 里 PDF/SyncTeX 的内容摘要（配对校验用）。
+
+        只记录 PDF 是否存在不够：外部工具替换 PDF、但留下上一轮的 synctex，
+        缓存命中后编辑器会按旧坐标跳到错误位置。这里把两份文件的摘要**一起**
+        落盘，复用时必须同时匹配。
+        """
+        payload = {
+            "pdf": _digest_file(pdf) if pdf is not None else None,
+            "synctex": _digest_file(synctex) if synctex is not None else None,
+        }
+        return self._store.update_build(output_artifacts=payload)
+
+    def output_record(self) -> dict[str, Any]:
+        """上次记录的 outdir 产物摘要。"""
+        record = self._store.get_build().get("output_artifacts")
+        return record if isinstance(record, dict) else {}
+
+    def log_path(self) -> Path:
+        """日志路径：auxdir 与根目录都存在时取较新的那份。
+
+        非原生构建（``--no-native``）的 ``.log`` 先写在根目录，归档后才进
+        auxdir；构建基线是在归档**之前**落盘的，只看 auxdir 会记成“不可用”，
+        导致下一次永远无法安全复用诊断。
+        """
+        name = f"{self.project_name}.log"
+        candidates = [p for p in (self.auxdir / name, Path(name)) if p.is_file()]
+        if not candidates:
+            return self.auxdir / name
+        try:
+            return max(candidates, key=lambda p: p.stat().st_mtime)
+        except OSError:
+            return candidates[0]
+
+    def log_record(self) -> dict[str, Any]:
+        """当前日志的可用性与内容摘要。"""
+        log_path = self.log_path()
+        try:
+            size = log_path.stat().st_size
+        except OSError:
+            return {"available": False, "digest": None, "size": 0}
+        return {
+            "available": size > 0,
+            "digest": _digest_file(log_path),
+            "size": size,
+        }
+
+    # ------------------------------------------------------------ 清理
 
     def discard(self) -> bool:
         """清除 ``pytexmk.build`` 基线，保留 ``pytexlogs.refs``。
@@ -212,18 +264,3 @@ class BuildState:
         误判为"产物未变动"。
         """
         return self._store.remove_namespace("pytexmk")
-
-    def remove_state_file_if_empty(self) -> bool:
-        """若状态文件只剩空骨架，则删除它（``-Ca`` 彻底清理场景）。
-
-        只要还有任何工具的命名空间内容就保留，避免误删 pytexlogs 的引用缓存。
-        """
-        state = self._store.load()
-        has_payload = any(
-            isinstance(state.get(key), dict) and state[key]
-            for key in state
-            if key not in ("schema_version", "timestamp", "jobs")
-        )
-        if has_payload:
-            return False
-        return self._store.clear()
