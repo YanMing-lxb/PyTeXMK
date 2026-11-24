@@ -1,7 +1,7 @@
 # ============================================================
 # PyTeXMK 项目配置文件示例 (.pytexmkrc)
 # 全部为可选配置；缺失时使用内置默认值静默运行。
-# 本文件由 `pytexmk -i` 生成；已存在时需配合 `-f` 才会覆盖。
+# 本文件由 `pytexmk -i` 生成；重复执行会直接覆盖已有文件。
 # ============================================================
 
 # 主文件名（不包含扩展名）
@@ -10,7 +10,9 @@ default_file = "main"
 # 编译器：XeLaTeX / PdfLaTeX / LuaLaTeX
 compiled_program = "XeLaTeX"
 
-# 安静模式（true 表示编译过程不在终端显示日志）
+# 安静模式（true 表示不把 TeX 编译过程输出到终端；
+# 只影响子进程输出与控制台回显，不改变 TeX 的 -interaction；
+# 需要 batchmode 请用 --interaction batchmode）
 quiet_mode = true
 
 # ---- 目录 ------------------------------------------------------
@@ -25,10 +27,30 @@ pdf_viewer = "default"      # default 为默认阅读器
 
 # ---- 索引 ------------------------------------------------------
 [index]
+# 输入/输出后缀由程序按索引包（makeidx/nomencl/imakeidx/glossaries）自动识别，
+# 不需要（也不支持）在此配置。
 index_style_file = "nomencl.ist"  # 输入样式文件
-input_suffix = ".nlo"             # 输入文件后缀
-output_suffix = ".nls"            # 输出文件后缀
 glossaries_tool = "makeindex"     # makeindex | makeglossaries（多 glossary 建议后者）
+
+# ---- 投稿打包（pytexmk -sp）------------------------------------
+[submission]
+unicode_to_latex = true  # 生成 pdflatex 可编译的 Unicode 转换副本
+include_bbl = false      # 附带已编译的 .bbl（默认 false：投稿包只带 .bib）
+reproducible = true      # 固定时间戳/排序，保证可复现（便于投稿系统校验）
+output_dir = "./Submission/"  # 投稿包输出目录
+keep_preamble = false    # true = 保留原导言区（默认注释 fontspec/unicode-math/ctex）
+
+# ---- 编译前检查 ------------------------------------------------
+[preflight]
+enabled = true           # 编译前检查缺失的 \end{document}、.bib、图片等
+
+# ---- 构建行为 --------------------------------------------------
+[build]
+native = "auto"            # auto | true | false：是否用 -output-directory 原生构建
+shell_escape = "auto"      # auto | true | false：minted/pythontex/\write18 才自动开启
+synctex = true             # 是否生成 .synctex.gz（关闭后编辑器无法正/反向跳转）
+interaction = ""           # batchmode | nonstopmode | errorstopmode（留空 = nonstopmode，与安静模式无关）
+max_extra_compilations = 8 # 额外编译轮次上限
 
 # ---- LaTeXDiff -------------------------------------------------
 [latexdiff]
@@ -36,15 +58,17 @@ old_tex_file = "old_file"
 new_tex_file = "new_file"
 diff_tex_file = "LaTeXDiff"
 
-# ---- 子项目清单（由 pytexmk -ls 自动托管） ---------------------
-# 无需手写，`pytexmk -ls` 会扫描并整体替换本段（含手写内容）。
+# ---- 子项目清单（由 pytexmk -ls 维护） -------------------------
+# 通常无需手写：`pytexmk -ls` 会列出子项目并写回本段；
+# 已写好的手写别名会被保留。
+# 写回时保留仍指向真实路径的手写别名、段内注释与原有次序；失效条目会被清掉。
 # 支持格式：name = "相对路径"
 # 例如：
 # [subprojects]
-# "Cover" = "Cover"
-# "Review" = "Review"
+# Cover = "Cover"
+# Review = "Review"
 
-# ---- 子项目发现规则（以根配置为准，-ls/-s 不修改本段） ---------
+# ---- 子项目发现规则（以根配置为准，-ls/-s 不修改本段） ----
 # [project_scan]
 # depth = 3        # 最大扫描深度
 # exclude = []     # 额外排除的目录名（覆盖默认排除清单之外的自定义项）
