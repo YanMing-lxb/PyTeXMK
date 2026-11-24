@@ -47,6 +47,8 @@
 
 **PyTeXMK**（Python TeX Make）是一个用 Python 编写的 LaTeX 自动化编译工具，灵感来源于 `latexmk`。它能够根据辅助文件变化智能决定编译轮次，配合 Rich 彩色输出、参考文献/索引工具链自动调度，让 LaTeX 编译工作流一键完成。
 
+> 🆕 **1.2.18**：预检阻断现在以非零退出码结束；`-r` 改为按需报告入口（只读最近一次日志，生成 JSON + Markdown）；删除 `--json`/`--doctor`/`--completion` 等一批长选项，构建/投稿开关移到配置文件；`-ls` 直接写回子项目清单；`-i/-iu` 默认覆盖已有配置。
+
 ---
 
 ## ✨ 功能特性
@@ -76,7 +78,7 @@
 - 🌍 **国际化**：支持多语言界面，默认中文
 - ⚙️ **两级配置文件**：用户级 + 项目级 `.pytexmkrc`，所有参数均可自定义
 - 🧩 **多子项目管理**：一个根目录下管理多个独立子项目，支持自动扫描和逐一编译
-- 🪲 **版本检查**：自动检查更新，第一时间获取新版本
+- 🧪 **CI 与诊断**：编译失败以退出码 `5` 结束；`-r` 把最近一次日志导出为 JSON + Markdown 报告，便于归档与贴到 issue
 
 ---
 
@@ -95,7 +97,7 @@
 
 在安装 PyTeXMK 之前，请确保你的系统已安装以下组件：
 
-1. **Python 3.14+**（通过 uv 管理推荐）
+1. **Python 3.15+**（通过 uv 管理推荐）
 2. **LaTeX 发行版**（任选其一）：
    - **Windows**: [MiKTeX](https://miktex.org/) 或 [TeX Live](https://tug.org/texlive/)
    - **macOS**: [MacTeX](https://www.tug.org/mactex/) 或 BasicTeX
@@ -113,8 +115,8 @@
 # 使用 pip 安装
 pip install pytexmk
 
-# 使用 uv 安装（推荐）
-uv add pytexmk
+# 使用 uv 安装 CLI（推荐）
+uv tool install pytexmk
 ```
 
 #### Windows winget（推荐，无需 Python 环境）
@@ -143,7 +145,7 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -d ~/opt/pytexmk -b ~/.local/bin
 
 # 固定版本
-curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.8
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.18
 
 # 改用 uv 渠道（从 PyPI 源码安装，需已装 uv；适用于 Intel Mac 或 glibc 过低的系统）
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -m uv
@@ -167,7 +169,7 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 pip install --upgrade pytexmk
 
 # uv（升级到最新版）
-uv add pytexmk@latest
+uv tool upgrade pytexmk
 
 # winget
 winget upgrade --id YanMing-lxb.PyTeXMK
@@ -206,10 +208,13 @@ pytexmk main.tex
 # 使用 PdfLaTeX 编译
 pytexmk -p main.tex
 
-# 编译 + 预览 PDF
+# 编译并预览 PDF
 pytexmk main.tex -pv
 
-# 清理辅助文件
+# 只读最近一次编译日志，生成 JSON + Markdown 报告（不触发编译）
+pytexmk main.tex -r
+
+# 清理辅助文件（-c：辅助目录；-C：再加根目录并删除输出）
 pytexmk -c
 ```
 
@@ -243,52 +248,78 @@ pytexmk -c
 | `-x`, `--XeLaTeX` | 使用 XeLaTeX 编译（默认） |
 | `-l`, `--LuaLaTeX` | 使用 LuaLaTeX 编译 |
 | `-dr`, `--draft` | 草稿模式，编译时不包含图片（加速） |
-| `-nq`, `--non_quiet` | 非安静模式，终端显示编译过程 |
-| `-vb`, `--verbose` | 详细模式，显示 PyTeXMK 运行信息 |
-| `--native/--no-native` | 原生命名目录构建（辅助文件直接写进 `Auxiliary/`，默认 `auto`） |
-| `--shell-escape/--no-shell-escape` | 是否允许 `\write18`（默认按 minted/pythontex 等自动判断） |
-| `--interaction MODE` | 覆盖 `-interaction`（`batchmode`/`nonstopmode`/`errorstopmode`） |
+| `-nq`, `--non-quiet` | 非安静模式：编译过程日志实时输出到终端（覆盖配置里的 `quiet_mode = true`；**不影响** `-interaction`） |
+| `-vb`, `--verbose` | 详细模式：控制台显示 INFO 级流程日志（与 1.2.7 口径一致，不会升到 DEBUG；安静模式也不改变日志级别） |
+| `--interaction MODE` | 覆盖 `-interaction`（`batchmode`/`nonstopmode`/`scrollmode`/`errorstopmode`；缺省 `nonstopmode`） |
 | `--pass-arg ARG` | 透传额外参数给 TeX 引擎，可重复 |
-| `--max-runs N` | 额外编译轮次上限（默认 8） |
-| `--jobname NAME` | 输出文件按 NAME 命名（PDF/aux/synctex），`.tex` 源文件仍按主文件名；适合多版本 PDF |
-| `--no-preflight` | 跳过编译前静态检查（缺 `\end{document}`、`.bib`、图片等） |
-| `--doctor` | 体检本机 TeX 工具链（引擎/biber/xindy/latexdiff/PyTeXLogs/配置/状态文件）后退出 |
 | `--watch` | 监视源文件变化并自动重编译（轮询 1s，去抖 400ms，Ctrl+C 退出） |
-| `-io`, `--includeonly LIST` | 只编译指定 `\include` 章节（逗号分隔）；输出隔离到 `Build/partial`、`Auxiliary/partial` |
 | `-A`, `--all-subprojects` | 按根配置 `[subprojects]` 顺序编译全部子项目，失败继续、最后汇总并非零退出 |
-| `--synctex-check` | 编译后跑 `synctex view/edit` 校验正向/反向跳转（失败退出码 7） |
-| `--report [PATH]` | 把 PyTeXLogs 诊断报告写成 JSON（默认 `Auxiliary/<主文件>.pytexmk-report.json`） |
-| `--fail-on warning` | 出现警告/排版提示时返回退出码 6（CI 用；默认 `none`） |
-| `--explain` | 只打印本次编译的有效配置与决策，不编译 |
+| `-r` | 只读最近一次编译日志，生成 `Auxiliary/<主文件>.pytexmk-report.json` 与同名 `.md`；不触发编译 |
+| `--explain` | 只打印本次编译的有效配置与决策（最终 PDF 绝对路径），不编译 |
 | `--show-config` | 打印合并后的完整配置（默认 < 用户 < 项目） |
-| `--validate-config` | 校验配置键名与类型，发现错误返回 4 |
-| `--completion SHELL` | 输出 bash/zsh/fish/powershell 补全脚本后退出（选项列表从 argparse 自动提取） |
+
+构建类开关只放在配置文件里，命令行不再重复提供：
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `[build] native` | `"auto"` | 原生命名目录构建（辅助文件直接写进 `Auxiliary/`） |
+| `[build] shell_escape` | `"auto"` | 是否允许 `\write18`（按 minted/pythontex 等自动判断） |
+| `[build] synctex` | `true` | 是否生成 `.synctex.gz`；关闭后编辑器无法跳转 |
+| `[build] max_extra_compilations` | `8` | 首轮之后的额外编译轮次上限 |
+| `[preflight] enabled` | `true` | 编译前静态检查（缺 `\end{document}`、`.bib`、图片等） |
+
+### CI 与诊断报告
+
+```bash
+# 正常编译；终端会显示警告/错误摘要，退出码 5 表示编译失败
+pytexmk -x main
+
+# 只读最近一次日志，落盘 JSON 与 Markdown 报告（不触发编译）
+pytexmk main -r
+```
+
+`-r` 不接收参数，路径固定为 `Auxiliary/<主文件>.pytexmk-report.json`
+与 `Auxiliary/<主文件>.pytexmk-report.md`。找不到可读日志时以退出码 `1`
+退出；报告写盘失败时保留已生成的 JSON，并以退出码 `9` 结束。
+
+终端里的 `ERROR` / `WARNING` 长消息最多按 100 列折行（窄终端跟随终端宽度），
+续行缩进 9 个空格与正文首列对齐，行尾不再补空格。
+
+CI 建议直接使用退出码：编译成功为 `0`，编译失败为 `5`；需要归档诊断时，
+在编译命令之后追加一次 `pytexmk -r`。
 
 ### 投稿与兼容性
 
 | 选项 | 说明 |
 | --- | --- |
-| `-sp`, `--submission-pack` | 生成 `Submission/<项目>-submission.zip`：`.fls` 依赖 + `.bbl` + 转换后的纯 ASCII 源文件 + 说明文件 |
-| `-pc`, `--pdflatex-check` | 只做 pdflatex 兼容体检（fontspec/unicode-math/ctex/xeCJK 等） |
-| `--submit-dir DIR` | 指定投稿包输出目录（默认 `./Submission/`） |
-| `--keep-preamble` | 保留原导言区（默认会注释 fontspec/unicode-math/ctex 并补 fontenc/inputenc/textcomp） |
-| `--pack-verify` | 生成后在临时目录用 pdflatex 真编译一次，结果写进包内说明 |
-| `--include-bib` | 投稿包同时带上 `.bib` 源文件（默认只带 `.bbl`） |
+| `-sp`, `--submission-pack` | 生成 `Submission/<项目>-submission.zip`：`.fls` 依赖 + **全部 `.bib`** + 转换后的纯 ASCII 源文件 + 说明文件（默认不含 `.bbl`） |
+
+投稿包目录与导言区处理改由 `[submission]` 段控制：
+
+| 配置项 | 默认值 | 说明 |
+| --- | --- | --- |
+| `[submission] output_dir` | `"./Submission/"` | 投稿包输出目录 |
+| `[submission] include_bbl` | `false` | `true` = 另附编译好的 `.bbl`；默认只带 `.bib` |
+| `[submission] keep_preamble` | `false` | `true` = 保留原导言区（默认注释 fontspec/unicode-math/ctex） |
 
 > 期刊只支持 pdflatex 时，`-sp` 会把希腊字母、`°℃µ‰`、`–—…`、智能引号、上下标
 > 等 Unicode 转成纯 ASCII 的 LaTeX 命令，自动注释 fontspec/unicode-math/ctex
 > 并补 `fontenc`/`inputenc`/`textcomp`；说明文件里列出每一处转换、仍不兼容的
-> 宏包以及**无法转换的字符位置**。加 `--pack-verify` 会真的用 pdflatex 试编译一次。
+> 宏包以及**无法转换的字符位置**。包内始终带全部 `.bib`，投稿端自行跑
+> bibtex/biber；只有期刊明确要求预编译 `.bbl` 时才打开 `include_bbl`。
 
 ### 清理
 
 | 选项 | 说明 |
 | --- | --- |
-| `-c`, `--clean` | 清除主文件的辅助文件 |
-| `-C`, `--Clean` | 清除辅助文件（含根目录）和输出文件 |
-| `-ca`, `--clean-any` | 清除所有带辅助文件后缀的文件（跳过 `tests/`、`examples/`、`dist/`、`docs/`、`.venv`） |
-| `-Ca`, `--Clean-any` | 清除所有辅助文件（含根目录）和主文件输出 |
-| `--clean-dry-run` | 只列出将被删除的文件，不真的删除（配合 `-c/-C/-ca/-Ca`） |
+| `-c`, `--clean` | 清除当前主文件的辅助文件（仅辅助目录） |
+| `-C`, `--Clean` | 清除当前主文件的辅助文件（辅助目录 + 根目录），并删除输出目录里的 PDF/SyncTeX |
+| `-ca`, `--clean-any` | 递归清理全项目的辅助文件（不要求唯一主文件） |
+| `-Ca`, `--Clean-any` | 递归清理全项目的辅助文件；能确定主文件时额外删除主文件输出 |
+
+- `-c/-C` 需要唯一主文件；根目录有多个主文件又没有 `default_file` 时直接退出 `1`。
+- `-ca/-Ca` 按后缀递归清理，跳过 `tests/`、`examples/`、`dist/`、`docs/`、`.venv`
+  等依赖/示例目录；`.bbl`、`.xdv`、`.xdy` 也按产物处理，不再保留“可能属于作者”的清单。
 
 ### LaTeXDiff 差异对比
 
@@ -324,7 +355,7 @@ PyTeXMK 支持在一个项目根目录下管理多个相互独立的子项目，
 # 1. 生成根配置文件
 pytexmk -i
 
-# 2. 自动扫描并展示子项目清单（同时更新配置）
+# 2. 扫描、展示并写回子项目清单（保留手写别名、段内注释与原有次序）
 pytexmk -ls
 
 # 3. 编译指定子项目（可与主文件名配合）
@@ -334,15 +365,16 @@ pytexmk -s 论文 main.tex
 | 选项 | 说明 |
 | --- | --- |
 | `-s`, `--subproject <名称>` | 选中指定子项目并在其目录下编译/清理 |
-| `-ls`, `--list-subprojects` | 扫描子项目并展示清单，同步更新根配置 |
+| `-ls`, `--list-subprojects` | 扫描并写回根配置 `[subprojects]` 段；根配置缺失时先用内置模板自动创建 |
 
 ### 配置文件生成
 
 | 选项 | 说明 |
 | --- | --- |
-| `-i`, `--init` | 在当前目录生成项目级 `.pytexmkrc` |
-| `-iu`, `--init-user` | 在用户主目录生成用户级 `.pytexmkrc` |
-| `-f`, `--force` | 配合 `-i`/`-iu` 强制覆盖已存在的配置文件 |
+| `-i`, `--init` | 在当前目录生成项目级 `.pytexmkrc`；已有文件会被直接覆盖 |
+| `-iu`, `--init-user` | 在用户主目录生成用户级 `.pytexmkrc`；已有文件会被直接覆盖 |
+
+> 普通编译与 `-r` 不会自动创建用户 / 项目配置文件；`-ls` 在根配置缺失时会自动创建项目配置。
 
 ### 其他
 
@@ -417,7 +449,7 @@ PyTeXMK 支持两级配置文件，均为 TOML 格式：
 
 ### 环境要求
 
-- Python 3.14+
+- Python 3.15+
 - [uv](https://github.com/astral-sh/uv)（推荐）或 pip
 
 ### 开发环境搭建
@@ -463,20 +495,23 @@ uv run ruff check src/
 uv run ruff format src/
 ```
 
+> 改代码前先读 [代码修改手册](docs/code-modification-playbook.md)；它记录了本项目的
+> Python 3.15 迁移、行为修复与纯风格清理边界。
+
 ### 国际化工作流
 
 ```bash
 # 新增语言
-make lang-add
+make add-lang
 
 # 更新所有 pot/po
-make lang-update
+make update
 
 # 编译 po → mo
-make lang-mo
+make mo
 
 # 重新抽取所有 pot 模板
-make lang-poup
+make pot
 ```
 
 ---

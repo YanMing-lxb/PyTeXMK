@@ -47,6 +47,8 @@
 
 **PyTeXMK** (Python TeX Make) is an automated LaTeX build tool written in Python, inspired by `latexmk`. It intelligently determines the number of compilation passes based on auxiliary file changes, with Rich-colored terminal output and automatic bibliography/index toolchain orchestration — making the LaTeX build workflow a one-shot command.
 
+> 🆕 **1.2.18**: preflight blockers now exit non-zero; `-r` is now an on-demand report entry (reads the latest log and writes JSON + text); a batch of long options (`--json`, `--doctor`, `--completion`, …) were removed and build/submission switches moved to config; `-ls` writes the subproject list; `-i/-iu` overwrite by default.
+
 ---
 
 ## ✨ Features
@@ -76,7 +78,7 @@
 - 🌍 **Internationalization**: Multi-language UI support (default: Chinese)
 - ⚙️ **Two-level config**: User-level and project-level `.pytexmkrc`, every parameter is customizable
 - 🧩 **Multi-subproject management**: Manage and compile multiple independent subprojects under one root directory
-- 🪲 **Version check**: Automatic update notifications
+- 🧪 **CI & diagnostics**: compile failures exit `5`; `-r` exports the latest log to JSON + text for archiving and issue reports
 
 ---
 
@@ -95,7 +97,7 @@
 
 Before installing PyTeXMK, make sure your system has the following:
 
-1. **Python 3.14+** (managing with uv recommended)
+1. **Python 3.15+** (managing with uv recommended)
 2. **A LaTeX distribution** (pick one):
    - **Windows**: [MiKTeX](https://miktex.org/) or [TeX Live](https://tug.org/texlive/)
    - **macOS**: [MacTeX](https://www.tug.org/mactex/) or BasicTeX
@@ -113,8 +115,8 @@ Before installing PyTeXMK, make sure your system has the following:
 # Install with pip
 pip install pytexmk
 
-# Install with uv (recommended)
-uv add pytexmk
+# Install the CLI with uv (recommended)
+uv tool install pytexmk
 ```
 
 #### Windows winget (recommended, no Python required)
@@ -143,7 +145,7 @@ It installs into `~/.local/opt/pytexmk` and links the launcher to `~/.local/bin/
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -d ~/opt/pytexmk -b ~/.local/bin
 
 # Pin a specific version
-curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.8
+curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -v 1.2.18
 
 # Use the uv channel instead (installs from PyPI, needs uv; for Intel Macs or old glibc)
 curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/install.sh | bash -s -- -m uv
@@ -167,7 +169,7 @@ curl -fsSL https://raw.githubusercontent.com/YanMing-lxb/PyTeXMK/main/tools/inst
 pip install --upgrade pytexmk
 
 # uv (upgrade to latest)
-uv add pytexmk@latest
+uv tool upgrade pytexmk
 
 # winget
 winget upgrade --id YanMing-lxb.PyTeXMK
@@ -210,7 +212,10 @@ pytexmk -p main.tex
 # Compile + preview PDF
 pytexmk main.tex -pv
 
-# Clean auxiliary files
+# Read the latest log only and write JSON + Markdown reports (does not compile)
+pytexmk main.tex -r
+
+# Clean auxiliary files (-c: aux dir; -C: plus root and outputs)
 pytexmk -c
 ```
 
@@ -244,53 +249,81 @@ pytexmk -c
 | `-x`, `--XeLaTeX` | Compile with XeLaTeX (default) |
 | `-l`, `--LuaLaTeX` | Compile with LuaLaTeX |
 | `-dr`, `--draft` | Draft mode: compile without including images (faster) |
-| `-nq`, `--non_quiet` | Non-quiet mode, show compilation process in terminal |
-| `-vb`, `--verbose` | Verbose mode, show PyTeXMK runtime details |
-| `--native/--no-native` | Native named-directory build (aux files go straight into `Auxiliary/`, default `auto`) |
-| `--shell-escape/--no-shell-escape` | Allow `\write18` (default: auto-detect minted/pythontex/etc.) |
-| `--interaction MODE` | Override `-interaction` (`batchmode`/`nonstopmode`/`errorstopmode`) |
+| `-nq`, `--non-quiet` | Non-quiet mode: stream the compilation log to the terminal (overrides `quiet_mode = true`; does **not** change `-interaction`) |
+| `-vb`, `--verbose` | Verbose mode: INFO-level workflow logs (same as 1.2.7, never DEBUG; quiet mode does not change the log level) |
+| `--interaction MODE` | Override `-interaction` (`batchmode`/`nonstopmode`/`scrollmode`/`errorstopmode`; default `nonstopmode`) |
 | `--pass-arg ARG` | Pass an extra argument to the TeX engine (repeatable) |
-| `--max-runs N` | Maximum extra compilation passes (default 8) |
-| `--jobname NAME` | Name output files (PDF/aux/synctex) after NAME; the `.tex` source keeps its main-file name. Useful for multiple PDF variants |
-| `--no-preflight` | Skip pre-compile checks (missing `\end{document}`, `.bib`, graphics, etc.) |
-| `--doctor` | Inspect the local TeX toolchain (engines/biber/xindy/latexdiff/PyTeXLogs/config/state) and exit |
 | `--watch` | Watch sources and recompile automatically (1s poll, 400ms debounce, Ctrl+C to stop) |
-| `-io`, `--includeonly LIST` | Compile only the listed `\include` chapters (comma-separated); output goes to `Build/partial` and `Auxiliary/partial` |
 | `-A`, `--all-subprojects` | Compile every `[subprojects]` entry in order, continue on failure, summarize and exit non-zero |
-| `--synctex-check` | Run `synctex view/edit` after compiling to verify forward/reverse jumps (exit 7 on failure) |
-| `--report [PATH]` | Write the PyTeXLogs diagnostic report as JSON (default `Auxiliary/<job>.pytexmk-report.json`) |
-| `--fail-on warning` | Return exit 6 when warnings/typesetting notices exist (for CI; default `none`) |
-| `--explain` | Print the effective build configuration and exit without compiling |
+| `-r` | Read the latest log and write `Auxiliary/<main>.pytexmk-report.json` plus a matching `.md`; does not compile |
+| `--explain` | Print the effective build plan (including the absolute PDF path) and exit without compiling |
 | `--show-config` | Print the merged configuration (default < user < project) |
-| `--validate-config` | Validate config keys/types and return 4 on errors |
-| `--completion SHELL` | Print a bash/zsh/fish/powershell completion script and exit (options are extracted from argparse) |
+
+Build switches live in the config file; the CLI no longer duplicates them:
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `[build] native` | `"auto"` | Native named-directory build (aux files go straight into `Auxiliary/`) |
+| `[build] shell_escape` | `"auto"` | Allow `\write18` (auto-detected for minted/pythontex/etc.) |
+| `[build] synctex` | `true` | Generate `.synctex.gz`; disabling breaks editor jumps |
+| `[build] max_extra_compilations` | `8` | Extra compilation passes after the first run |
+| `[preflight] enabled` | `true` | Pre-compile checks (missing `\end{document}`, `.bib`, graphics, etc.) |
+
+### CI & diagnostic reports
+
+```bash
+# Normal build; the terminal shows warning/error summaries, exit 5 means compile failure
+pytexmk -x main
+
+# Read the latest log only and write JSON + Markdown reports (does not compile)
+pytexmk main -r
+```
+
+`-r` takes no argument and uses fixed paths:
+`Auxiliary/<main>.pytexmk-report.json` and
+`Auxiliary/<main>.pytexmk-report.md`. A missing readable log exits with `1`;
+if the Markdown export fails, the JSON is kept and the process exits with `9`.
+
+`ERROR` / `WARNING` messages wrap at 100 columns at most (or the terminal width
+when narrower); continuation lines are indented 9 spaces to align with the
+message column, with no trailing padding.
+
+For CI, use exit codes directly: `0` on success, `5` on compile failure. When you
+need an archived diagnostic, append `pytexmk -r` after the build command.
 
 ### Submission & pdflatex Compatibility
 
 | Option | Description |
 | --- | --- |
-| `-sp`, `--submission-pack` | Build `Submission/<project>-submission.zip`: `.fls` dependencies + `.bbl` + ASCII-converted sources + notes |
-| `-pc`, `--pdflatex-check` | Only run the pdflatex compatibility check (fontspec/unicode-math/ctex/xeCJK etc.) |
-| `--submit-dir DIR` | Submission output directory (default `./Submission/`) |
-| `--keep-preamble` | Keep the original preamble (default comments out fontspec/unicode-math/ctex and adds fontenc/inputenc/textcomp) |
-| `--pack-verify` | Compile the pack once with pdflatex in a temporary directory and record the result |
-| `--include-bib` | Also include `.bib` sources (default: `.bbl` only) |
+| `-sp`, `--submission-pack` | Build `Submission/<project>-submission.zip`: `.fls` dependencies + **all `.bib`** + ASCII-converted sources + notes (no `.bbl` by default) |
+
+Submission directory and preamble handling moved to `[submission]`:
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `[submission] output_dir` | `"./Submission/"` | Submission output directory |
+| `[submission] include_bbl` | `false` | `true` also ships the compiled `.bbl`; default ships `.bib` only |
+| `[submission] keep_preamble` | `false` | `true` keeps the original preamble (default comments out fontspec/unicode-math/ctex) |
 
 > If the journal only accepts pdflatex, `-sp` converts Greek letters, `°℃µ‰`, `–—…`,
 > smart quotes and sub/superscripts into pure ASCII LaTeX, comments out
 > fontspec/unicode-math/ctex, and lists every conversion plus the exact
-> `file:line` of characters it cannot convert (CJK, emoji, …). With
-> `--pack-verify` it actually runs pdflatex on the converted copy.
+> `file:line` of characters it cannot convert (CJK, emoji, …). The pack always
+> carries every `.bib` so the journal can run bibtex/biber itself; enable
+> `include_bbl` only when a journal explicitly requires a pre-built `.bbl`.
 
 ### Cleanup
 
 | Option | Description |
 | --- | --- |
-| `-c`, `--clean` | Clean auxiliary files of the main file |
-| `-C`, `--Clean` | Clean auxiliary files (including root) and output files |
-| `-ca`, `--clean-any` | Clean all files with auxiliary suffixes (skips `tests/`, `examples/`, `dist/`, `docs/`, `.venv`) |
-| `-Ca`, `--Clean-any` | Clean all auxiliary files (including root) and main output |
-| `--clean-dry-run` | Only list files that would be deleted (`-c/-C/-ca/-Ca`) |
+| `-c`, `--clean` | Clean the current main file's auxiliary files (auxiliary dir only) |
+| `-C`, `--Clean` | Clean auxiliary files (auxiliary dir + root) and remove PDF/SyncTeX from the output dir |
+| `-ca`, `--clean-any` | Recursively clean auxiliary files across the project (no unique main file required) |
+| `-Ca`, `--Clean-any` | Recursively clean auxiliary files; also removes main-file outputs when the main file is known |
+
+- `-c/-C` need a unique main file; multiple candidates without `default_file` exit `1`.
+- `-ca/-Ca` match by suffix, skip `tests/`, `examples/`, `dist/`, `docs/`, `.venv`;
+  `.bbl`, `.xdv` and `.xdy` are treated as artifacts, with no “possibly author-owned” list.
 
 ### LaTeXDiff Comparison
 
@@ -326,7 +359,7 @@ PyTeXMK lets you manage multiple independent subprojects under a single project 
 # 1. Generate root config file
 pytexmk -i
 
-# 2. Auto-scan and show subproject list (also updates config)
+# 2. Scan, show and write back the subproject list (preserves aliases, comments and order)
 pytexmk -ls
 
 # 3. Compile a specific subproject (can be combined with a main file)
@@ -336,15 +369,16 @@ pytexmk -s thesis main.tex
 | Option | Description |
 | --- | --- |
 | `-s`, `--subproject <name>` | Select a subproject and compile/clean in its directory |
-| `-ls`, `--list-subprojects` | Scan subprojects and show the list, syncing root config |
+| `-ls`, `--list-subprojects` | Scan and write the `[subprojects]` section; when the root config is missing it is created from the built-in template first |
 
 ### Config File Generation
 
 | Option | Description |
 | --- | --- |
-| `-i`, `--init` | Generate a project-level `.pytexmkrc` in the current directory |
-| `-iu`, `--init-user` | Generate a user-level `.pytexmkrc` in your home directory |
-| `-f`, `--force` | With `-i`/`-iu`, force-overwrite an existing config file |
+| `-i`, `--init` | Generate a project-level `.pytexmkrc`; an existing file is overwritten |
+| `-iu`, `--init-user` | Generate a user-level `.pytexmkrc`; an existing file is overwritten |
+
+> Normal builds and `-r` never create user/project config files; `-ls` creates the project config when the root file is missing.
 
 ### Others
 
@@ -419,7 +453,7 @@ Generate a template with `pytexmk -i` (project-level) or `pytexmk -iu` (user-lev
 
 ### Requirements
 
-- Python 3.14+
+- Python 3.15+
 - [uv](https://github.com/astral-sh/uv) (recommended) or pip
 
 ### Development Setup
@@ -469,16 +503,16 @@ uv run ruff format src/
 
 ```bash
 # Add a new language
-make lang-add
+make add-lang
 
 # Update all pot/po files
-make lang-update
+make update
 
 # Compile po → mo
-make lang-mo
+make mo
 
 # Re-extract all pot templates
-make lang-poup
+make pot
 ```
 
 ---

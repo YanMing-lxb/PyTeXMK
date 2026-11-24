@@ -1,5 +1,14 @@
+# ==============================================================================
+# PyTeXMK 打包与工具链配置
+# ------------------------------------------------------------------------------
+# 只保留当前生效的事实：依赖下限、资源清单、静态检查与测试配置。
+# 版本沿革、历史取舍理由见 CHANGELOG.md 与 docs/，不在这里堆积。
+# ==============================================================================
+
 [build-system]
-requires = ["setuptools"]
+# license 用 PEP 639 的 SPDX 表达式（另见 test_packaging.py），
+# 该写法与 license-files 缺省值都要求 setuptools>=77。
+requires = ["setuptools>=84"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,15 +18,12 @@ authors = [
   { name = "焱铭", email = "lxb-yanming@foxmail.com" },
 ]
 description = "LaTeX 辅助编译命令行工具 LaTeX Auxiliary Compilation Command Line Tool"
-keywords = ["LaTeX", "build", "latexmk"]
+keywords = ["LaTeX", "build", "latexmk", "cli"]
 dependencies = [
-    "packaging>=26.3",
-    "platformdirs>=4.13.3",
-    "pypdf>=6.21.1",
-    "pytexlogs>=0.5.0",
+    "pypdf>=7.1.1",
+    "pytexlogs>=0.6.4",
     "rich>=15.0.0",
     "rich_argparse>=1.8.0",
-    "tomli-w>=1.2.0",
 ]
 
 readme = "README.md"
@@ -30,34 +36,31 @@ classifiers = [
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.15",
-    "Operating System :: OS Independent",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/YanMing-lxb/PyTeXMK"
+Homepage = "https://github.com/YanMing-lxb/PyTeXMK"
 "Bug Tracker" = "https://github.com/YanMing-lxb/PyTeXMK/issues"
 
 [project.scripts]
 pytexmk = "pytexmk:main"
 
-# ---------------------------------------------------------------------------
-# 面向 pip / PyPI 用户的 extras（PEP 621 [project.optional-dependencies]）
-#   · 只有 `pip install pytexmk[dev]` 这类**给下游使用者 / 贡献者**的场景走这里；
-#   · PyTeXMK 自身的开发环境优先用下方 PEP 735 的 [dependency-groups] dev，
-#     `uv sync` 默认装上它，且不会写进 wheel 的 METADATA。
-# 表内版本下限必须与 [dependency-groups] dev 完全一致
-#   （tests/test_packaging_metadata.py 会逐条校验，防止两处再次分叉）。
-# 不能写成 dev = [{ include-group = "dev" }]：PEP 735 的 include-group 只在
-#   [dependency-groups] 内部合法，uv 会报 "invalid type: map, expected a string"。
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 开发依赖必须写两处，且逐条一致（tests/unit/test_packaging.py 会校验）：
+#   · [project.optional-dependencies].dev → 给 `pip install pytexmk[dev]` 的下游与贡献者；
+#   · [dependency-groups].dev → 给 `uv sync`（PEP 735，不写进 wheel 的 METADATA）。
+# PEP 735 的 include-group 只在 [dependency-groups] 内部合法，不能反向 include extras。
+# ------------------------------------------------------------------------------
 [project.optional-dependencies]
 dev = [
     "babel>=2.18.0",
+    "packaging>=26.3",
     "pillow>=13.0.0",
     "pyinstaller>=6.22.3",
-    "pytest>=9.1.1",
+    "pytest>=9.2.0",
 ]
 
 [[tool.uv.index]]
@@ -66,8 +69,8 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
 publish-url = "https://upload.pypi.org/legacy/"
 default = true
 
-# PyTeXLogs 0.5.0 刚发布时清华镜像可能尚未同步；只给这一个直接依赖
-# 指定官方 PyPI，避免整个项目的镜像源被切换。
+# 新发布的版本常常还没同步到镜像；只让直接依赖 pytexlogs 走官方 PyPI，
+# 不整体切换默认源。
 [[tool.uv.index]]
 name = "pypi-org"
 url = "https://pypi.org/simple/"
@@ -76,63 +79,50 @@ explicit = true
 [tool.uv.sources]
 pytexlogs = { index = "pypi-org" }
 
-# ---------------------------------------------------------------------------
-# 开发依赖：PEP 735 [dependency-groups].dev 是 uv 侧的事实来源
-#   · uv 默认安装 dev 组，`uv sync` 即得到完整开发环境（无需 --dev）；
-#   · 版本下限统一抬到已锁定、且已确认支持 Python 3.15 的版本，
-#     不再出现 pillow 12.3 / 13.00、pyinstaller 6.21 / 6.22 两处各自为政的分叉；
-#   · pytest / ruff 的配置见文件末尾 [tool.pytest.ini_options]、[tool.ruff]。
-# ---------------------------------------------------------------------------
 [dependency-groups]
 dev = [
     "babel>=2.18.0",
+    "packaging>=26.3",
     "pillow>=13.0.0",
     "pyinstaller>=6.22.3",
-    "pytest>=9.1.1",
+    "pytest>=9.2.0",
 ]
 
 [tool.setuptools.dynamic]
-version = {attr = "pytexmk.version.__version__"}
+version = { attr = "pytexmk.version.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["pytexmk*"]
 namespaces = false
 
-[tool.setuptools]
-include-package-data = true
-
 [tool.setuptools.package-data]
-# 根包：locale .mo 文件（中/英未来可扩展为 **）+ data 目录兜底
+# 运行时需要的非 Python 资源：
+#   · locale/**/*.mo —— gettext 编译产物；
+#   · locale/**/*.pot —— 翻译模板（随 sdist 分发给译者）；
+#   · data/*.toml —— 默认用户 / 项目配置模板。
+# 模式以包目录为根，故 "pytexmk" 一条即可覆盖 data 子包，无需再列 "pytexmk.data"。
 "pytexmk" = [
-    "locale/en/LC_MESSAGES/*.mo",
     "locale/**/*.mo",
     "locale/**/*.pot",
-    "data/README.html",
     "data/*.toml",
-]
-# 子包 pytexmk.data：data 目录下实际所有需要分发的资源
-"pytexmk.data" = [
-    "README.html",
-    "*.toml",
 ]
 
 [tool.ruff]
-target-version = "py315"   # 启用 3.15 语法/标准库规则集（避免为旧版本保留兼容写法）
+target-version = "py315"   # 按 3.15 判定废弃语法，不为旧版本保留兼容写法
 line-length = 120
 
 [tool.ruff.lint]
-# 以「迁移到 3.15 所必需」为界选规则集：默认 E4/E7/E9 + F（pyflakes）+ UP（pyupgrade，按
-# target-version 识别废弃写法）+ I（import 排序）+ B（bugbear 可疑写法）。
-# 刻意不引入 PL*（pylint 移植规则）：该项目大量函数式 CLI 代码本就有长参数表/多分支，
-# 一次性拉入会把 100+ 条风格告警混进迁移 diff，淹没真正的弃用点。
+# 只选「迁移到 3.15 所必需」的规则集：pycodestyle 子集 + pyflakes + pyupgrade
+# + isort + bugbear。刻意不引入 PL*（pylint 移植规则）：CLI 代码本就长参数表、
+# 多分支，一次拉入会把真正的弃用点淹没在风格告警里。
 select = ["E4", "E7", "E9", "F", "W", "I", "UP", "B"]
-ignore = ["E501"]          # 行宽由 formatter 负责，不在 lint 阶段报错
-fixable = ["ALL"]
+ignore = ["E501"]          # 行宽由 formatter 负责，lint 不重复报
+fixable = ["ALL"]          # 允许 `ruff check --select … --fix` 直接修
 
 [tool.ruff.lint.isort]
 known-first-party = ["pytexmk"]
-known-third-party = ["rich", "rich_argparse", "pypdf", "platformdirs", "pytexlogs", "packaging", "tomli_w"]
+known-third-party = ["rich", "rich_argparse", "pypdf", "pytexlogs"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -140,12 +130,17 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.pytest.ini_options]
-minversion = "9.1"
+minversion = "9.2.0"          # 与 dev 组的 pytest 下限保持一致
 testpaths = ["tests"]
-pythonpath = ["src"]          # 允许在未安装包时直接 `pytest`
+pythonpath = ["src"]          # 未安装包时也能直接 `pytest`
 addopts = "-ra --strict-config --strict-markers"
+markers = [
+    "unit: 纯函数/类测试，不启动子进程",
+    "cli: 命令行解析、分派与状态解析",
+    "integration: 真实子进程/完整 CLI 端到端",
+    "regression: 按轮次归档的跨模块回归清单",
+]
 filterwarnings = [
     "error::DeprecationWarning:pytexmk.*",   # 自家代码的弃用告警一律视为失败
     "error::SyntaxWarning",                  # `IS` 字面量、无效转义等隐性坑直接拦下
 ]
-markers = ["slow: 需要真实 LaTeX 工具链的慢速用例"]

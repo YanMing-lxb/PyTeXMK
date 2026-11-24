@@ -1,7 +1,15 @@
 # PyTeXMK 架构设计文档
 
-> 本文档描述 PyTeXMK v1.2.5 版本的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
-> 本文档依据 `spec.md`（路径 A 推荐方案）编写，适用于当前 28 模块规模。
+> 本文档最初描述 PyTeXMK v1.2.5 的分层架构、模块职责矩阵、新功能放置决策树以及 import 纪律。
+> 本文档依据 `spec.md`（路径 A 推荐方案）编写；下面的模块矩阵是 v1.2.5 的历史锚点，
+> 不再作为当前模块数量或行数的依据。当前源码清单以 `src/pytexmk` 为准。
+>
+> **2026-11-23 当前状态**：`src/pytexmk` 共 **50** 个 Python 文件，其中 `cli/` 子包 **13** 个；
+> 包级 `__init__.py` **不导出** `__version__` / `__app_name__`，只提供 `main` 与
+> `__getattr__` 惰性转发，版本常量在 `version.py`。第二章的 28 模块矩阵仅作历史对照。
+>
+> **2026-11-19 第七轮补充**：新增 `src/pytexmk/fls.py`（`.fls` INPUT 行单一解析入口）；
+> 模块矩阵保留为历史锚点，当前行为与接口以源码和 `docs/python315-migration.md` 为准。
 
 ---
 
@@ -14,7 +22,7 @@ PyTeXMK 采用严格的 6 层向下依赖架构，Layer 0 为对外 API 顶层�
 ────────────────────────────────────────────────────────────────────
  Layer 0  对外 API（Public Surface）
 ────────────────────────────────────────────────────────────────────
-          __init__.py  [__version__, __app_name__, main, __getattr__]
+          __init__.py  [main, __getattr__ 惰性转发]
               │
               ▼ down
 ────────────────────────────────────────────────────────────────────
@@ -22,8 +30,8 @@ PyTeXMK 采用严格的 6 层向下依赖架构，Layer 0 为对外 API 顶层�
 ────────────────────────────────────────────────────────────────────
   cli/__init__.py (空，占位)
   cli/__main__.py          cli/cli_args.py         cli/cli_workflow.py
-  cli/check_version.py     cli/cli_state.py        cli/cli_early.py
-  cli/cli_context.py       cli/cli_compile.py      cli/cli_latexdiff.py
+  cli/cli_state.py         cli/cli_early.py        cli/cli_context.py
+  cli/cli_compile.py       cli/cli_latexdiff.py
               │
               ▼ down
 ────────────────────────────────────────────────────────────────────
@@ -69,24 +77,32 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 
 ---
 
-## 章节 2：28 模块职责矩阵（含 [cli 子包] 标签）
+## 章节 2：v1.2.5 模块职责矩阵（历史锚点，非当前清单）
+
+> 2026-11-19 变更：`cli/check_version.py` 已随“移除自动更新检查”删除；下表与行数
+> 仍为 v1.2.5 锚点的历史快照，cli 子包现为 8 个模块。
+>
+> 2026-11-23 变更：`cli/cli_doctor.py`、`cli/cli_completion.py`、`machine_report.py`
+> 删除；参数面精简到 35 个选项；`-r` 改为按需报告入口（`cli/cli_report.py` +
+> `report_export.py`）；`-ls` 直接写回；清理恢复 `-c/-C`（主文件）与
+> `-ca/-Ca`（递归）2×2 语义。
 
 本矩阵列出 PyTeXMK 当前 28 个源模块（其中 9 个位于 `cli/` 子包内，标注 `[cli 子包]`），
 行号、行数为 v1.2.5 锚点的实测值，「对外关键符号」按该模块被外部 import 频率排序（前 5）。
 
 | No. | 文件名 | 行数 | 对外关键符号（前 5） | 一句话职责 |
 |-----|--------|------|----------------------|-----------|
-| 01 | `__init__.py` | 12 | `__version__`, `__app_name__`, `main`, `__getattr__` | 包对外 API：导出版本号、懒加载转发 cli_args/cli_workflow/check_version/main |
+| 01 | `__init__.py` | 12 | `main`, `__getattr__` | 包对外 API：只做惰性转发，不导出版本号（版本在 `version.py`） |
 | 02 | `__main__.py` | 4 | `main`（薄转发） | 根包主入口：3 行薄转发 `from .cli.__main__ import main`，使 `python -m pytexmk` 可用 |
 | 03 | `cli/__main__.py [cli 子包]` | 87 | `main` | CLI 主骨架：Windows UTF-8 兜底 + set_language + parse_args + run_workflow |
-| 04 | `cli/cli_args.py [cli 子包]` | 197 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：argparse 16 个参数定义、CustomHelpFormatter 等宽帮助、校验互斥组 |
+| 04 | `cli/cli_args.py [cli 子包]` | 197 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：35 个选项（构建类开关已下沉到配置）、CustomHelpFormatter 等宽帮助、清理互斥组 |
 | 05 | `cli/cli_workflow.py [cli 子包]` | 30 | `run_workflow` | CLI 流程薄入口：串接 早退出子命令 → 上下文解析 → 编译分派 → 收尾；全流程共享状态由 `cli_state.WorkflowState` 承载 |
 | 06 | `cli/cli_state.py [cli 子包]` | 65 | `WorkflowState`, `PREVIEW_AFTER_COMPILE`, `SUFFIXES_OUT`, `SUFFIXES_AUX`, `MAGIC_COMMENT_KEYS` | CLI 工作流共享状态容器（叶子模块，不 import 任何其他 cli_* 模块），定义 20+ 运行时变量 dataclass 与 4 组常量 |
-| 07 | `cli/cli_early.py [cli 子包]` | 61 | `handle` | 早退出子命令：`-r` README / `-i` 初始化 / `-iu` 用户配置 / `-ls` 子项目清单，命中即退出 |
+| 07 | `cli/cli_early.py [cli 子包]` | 61 | `handle` | 早退出子命令：`-i` 初始化 / `-iu` 用户配置 / `-ls` 扫描并写回 / `--show-config`，命中即退出；不再包含 `--doctor`、`--sync-subprojects` 与 README 打开逻辑 |
 | 08 | `cli/cli_context.py [cli 子包]` | 162 | `build`, `resolve_target`, `apply_magic_comments` | 上下文解析与三层配置合并：子项目定位 → config 文件 → 魔法注释 → 命令行参数，完成参数优先级覆盖与文件清单派生 |
-| 09 | `cli/cli_compile.py [cli 子包]` | 92 | `run`, `finalize`, `handle_clean_any` | 常规编译流程：`-ca/-Ca` 全清理、`-c/-C` 主文件清理、`-pr` PDF 修复、完整编译 + 收尾（PDF 预览 / time_print / UpdateChecker） |
+| 09 | `cli/cli_compile.py [cli 子包]` | 92 | `run`, `finalize`, `clean_main`, `clean_recursive` | 常规编译流程：`-c/-C` 主文件清理、`-ca/-Ca` 递归清理、`-pr` PDF 修复、完整编译 + 收尾（PDF 预览 / time_print / 警告提示 `-r`） |
 | 10 | `cli/cli_latexdiff.py [cli 子包]` | 102 | `run` | LaTeXDiff 全流程：新旧文件校验 → 辅助文件检查 → flatten → 风格交互 → 差异编译 → finally 归还辅助文件 |
-| 11 | `cli/check_version.py [cli 子包]` | 342 | `UpdateChecker`, `check_pypi_update`, `get_cached_latest` | 版本检查：GitHub API 拉取最新版本号、本地文件缓存、~10 秒超时避免网络卡壳 |
+| 11 | `cli/check_version.py [cli 子包]` | 342 | `UpdateChecker`, `check_pypi_update`, `get_cached_latest` | **已于 2026-11-19 删除**：自动更新检查（GitHub API + 缓存）不再提供；CLI 默认零联网 |
 | 12 | `compile_engine.py` | 279 | `RUN`, `LaTeXDiffRUN` | 对外运行函数：`RUN` 编排主编译收敛循环（最多 8 次）、`LaTeXDiffRUN` 封装 latexdiff 流程 |
 | 13 | `compile.py` | 165 | `CompileLaTeX`, `aux_move_to_dir` | 编译调度：`CompileLaTeX.__call__` 单次执行子进程 + 拉 log + 触发 6 维检测 + 搬 aux 目录 |
 | 14 | `detection.py` | 469 | `CompilationDetector`, `_INDEX_REGISTRY`, `RERUN_LOG_PATTERNS`, `RERUN_AUX_PATTERNS` | 6 维检测策略：bib/toc/index/aux/out/log 六类正则 + 10 项检测方法；索引系统由 `_INDEX_REGISTRY` 注册表驱动（glossaries/nomencl/makeidx） |
@@ -99,7 +115,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 | 21 | `version.py` | 29 | `__version__`, `__app_name__`, `script_name` | 版本常量：当前版本号硬编码 + `PyTeXMK` 应用名，所有其他模块的版本号唯一来源 |
 | 22 | `paths.py` | 13 | `get_app_path`, `get_data_dir`, `get_config_dir` | 路径定位：`pkgutil.get_data` + 平台 `AppData`/`.config` 目录解析，locale/data/config 相对锚点 |
 | 23 | `lifecycle.py` | 9 | `exit_pytexmk`, `EXIT_OK`, `EXIT_ERROR`, `EXIT_PROJECT_NOT_FOUND` | 生命周期退出：统一退出钩子（打印再见横幅、刷新缓冲、`sys.exit`），禁止零散 `sys.exit` |
-| 24 | `logger_config.py` | 65 | `setup_logger`, `get_logger`, `LOG_FILE_PATH` | 日志配置：Rich 日志 handler + 文件 handler 双写、按日滚动、日志级别 CLI 参数切换 |
+| 24 | `logger_config.py` | 65 | `setup_logger`, `AlignedRichHandler` | 日志配置：Rich handler 按最多 100 列折行、续行 9 空格对齐；`-vb` 控制 INFO 级 |
 | 25 | `config.py` | 172 | `ConfigManager`, `load_user_config`, `merge_project_config`, `DEFAULT_CONFIG_TOML` | TOML 配置：三层合并（默认 default → 用户 `~/.config/pytexmk/` → 项目 `.pytexmk.toml`） + 键校验 |
 | 26 | `language.py` | 49 | `set_language`, `gettext`, `_current_domain` | i18n Hub：`gettext.translation` 封装，所有模块调用 `set_language("<domain>")` 取翻译器 `_` |
 | 27 | `timing.py` | 133 | `time_count`, `time_print`, `total_len`, `get_text_len` | 计时统计：装饰器式编译耗时累计、中英文双宽字符对齐 `get_text_len`、统计段格式化 |
@@ -108,7 +124,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 
 > 备注：矩阵中 29 行是源文件总数。其中 `cli/__init__.py [cli 子包]`（1 行空文件）是子包存在标志但无对外符号，
 > 计入 Layer 1 结构图但不计入序号。序号从 `__init__.py`(01) 到 `ui_messages.py`(29) 共 29 行去掉占位 `cli/__init__.py` 后，
-> 正好 28 个有实际功能的模块。cli 子包内现 9 个模块：`__main__ / cli_args / cli_workflow / cli_state / cli_early / cli_context / cli_compile / cli_latexdiff / check_version`。
+> 正好 28 个有实际功能的模块。cli 子包内现 8 个模块：`__main__ / cli_args / cli_workflow / cli_state / cli_early / cli_context / cli_compile / cli_latexdiff`。
 
 ---
 
@@ -254,7 +270,7 @@ PyTeXMK 的 import 规则与分层架构严格对应。违反以下 3 条会直�
 
 烟检命令（修改 import 后必须执行，保证点数无误）：
 ```bash
-uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli.cli_workflow, pytexmk.cli.cli_state, pytexmk.cli.cli_early, pytexmk.cli.cli_context, pytexmk.cli.cli_compile, pytexmk.cli.cli_latexdiff, pytexmk.cli.check_version; print("import 点数 OK")'
+uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli.cli_workflow, pytexmk.cli.cli_state, pytexmk.cli.cli_early, pytexmk.cli.cli_context, pytexmk.cli.cli_compile, pytexmk.cli.cli_latexdiff; print("import 点数 OK")'
 ```
 
 ### 纪律（c）：子包对外 API 必须经子包 `__init__.py` 显式 re-export
@@ -266,7 +282,7 @@ uv run python -c 'import pytexmk.cli.__main__, pytexmk.cli.cli_args, pytexmk.cli
 #### 当前 cli 子包状态
 
 `src/pytexmk/cli/__init__.py` 当前**故意留空（0 行）**。
-原因：当前 9 个 cli 模块（`__main__` / `cli_args` / `cli_workflow` / `cli_state` / `cli_early` / `cli_context` / `cli_compile` / `cli_latexdiff` / `check_version`）
+原因：当前 8 个 cli 模块（`__main__` / `cli_args` / `cli_workflow` / `cli_state` / `cli_early` / `cli_context` / `cli_compile` / `cli_latexdiff`）
 没有需要对外暴露的**聚合公共 API**。所有使用方要么：
 1. 通过根包 `__init__.py.__getattr__` 懒加载（如 `from pytexmk import cli_args` 兼容写法）；或
 2. 直接写全路径 `from pytexmk.cli.cli_args import parse_args`（这是直接 import 模块对象，不是跨子包 API 符号暴露，不违反本纪律）。

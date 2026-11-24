@@ -12,6 +12,10 @@
 # 默认目标：显示帮助
 .DEFAULT_GOAL := help
 
+# 这些目标是命令而非同名文件/目录；尤其 `build` 与 PyInstaller 的 build/ 目录同名，
+# 不声明 .PHONY 时 `make build` 可能被目录时间戳误判为“已是最新”。
+.PHONY: help build icon whl inswhl clean pot add-lang update mo dryrun upload
+
 # 当前 dist 下的 wheel；inswhl 直接交给外层 uv，避免 uv run 嵌套 uv tool 时的锁冲突
 WHL = $(wildcard dist/*.whl)
 
@@ -31,9 +35,6 @@ help:
 	@echo   whl      构建 Python 分发包（wheel 包 + sdist 源码包）
 	@echo   inswhl   安装本地编译生成的 wheel 包
 	@echo   clean    清理所有构建产物
-	@echo   all      构建全部格式文档
-	@echo   html     构建 HTML 文档
-	@echo   rst      构建 RST 文档
 	@echo   pot      提取文本字符串至 POT 模板文件（locale/templates/*.pot）
 	@echo   add-lang 交互式新增语言代码并初始化全部 .po 文件
 	@echo   update   重新提取 POT，合并更新到所有已有语言的 .po 文件
@@ -47,7 +48,8 @@ help:
 # ------------------------------------------------------------------------------
 
 # 构建源码模式可执行程序（onedir 目录模式） - 产物：dist/pytexmk/
-build:
+# 依赖 mo：保证打包进二进制的 .mo 与当前 .po 一致，避免发布旧译文。
+build: mo
 	@uv run python ./tools/pack.py pack
 
 # 从项目 logo 生成各平台特定的图标文件
@@ -62,9 +64,10 @@ icon:
 
 # 清理后构建 Python 分发包（wheel + sdist）
 # - 先执行 clean 清理旧产物
+# - 先执行 mo：.po 改过但忘记编译时，不能把旧 .mo 打进 wheel
 # - 使用 uv build 构建 wheel 和源码分发包
 # - 产物输出到 dist/ 目录
-whl: clean
+whl: clean mo
 	uv build
 
 # 安装本地构建的 wheel 包
@@ -91,18 +94,8 @@ clean:
 # ------------------------------------------------------------------------------
 # 文档相关目标
 # ------------------------------------------------------------------------------
-
-# 构建所有格式的文档（html + rst 等）
-all:
-	@uv run python ./tools/make.py all
-
-# 构建 HTML 格式文档
-html:
-	@uv run python ./tools/make.py html
-
-# 构建 RST 格式文档
-rst:
-	@uv run python ./tools/make.py rst
+# docs/ 目前是 Markdown 源，没有 RST/Sphinx 构建链；旧 all/rst 目标调用
+# tools/make.py 的未注册子命令并直接退出 1，已移除，避免误导。
 
 # ------------------------------------------------------------------------------
 # 国际化 (i18n) 相关目标 —— 严格遵循 pybabel 官方 4 命令工作流
