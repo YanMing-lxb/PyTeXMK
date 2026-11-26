@@ -69,7 +69,7 @@ def test_plain_synctex_is_in_clean_patterns_and_output_list(tmp_path, monkeypatc
     assert any(re.fullmatch(pattern, "main.synctex") for pattern in state.aux_regex_files)
 
     targets = cli_compile._recursive_clean_targets(  # noqa: SLF001
-        SimpleNamespace(Clean_any=False), state
+        SimpleNamespace(clean_recursive_out=False), state
     )
     assert Path("main.synctex") in targets
 
@@ -142,9 +142,9 @@ def test_explain_applies_cli_overrides_without_side_effects(tmp_path, monkeypatc
     stale.write_bytes(b"old")
 
     state = _workflow_state(preview_after_compile=True)
+    state.interaction = "batchmode"  # 只来自 [build] interaction，命令行没有该开关
     args = SimpleNamespace(
-        interaction="batchmode",
-        extra_args=["--pass-arg=-8bit"],
+        extra_args=["-pa=-8bit"],
         draft=False,
     )
     state.args = args
@@ -154,13 +154,13 @@ def test_explain_applies_cli_overrides_without_side_effects(tmp_path, monkeypatc
     assert state.native_build is True
     assert state.synctex is True
     assert state.interaction == "batchmode"
-    assert state.extra_args == ["--pass-arg=-8bit"]
+    assert state.extra_args == ["-pa=-8bit"]
     assert state.preview_after_compile is True
 
     cli_config.explain(state)
     out = capsys.readouterr().out
     assert "batchmode" in out
-    assert "--pass-arg=-8bit" in out
+    assert "-pa=-8bit" in out
     assert str((Path(state.outdir) / "main.pdf").resolve()) in out
 
 

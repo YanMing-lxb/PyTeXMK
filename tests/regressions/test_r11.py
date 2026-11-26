@@ -77,7 +77,7 @@ def test_compile_routes_skip_through_finish(monkeypatch):
         runtime_dict={},
         preflight_enabled=False,
     )
-    args = SimpleNamespace(clean=False, Clean=False, pdf_repair=False)
+    args = SimpleNamespace(clean=False, clean_out=False, pdf_repair=False)
     calls = {}
 
     monkeypatch.setattr(cli_compile, "_apply_build_overrides", lambda *_a, **_k: None)

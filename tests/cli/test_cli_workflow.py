@@ -1,7 +1,7 @@
 """``run_workflow`` 的阶段顺序与提前返回。
 
 编译主流程按“早退出 → 批量 → watch → 清理 → 报告 → explain → 编译”分派。
-顺序错了会出现“清理把 explain 抢走”“-A 继承 watch 卡死”这类问题，而单测
+顺序错了会出现“清理把 explain 抢走”“-ap 继承 watch 卡死”这类问题，而单测
 各子模块都发现不了。这里用替身记录调用序列，断言只走一条分支。
 """
 from types import SimpleNamespace
@@ -17,9 +17,9 @@ def _args(**overrides):
         "all_subprojects": False,
         "watch": False,
         "clean": False,
-        "Clean": False,
-        "clean_any": False,
-        "Clean_any": False,
+        "clean_out": False,
+        "clean_recursive": False,
+        "clean_recursive_out": False,
         "explain": False,
         "report": False,
     }
@@ -31,7 +31,7 @@ def _args(**overrides):
 def wired(monkeypatch):
     """把所有阶段替换成记录器，返回 (calls, state)。"""
     calls: list[str] = []
-    state = SimpleNamespace(is_latexdiff=False, project_name="main")
+    state = SimpleNamespace(project_name="main")
 
     monkeypatch.setattr(cli_workflow, "console", SimpleNamespace(print=lambda *a, **k: None))
     monkeypatch.setattr(cli_workflow, "setup_logger", lambda verbose: SimpleNamespace())
@@ -69,7 +69,6 @@ def wired(monkeypatch):
         "apply_effective_build_plan",
         lambda a, s: calls.append("build_plan"),
     )
-    monkeypatch.setattr(cli_workflow.cli_latexdiff, "run", lambda a, s: calls.append("latexdiff"))
     monkeypatch.setattr(cli_report, "handle", lambda s: calls.append("report"))
     monkeypatch.setattr(cli_config, "explain", lambda s: calls.append("explain"))
     return calls, state
@@ -104,7 +103,7 @@ def test_clean_main_stops_after_cleaning(wired):
 
 def test_clean_recursive_uses_its_own_target_resolution(wired):
     calls, _ = wired
-    cli_workflow.run_workflow(_args(clean_any=True))
+    cli_workflow.run_workflow(_args(clean_recursive=True))
     assert calls == ["early", "build", "resolve_clean", "magic", "clean_recursive"]
 
 
@@ -120,14 +119,7 @@ def test_explain_with_clean_still_explains_instead_of_cleaning(wired):
     assert calls == ["early", "build", "resolve_target", "magic", "build_plan", "explain"]
 
 
-def test_latexdiff_state_routes_to_latexdiff(wired):
-    calls, state = wired
-    state.is_latexdiff = True
-    cli_workflow.run_workflow(_args())
-    assert calls == ["early", "build", "resolve_target", "magic", "latexdiff", "finalize"]
-
-
-def test_no_project_and_no_diff_skips_run_but_finalizes(wired):
+def test_no_project_name_skips_run_but_finalizes(wired):
     calls, state = wired
     state.project_name = None
     cli_workflow.run_workflow(_args())

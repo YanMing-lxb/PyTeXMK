@@ -6,7 +6,7 @@
   不再影响级别（0.6 曾让 ``-nq`` 把级别抬到 INFO，等于把"刷屏"当成它的职责）；
 * ``-nq`` 只控制**显示**：子进程输出是否实时打到终端（``stream_output``）；
   TeX 的 ``-interaction`` 不随安静模式变化（默认都是 ``nonstopmode``，
-  要 batchmode 得显式 ``--interaction=batchmode``）；
+  要 batchmode 得在配置里写 ``[build] interaction``，命令行没有该开关）；
 * 优先级：命令行 ``-nq`` > 配置文件 ``quiet_mode`` > 内置默认（安静）。
 """
 

@@ -1,4 +1,4 @@
-"""preflight / latexdiff flatten / 清理安全 / 索引配置 的回归测试（3.2 / 3.5 / 3.8 / U6）。"""
+"""preflight / 清理安全 / 索引配置 的回归测试（3.2 / 3.8 / U6）。"""
 
 import re
 from pathlib import Path
@@ -10,7 +10,6 @@ from pytexmk.detection import (
     configure_index,
 )
 from pytexmk.file_ops import FileMoveRemoveManager
-from pytexmk.latexdiff import LaTeXDiff_Aux
 from pytexmk.preflight import check_project
 
 
@@ -189,44 +188,6 @@ def test_preflight_invalid_utf8(tmp_path):
     (tmp_path / "main.tex").write_bytes(b"\\documentclass{article}\n\xff\xfe\n")
     report = check_project("main", tmp_path)
     assert any("UTF-8" in i.message for i in report.errors)
-
-
-# --------------------------------------------------------------- 3.5 flatten
-
-
-def test_flatten_uses_file_handle_and_nested_inputs(tmp_path):
-    _write(tmp_path / "main.tex", "DOC\n\\input{sec/a}\nEND\n")
-    _write(tmp_path / "sec" / "a.tex", "A\n\\input{b}\n")
-    _write(tmp_path / "sec" / "b.tex", "B\n")
-    aux = LaTeXDiff_Aux(".", [], [], tmp_path)
-    import os
-
-    cwd = Path.cwd()
-    os.chdir(tmp_path)
-    try:
-        stem = aux.flatten_Latex("main")
-    finally:
-        os.chdir(cwd)
-    text = (tmp_path / f"{stem}.tex").read_text(encoding="utf-8")
-    assert "DOC" in text and "A" in text and "B" in text and "END" in text
-    assert not re.search(r"INFO|DEBUG|Flatten", text)
-
-
-def test_flatten_detects_cycle(tmp_path):
-    _write(tmp_path / "main.tex", "M\n\\input{a}\n")
-    _write(tmp_path / "a.tex", "A\n\\input{main}\n")
-    aux = LaTeXDiff_Aux(".", [], [], tmp_path)
-    import os
-
-    cwd = Path.cwd()
-    os.chdir(tmp_path)
-    try:
-        stem = aux.flatten_Latex("main")
-    finally:
-        os.chdir(cwd)
-    text = (tmp_path / f"{stem}.tex").read_text(encoding="utf-8")
-    assert text.count("M") == 1
-    assert text.count("A") == 1
 
 
 # --------------------------------------------------------------- 3.8 / U6

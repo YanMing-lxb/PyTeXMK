@@ -6,7 +6,6 @@
 * ``.toc`` 变更在 auxdir 里检测不到；
 * 索引命令里 Windows 反斜杠路径被 ``shlex`` 拆坏；
 * 草稿模式整份回写覆盖编译期间的其它编辑；
-* ``latexdiff --style=1`` 非法参数。
 """
 
 import shlex
@@ -16,7 +15,6 @@ import pytest
 
 from pytexmk.compile import CompileLaTeX
 from pytexmk.detection import _INDEX_REGISTRY, CompilationDetector, _quote_cmd_path
-from pytexmk.latexdiff import LaTeXDiff_Aux
 from pytexmk.tex_project import MainFileOperation
 
 
@@ -119,31 +117,3 @@ def test_draft_restore_keeps_concurrent_edits(tmp_path, monkeypatch):
     assert "\\documentclass[a4paper]{article}" in content
     assert "OLD" in content
     assert "NEW" in content, "编译期间的编辑被整份回写覆盖了"
-
-
-# ------------------------------------------------------------ P0-6 --style
-
-
-def test_latexdiff_command_has_no_illegal_style_flag(tmp_path, monkeypatch):
-    class _MSP:
-        def __init__(self) -> None:
-            self.commands: list[list[str]] = []
-
-        def run_command(self, command, *_args, **kwargs):
-            self.commands.append(command)
-            # 真实 latexdiff 会通过 stdout_path 产出差异稿；这里模拟写出，
-            # 才能校验“产出为空即失败”的新契约。
-            target = kwargs.get("stdout_path")
-            if target:
-                Path(target).write_text("% diff\n", encoding="utf-8")
-
-    # 输出路径是相对 cwd 的 "diff.tex"：必须在临时目录里跑，否则会把
-    # 差异稿写进仓库根目录（此前确实漏下过 diff.tex）。
-    monkeypatch.chdir(tmp_path)
-    lda = LaTeXDiff_Aux(str(tmp_path), [".pdf"], [".aux"], str(tmp_path))
-    lda.MSP = _MSP()
-    lda.compile_LaTeXDiff("old", "new", "diff", ".tex")
-    command = lda.MSP.commands[0]
-    assert command[:2] == ["latexdiff", "old.tex"]
-    assert not any(token.startswith("--style") for token in command)
-    assert (tmp_path / "diff.tex").read_text(encoding="utf-8") == "% diff\n"

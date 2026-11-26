@@ -1,4 +1,4 @@
-"""B 类「文案与实现对齐」回归：explain 默认交互模式、-ls 写回语义、-A 帮助转义、epilog 退出码。"""
+"""B 类「文案与实现对齐」回归：explain 默认交互模式、-ls 写回语义、-ap 帮助转义、epilog 退出码。"""
 
 from types import SimpleNamespace
 

@@ -141,9 +141,9 @@ def _run_with_fake_engine(tmp_path, monkeypatch, draft):
 
 
 def test_run_applies_draft_only_while_compiling(tmp_path, monkeypatch):
-    """`-dr` 必须在编译期间真的带上 draft，结束（含异常）后必须摘干净。
+    """`-d` 必须在编译期间真的带上 draft，结束（含异常）后必须摘干净。
 
-    回归：调用点曾把 ``not draft`` 传给第二个布尔开关，以致 ``-dr``
+    回归：调用点曾把 ``not draft`` 传给第二个布尔开关，以致 ``-d``
     走「关闭草稿」分支，草稿模式静默失效。
     """
     seen = _run_with_fake_engine(tmp_path, monkeypatch, True)
@@ -156,7 +156,7 @@ def test_run_applies_draft_only_while_compiling(tmp_path, monkeypatch):
 
 
 def test_run_without_draft_leaves_source_alone(tmp_path, monkeypatch):
-    """不带 `-dr` 时不得改写源文件，也不得留下草稿标记。"""
+    """不带 `-d` 时不得改写源文件，也不得留下草稿标记。"""
     seen = _run_with_fake_engine(tmp_path, monkeypatch, False)
 
     assert seen["content"] == "\\documentclass{article}\n"

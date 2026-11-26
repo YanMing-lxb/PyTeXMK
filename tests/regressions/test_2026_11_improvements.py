@@ -1,6 +1,5 @@
 """2026-11 审查整改的回归测试：PDF 零残留、Unicode→LaTeX、投稿包、构建参数。"""
 
-import sys
 import zipfile
 from pathlib import Path
 
@@ -101,7 +100,7 @@ def test_pdf_repair_scopes_to_fls_references(tmp_path, monkeypatch):
 
 
 def test_pdf_repair_ignores_pdf_outside_project(tmp_path):
-    """项目外的共享 PDF 不能被 -pr 纳入原地修复候选。"""
+    """项目外的共享 PDF 不能被 -rp 纳入原地修复候选。"""
     project = tmp_path / "project"
     project.mkdir()
     outside = _blank_pdf(tmp_path / "outside.pdf")
@@ -259,38 +258,6 @@ def test_draft_restore_writes_back_original(tmp_path, monkeypatch):
     assert "draft" in src.read_text(encoding="utf-8")
     mfo.restore_draft()
     assert src.read_text(encoding="utf-8") == original
-
-
-# ------------------------------------------------------------------- CLI U1
-
-
-def test_cli_diff_two_files_does_not_swallow_document(monkeypatch):
-    from pytexmk.cli.cli_args import parse_args
-
-    monkeypatch.setattr(sys, "argv", ["pytexmk", "-d", "old.tex", "new.tex"])
-    args = parse_args()
-    assert args.LaTeXDiff == ["old.tex", "new.tex"]
-    assert args.document is None
-
-
-def test_cli_diff_single_file_is_rejected_later(monkeypatch):
-    """`-d 单个文件` 只提供 1 个名字：保持原样，由上下文解析报“需恰好 2 个”。"""
-    from pytexmk.cli.cli_args import parse_args
-
-    monkeypatch.setattr(sys, "argv", ["pytexmk", "-d", "main"])
-    args = parse_args()
-    assert args.LaTeXDiff == ["main"]
-    assert args.document is None
-
-
-def test_cli_document_before_dash_d(monkeypatch):
-    """`pytexmk main -d`：document 保留，LaTeXDiff 为空列表（走配置文件）。"""
-    from pytexmk.cli.cli_args import parse_args
-
-    monkeypatch.setattr(sys, "argv", ["pytexmk", "main", "-d"])
-    args = parse_args()
-    assert args.LaTeXDiff == []
-    assert args.document == "main"
 
 
 # ------------------------------------------------------------ SyncTeX 3.11

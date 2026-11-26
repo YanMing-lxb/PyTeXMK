@@ -1,9 +1,8 @@
 """第二轮全仓复审（2026-11-18）修复的回归测试。
 
 覆盖报告第十一节 R1–R7：
-* R1 latexdiff 的 stderr 不能混进输出文件（否则生成稿第一行是告警，xelatex 报
-  ``Missing \\begin{document}``）；
-* R2 ``LaTeXDiffRUN`` 在 native 构建下不得调用 dvipdfmx；
+* R1 stdout 落盘时 stderr 不能混进输出文件（否则产物第一行是告警，后续解析/
+  编译直接报错）；
 * R3 源目录不存在时 ``move_matched_files`` 返回 0 而不是抛 FileNotFoundError；
 * R4 glossaries-extra + bib2gls 的识别不能依赖 biblatex/biber 标记；
 * R5 ``.ist``/``.xdy`` 这类用户可能手写的样式文件不得被静默删除；
@@ -17,10 +16,8 @@ import tomllib
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
-
 import pytexmk
-from pytexmk import compile_engine, subprocess_runner, synctex
+from pytexmk import subprocess_runner, synctex
 from pytexmk.cli import cli_compile
 from pytexmk.config import DEFAULT_CONFIG
 from pytexmk.detection import CompilationDetector
@@ -33,7 +30,7 @@ DATA_DIR = Path(pytexmk.__file__).parent / "data"
 
 
 def test_redirect_stdout_file_excludes_stderr(tmp_path, monkeypatch):
-    """重定向到文件的只有 stdout；stderr 进管道，不污染生成稿。"""
+    """重定向到文件的只有 stdout；stderr 进管道，不污染产物。"""
     import io
 
     from rich.console import Console
@@ -51,63 +48,18 @@ def test_redirect_stdout_file_excludes_stderr(tmp_path, monkeypatch):
             theme=ui_theme.custom_theme,
         ),
     )
-    output = tmp_path / "LaTeXDiff.tex"
+    output = tmp_path / "tool-out.tex"
     command = [
         sys.executable,
         "-c",
         "import sys; print('DOC'); print('log4cxx: denied', file=sys.stderr)",
     ]
     process = subprocess_runner.MySubProcess(".", ".", "demo")
-    assert process.run_command(command, [], [], "latexdiff", stdout_path=str(output)) is True
+    assert process.run_command(command, [], [], "demo-tool", stdout_path=str(output)) is True
 
     text = output.read_text(encoding="utf-8")
     assert "DOC" in text
     assert "log4cxx" not in text
-
-
-# ---------------------------------------------------------------------- R2
-
-
-def _fake_compile_model(calls):
-    class FakeModel:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def compile_tex(self):
-            calls["tex"] += 1
-
-        def compile_xdv(self):
-            calls["xdv"] += 1
-
-    return FakeModel
-
-
-@pytest.mark.parametrize(("native", "expect_xdv"), [(True, 0), (False, 1)])
-def test_latexdiff_run_xdv_only_when_not_native(tmp_path, monkeypatch, native, expect_xdv):
-    """native 下 xelatex 直接产 PDF、没有 .xdv；dvipdfmx 必须跳过。"""
-    calls = {"tex": 0, "xdv": 0}
-    monkeypatch.setattr(compile_engine, "CompileLaTeX", _fake_compile_model(calls))
-    monkeypatch.setattr(compile_engine.MFO, "draft_model", lambda *a, **k: None)
-    monkeypatch.setattr(compile_engine.MFO, "restore_draft", lambda *a, **k: None)
-    monkeypatch.chdir(tmp_path)
-
-    runtime_dict: dict = {}
-    compile_engine.LaTeXDiffRUN(
-        runtime_dict,
-        "main",
-        "XeLaTeX",
-        ["main.pdf"],
-        ["main.log"],
-        "./Build/",
-        "./Auxiliary/",
-        False,
-        False,
-        shell_escape=False,
-        native=native,
-    )
-
-    assert calls["tex"] == 2
-    assert calls["xdv"] == expect_xdv
 
 
 # ---------------------------------------------------------------------- R3

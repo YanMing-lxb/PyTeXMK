@@ -162,7 +162,7 @@ def test_cli_r_without_log_exits_nonzero(tmp_path):
     assert "无法从最近一次编译日志生成报告" in proc.stdout + proc.stderr
 
 
-@pytest.mark.parametrize("flag", ["--report", "--fail-on", "--json"])
+@pytest.mark.parametrize("flag", ["--report=old.json", "--fail-on", "--json"])
 def test_removed_report_options_are_rejected(flag):
     from pytexmk.cli.cli_args import build_parser
 

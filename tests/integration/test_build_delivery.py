@@ -22,9 +22,7 @@ _DOCUMENT = r"\documentclass{article}\begin{document}Text\end{document}"
 
 
 def _state(tmp_path, *, native=True):
-    state = WorkflowState(
-        args=SimpleNamespace(LaTeXDiff=None, LaTeXDiff_compile=None), logger=logging.getLogger("test")
-    )
+    state = WorkflowState(args=SimpleNamespace(), logger=logging.getLogger("test"))
     state.project_name = state.output_name = "main"
     state.outdir = str(tmp_path / "custom-output")
     state.auxdir = str(tmp_path / "custom-aux")
@@ -206,7 +204,7 @@ def test_cli_reports_operations_that_failed(tmp_path, mode, expected):
         flags = ["-i"]
     elif mode == "repair":
         (tmp_path / "figure.pdf").write_bytes(b"not a PDF")
-        flags = ["-pr", "figure.pdf"]
+        flags = ["-rp", "figure.pdf"]
     elif mode == "clean":
         (aux / "main.aux").mkdir()
         flags = ["-c"]
@@ -216,7 +214,7 @@ def test_cli_reports_operations_that_failed(tmp_path, mode, expected):
         flags = ["-r"]
     else:
         (tmp_path / ".pytexmkrc").write_bytes(b"\xff")
-        flags = ["--explain"]
+        flags = ["-e"]
 
     env = {**os.environ, "HOME": str(tmp_path), "USERPROFILE": str(tmp_path), "PYTHONIOENCODING": "utf-8"}
     result = subprocess.run(

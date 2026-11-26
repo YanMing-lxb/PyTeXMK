@@ -7,7 +7,7 @@
 import pytest
 
 
-@pytest.mark.parametrize("flag", ["-dr", "-pv", "-C", "-fr", "-sp"])
+@pytest.mark.parametrize("flag", ["-d", "-pv", "-C", "-f", "-sp"])
 def test_flag_reaches_business_logic(tmp_path, run_cli, flag):
     result = run_cli(tmp_path, flag)
     combined = (result.stdout + result.stderr).lower()

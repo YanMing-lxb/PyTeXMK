@@ -15,7 +15,6 @@ from pytexmk.cli.cli_state import SUFFIXES_AUX
 from pytexmk.compile_engine import _persist_build_state, _tool_input_files
 from pytexmk.diagnostics import LogSummary, report_summary
 from pytexmk.file_ops import FileMoveRemoveManager
-from pytexmk.latexdiff import LaTeXDiff_Aux
 from pytexmk.pdf_tools import PdfFileOperation, inspect_pdf
 from pytexmk.preflight import check_project
 
@@ -45,7 +44,7 @@ def test_recursive_clean_patterns_are_end_anchored(tmp_path, monkeypatch):
     (tmp_path / "main.aux").write_text("aux", encoding="utf-8")
     (tmp_path / "chapter.aux.notes.tex").write_text("源文件", encoding="utf-8")
     state = _clean_state(tmp_path)
-    args = SimpleNamespace(Clean_any=False)
+    args = SimpleNamespace(clean_recursive_out=False)
     targets = cli_compile._recursive_clean_targets(args, state)
     names = {path.name for path in targets}
     assert "main.aux" in names
@@ -58,7 +57,7 @@ def test_recursive_clean_removes_bbl_xdv_and_xdy(tmp_path, monkeypatch):
     for name in ("main.bbl", "main-cn.bbl", "main.xdv", "author.xdy", "main.xdy"):
         (tmp_path / name).write_text(name, encoding="utf-8")
     state = _clean_state(tmp_path)
-    args = SimpleNamespace(Clean_any=False)
+    args = SimpleNamespace(clean_recursive_out=False)
 
     targets = cli_compile._recursive_clean_targets(args, state)
     assert {p.name for p in targets} == {
@@ -75,7 +74,7 @@ def test_clean_c_only_cleans_auxdir(tmp_path, monkeypatch):
     (tmp_path / "Build").mkdir()
     (tmp_path / "Build" / "main.pdf").write_bytes(b"%PDF-1.4\n")
     state = _clean_state(tmp_path)
-    args = SimpleNamespace(clean=True, Clean=False)
+    args = SimpleNamespace(clean=True, clean_out=False)
 
     removed, failed = cli_compile._clean(args, state)
     assert [p.as_posix() for p in removed] == ["Auxiliary/main.aux"]
@@ -93,7 +92,7 @@ def test_clean_C_cleans_root_and_outputs(tmp_path, monkeypatch):
     (tmp_path / "Build").mkdir()
     (tmp_path / "Build" / "main.pdf").write_bytes(b"%PDF-1.4\n")
     state = _clean_state(tmp_path)
-    args = SimpleNamespace(clean=False, Clean=True)
+    args = SimpleNamespace(clean=False, clean_out=True)
 
     removed, _failed = cli_compile._clean(args, state)
     names = {p.name for p in removed}
@@ -111,7 +110,7 @@ def test_clean_ca_without_main_removes_aux_only(tmp_path, monkeypatch):
     (tmp_path / "main.xdv").write_text("xdv", encoding="utf-8")
     state = _clean_state(tmp_path)
     state.output_name = ""
-    args = SimpleNamespace(Clean_any=False)
+    args = SimpleNamespace(clean_recursive_out=False)
 
     targets = cli_compile._recursive_clean_targets(args, state)
     names = {p.name for p in targets}
@@ -126,7 +125,7 @@ def test_clean_Ca_includes_outdir_pdf(tmp_path, monkeypatch):
     (tmp_path / "Build" / "main.pdf").write_bytes(b"%PDF-1.4\n")
     (tmp_path / "main.aux").write_text("aux", encoding="utf-8")
     state = _clean_state(tmp_path)
-    args = SimpleNamespace(Clean_any=True)
+    args = SimpleNamespace(clean_recursive_out=True)
     targets = cli_compile._recursive_clean_targets(args, state)
     names = {p.name for p in targets}
     assert {"main.aux", "main.pdf"} <= names
@@ -488,71 +487,11 @@ def test_config_errors_survives_wrong_section_types(tmp_path, monkeypatch):
     assert config_errors(cp.load_config(tmp_path), cp.load_errors)
 
 
-# ---------------------------------------------------------------- P1：LaTeXDiff
-
-
-def test_latexdiff_flatten_preserves_inline_text_and_repeated_include(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "main.tex").write_text(
-        "Before \\input{part} After\nAgain \\input{part}\n", encoding="utf-8"
-    )
-    (tmp_path / "part.tex").write_text("PIECE\n", encoding="utf-8")
-
-    lda = LaTeXDiff_Aux("Build", [".pdf"], [".aux"], "Auxiliary")
-    output = Path(lda.flatten_Latex("main") + ".tex")
-    text = output.read_text(encoding="utf-8")
-    assert text.count("PIECE") == 2, "同一子文件被两个位置正常引用，不能被当作循环只展开一次"
-    assert "Before PIECE After" in text, "命令行两侧的正文被整段丢掉"
-    lda.cleanup()
-
-
-def test_latexdiff_flatten_nested_input_uses_project_root(tmp_path, monkeypatch):
-    """`chapters/intro.tex` 里的 `\\input{chapters/section}` 按主文件目录解析，
-    不能拼成 `chapters/chapters/section.tex`。"""
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "main.tex").write_text("\\input{chapters/intro}\n", encoding="utf-8")
-    (tmp_path / "chapters").mkdir()
-    (tmp_path / "chapters" / "intro.tex").write_text(
-        "INTRO\n\\input{chapters/section}\n", encoding="utf-8"
-    )
-    (tmp_path / "chapters" / "section.tex").write_text("SECTION\n", encoding="utf-8")
-
-    lda = LaTeXDiff_Aux("Build", [".pdf"], [".aux"], "Auxiliary")
-    output = Path(lda.flatten_Latex("main") + ".tex")
-    text = output.read_text(encoding="utf-8")
-    assert "INTRO" in text and "SECTION" in text
-    lda.cleanup()
-
-
-def test_latexdiff_flatten_nested_main_path_uses_cwd(tmp_path, monkeypatch):
-    """主文件本身在子目录时，`\\input` 仍以项目根（cwd）为基准。"""
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "chapters").mkdir()
-    (tmp_path / "chapters" / "main.tex").write_text(
-        "MAIN\n\\input{chapters/section}\n", encoding="utf-8"
-    )
-    (tmp_path / "chapters" / "section.tex").write_text("SECTION\n", encoding="utf-8")
-
-    lda = LaTeXDiff_Aux("Build", [".pdf"], [".aux"], "Auxiliary")
-    output = Path(lda.flatten_Latex("chapters/main") + ".tex")
-    text = output.read_text(encoding="utf-8")
-    assert "MAIN" in text and "SECTION" in text
-    lda.cleanup()
-
-
-def test_latexdiff_flatten_detects_cycle_without_recursing_forever(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "a.tex").write_text("A\n\\input{b}\n", encoding="utf-8")
-    (tmp_path / "b.tex").write_text("B\n\\input{a}\n", encoding="utf-8")
-    lda = LaTeXDiff_Aux("Build", [".pdf"], [".aux"], "Auxiliary")
-    output = Path(lda.flatten_Latex("a") + ".tex")
-    text = output.read_text(encoding="utf-8")
-    assert "A" in text and "B" in text
-    lda.cleanup()
+# ---------------------------------------------------------------- P1：重定向输出
 
 
 def test_redirected_output_failure_keeps_old_file_and_cleans_tmp(tmp_path):
-    """latexdiff 失败时目标保持原样，且不留下 `.<name>.<ns>.tmp`。"""
+    """外部工具失败时目标保持原样，且不留下 `.<name>.<ns>.tmp`。"""
     import os
     import sys
 
@@ -571,19 +510,6 @@ def test_redirected_output_failure_keeps_old_file_and_cleans_tmp(tmp_path):
     assert process.returncode == 1
     assert target.read_text(encoding="utf-8") == "OLD\n"
     assert list(tmp_path.glob(f".{target.name}.*.tmp")) == []
-
-
-def test_latexdiff_does_not_overwrite_user_file(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    (tmp_path / "main.tex").write_text("body\n", encoding="utf-8")
-    user_file = tmp_path / "main-flatten.tex"
-    user_file.write_text("作者自己的文件\n", encoding="utf-8")
-    lda = LaTeXDiff_Aux("Build", [".pdf"], [".aux"], "Auxiliary")
-    output = Path(lda.flatten_Latex("main") + ".tex")
-    assert output != user_file
-    assert output.read_text(encoding="utf-8") == "body\n"
-    assert user_file.read_text(encoding="utf-8") == "作者自己的文件\n"
-    lda.cleanup()
 
 
 # ---------------------------------------------------------------- P1：批量与别名
