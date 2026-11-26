@@ -584,14 +584,6 @@ def _record_output_digests(state: WorkflowState) -> None:
         BuildState(state.auxdir, state.output_name).record_outputs(pdf, sync)
 
 
-def _last_stop_reason(state: WorkflowState) -> str | None:
-    """读取上次落盘的停止原因（构建状态文件不可用时返回 ``None``）。"""
-    try:
-        return BuildState(state.auxdir, state.output_name).last_stop_reason() or None
-    except Exception:
-        return None
-
-
 def _same_directory(left: str | Path, right: str | Path) -> bool:
     """两个目录路径是否指向同一位置（用于避免“自己搬给自己”）。"""
     try:

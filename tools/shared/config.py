@@ -18,11 +18,6 @@ ICO_PATH = TOOLS_DIR / "icon.ico"
 ICNS_PATH = TOOLS_DIR / "icon.icns"
 PNG_PATH = TOOLS_DIR / "icon.png"
 LOGO_SOURCE = ROOT_DIR / "imgs" / "pytexmk-logo.png"
-ENTRY_POINT = SRC_ENTRY_POINT
-CONFIG_DIR = SRC_DIR / "config"
-DATA_DIR = SRC_DATA_DIR
-VENV_NAME = ".venv"
-LANG_EN_DIR = SRC_DIR / "locale" / "en"
 BABEL_CFG_PATH = ROOT_DIR / "babel.cfg"
 POT_DIR = SRC_LOCALE_DIR / "templates"
 if sys.platform == "win32":
@@ -43,18 +38,11 @@ def _read_version():
 
 __version__ = _read_version()
 
-WINGET_PACKAGE_IDENTIFIER = "YanMing-lxb.PyTeXMK"
-WINGET_PUBLISHER = "YanMing-lxb"
-
 __all__ = [
     "BABEL_CFG_PATH",
-    "CONFIG_DIR",
-    "DATA_DIR",
-    "ENTRY_POINT",
     "ICNS_PATH",
     "ICON_FILE",
     "ICO_PATH",
-    "LANG_EN_DIR",
     "LOGO_SOURCE",
     "PNG_PATH",
     "POT_DIR",
@@ -65,9 +53,6 @@ __all__ = [
     "SRC_ENTRY_POINT",
     "SRC_LOCALE_DIR",
     "TOOLS_DIR",
-    "VENV_NAME",
-    "WINGET_PACKAGE_IDENTIFIER",
-    "WINGET_PUBLISHER",
     "__team__",
     "__version__",
 ]
