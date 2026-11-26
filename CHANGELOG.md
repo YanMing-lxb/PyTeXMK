@@ -38,13 +38,15 @@
 - **`-r` 只生成报告**：读取最近一次编译日志，在 `Auxiliary/` 生成 JSON 与 Markdown 报告（Markdown 为 `<主文件>.pytexmk-report.md`），不再触发编译；无日志退出 `1`，Markdown 写入失败退出 `9`。
 - **投稿包默认值**：`-sp` 始终打包全部 `.bib`，默认不含 `.bbl`；期刊要求预编译文献时在 `[submission]` 设 `include_bbl = true`。退出码 `8`（投稿包试编译）随 `--pack-verify` 一起退役，`9` 保留。
 - **配置成为唯一入口**：native、shell_escape、synctex、轮次上限由 `[build]` 控制；投稿输出目录/导言区保留、预检开关分别由 `[submission]`、`[preflight]` 控制。
-- **`-i/-iu` 直接覆盖**：不再需要 `-f`，重复执行会覆盖已有配置文件；普通编译与 `-r` 不会自动创建配置。
+- **CLI 命名统一，不做旧名兼容**：短开关以单字符为主（`-p`/`-x`/`-l`/`-d`/`-c`/`-C`/`-r`/`-w`/`-e`/`-f`/`-i`/`-s` 等），确需语义时才保留两字符（`-nq`/`-ca`/`-Ca`/`-pa`/`-sp`/`-vb`/`-pv`/`-iu`/`-ls`/`-sc`/`-ap`/`-rp`）；长开关统一小写（`--pdflatex`、`--clean-out`、`--clean-recursive`、`--clean-recursive-out`）。`-A` 改为 `-ap`、`-pr` 改为 `-rp`、`-fr` 改为 `-f`，`--pass-arg`/`--watch`/`--explain`/`--show-config` 新增 `-pa`/`-w`/`-e`/`-sc`。`--interaction` 删除，`-interaction` 只由 `[build] interaction` 决定。旧写法一律按未知参数退出 `2`，不提供别名。
+- **LaTeXDiff 功能移除**：`-dc`、`--LaTeXDiff`、`--LaTeXDiff-compile`、`--diff-style` 与 `[latexdiff]` 配置段一并删除（含新旧文件、差异稿名、显示风格）；`-d` 改作草稿模式短开关。这些旧开关已不存在，继续使用退出 `2`（长开关按未知参数拦截，`-dc` 按合并短开关拦下）。需要对比稿时请用 latexdiff 自行生成 `LaTeXDiff.tex`，再 `pytexmk LaTeXDiff` 编译。
+- **`-i/-iu` 直接覆盖**：不再需要额外的强制确认开关，重复执行会覆盖已有配置文件；普通编译与 `-r` 不会自动创建配置。
 - **`-ls` 会写回**：列出并同步根配置 `[subprojects]`；配置缺失时先用模板创建再写入。
 - **安静模式**：`-q` 移除，默认是否安静由配置 `quiet_mode` 决定；`-nq` 仅临时打开实时输出。`-interaction` 不再随安静模式变化，默认恒为 `nonstopmode`。
 
 ### 🚀 亮点
 
-- **`-dr` 恢复**：草稿模式现在真的会加 `draft` 并在编译结束后摘除；异常中断留下的标记可在下次运行自愈。
+- **`-d` 成为草稿短开关**：`-dr` 删除，草稿模式改用 `-d`（`-d` 此前是差异对比，现让位给草稿模式）。草稿模式现在真的会加 `draft` 并在编译结束后摘除；异常中断留下的标记可在下次运行自愈。照旧写 `-dr` 会被合并短开关检查拦下并退出 `2`。
 - **交付不再假成功**：旧 PDF、零页或损坏 PDF、归档/搬移失败都会明确报错；`outdir` 与 `auxdir` 同一目录时不会再把刚生成的 PDF 删掉。
 - **诊断统一版式**：成功与失败摘要都按「等级 + 分类」分组，逐条给出 `file:line`、建议与可执行命令；`-r` 额外生成 Markdown 报告。
 - **启动更快、默认零联网**：`pytexmk --version` 不再导入完整 CLI，也不做更新检查。
@@ -54,9 +56,8 @@
 
 **编译与产物**
 
-- 草稿模式修复后，`-dr` 在 RUN 与 `-d/-dc` 两条路径都生效；非 UTF-8 源文件只报可读错误，不改写文件。
-- LaTeXDiff：不再把 stderr 告警混进差异稿；native 构建不再对不存在的 `.xdv` 调 `dvipdfmx`；差异稿原子替换，失败不毁旧文件；`\import` 等宏包命令按语义展开，循环引用安全终止。
-- SyncTeX：取样行从正文开始，支持 `\input`/`\include` 子文件；明文 `.synctex` 与 `.gz` 一样归档、校验和清理；缺产物会触发重编并给出 `-fr` 提示。
+- 草稿模式修复后，`-d` 正常生效；非 UTF-8 源文件只报可读错误，不改写文件。
+- SyncTeX：取样行从正文开始，支持 `\input`/`\include` 子文件；明文 `.synctex` 与 `.gz` 一样归档、校验和清理；缺产物会触发重编并给出 `-f` 提示。
 - PDF 修复只处理项目内被真实引用的文件，失败保留原件；辅助文件自愈不再把注释里的花括号误判成截断。
 - 投稿包强制包含主入口 `.tex` 与项目内全部 `.bib`；原样模式按字节复制，不再把 CRLF 归一成 LF。
 
@@ -78,17 +79,17 @@
 **诊断与输出**
 
 - 成功/失败摘要统一分组版式，警告与错误按类别折叠，附建议和可直接执行的命令；日志缺失或解析失败不再当成「零警告」。
-- 计时口径修正：多轮 BibTeX/makeindex 累加而不是覆盖；工具调用次数单独列出。
+- 计时口径修正：多轮 BibTeX/makeindex 累加而不是覆盖；编译结束只打印各步骤时长与总计。
 - 帮助页固定 96 列，不再随超宽终端拉伸；移除退出码表，改为出错时直接说明原因与下一步；魔法注释说明明确「只扫描主文件前 50 行」。
 - 终端日志按宽度折行，续行与正文首列对齐；安静模式只打一行静态进度，不再转圈，也不会因终端写阻塞而卡死。
 
 **CLI 与配置**
 
-- `-A` 按 `[subprojects]` 书写顺序编译，不继承 `--watch`，失败不中断其余项目，最终以首个失败子项目的退出码结束。
+- `-ap` 按 `[subprojects]` 书写顺序编译，不继承 `-w`，失败不中断其余项目，最终以首个失败子项目的退出码结束。
 - `-s` 支持叶子目录名、大小写不敏感与反斜杠；未知别名退出 `3`。
 - `-ls` 写回时保留手写别名、注释与原顺序；写盘失败以配置错误 `4` 退出。
 - 配置段类型错误、TOML 语法错误以退出码 `4` 结束并说明位置，不再抛 traceback。
-- `-d/-dc` 可省略文件名（沿用 `[latexdiff]` 的 old/new），也可 `-d OLD NEW` 直接给两个文件。
+- 短开关不再被 argparse 合并或缩写：`-dc`、`-dr`、`-cr` 这类写法会直接报错并要求分开书写（退出 `2`），不会再被拆成 `-d -c`（草稿 + 清理）或 `-d -r` 两个动作；`allow_abbrev=False` 让 `-n`、`--draf` 这类前缀写法直接报未知参数（退出 `2`），不会静默等于 `-nq`、`--draft`。
 
 **平台与打包**
 
@@ -98,11 +99,11 @@
 
 ### ✅ 验证
 
-- `python -m pytest -q tests`：**605 passed**。
+- `python -m pytest -q tests`：**594 passed**（Windows；WSL Linux **593 passed + 1 skipped**，跳过项为仅 Windows 的 `SetDllDirectoryW`）。
 - `ruff check --config pyproject.toml src tests`：`All checks passed!`。
 - `python -m compileall -q src\pytexmk`：通过。
 - `python -m pytexmk.cli --version`：`PyTeXMK 1.2.18`。
-- 真机 MiKTeX 验证：`-x` 编译、`-dr` 草稿、`-d/-dc` 对比稿、xindy/glossaries、投稿包与 `-r` 报告均通过。
+- 真机 MiKTeX 验证：`-x -f -nq` 编译成功并产出 PDF；`-e`/`-sc`/`-pa=-8bit -e` 正常；`-dr`、`-dc`、`-A`、`-pr`、`-fr`、`-n`、`--interaction`、`--PdfLaTeX`、`--LaTeXDiff`、`--diff-style` 均退出 `2`。
 
 ## v1.2.17 - 2026-11-16
 

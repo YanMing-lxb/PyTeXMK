@@ -70,8 +70,9 @@
 
 - 🧹 **Smart cleanup**: Multiple clean modes for precise auxiliary file removal by directory scope or file suffix
 - 🔍 **Log parsing**: Auto-parse LaTeX logs on failure to locate error positions
-- 📝 **LaTeXDiff**: Diff two LaTeX files, producing a PDF with revision marks
 - 🖼 **PDF repair & preview**: Auto-repair corrupted PDFs; open default viewer after compilation
+
+> Diff comparison is no longer built in: since 1.2.18, run `latexdiff old.tex new.tex > LaTeXDiff.tex` yourself, then `pytexmk LaTeXDiff`.
 
 ### Configuration & Extensibility
 
@@ -105,7 +106,7 @@ Before installing PyTeXMK, make sure your system has the following:
 3. **Optional tools** (install as needed):
    - `biber` (biblatex backend for bibliography processing)
    - `xindy` (glossaries backend for glossary compilation)
-   - `latexdiff` (LaTeX file diff comparison)
+   - `latexdiff` (only needed when you generate diff files manually)
 
 ### Installation
 
@@ -245,19 +246,23 @@ pytexmk -c
 
 | Option | Description |
 | --- | --- |
-| `-p`, `--PdfLaTeX` | Compile with PdfLaTeX |
-| `-x`, `--XeLaTeX` | Compile with XeLaTeX (default) |
-| `-l`, `--LuaLaTeX` | Compile with LuaLaTeX |
-| `-dr`, `--draft` | Draft mode: compile without including images (faster) |
+| `-p`, `--pdflatex` | Compile with PdfLaTeX |
+| `-x`, `--xelatex` | Compile with XeLaTeX (default) |
+| `-l`, `--lualatex` | Compile with LuaLaTeX |
+| `-d`, `--draft` | Draft mode: compile without including images (faster) |
+| `-f`, `--force-rebuild` | Ignore the build cache and recompile |
 | `-nq`, `--non-quiet` | Non-quiet mode: stream the compilation log to the terminal (overrides `quiet_mode = true`; does **not** change `-interaction`) |
 | `-vb`, `--verbose` | Verbose mode: INFO-level workflow logs (same as 1.2.7, never DEBUG; quiet mode does not change the log level) |
-| `--interaction MODE` | Override `-interaction` (`batchmode`/`nonstopmode`/`scrollmode`/`errorstopmode`; default `nonstopmode`) |
-| `--pass-arg ARG` | Pass an extra argument to the TeX engine (repeatable) |
-| `--watch` | Watch sources and recompile automatically (1s poll, 400ms debounce, Ctrl+C to stop) |
-| `-A`, `--all-subprojects` | Compile every `[subprojects]` entry in order, continue on failure, summarize and exit non-zero |
-| `-r` | Read the latest log and write `Auxiliary/<main>.pytexmk-report.json` plus a matching `.md`; does not compile |
-| `--explain` | Print the effective build plan (including the absolute PDF path) and exit without compiling |
-| `--show-config` | Print the merged configuration (default < user < project) |
+| `-pa ARG`, `--pass-arg ARG` | Pass an extra argument to the TeX engine (repeatable, e.g. `-pa=-8bit`) |
+| `-w`, `--watch` | Watch sources and recompile automatically (1s poll, 400ms debounce, Ctrl+C to stop) |
+| `-ap`, `--all-subprojects` | Compile every `[subprojects]` entry in order, continue on failure, summarize and exit non-zero |
+| `-r`, `--report` | Read the latest log and write `Auxiliary/<main>.pytexmk-report.json` plus a matching `.md`; does not compile |
+| `-e`, `--explain` | Print the effective build plan (including the absolute PDF path) and exit without compiling |
+| `-sc`, `--show-config` | Print the merged configuration (default < user < project) |
+
+> TeX's `-interaction` is controlled only by `[build] interaction`; the CLI no longer offers this switch.
+>
+> Short options are single-character by default; two-character names remain only where the semantics need them (`-nq`/`-ca`/`-Ca`/`-pa`/`-sp`/`-vb`/`-pv`/`-iu`/`-ls`/`-sc`/`-ap`/`-rp`). Short options cannot be clustered (`-dc` and the like exit `2`).
 
 Build switches live in the config file; the CLI no longer duplicates them:
 
@@ -317,36 +322,19 @@ Submission directory and preamble handling moved to `[submission]`:
 | Option | Description |
 | --- | --- |
 | `-c`, `--clean` | Clean the current main file's auxiliary files (auxiliary dir only) |
-| `-C`, `--Clean` | Clean auxiliary files (auxiliary dir + root) and remove PDF/SyncTeX from the output dir |
-| `-ca`, `--clean-any` | Recursively clean auxiliary files across the project (no unique main file required) |
-| `-Ca`, `--Clean-any` | Recursively clean auxiliary files; also removes main-file outputs when the main file is known |
+| `-C`, `--clean-out` | Clean auxiliary files (auxiliary dir + root) and remove PDF/SyncTeX from the output dir |
+| `-ca`, `--clean-recursive` | Recursively clean auxiliary files across the project (no unique main file required) |
+| `-Ca`, `--clean-recursive-out` | Recursively clean auxiliary files; also removes main-file outputs when the main file is known |
 
 - `-c/-C` need a unique main file; multiple candidates without `default_file` exit `1`.
 - `-ca/-Ca` match by suffix, skip `tests/`, `examples/`, `dist/`, `docs/`, `.venv`;
   `.bbl`, `.xdv` and `.xdy` are treated as artifacts, with no “possibly author-owned” list.
 
-### LaTeXDiff Comparison
-
-| Option | Description |
-| --- | --- |
-| `-d`, `--LaTeXDiff` | Generate a diff between two files, output `LaTeXDiff.tex` |
-| `-dc`, `--LaTexDiff-compile` | Generate the diff file and compile it, producing a PDF with revision marks |
-| `--diff-style {1,2}` | Diff style: 1 shows bibliography/glossary changes, 2 hides them; non-interactive defaults to 2 |
-
-**Example**:
-
-```bash
-pytexmk -d old.tex new.tex     # Generate LaTeXDiff.tex
-pytexmk -dc old.tex new.tex    # Generate and compile LaTeXDiff PDF
-```
-
-> Supports showing change traces in references and symbol indexes. Interactive terminals prompt for a style; non-interactive defaults to 2 (`--diff-style` overrides).
-
 ### PDF Tools
 
 | Option | Description |
 | --- | --- |
-| `-pr`, `--pdf-repair` | Repair corrupted PDF files (e.g. `invalid X X R object` warnings caused by bad images) |
+| `-rp`, `--pdf-repair` | Repair corrupted PDF files (e.g. `invalid X X R object` warnings caused by bad images) |
 | `-pv`, `--pdf-preview` | Open browser or local PDF viewer after compilation |
 
 ### Multi-Subproject Management

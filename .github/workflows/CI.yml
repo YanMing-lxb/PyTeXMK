@@ -48,19 +48,19 @@ jobs:
           \usepackage{amsmath}
           \begin{document}
           \section{Intro}\label{sec:intro}
-          See \ref{sec:intro}. Unicode: $\alpha \leq \beta$, 25°C, café.
+          See \ref{sec:intro}. Unicode: α ≤ β, 25°C, café.
           \end{document}
           TEX
-          uv run --project "$GITHUB_WORKSPACE" pytexmk main -fr
+          uv run --project "$GITHUB_WORKSPACE" pytexmk main -f
           test -f Build/main.pdf
           test ! -e main.aux
-          uv run --project "$GITHUB_WORKSPACE" pytexmk main -fr -sp
+          uv run --project "$GITHUB_WORKSPACE" pytexmk main -f -sp
           test -f Submission/main-submission.zip
           UNPACKED="$(mktemp -d)"
           unzip -q Submission/main-submission.zip -d "$UNPACKED"
           cd "$UNPACKED"
           grep -Fq '\ensuremath{\alpha}' main.tex
-          uv run --project "$GITHUB_WORKSPACE" pytexmk main -p -fr
+          uv run --project "$GITHUB_WORKSPACE" pytexmk main -p -f
           test -s Build/main.pdf
 
   build-binary:

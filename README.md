@@ -70,8 +70,9 @@
 
 - 🧹 **智能清理**：多种清理模式，支持按目录范围和文件后缀精确清理辅助文件
 - 🔍 **日志解析**：编译失败后自动解析 LaTeX 日志，定位错误位置
-- 📝 **LaTeXDiff**：两个 LaTeX 文件差异对比，生成带修订标记的 PDF
 - 🖼 **PDF 修复与预览**：损坏 PDF 自动修复，编译后自动预览
+
+> 差异对比不再内置：1.2.18 起请用 `latexdiff old.tex new.tex > LaTeXDiff.tex` 自行生成差异稿，再 `pytexmk LaTeXDiff` 编译。
 
 ### 配置与扩展
 
@@ -105,7 +106,7 @@
 3. **可选工具**（按需安装）：
    - `biber`（biblatex 后端，用于参考文献处理）
    - `xindy`（glossaries 后端，用于术语表编译）
-   - `latexdiff`（LaTeX 文件差异对比）
+   - `latexdiff`（仅在需要手动生成差异稿时使用）
 
 ### 安装
 
@@ -244,19 +245,23 @@ pytexmk -c
 
 | 选项 | 说明 |
 | --- | --- |
-| `-p`, `--PdfLaTeX` | 使用 PdfLaTeX 编译 |
-| `-x`, `--XeLaTeX` | 使用 XeLaTeX 编译（默认） |
-| `-l`, `--LuaLaTeX` | 使用 LuaLaTeX 编译 |
-| `-dr`, `--draft` | 草稿模式，编译时不包含图片（加速） |
+| `-p`, `--pdflatex` | 使用 PdfLaTeX 编译 |
+| `-x`, `--xelatex` | 使用 XeLaTeX 编译（默认） |
+| `-l`, `--lualatex` | 使用 LuaLaTeX 编译 |
+| `-d`, `--draft` | 草稿模式，编译时不包含图片（加速） |
+| `-f`, `--force-rebuild` | 忽略构建缓存，强制重新编译 |
 | `-nq`, `--non-quiet` | 非安静模式：编译过程日志实时输出到终端（覆盖配置里的 `quiet_mode = true`；**不影响** `-interaction`） |
 | `-vb`, `--verbose` | 详细模式：控制台显示 INFO 级流程日志（与 1.2.7 口径一致，不会升到 DEBUG；安静模式也不改变日志级别） |
-| `--interaction MODE` | 覆盖 `-interaction`（`batchmode`/`nonstopmode`/`scrollmode`/`errorstopmode`；缺省 `nonstopmode`） |
-| `--pass-arg ARG` | 透传额外参数给 TeX 引擎，可重复 |
-| `--watch` | 监视源文件变化并自动重编译（轮询 1s，去抖 400ms，Ctrl+C 退出） |
-| `-A`, `--all-subprojects` | 按根配置 `[subprojects]` 顺序编译全部子项目，失败继续、最后汇总并非零退出 |
-| `-r` | 只读最近一次编译日志，生成 `Auxiliary/<主文件>.pytexmk-report.json` 与同名 `.md`；不触发编译 |
-| `--explain` | 只打印本次编译的有效配置与决策（最终 PDF 绝对路径），不编译 |
-| `--show-config` | 打印合并后的完整配置（默认 < 用户 < 项目） |
+| `-pa ARG`, `--pass-arg ARG` | 透传额外参数给 TeX 引擎，可重复（如 `-pa=-8bit`） |
+| `-w`, `--watch` | 监视源文件变化并自动重编译（轮询 1s，去抖 400ms，Ctrl+C 退出） |
+| `-ap`, `--all-subprojects` | 按根配置 `[subprojects]` 顺序编译全部子项目，失败继续、最后汇总并非零退出 |
+| `-r`, `--report` | 只读最近一次编译日志，生成 `Auxiliary/<主文件>.pytexmk-report.json` 与同名 `.md`；不触发编译 |
+| `-e`, `--explain` | 只打印本次编译的有效配置与决策（最终 PDF 绝对路径），不编译 |
+| `-sc`, `--show-config` | 打印合并后的完整配置（默认 < 用户 < 项目） |
+
+> TeX 的 `-interaction` 只由配置 `[build] interaction` 决定，命令行不再提供该开关。
+>
+> 短开关以单字符为主；只有语义需要时才保留两字符（`-nq`/`-ca`/`-Ca`/`-pa`/`-sp`/`-vb`/`-pv`/`-iu`/`-ls`/`-sc`/`-ap`/`-rp`）。短开关不能合并书写（`-dc` 这类会退出 `2`）。
 
 构建类开关只放在配置文件里，命令行不再重复提供：
 
@@ -313,36 +318,19 @@ CI 建议直接使用退出码：编译成功为 `0`，编译失败为 `5`；需
 | 选项 | 说明 |
 | --- | --- |
 | `-c`, `--clean` | 清除当前主文件的辅助文件（仅辅助目录） |
-| `-C`, `--Clean` | 清除当前主文件的辅助文件（辅助目录 + 根目录），并删除输出目录里的 PDF/SyncTeX |
-| `-ca`, `--clean-any` | 递归清理全项目的辅助文件（不要求唯一主文件） |
-| `-Ca`, `--Clean-any` | 递归清理全项目的辅助文件；能确定主文件时额外删除主文件输出 |
+| `-C`, `--clean-out` | 清除当前主文件的辅助文件（辅助目录 + 根目录），并删除输出目录里的 PDF/SyncTeX |
+| `-ca`, `--clean-recursive` | 递归清理全项目的辅助文件（不要求唯一主文件） |
+| `-Ca`, `--clean-recursive-out` | 递归清理全项目的辅助文件；能确定主文件时额外删除主文件输出 |
 
 - `-c/-C` 需要唯一主文件；根目录有多个主文件又没有 `default_file` 时直接退出 `1`。
 - `-ca/-Ca` 按后缀递归清理，跳过 `tests/`、`examples/`、`dist/`、`docs/`、`.venv`
   等依赖/示例目录；`.bbl`、`.xdv`、`.xdy` 也按产物处理，不再保留“可能属于作者”的清单。
 
-### LaTeXDiff 差异对比
-
-| 选项 | 说明 |
-| --- | --- |
-| `-d`, `--LaTeXDiff` | 生成两个文件的差异对比，输出 `LaTeXDiff.tex` |
-| `-dc`, `--LaTexDiff-compile` | 生成差异文件并自动编译，输出带修订标记的 PDF |
-| `--diff-style {1,2}` | 差异风格：1 显示参考文献/符号说明修改，2 不显示；非交互环境默认 2 |
-
-**示例**：
-
-```bash
-pytexmk -d old.tex new.tex     # 生成 LaTeXDiff.tex
-pytexmk -dc old.tex new.tex    # 生成并编译 LaTeXDiff PDF
-```
-
-> 支持在参考文献和符号索引中显示修改痕迹；交互终端会提示选择风格，非交互环境默认风格 2（可用 `--diff-style` 指定）。
-
 ### PDF 工具
 
 | 选项 | 说明 |
 | --- | --- |
-| `-pr`, `--pdf-repair` | 修复损坏的 PDF 文件（如图片导致的 `invalid X X R object` 警告） |
+| `-rp`, `--pdf-repair` | 修复损坏的 PDF 文件（如图片导致的 `invalid X X R object` 警告） |
 | `-pv`, `--pdf-preview` | 编译完成后调用浏览器或本地 PDF 阅读器预览 |
 
 ### 多子项目管理
