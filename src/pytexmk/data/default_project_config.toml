@@ -12,7 +12,7 @@ compiled_program = "XeLaTeX"
 
 # 安静模式（true 表示不把 TeX 编译过程输出到终端；
 # 只影响子进程输出与控制台回显，不改变 TeX 的 -interaction；
-# 需要 batchmode 请用 --interaction batchmode）
+# 需要 batchmode 请在 [build] 段设置 interaction = "batchmode"）
 quiet_mode = true
 
 # ---- 目录 ------------------------------------------------------
@@ -51,12 +51,6 @@ shell_escape = "auto"      # auto | true | false：minted/pythontex/\write18 才
 synctex = true             # 是否生成 .synctex.gz（关闭后编辑器无法正/反向跳转）
 interaction = ""           # batchmode | nonstopmode | errorstopmode（留空 = nonstopmode，与安静模式无关）
 max_extra_compilations = 8 # 额外编译轮次上限
-
-# ---- LaTeXDiff -------------------------------------------------
-[latexdiff]
-old_tex_file = "old_file"
-new_tex_file = "new_file"
-diff_tex_file = "LaTeXDiff"
 
 # ---- 子项目清单（由 pytexmk -ls 维护） -------------------------
 # 通常无需手写：`pytexmk -ls` 会列出子项目并写回本段；

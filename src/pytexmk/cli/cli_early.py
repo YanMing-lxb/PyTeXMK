@@ -51,7 +51,7 @@ def handle(args, cp: ConfigParser, logger) -> None:
 def _list_subprojects(cp: ConfigParser) -> None:
     """发现子项目，输出清单并写回根配置的 ``[subprojects]`` 段。
 
-    写回会保留手写别名、段内注释与原有条目次序，避免一次同步改变 ``-A``
+    写回会保留手写别名、段内注释与原有条目次序，避免一次同步改变 ``-ap``
     的编译顺序。配置缺失时先用内置模板创建根配置，再写入清单；配置解析
     失败以配置错误码退出，绝不用默认配置覆盖用户文件。
     """

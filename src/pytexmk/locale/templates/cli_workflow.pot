@@ -178,7 +178,7 @@ msgstr ""
 msgid "检测到 %(n)s 个被中断的编译留下的损坏辅助文件，已删除并将在本次编译中重建。"
 msgstr ""
 
-msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。"
+msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-f[/bold cyan]）。"
 msgstr ""
 
 #, python-format
@@ -339,26 +339,8 @@ msgstr ""
 msgid "通过配置文件设置 glossaries 工具为: "
 msgstr ""
 
-msgid "通过配置文件设置 LaTeXDiff 旧文件为: "
-msgstr ""
-
-msgid "通过配置文件设置 LaTeXDiff 新文件为: "
-msgstr ""
-
-msgid "通过配置文件设置 LaTeXDiff 对比文件为: "
-msgstr ""
-
 #, python-format
 msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
-msgstr ""
-
-msgid "命令行未指定 LaTeXDiff 相关参数"
-msgstr ""
-
-msgid "根据配置文件设置 LaTeXDiff 新 TeX 文件为: "
-msgstr ""
-
-msgid "根据配置文件设置 LaTeXDiff 旧 TeX 文件为: "
 msgstr ""
 
 msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
@@ -382,58 +364,7 @@ msgstr ""
 msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]"
 msgstr ""
 
-msgid "不能对同一个文件进行比较, 请检查文件名是否正确"
-msgstr ""
-
-msgid "LaTeXDiff 预处理"
-msgstr ""
-
-msgid "LaTeXDiff 运行"
-msgstr ""
-
-msgid "LaTeXDiff 后处理"
-msgstr ""
-
-msgid "清理压平临时文件..."
-msgstr ""
-
-msgid "开始预处理命令"
-msgstr ""
-
-msgid ""
-"请输入正确的选项 (1 或者 2)\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改"
-msgstr ""
-
 msgid "移动结果文件到输出目录..."
-msgstr ""
-
-msgid "LaTeXDiff 编译出错: "
-msgstr ""
-
-msgid "非交互环境，LaTeXDiff 使用默认风格 2"
-msgstr ""
-
-msgid ""
-"请输入 LaTeXDiff 的显示风格：\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改\n"
-"请选择 (1 或者 2，直接回车默认 2): "
-msgstr ""
-
-msgid "未读取到输入，使用默认风格 2"
-msgstr ""
-
-msgid "风格只能是 1 或 2，收到: "
-msgstr ""
-
-#, python-format
-msgid "%(args)s 的辅助文件存在"
-msgstr ""
-
-#, python-format
-msgid "%(args)s 的辅助文件不存在，差异结果可能缺少参考文献/索引内容"
 msgstr ""
 
 msgid "无法确定主文件，不能定位最近一次编译日志"

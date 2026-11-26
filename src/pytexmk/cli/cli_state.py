@@ -62,11 +62,6 @@ class WorkflowState:
     extra_args: list[str] = field(default_factory=list)
     max_extra_compilations: int = 8
 
-    # ── LaTeXDiff 专属 ──
-    old_tex_file: str = "old_file"
-    new_tex_file: str = "new_file"
-    diff_tex_file: str = "LaTeXDiff"
-
     # ── 投稿打包（[submission] 段，`-sp` 使用）──
     submission_unicode_to_latex: bool = True   # 生成 pdflatex 可编译的 Unicode 转换副本
     submission_include_bbl: bool = False       # 附带已编译的 .bbl（默认只带 .bib）
@@ -85,8 +80,7 @@ class WorkflowState:
     def refresh_file_lists(self, name: str | None = None) -> None:
         """按 ``name``（缺省 ``output_name``）重算输出/辅助文件清单。
 
-        新增后缀只在 ``layout`` 里加一次，两个调用点（常规编译与 latexdiff）
-        都走这里，避免漏改其中一处（历史上 latexdiff 分支就漏过）。
+        新增后缀只在 ``layout`` 里加一次，所有调用点都走这里，避免漏改其中一处。
         """
         base = name if name is not None else self.output_name
         self.out_files = [f"{base}{suffix}" for suffix in SUFFIXES_OUT]
@@ -118,8 +112,3 @@ class WorkflowState:
     mfo: MainFileOperation = field(default_factory=MainFileOperation)
     mro: FileMoveRemoveManager = field(default_factory=FileMoveRemoveManager)
     pfo: PdfFileOperation = field(default_factory=PdfFileOperation)
-
-    @property
-    def is_latexdiff(self) -> bool:
-        """是否进入 LaTeXDiff 流程：命令行出现 -d / -dc 即为真（含未给文件名的情况）。"""
-        return self.args.LaTeXDiff is not None or self.args.LaTeXDiff_compile is not None

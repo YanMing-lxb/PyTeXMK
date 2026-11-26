@@ -206,9 +206,9 @@ class FileMoveRemoveManager:
         patterns 既可以是已编译的 re.Pattern（state.aux_regex_files 上游已编译过），
         也可以是字符串；re.compile() 对前者原样返回，因此无需再判断类型。
 
-        源目录不存在时返回 0 而不是抛 FileNotFoundError：首次使用 `-d/-dc`（尚未
-        编译过、没有 Auxiliary/）或用户手工删掉辅助目录时，这里原本会把一条
-        WinError 3 抛到 `time_count`，整条 latexdiff 流程以退出码 1 崩掉。
+        源目录不存在时返回 0 而不是抛 FileNotFoundError：首次编译（尚未产生
+        Auxiliary/）或用户手工删掉辅助目录时，这里原本会把一条 WinError 3 抛到
+        `time_count`，整条流程以退出码 1 崩掉。
         """
         src_folder_path = Path(src_folder)
         dest_folder_path = Path(dest_folder)

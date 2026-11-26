@@ -130,7 +130,7 @@ load_messages() {
         M_DONE='安装完成：%s\n   升级：重跑本脚本即可（自动就地替换）\n   卸载：rm -rf %s %s'
         M_UV_DONE='安装完成：通过 uv 安装，启动器位于 %s\n   升级：uv tool upgrade %s\n   卸载：uv tool uninstall %s'
         M_RUN_FAIL='已安装但当前环境无法启动。Linux 二进制要求 glibc ≥ 2.28（Ubuntu 20.04+ / Debian 10+ / RHEL 8+），\n   旧系统请改用：uv tool install pytexmk'
-        M_TEX='提示：PyTeXMK 需要系统已安装 LaTeX 发行版（TeX Live / MiKTeX / MacTeX），以及可选的 biber、xindy、latexdiff。'
+        M_TEX='提示：PyTeXMK 需要系统已安装 LaTeX 发行版（TeX Live / MiKTeX / MacTeX），以及可选的 biber、xindy。'
     else
         M_DEPS='Missing dependency: %s. Install it first (e.g. sudo apt install %s)'
         M_OS='Unsupported operating system: %s. Use pip / uv instead'
@@ -156,7 +156,7 @@ load_messages() {
         M_PATH='%s is not on your PATH. Add it to your shell profile (~/.bashrc or ~/.zshrc):\n   export PATH="%s:$PATH"\n   (open a new terminal or source the file afterwards)'
         M_DONE='Installation complete: %s\n   upgrade:   re-run this script (in-place)\n   uninstall: rm -rf %s %s'
         M_RUN_FAIL='Installed, but it cannot start in this environment. The Linux binary needs glibc >= 2.38 (Ubuntu 24.04+ / Debian 13+);\n   on older systems use: uv tool install pytexmk'
-        M_TEX='Note: PyTeXMK requires a LaTeX distribution (TeX Live / MiKTeX / MacTeX), plus optional biber, xindy and latexdiff.'
+        M_TEX='Note: PyTeXMK requires a LaTeX distribution (TeX Live / MiKTeX / MacTeX), plus optional biber and xindy.'
     fi
 }
 

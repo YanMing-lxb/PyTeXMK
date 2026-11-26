@@ -46,12 +46,6 @@ msgstr ""
 msgid "用 LuaLaTeX 编译"
 msgstr ""
 
-msgid "生成 LaTeXDiff 对比稿：写 -d OLD NEW；省略文件名时用配置中的 old/new。两个文件名须紧跟 -d"
-msgstr ""
-
-msgid "生成 LaTeXDiff 对比稿并编译；文件名写法同 -d，省略时用配置中的 old/new"
-msgstr ""
-
 msgid "草稿模式：跳过图片加载，编译更快"
 msgstr ""
 
@@ -70,10 +64,7 @@ msgstr ""
 msgid "实时显示 TeX/biber/makeindex 的输出"
 msgstr ""
 
-msgid "传给引擎的 -interaction 模式"
-msgstr ""
-
-msgid "向引擎追加一个参数，可重复（如 --pass-arg=-8bit）"
+msgid "向引擎追加一个参数，可重复（如 -pa=-8bit）"
 msgstr ""
 
 msgid "生成期刊投稿包 zip（按 .fls 收集依赖，并处理 Unicode）"
@@ -95,9 +86,6 @@ msgid "编译根配置 \\[subprojects] 中的全部子项目"
 msgstr ""
 
 msgid "投稿包同时包含 .bib 源文件（默认只带 .bbl）"
-msgstr ""
-
-msgid "LaTeXDiff 显示风格；非交互默认 2"
 msgstr ""
 
 msgid "显示详细运行信息"
@@ -127,3 +115,6 @@ msgstr ""
 msgid "待编译主文件名"
 msgstr ""
 
+#, python-format
+msgid "不支持把短开关合并写成 %(token)s，请分开书写（如 -d -c）"
+msgstr ""

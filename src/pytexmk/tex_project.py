@@ -229,7 +229,7 @@ class MainFileOperation:
             记录的文件，不碰作者自己写的 draft；没有标记就什么都不做。
 
         旧实现用两个布尔量分工（``draft_run`` 管执行、``draft_judgement`` 管加不加），
-        调用方漏传一半就会静默失效，``-dr`` 曾因此整条路径不生效。
+        调用方漏传一半就会静默失效，``-d`` 曾因此整条路径不生效。
         """
         marker = Path(auxdir) / ".pytexmk-draft"
 

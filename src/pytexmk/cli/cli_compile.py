@@ -57,7 +57,7 @@ def clean_recursive(args, state: WorkflowState) -> None:
     removed, failed = state.mro.remove_paths(targets)
     state.runtime_dict["clear_all_aux_auxdir"] = 0
 
-    if getattr(args, "Clean_any", False):
+    if getattr(args, "clean_recursive_out", False):
         console.print(
             _("[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]")
         )
@@ -95,7 +95,7 @@ def _recursive_clean_targets(args, state: WorkflowState) -> list[Path]:
     for path in iter_matched_files(".", state.aux_regex_files):
         targets.append(path)
 
-    if getattr(args, "Clean_any", False) and state.output_name:
+    if getattr(args, "clean_recursive_out", False) and state.output_name:
         outdir = Path(state.outdir)
         for name in state.out_files:
             candidate = outdir / name
@@ -213,7 +213,7 @@ def _clean(args, state: WorkflowState) -> tuple[list[Path], list[tuple[Path, str
 
     # -c 只看辅助目录；-C 再连同项目根目录里的同名副本一起清理。
     folders = [state.auxdir]
-    if args.Clean and not _same_directory(state.auxdir, "."):
+    if args.clean_out and not _same_directory(state.auxdir, "."):
         folders.append(".")
 
     targets: list[Path] = []
@@ -238,7 +238,7 @@ def _clean(args, state: WorkflowState) -> tuple[list[Path], list[tuple[Path, str
     # 构建基线必须同步作废：否则下次编译会把"已删除的产物"误判为"未变动"
     _discard_build_state(state)
 
-    if args.Clean:
+    if args.clean_out:
         out_targets: list[Path] = []
         if state.output_name:
             for name in state.out_files:
@@ -636,13 +636,11 @@ def _apply_build_overrides(
 ) -> None:
     """把命令行构建参数合进 state（命令行优先级最高）。
 
-    构建类开关（native / shell_escape / synctex / 轮次上限）只由配置文件
-    驱动；命令行只剩 ``--interaction`` 与 ``--pass-arg`` 两项。
+    构建类开关（native / shell_escape / synctex / interaction / 轮次上限）只由
+    配置文件驱动；命令行只剩 ``-pa/--pass-arg`` 一项。
 
     side_effects=False 供只读入口使用。旧 SyncTeX 由归档流程在新 PDF 发布后清理。
     """
-    if getattr(args, "interaction", None):
-        state.interaction = args.interaction
     if getattr(args, "extra_args", None):
         state.extra_args.extend(str(a) for a in args.extra_args)
     if not state.synctex and side_effects:
@@ -791,7 +789,7 @@ def _can_skip_compile(args, state: WorkflowState) -> bool:
       3. 构建产物摘要与上次基线一致；
       4. PDF **与 .synctex.gz 都在** outdir 里 —— 只查 PDF 会漏掉“编辑器清理脚本
          删了 synctex.gz”的情形，那样跳过后永远不会自愈，跳转一直是死的。
-    用户显式指定 ``-fr/--force-rebuild`` 或 ``-dr/--draft`` 时永不跳过。
+    用户显式指定 ``-f/--force-rebuild`` 或 ``-d/--draft`` 时永不跳过。
     """
     if getattr(args, "force_rebuild", False) or getattr(args, "draft", False):
         return False
@@ -910,7 +908,7 @@ def _report_skipped_compile(state: WorkflowState) -> None:
     """源文件未改动时给出明确提示，让用户知道"没编译"是刻意为之。"""
     console.print(
         "[bold green]"
-        + _("源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。")
+        + _("源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-f[/bold cyan]）。")
         + "[/bold green]"
     )
     pdf_path = Path(state.outdir) / f"{state.output_name}.pdf"

@@ -45,11 +45,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "index_style_file": "nomencl.ist",
         "glossaries_tool": "makeindex",
     },
-    "latexdiff": {
-        "old_tex_file": "old_file",
-        "new_tex_file": "new_file",
-        "diff_tex_file": "LaTeXDiff",
-    },
     # 子项目发现规则：仅根配置生效，-ls/-s 不修改该段。
     "project_scan": {
         "depth": 3,

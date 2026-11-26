@@ -9,7 +9,7 @@ from ..language import set_language
 from ..logger_config import setup_logger
 from ..ui_theme import console
 from ..version import __version__
-from . import cli_compile, cli_context, cli_early, cli_latexdiff
+from . import cli_compile, cli_context, cli_early
 from .cli_state import WorkflowState
 
 _ = set_language("cli_workflow")
@@ -33,7 +33,7 @@ def run_workflow(
     # 早退出子命令：-i / -iu / -ls / --show-config，命中后直接结束进程
     cli_early.handle(args, cp, logger)
 
-    # -A：按根配置 [subprojects] 逐个编译，最后汇总失败项
+    # -ap：按根配置 [subprojects] 逐个编译，最后汇总失败项
     if getattr(args, "all_subprojects", False):
         _run_all_subprojects(args, cp, logger)
         return
@@ -51,10 +51,13 @@ def run_workflow(
     # -c/-C：只清当前主文件（-C 额外到根目录并删输出）；找不到唯一主文件时退出 1。
     # -ca/-Ca：递归全项目，不要求唯一主文件；-Ca 能确定主文件时才删输出。
     clean_requested = (
-        args.clean or args.Clean or args.clean_any or args.Clean_any
+        args.clean
+        or args.clean_out
+        or args.clean_recursive
+        or args.clean_recursive_out
     )
     if clean_requested and not getattr(args, "explain", False):
-        if args.clean or args.Clean:
+        if args.clean or args.clean_out:
             cli_context.resolve_target(args, state)
             cli_context.apply_magic_comments(state)
             cli_compile.clean_main(args, state)
@@ -64,7 +67,7 @@ def run_workflow(
             cli_compile.clean_recursive(args, state)
         return
 
-    # 决定本次目标（主文件名 或 LaTeXDiff 新旧文件对），再用魔法注释做最后一层覆盖
+    # 决定本次要编译的主文件，再用魔法注释做最后一层覆盖
     cli_context.resolve_target(args, state)
     cli_context.apply_magic_comments(state)
 
@@ -75,28 +78,26 @@ def run_workflow(
         report_handle(state)
         return
 
-    # --explain 只读配置，不应被 -c 等清理动作抢先执行
+    # -e/--explain 只读配置，不应被 -c 等清理动作抢先执行
     if getattr(args, "explain", False):
         from .cli_config import explain
 
-        # 解释的是“真正会执行的计划”：命令行的 interaction 必须与编译共用
-        # 同一套合并逻辑，否则 explain 显示的是配置默认值，而实际编译又是另一套值。
+        # 解释的是“真正会执行的计划”：命令行的构建覆盖项（目前只有 -pa）必须与
+        # 编译共用同一套合并逻辑，否则 explain 显示的是配置默认值，实际编译又是另一套。
         cli_compile.apply_effective_build_plan(args, state)
         explain(state)
         return
 
     if before_build is not None:
         before_build(state)
-    if state.is_latexdiff:
-        cli_latexdiff.run(args, state)
-    elif state.project_name:
+    if state.project_name:
         cli_compile.run(args, state)
 
     cli_compile.finalize(state)
 
 
 def _run_all_subprojects(args, cp, logger) -> None:
-    """``-A/--all-subprojects``：逐个编译子项目，任一失败不中断其余项目。"""
+    """``-ap/--all-subprojects``：逐个编译子项目，任一失败不中断其余项目。"""
     import contextlib
     import copy
 
@@ -119,12 +120,10 @@ def _run_all_subprojects(args, cp, logger) -> None:
         sub_args = copy.copy(args)
         sub_args.subproject = name
         sub_args.all_subprojects = False
-        # 子项目绝不能继承 -A 的 watch：否则第一个子项目进入 watch_loop
+        # 子项目绝不能继承 -ap 的 watch：否则第一个子项目进入 watch_loop
         # 后不再返回，批量编译永远走不到第二个。
         sub_args.watch = False
         sub_args.document = None
-        sub_args.LaTeXDiff = None
-        sub_args.LaTeXDiff_compile = None
         # 每个子项目调用前都回到原始 cwd；with 块保证异常/SystemExit 时也能还原，
         # 不会把下一个子项目留在上一个项目的 Build 目录里。
         with contextlib.chdir(original_cwd):

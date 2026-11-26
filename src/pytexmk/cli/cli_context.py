@@ -7,7 +7,6 @@ from ..config import ConfigParser
 from ..language import set_language
 from ..lifecycle import (
     EXIT_CONFIG_ERROR,
-    EXIT_ERROR,
     EXIT_PROJECT_NOT_FOUND,
     exit_pytexmk,
 )
@@ -60,7 +59,10 @@ def build(args, cp: ConfigParser, logger) -> WorkflowState:
     tex_files_in_root = state.mfo.get_suffix_files_in_dir(".", ".tex")
     # -ca/-Ca 只清理产物，不应因为“根目录下有多个主文件/没有主文件”而退出。
     # 没有可用主文件时返回空清单，后续清理按后缀匹配递归执行。
-    clean_any = bool(getattr(args, "clean_any", False) or getattr(args, "Clean_any", False))
+    clean_any = bool(
+        getattr(args, "clean_recursive", False)
+        or getattr(args, "clean_recursive_out", False)
+    )
     state.main_files_in_root = state.mfo.find_tex_commands(
         tex_files_in_root, required=not clean_any
     )
@@ -92,17 +94,15 @@ def _validate_runtime_config(config: dict, cp: ConfigParser) -> None:
 def _apply_quiet_mode(state: WorkflowState, args) -> None:
     """一次算清安静模式（命令行 > 配置文件 > 内置默认）。
 
-    安静模式只决定两件事：
-
-    * TeX 的 ``-interaction``（安静=batchmode，非安静=nonstopmode）；
-    * 子进程（TeX/biber/makeindex…）的输出是否实时打到终端。
+    安静模式只决定子进程（TeX/biber/makeindex…）的输出是否实时打到终端；
+    TeX 的 ``-interaction`` 由配置 ``[build] interaction`` 单独决定。
 
     它**不碰控制台日志级别**：级别只看 ``-vb``（1.2.7 的口径，-vb → INFO，
     否则 WARNING）。0.6 曾让 ``-nq`` 顺带把级别抬到 INFO，于是 ``-nq`` 变成
     “刷屏开关”，与它真正的职责混淆。
 
-    只有在命令行显式给出 ``-q`` / ``-nq`` 时才回显一行来源，配置文件驱动的
-    默认行为保持安静（需要看结论用 ``--explain``）。
+    只有在命令行显式给出 ``-nq`` 时才回显一行来源，配置文件驱动的
+    默认行为保持安静（需要看结论用 ``-e/--explain``）。
     """
     config_quiet = _as_bool(state.config_dict.get("quiet_mode"), True)
 
@@ -114,13 +114,10 @@ def _apply_quiet_mode(state: WorkflowState, args) -> None:
 
 
 def resolve_target(args, state: WorkflowState) -> None:
-    """决定本次要处理的目标：LaTeXDiff 新旧文件对，或待编译的主文件名。"""
-    if state.is_latexdiff:
-        _resolve_latexdiff_target(state)
-    else:
-        state.project_name = state.mfo.get_main_file(
-            state.default_file, args.document, state.main_files_in_root, state.all_magic_comments
-        )
+    """决定本次要处理的目标：待编译的主文件名。"""
+    state.project_name = state.mfo.get_main_file(
+        state.default_file, args.document, state.main_files_in_root, state.all_magic_comments
+    )
     state.output_name = state.project_name
 
 
@@ -173,11 +170,11 @@ def apply_magic_comments(state: WorkflowState) -> None:
                     _("提取魔法注释: ") + f"{state.project_name}.tex ==> % !TEX {key} = {values[state.project_name]}"
                 )
 
-    if state.args.XeLaTeX:
+    if state.args.xelatex:
         state.compiled_program = "XeLaTeX"
-    elif state.args.PdfLaTeX:
+    elif state.args.pdflatex:
         state.compiled_program = "PdfLaTeX"
-    elif state.args.LuaLaTeX:
+    elif state.args.lualatex:
         state.compiled_program = "LuaLaTeX"
     elif state.magic_comments.get("program"):
         state.compiled_program = standardize_name(state.magic_comments["program"])
@@ -197,7 +194,7 @@ def _apply_config_file(state: WorkflowState) -> None:
     """把配置文件中的取值合并进运行时参数（优先级：内置默认值 < 配置文件）。
 
     各配置段拆成独立的小函数，避免一个函数同时处理 build/folder/pdf/submission/
-    index/latexdiff 六套字段；每段只读写自己的键，便于后续增删配置项。
+    index 等多套字段；每段只读写自己的键，便于后续增删配置项。
     """
     _apply_main_config(state)
     _apply_build_config(state)
@@ -205,7 +202,6 @@ def _apply_config_file(state: WorkflowState) -> None:
     _apply_pdf_config(state)
     _apply_submission_config(state)
     _apply_index_config(state)
-    _apply_latexdiff_config(state)
     _apply_preflight_config(state)
 
 
@@ -346,31 +342,6 @@ def _apply_index_config(state: WorkflowState) -> None:
         )
 
 
-def _apply_latexdiff_config(state: WorkflowState) -> None:
-    """[latexdiff] 段：新旧 TeX 与对比文件名。"""
-    latexdiff = state.config_dict["latexdiff"]
-    if not latexdiff:
-        return
-    if latexdiff["old_tex_file"]:
-        state.old_tex_file = latexdiff["old_tex_file"]
-        state.logger.info(
-            _("通过配置文件设置 LaTeXDiff 旧文件为: ")
-            + f"[bold cyan]{state.old_tex_file}"
-        )
-    if latexdiff["new_tex_file"]:
-        state.new_tex_file = latexdiff["new_tex_file"]
-        state.logger.info(
-            _("通过配置文件设置 LaTeXDiff 新文件为: ")
-            + f"[bold cyan]{state.new_tex_file}"
-        )
-    if latexdiff["diff_tex_file"]:
-        state.diff_tex_file = latexdiff["diff_tex_file"]
-        state.logger.info(
-            _("通过配置文件设置 LaTeXDiff 对比文件为: ")
-            + f"[bold cyan]{state.diff_tex_file}"
-        )
-
-
 def _apply_pdf_preview(state: WorkflowState) -> None:
     """合并命令行 -pv 语义：给出文件名则预览该文件后退出，否则标记编译后预览。"""
     args = state.args
@@ -392,38 +363,3 @@ def _apply_pdf_preview(state: WorkflowState) -> None:
     target = state.mfo.check_project_name(pdf_files_in_outdir, args.pdf_preview, ".pdf")
     state.pfo.pdf_preview(target, state.outdir)
     exit_pytexmk()
-
-
-def _resolve_latexdiff_target(state: WorkflowState) -> None:
-    """校验并解析 LaTeXDiff 的两个待比较 TeX 文件（命令行优先，其次配置文件）。"""
-    args, logger = state.args, state.logger
-
-    # 0 个参数是合法的：`pytexmk -d` 表示“用配置文件里的 old/new”。
-    # 只有 1 个参数（`-d old`）才是用法错误——旧实现把 0 个也当成错误，
-    # 配置齐全时 `-d` 反而退出 1。
-    for value, label in (
-        (args.LaTeXDiff, "LaTeXDiff"),
-        (args.LaTeXDiff_compile, "LaTeXDiff-compile"),
-    ):
-        if value is not None and len(value) not in (0, 2):
-            logger.error(
-                _("%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个")
-                % {"flag": label, "n": len(value)}
-            )
-            exit_pytexmk(EXIT_ERROR)
-    if args.LaTeXDiff is not None and len(args.LaTeXDiff) == 2:
-        state.old_tex_file, state.new_tex_file = args.LaTeXDiff
-    elif args.LaTeXDiff_compile is not None and len(args.LaTeXDiff_compile) == 2:
-        state.old_tex_file, state.new_tex_file = args.LaTeXDiff_compile
-    else:
-        # 命令行未指定, 尝试从配置文件读取
-        console.print(_("命令行未指定 LaTeXDiff 相关参数"))
-        if state.new_tex_file and state.old_tex_file:
-            console.print(_("根据配置文件设置 LaTeXDiff 新 TeX 文件为: ") + f"[bold cyan]{state.new_tex_file}")
-            console.print(_("根据配置文件设置 LaTeXDiff 旧 TeX 文件为: ") + f"[bold cyan]{state.old_tex_file}")
-        else:
-            logger.error(_("请在命令行或配置文件中指定新旧两个 TeX 文件"))
-            exit_pytexmk(EXIT_ERROR)
-
-    state.old_tex_file = state.mfo.check_project_name(state.main_files_in_root, state.old_tex_file, ".tex")
-    state.new_tex_file = state.mfo.check_project_name(state.main_files_in_root, state.new_tex_file, ".tex")

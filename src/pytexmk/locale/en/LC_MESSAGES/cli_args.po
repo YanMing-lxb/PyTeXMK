@@ -50,12 +50,6 @@ msgstr "Compile with XeLaTeX"
 msgid "用 LuaLaTeX 编译"
 msgstr "Compile with LuaLaTeX"
 
-msgid "生成 LaTeXDiff 对比稿：写 -d OLD NEW；省略文件名时用配置中的 old/new。两个文件名须紧跟 -d"
-msgstr "Generate a LaTeXDiff comparison: use -d OLD NEW; omit the names to use old/new from config. Both names must follow -d immediately"
-
-msgid "生成 LaTeXDiff 对比稿并编译；文件名写法同 -d，省略时用配置中的 old/new"
-msgstr "Generate and compile a LaTeXDiff comparison; names follow the -d form, or use old/new from config when omitted"
-
 msgid "草稿模式：跳过图片加载，编译更快"
 msgstr "Draft mode: skip image loading for faster compiles"
 
@@ -74,11 +68,8 @@ msgstr "Recursively clean auxiliary files and main-file outputs across the proje
 msgid "实时显示 TeX/biber/makeindex 的输出"
 msgstr "Stream TeX/biber/makeindex output (overrides quiet_mode; leaves -interaction unchanged)"
 
-msgid "传给引擎的 -interaction 模式"
-msgstr "Interaction mode passed to the engine"
-
-msgid "向引擎追加一个参数，可重复（如 --pass-arg=-8bit）"
-msgstr "Pass an extra argument to the engine; repeatable (e.g. --pass-arg=-8bit)"
+msgid "向引擎追加一个参数，可重复（如 -pa=-8bit）"
+msgstr "Pass an extra argument to the engine; repeatable (e.g. -pa=-8bit)"
 
 msgid "生成期刊投稿包 zip（按 .fls 收集依赖，并处理 Unicode）"
 msgstr "Build a journal submission zip (collects dependencies from .fls and handles Unicode)"
@@ -100,9 +91,6 @@ msgstr "Compile every subproject listed in the root config's \\[subprojects]"
 
 msgid "投稿包同时包含 .bib 源文件（默认只带 .bbl）"
 msgstr "Include .bib sources in the submission package (default: only .bbl)"
-
-msgid "LaTeXDiff 显示风格；非交互默认 2"
-msgstr "LaTeXDiff display style; defaults to 2 when non-interactive"
 
 msgid "显示详细运行信息"
 msgstr "Show detailed runtime information"
@@ -132,3 +120,8 @@ msgstr "Create a user ~/.pytexmkrc (overwrites an existing file)"
 
 msgid "待编译主文件名"
 msgstr "Main file name to compile"
+
+#, python-format
+msgid "不支持把短开关合并写成 %(token)s，请分开书写（如 -d -c）"
+msgstr ""
+"Short flags cannot be combined as %(token)s; write them separately (e.g. -d -c)"

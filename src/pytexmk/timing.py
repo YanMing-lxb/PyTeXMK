@@ -65,7 +65,6 @@ _FIXED_LABELS: dict[str, str] = {
     "dvipdfmx": "DVIPDFMX 编译",
     "pythontex": "pythontex",
     "bib2gls": "bib2gls 编译",
-    "latexdiff": "LaTeXDiff 运行",
     "clear_all_aux_auxdir": "清除所有的辅助文件",
     "clear_aux_auxdir": "清除文件夹内辅助文件",
     "clear_aux_root": "清除根目录内辅助文件",
@@ -82,10 +81,10 @@ _FIXED_LABELS: dict[str, str] = {
 _PREFIX_LABELS = ("bib_", "index_")
 
 #: 计入 "LaTeX 编译时长" 的 slug 前缀（外部排版/文献/索引工具，不含 pythontex）
-_LATEX_SLUG_PREFIXES = ("latex_", "dvipdfmx", "bib_", "bib2gls", "index_", "latexdiff")
+_LATEX_SLUG_PREFIXES = ("latex_", "dvipdfmx", "bib_", "bib2gls", "index_")
 
 #: 重复工具的单次明细键：``bib_bibtex_1`` / ``index_makeindex_2``。
-#: 这些键只用于统计调用次数，不进入合计行，也不参与 LaTeX 时长求和。
+#: 明细键与合计键同时写入；明细不进表格，也不参与 LaTeX 时长求和。
 _TOOL_DETAIL_PATTERN = re.compile(r"^(bib_|index_)(?P<tool>.+)_(?P<round>\d+)$")
 
 
@@ -112,24 +111,6 @@ def display_name(slug: str, program: str = "") -> str:
 
 def _is_latex_slug(slug: str) -> bool:
     return slug.startswith(_LATEX_SLUG_PREFIXES) and not _TOOL_DETAIL_PATTERN.match(slug)
-
-
-def _tool_call_counts(runtime_dict: dict[str, float], program: str) -> dict[str, int]:
-    """按工具名统计真实调用次数（重复的 bib/index 由明细键提供）。"""
-    counts: dict[str, int] = {}
-
-    def add(name: str) -> None:
-        counts[name] = counts.get(name, 0) + 1
-
-    for slug in runtime_dict:
-        detail = _TOOL_DETAIL_PATTERN.match(slug)
-        if detail:
-            add(detail.group("tool"))
-        elif slug.startswith("latex_"):
-            add(program or "LaTeX")
-        elif slug in {"bib2gls", "dvipdfmx", "latexdiff"}:
-            add(slug)
-    return counts
 
 
 def time_print(
@@ -208,10 +189,4 @@ def time_print(
     console.print(
         _("PyTeXMK 运行时长: ")
         + f"{hours} h {minutes} min {seconds} s {milliseconds} ms ({total_seconds:.3f} s total)"
-    )
-    counts = _tool_call_counts(runtime_dict, program)
-    total_calls = sum(counts.values())
-    detail = "、".join(f"{name}×{n}" for name, n in counts.items())
-    console.print(
-        _("外部工具调用 %(total)s 次（%(detail)s）") % {"total": total_calls, "detail": detail}
     )

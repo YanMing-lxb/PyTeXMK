@@ -27,7 +27,7 @@ Description  :
     2. 子步骤时间统计：缩写序数 1st/2nd/... 对应 runtime_dict 写入。
     3. XeLaTeX 专属 dvipdfmx 后置调度；最终「完成所有编译」Banner 打印。
   调用依赖关系拓扑：
-    cli.cli_workflow.run_workflow 通过 `from ..compile_engine import RUN, LaTeXDiffRUN` 作为唯一入口调用；
+    cli.cli_workflow.run_workflow 通过 `from ..compile_engine import RUN` 作为唯一入口调用；
     compile_engine.py 实例化 compile.CompileLaTeX 执行实际编译 + 检测编排。
   下游依赖：
     compile / compile_report / tex_project / timing / ui_messages / language。
@@ -86,7 +86,7 @@ def _accumulate_tool_time(
 # 正常情况下不动点检测会在 3~4 轮内收敛，上限仅用于防御"每轮都产生新指纹"的
 # 病态项目（例如某宏包把时间戳写进 .aux），把最坏情况限制在 9 次以内。
 #: 额外编译轮次的安全上限默认值。每轮编译都通过 ``RUN(max_extra=...)``
-#: 解析成局部值传进编译主体：0.5 把它当模块级全局并在 RUN 里改写，``-A`` 多
+#: 解析成局部值传进编译主体：0.5 把它当模块级全局并在 RUN 里改写，``-ap`` 多
 #: 子项目 / ``--watch`` 多轮之间会互相串味，且不是线程安全的。
 DEFAULT_MAX_EXTRA_COMPILATIONS = 8
 
@@ -165,9 +165,9 @@ def _convergence_stop_reason(
 def _run_xdv_if_needed(compiled_program, native, compile_model, runtime_dict) -> None:
     """XeLaTeX 传统两段式：**非 native** 时才需要 dvipdfmx 把 `.xdv` 转 PDF。
 
-    `RUN` 与 `LaTeXDiffRUN` 必须共用这一处判断。两处各写一遍时，后者漏过
-    `not native`，在 native 构建（xelatex 直接输出 PDF、根本没有 `.xdv`）下
-    仍调用 `dvipdfmx Auxiliary\\xxx.xdv`，得到"编译成功却以退出码 5 结束"。
+    判断集中在这一处：漏过 `not native` 时，native 构建（xelatex 直接输出 PDF、
+    根本没有 `.xdv`）仍会调用 `dvipdfmx Auxiliary\\xxx.xdv`，得到“编译成功却以
+    退出码 5 结束”。
     """
     if compiled_program != "XeLaTeX" or native:
         return
@@ -854,73 +854,3 @@ def _belongs_to_subproject(directory: Path, stop: Path) -> bool:
             return True
         current = current.parent
     return False
-
-
-# --------------------------------------------------------------------------------
-# LaTeX Diff 编译
-# --------------------------------------------------------------------------------
-def LaTeXDiffRUN(
-    runtime_dict,
-    project_name,
-    compiled_program,
-    out_files,
-    aux_files,
-    outdir,
-    auxdir,
-    non_quiet,
-    draft,
-    *,
-    shell_escape="auto",
-    synctex=True,
-    native=False,
-    extra_args=None,
-    interaction=None,
-    jobname=None,
-):
-    """LaTeXDiff 差异文档编译流程：两轮 LaTeX 编译以稳定目录引用。
-
-    与 ``RUN`` 保持同一套构建选项与草稿自愈语义：0.5 这里既没有 try/finally
-    （失败时 ``draft`` 永久留在源码里），也没有把 shell_escape/synctex/native/
-    jobname 传下去，latexdiff 产物实际是按默认配置编译的，与用户配置不一致。
-    """
-    if str(shell_escape).lower() == "auto":
-        shell_escape = detect_shell_escape(_iter_tex_sources(project_name))
-    else:
-        shell_escape = normalize_shell_escape_flag(shell_escape)
-
-    # draft=True：加 draft 并写跨进程标记；draft=False：消费上次崩溃留下的
-    # 标记（没有标记就不碰作者的 documentclass）。
-    MFO.draft_model(project_name, enabled=draft, auxdir=auxdir)
-
-    # 编译前的准备工作
-    compile_model = CompileLaTeX(
-        project_name, compiled_program, out_files, aux_files, outdir, auxdir,
-        non_quiet=non_quiet,
-        shell_escape=shell_escape, synctex=synctex, native=native, extra_args=extra_args,
-        interaction=interaction, jobname=jobname,
-    )
-
-    try:
-        # 首次编译 LaTeX 文档
-        print_message(_("1 次 %(args)s 编译") % {"args": compiled_program}, "running")
-        runtime_Latex = time_count(
-            compile_model.compile_tex,
-        ).seconds
-        runtime_dict["latex_1"] = runtime_Latex
-
-        print_message(_("2 次 %(args1)s 编译") % {"args1": compiled_program}, "running")
-        runtime_Latex = time_count(
-            compile_model.compile_tex,
-        ).seconds
-        runtime_dict["latex_2"] = runtime_Latex
-
-        # 编译完成, 开始判断编译 XDV 文件
-        _run_xdv_if_needed(compiled_program, native, compile_model, runtime_dict)
-    finally:
-        # 与 RUN 一致：正常结束、编译失败、Ctrl+C 都要把 draft 摘干净
-        MFO.restore_draft()
-
-    # 显示编译过程中关键信息
-    print_message(_("完成所有编译"), "success")
-
-    return runtime_dict

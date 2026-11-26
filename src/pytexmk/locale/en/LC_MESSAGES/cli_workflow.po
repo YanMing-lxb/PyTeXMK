@@ -208,10 +208,10 @@ msgstr ""
 "Found %(n)s damaged auxiliary file(s) from an interrupted build; deleted "
 "and will be rebuilt in this run."
 
-msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-fr[/bold cyan]）。"
+msgid "源文件与上次编译一致，已跳过编译（如需强制重新编译请加 [bold cyan]-f[/bold cyan]）。"
 msgstr ""
 "Sources are unchanged since the last build; compilation skipped (use "
-"[bold cyan]-fr[/bold cyan] to force a rebuild)."
+"[bold cyan]-f[/bold cyan] to force a rebuild)."
 
 #, python-format
 msgid "当前 PDF：%(p)s"
@@ -382,27 +382,9 @@ msgstr "Index style file set by config: "
 msgid "通过配置文件设置 glossaries 工具为: "
 msgstr "Glossaries tool set by config: "
 
-msgid "通过配置文件设置 LaTeXDiff 旧文件为: "
-msgstr "LaTeXDiff old file set via config file: "
-
-msgid "通过配置文件设置 LaTeXDiff 新文件为: "
-msgstr "LaTeXDiff new file set via config file: "
-
-msgid "通过配置文件设置 LaTeXDiff 对比文件为: "
-msgstr "LaTeXDiff comparison file set via config file: "
-
 #, python-format
 msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
 msgstr "%(flag)s expects 0 (use config) or exactly 2 file names, got %(n)s"
-
-msgid "命令行未指定 LaTeXDiff 相关参数"
-msgstr "No LaTeXDiff-related parameters specified on the command line"
-
-msgid "根据配置文件设置 LaTeXDiff 新 TeX 文件为: "
-msgstr "LaTeXDiff new TeX file set via config file: "
-
-msgid "根据配置文件设置 LaTeXDiff 旧 TeX 文件为: "
-msgstr "LaTeXDiff old TeX file set via config file: "
 
 msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
 msgstr ""
@@ -431,70 +413,8 @@ msgstr ""
 "[yellow]Cannot write the root .pytexmkrc; the subproject list is valid "
 "only for this run[/yellow]"
 
-msgid "不能对同一个文件进行比较, 请检查文件名是否正确"
-msgstr ""
-"Cannot compare the same file with itself, please verify the file names "
-"are correct"
-
-msgid "LaTeXDiff 预处理"
-msgstr "LaTeXDiff preprocessing"
-
-msgid "LaTeXDiff 运行"
-msgstr "LaTeXDiff run"
-
-msgid "LaTeXDiff 后处理"
-msgstr "LaTeXDiff post-processing"
-
-msgid "清理压平临时文件..."
-msgstr "Cleaning flattened temporary files..."
-
-msgid "开始预处理命令"
-msgstr "Starting preprocessing commands"
-
-msgid ""
-"请输入正确的选项 (1 或者 2)\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改"
-msgstr ""
-"Please enter a valid option (1 or 2)\n"
-"  1 - Show changes in bibliography/symbol descriptions\n"
-"  2 - Do not show changes in bibliography/symbol descriptions"
-
 msgid "移动结果文件到输出目录..."
 msgstr "Moving result files to output directory..."
-
-msgid "LaTeXDiff 编译出错: "
-msgstr "LaTeXDiff compilation error: "
-
-msgid "非交互环境，LaTeXDiff 使用默认风格 2"
-msgstr "Non-interactive environment; LaTeXDiff uses default style 2"
-
-msgid ""
-"请输入 LaTeXDiff 的显示风格：\n"
-"  1 - 显示参考文献/符号说明的修改\n"
-"  2 - 不显示参考文献/符号说明的修改\n"
-"请选择 (1 或者 2，直接回车默认 2): "
-msgstr ""
-"Choose the LaTeXDiff display style:\n"
-"  1 - show changes in bibliography/nomenclature\n"
-"  2 - hide changes in bibliography/nomenclature\n"
-"Select (1 or 2, Enter for 2): "
-
-msgid "未读取到输入，使用默认风格 2"
-msgstr "No input received; using default style 2"
-
-msgid "风格只能是 1 或 2，收到: "
-msgstr "Style must be 1 or 2, got: "
-
-#, python-format
-msgid "%(args)s 的辅助文件存在"
-msgstr "Auxiliary files for %(args)s exist"
-
-#, python-format
-msgid "%(args)s 的辅助文件不存在，差异结果可能缺少参考文献/索引内容"
-msgstr ""
-"Auxiliary files for %(args)s are missing; the diff may lack "
-"bibliography/index content"
 
 msgid "无法确定主文件，不能定位最近一次编译日志"
 msgstr "Cannot determine the main file, so the latest build log cannot be located"

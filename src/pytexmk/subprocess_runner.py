@@ -261,12 +261,10 @@ class MySubProcess:
         outdir,
         auxdir,
         project_name: str | None = None,
-        latexdiff: bool = False,
         stream_output: bool = True,
     ):
         self.logger = logging.getLogger(__name__)
         self.project_name = project_name
-        self.latexdiff = latexdiff
         # ``-nq`` 的唯一职责：把子进程（TeX/biber/makeindex…）的输出实时打到终端。
         # 安静模式只留一行“运行命令”与成功/失败结论，输出仍会被读完并留存，
         # 失败诊断照样能拿到全文（不能因为不显示就停止读取，否则管道会阻塞）。
@@ -287,7 +285,7 @@ class MySubProcess:
     def _terminate_process(proc: subprocess.Popen) -> None:
         """安全终止子进程及其后代，跨平台兼容。
 
-        Windows: LaTeX 工具链（latexmk/biber/latexdiff）常产生子进程，
+        Windows: LaTeX 工具链（latexmk/biber/makeindex）常产生子进程，
         单纯 proc.terminate() 只杀父进程，会留下孤儿进程。
         这里优先用 taskkill /T /F 杀掉整个进程树。
         POSIX: 先 SIGTERM，再 SIGKILL 兜底。
@@ -406,19 +404,19 @@ class MySubProcess:
         program_name: str,
     ) -> tuple[subprocess.Popen, str, str]:
         """stdout 重定向到文件、stderr 走管道的执行分支。"""
-        # 输出重定向到文件（latexdiff 等场景）。
-        # 关键：stderr **不能**并入这个文件。latexdiff 的 stdout 是 TeX 源码，
-        # 而 MiKTeX 的 log4cxx 告警（数据目录不可写时必有）走 stderr；一旦
-        # 合并，生成稿第一行就是 "log4cxx: ..."，xelatex 立即报
-        # "Missing \begin{document}"。这里改成单独收 stderr 到管道，
-        # 既不污染源码，又能在失败时把真正原因带进异常。
+        # 输出重定向到文件（调用方要求把工具 stdout 落盘时）。
+        # 关键：stderr **不能**并入这个文件。stdout 往往是工具产出的正式内容
+        # （源码/清单），而 MiKTeX 的 log4cxx 告警（数据目录不可写时必有）走
+        # stderr；一旦合并，产物第一行就是 "log4cxx: ..."，后续编译/解析立即报错。
+        # 这里改成单独收 stderr 到管道，既不污染产物，又能在失败时把真正原因
+        # 带进异常。
         output_dir = Path(stdout_path).parent
         if not output_dir.exists():
             output_dir.mkdir(parents=True, exist_ok=True)
         target = Path(stdout_path)
         # 先写同目录临时文件，成功后再原子替换目标：旧实现直接以 "w" 打开目标，
-        # 若目标恰好是某个输入文件（latexdiff 输出==输入）或进程中途失败，
-        # 原文件已经被截断成 0 字节，无法恢复。
+        # 若目标恰好是某个输入文件（输出==输入）或进程中途失败，原文件已经被
+        # 截断成 0 字节，无法恢复。
         tmp_path = target.with_name(f".{target.name}.{time.time_ns()}.tmp")
         stdout_text = ""
         stderr_text = ""
@@ -664,7 +662,7 @@ class MySubProcess:
         self.MRO.move_specific_files(aux_files, ".", self.auxdir)
         self.MRO.move_specific_files(out_files, ".", self.outdir)
 
-        if log_hint and not self.latexdiff:
+        if log_hint:
             log_path = Path(self.auxdir) / f"{self.project_name}.log"
             log_prompt = str(log_path)
             try:

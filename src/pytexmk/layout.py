@@ -1,13 +1,13 @@
 """PyTeXMK 文件布局常量：产物后缀与目录排除集的唯一来源。
 
 历史上 ``cli_state`` / ``build_state`` / ``compile_engine`` / ``aux_repair`` /
-``cli_compile`` / ``cli_latexdiff`` / ``file_ops`` / ``cli_watch`` 各自维护过一份
-近似集合，已经漂移出过真实问题（``build_state`` 写了裸 ``.gz``、干跑与真删的
-排除目录不一致）。新增后缀/目录时只改这里，不要在业务模块里另起一份。
+``cli_compile`` / ``file_ops`` / ``cli_watch`` 各自维护过一份近似集合，已经漂移
+出过真实问题（``build_state`` 写了裸 ``.gz``、干跑与真删的排除目录不一致）。
+新增后缀/目录时只改这里，不要在业务模块里另起一份。
 """
 
 #: SyncTeX 定位文件的两种落盘格式。TeX 默认写 gzip 压缩的 ``.synctex.gz``；
-#: ``-synctex=-1``（例如 ``--pass-arg=-synctex=-1``）写明文 ``.synctex``。
+#: ``-synctex=-1``（例如 ``-pa=-synctex=-1``）写明文 ``.synctex``。
 #: 生成、归档、缓存校验、清理必须同时认这两种，否则明文 sidecar 会留在辅助目录。
 SYNCTEX_SUFFIXES: tuple[str, ...] = (".synctex.gz", ".synctex")
 
@@ -100,9 +100,6 @@ INDEX_ARTIFACT_SUFFIXES: tuple[str, ...] = (
 #: 可能由用户手写、不能无条件删除的索引类后缀：即使 auxdir 已有同名文件，
 #: 也要先确认两份内容一致（即根目录只是同一产物的旧副本）才删。
 INDEX_USER_EDITABLE_SUFFIXES: tuple[str, ...] = (".ist", ".xdy")
-
-#: latexdiff 收尾时需要从根目录清掉的辅助后缀
-DIFF_AUX_SUFFIXES: tuple[str, ...] = (".bbl", ".nls", ".gls", ".idx")
 
 #: 永远不扫描/不清理的目录（VCS、虚拟环境、依赖目录）
 EXCLUDED_DIRS: frozenset[str] = frozenset(

@@ -72,8 +72,8 @@ SHELL_ESCAPE_FALSE_VALUES = ("false", "0", "no", "off")
 #:
 #: 旧实现让安静模式走 ``-interaction=batchmode``，于是同一份文档"加不加 -nq"
 #: 走的是两套 TeX 语义（batchmode 会吞掉终端提示、遇错也不停），出问题时无法
-#: 判断是 PyTeXMK 卡住还是 TeX 本身行为不同。要 batchmode 请显式
-#: ``--interaction=batchmode`` 或写进配置 ``[build] interaction``。
+#: 判断是 PyTeXMK 卡住还是 TeX 本身行为不同。要 batchmode 请写进配置
+#: ``[build] interaction``（命令行不再提供该开关）。
 DEFAULT_INTERACTION = "nonstopmode"
 
 
@@ -120,10 +120,17 @@ def shell_escape_off_flag() -> str:
 
 
 def is_xindy_command(tokens: list[str]) -> bool:
-    """命令是否为 xindy / texindy（允许第一个 token 带路径）。"""
+    """命令是否为 xindy / texindy（允许第一个 token 带路径）。
+
+    取 basename 时按 ``/`` 和 ``\\`` 两种分隔符切分：POSIX 的 ``Path`` 不把
+    反斜杠当分隔符，Windows 路径 ``C:\\tex\\bin\\xindy.exe`` 会被整体当成文件名，
+    于是跨平台跑单测时判定失败。产物只在 Windows 上用到反斜杠路径，但判定函数
+    本身应当与宿主平台无关。
+    """
     if not tokens:
         return False
-    return Path(tokens[0]).stem.lower() in _XINDY_TOOLS
+    basename = tokens[0].replace("\\", "/").rsplit("/", 1)[-1]
+    return Path(basename).stem.lower() in _XINDY_TOOLS
 
 
 def xindy_fallback_workdirs() -> list[Path]:

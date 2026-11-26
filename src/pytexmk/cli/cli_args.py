@@ -84,11 +84,6 @@ class CustomHelpFormatter(RichHelpFormatter):
             **kwargs,
         )
 
-    def _format_args(self, action, default_metavar):
-        if action.dest == "LaTeXDiff_compile" or action.dest == "LaTeXDiff":
-            return "OLD_FILE NEW_FILE"
-        return super()._format_args(action, default_metavar)
-
 
 def build_parser():
     """构建 PyTeXMK 参数解析器（供 parse_args 与 shell 补全共用）。"""
@@ -102,6 +97,9 @@ def build_parser():
         formatter_class=CustomHelpFormatter,
         add_help=False,
         suggest_on_error=True,
+        # 关掉缩写：长名（--draf → --draft）与单破折号短名（-n → -nq）都不再
+        # 前缀匹配，未知写法直接报参数错误，避免“打错一个字却换了个功能”。
+        allow_abbrev=False,
     )
 
     meg_clean = parser.add_mutually_exclusive_group()
@@ -119,42 +117,22 @@ def build_parser():
     )
     parser.add_argument(
         "-r",
+        "--report",
         dest="report",
         action="store_true",
         help=_("从最近一次编译日志生成报告（不触发编译）"),
     )
     meg_engine.add_argument(
-        "-p", "--PdfLaTeX", action="store_true", help=_("用 PdfLaTeX 编译")
+        "-p", "--pdflatex", action="store_true", help=_("用 PdfLaTeX 编译")
     )
     meg_engine.add_argument(
-        "-x", "--XeLaTeX", action="store_true", help=_("用 XeLaTeX 编译")
+        "-x", "--xelatex", action="store_true", help=_("用 XeLaTeX 编译")
     )
     meg_engine.add_argument(
-        "-l", "--LuaLaTeX", action="store_true", help=_("用 LuaLaTeX 编译")
+        "-l", "--lualatex", action="store_true", help=_("用 LuaLaTeX 编译")
     )
     parser.add_argument(
         "-d",
-        "--LaTeXDiff",
-        nargs="?",
-        const="",
-        metavar="OLD_FILE",
-        help=_(
-            "生成 LaTeXDiff 对比稿：写 -d OLD NEW；省略文件名时用配置中的 old/new。"
-            "两个文件名须紧跟 -d"
-        ),
-    )
-    parser.add_argument(
-        "-dc",
-        "--LaTeXDiff-compile",
-        nargs="?",
-        const="",
-        metavar="OLD_FILE",
-        help=_(
-            "生成 LaTeXDiff 对比稿并编译；文件名写法同 -d，省略时用配置中的 old/new"
-        ),
-    )
-    parser.add_argument(
-        "-dr",
         "--draft",
         action="store_true",
         help=_("草稿模式：跳过图片加载，编译更快"),
@@ -167,19 +145,19 @@ def build_parser():
     )
     meg_clean.add_argument(
         "-C",
-        "--Clean",
+        "--clean-out",
         action="store_true",
         help=_("清除当前主文件的辅助文件与输出文件（辅助目录 + 根目录）"),
     )
     meg_clean.add_argument(
         "-ca",
-        "--clean-any",
+        "--clean-recursive",
         action="store_true",
         help=_("递归清理全项目的辅助文件（不要求唯一主文件）"),
     )
     meg_clean.add_argument(
         "-Ca",
-        "--Clean-any",
+        "--clean-recursive-out",
         action="store_true",
         help=_("递归清理全项目的辅助文件与主文件输出"),
     )
@@ -192,51 +170,43 @@ def build_parser():
         ),
     )
     parser.add_argument(
-        "--interaction",
-        choices=("nonstopmode", "batchmode", "scrollmode", "errorstopmode"),
-        default=None,
-        help=_("传给引擎的 -interaction 模式"),
-    )
-    parser.add_argument(
+        "-pa",
         "--pass-arg",
         dest="extra_args",
         action="append",
         default=None,
         metavar="ARG",
-        help=_("向引擎追加一个参数，可重复（如 --pass-arg=-8bit）"),
+        help=_("向引擎追加一个参数，可重复（如 -pa=-8bit）"),
     )
     parser.add_argument(
-        "--submission-pack",
         "-sp",
+        "--submission-pack",
         action="store_true",
         help=_("生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"),
     )
     parser.add_argument(
+        "-w",
         "--watch",
         action="store_true",
         help=_("监视源文件并自动重编（Ctrl+C 退出）"),
     )
     parser.add_argument(
+        "-e",
         "--explain",
         action="store_true",
         help=_("只显示本次编译配置，不编译"),
     )
     parser.add_argument(
+        "-sc",
         "--show-config",
         action="store_true",
         help=_("显示合并后的配置（默认 < 用户 < 项目）"),
     )
     parser.add_argument(
-        "-A",
+        "-ap",
         "--all-subprojects",
         action="store_true",
         help=_("编译根配置 \\[subprojects] 中的全部子项目"),
-    )
-    parser.add_argument(
-        "--diff-style",
-        choices=("1", "2"),
-        default=None,
-        help=_("LaTeXDiff 显示风格；非交互默认 2"),
     )
     parser.add_argument(
         "-vb",
@@ -245,7 +215,7 @@ def build_parser():
         help=_("显示详细运行信息"),
     )
     parser.add_argument(
-        "-pr",
+        "-rp",
         "--pdf-repair",
         nargs="*",
         default=None,
@@ -256,7 +226,7 @@ def build_parser():
         ),
     )
     parser.add_argument(
-        "-fr",
+        "-f",
         "--force-rebuild",
         action="store_true",
         help=_("忽略构建缓存，强制重新编译"),
@@ -298,25 +268,35 @@ def build_parser():
     return parser
 
 
+def _reject_clustered_short_flags(argv, parser):
+    """拒绝把多个单字符短开关合并书写（如 ``-dc``）。
+
+    argparse 默认把 ``-dc`` 拆成 ``-d -c``、``-pr`` 拆成 ``-p -r``，于是一个
+    打错的 token 会静默触发两个动作（清理甚至会删辅助文件）。这里统一拦下，
+    要求分开书写；已经是完整选项的 token（``-ca``、``-rp``、``-pa`` 等）不受影响。
+    """
+
+    known_single = {
+        opt for opt in parser._option_string_actions if len(opt) == 2 and opt[0] == "-"
+    }
+    for token in argv:
+        if (
+            len(token) > 2
+            and token[0] == "-"
+            and not token.startswith("--")
+            and "=" not in token
+            and token not in parser._option_string_actions
+            and all(f"-{ch}" in known_single for ch in token[1:])
+        ):
+            parser.error(
+                _("不支持把短开关合并写成 %(token)s，请分开书写（如 -d -c）")
+                % {"token": token}
+            )
+
+
 def parse_args(argv=None):
     """解析命令行参数，返回 argparse.Namespace。"""
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
-    args = parser.parse_args(argv)
-
-    # `-d OLD NEW`：argparse 只能吃一个（nargs="?"），第二个会被当成 document。
-    # 这里补回二元组，避免历史上 `nargs="*"` 把待编译主文件一起吞掉的坑（U1）。
-    for attr in ("LaTeXDiff", "LaTeXDiff_compile"):
-        value = getattr(args, attr)
-        if value is None:
-            continue
-        if value == "":
-            setattr(args, attr, [])
-            continue
-        if args.document and value:
-            setattr(args, attr, [value, args.document])
-            args.document = None
-        elif value:
-            setattr(args, attr, [value])
-
-    return args
+    _reject_clustered_short_flags(argv, parser)
+    return parser.parse_args(argv)

@@ -212,7 +212,7 @@ class PdfFileOperation:
           * recorder 优先取 ``auxdir``，其次根目录；
           * 所有候选按 ``resolve()`` 后的路径判断归属，整个输出目录树一律排除；
           * 没有可信 recorder 时**只列出候选**，不写入任何文件；
-          * ``targets`` 允许显式指定文件（``pytexmk -pr a.pdf``）。
+          * ``targets`` 允许显式指定文件（``pytexmk -rp a.pdf``）。
         """
         root = Path(root_dir).resolve()
         out_tree = self._under_root(root, excluded_folder)
@@ -239,7 +239,7 @@ class PdfFileOperation:
                 listing = self._fallback_candidates(root, out_tree, main_pdf_name)
                 print(_("未找到可信的 .fls recorder，未执行任何修复。"))
                 if listing:
-                    print(_("以下 PDF 是潜在候选（只读列出，可用 -pr 显式指定要修复的文件）:"))
+                    print(_("以下 PDF 是潜在候选（只读列出，可用 -rp 显式指定要修复的文件）:"))
                     for path in listing[:20]:
                         print("  [dim]" + str(path) + "[/dim]")
                 return False

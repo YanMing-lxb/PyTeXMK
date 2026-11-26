@@ -60,15 +60,13 @@ def _snapshot(
 
 def _generated_outputs(state: WorkflowState) -> frozenset[Path]:
     """只排除实际目标产物，同一目录中的 PDF 图片仍可触发重编。"""
-    name = state.diff_tex_file if state.is_latexdiff else state.output_name
+    name = state.output_name
     source = Path(state.auxdir if state.native_build else ".")
     outputs = {
         (folder / f"{name}{suffix}").resolve()
         for folder in (source, Path(state.outdir))
         for suffix in OUT_SUFFIXES
     }
-    if state.is_latexdiff:
-        outputs.add(Path(f"{name}.tex").resolve())
     return frozenset(outputs)
 
 
