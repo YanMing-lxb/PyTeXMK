@@ -11,7 +11,17 @@ from pathlib import Path
 
 import pytest
 
-from pytexmk.config import ConfigParser
+# 测试进程统一按中文源语言解析。GitHub 等英文 locale 机器上若不固定，
+# ``set_language`` 会加载英文 .mo，而用例断言的是中文源码文案，造成跨平台误报。
+# 必须在首次导入 ``pytexmk.language`` 之前设置：语言探测与翻译结果都带
+# ``@functools.cache``，导入后再改环境变量不会生效。LANGUAGE 在探测顺序里
+# 优先级最高，直接覆盖；其余三项只在未设置时兜底。
+os.environ["LANGUAGE"] = "zh_CN.UTF-8"
+for _env in ("LC_ALL", "LC_CTYPE", "LANG"):
+    os.environ.setdefault(_env, "zh_CN.UTF-8")
+
+from pytexmk import language  # noqa: E402
+from pytexmk.config import ConfigParser  # noqa: E402
 
 _LAYER_MARKERS = {
     "unit": "unit",
@@ -19,6 +29,22 @@ _LAYER_MARKERS = {
     "integration": "integration",
     "regressions": "regression",
 }
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _pin_chinese_locale():
+    """固定测试语言为中文，并清掉语言探测/翻译缓存。
+
+    ``get_locale_lang`` 与 ``set_language`` 都带 ``@functools.cache``；若进程在
+    环境变量设置前已加载过某个翻译域，必须清缓存后重新探测，否则首次 locale
+    会粘住。守卫断言失败时直接报「语言未固定」，而不是散成多条文案断言。
+    """
+    language.get_locale_lang.cache_clear()
+    language.set_language.cache_clear()
+    assert language.get_locale_lang().startswith("zh"), (
+        "测试语言未固定为中文；请检查 LANGUAGE/LC_ALL/LANG 环境变量"
+    )
+    yield
 
 
 def pytest_collection_modifyitems(config, items):
@@ -44,6 +70,8 @@ def run_cli(repo_root):
 
     def _run(project: Path, *argv: str, timeout: int = 120) -> subprocess.CompletedProcess:
         env = dict(os.environ)
+        for _env in ("LANGUAGE", "LC_ALL", "LC_CTYPE", "LANG"):
+            env.setdefault(_env, "zh_CN.UTF-8")
         env["PYTHONPATH"] = str(repo_root / "src") + os.pathsep + env.get("PYTHONPATH", "")
         return subprocess.run(
             [sys.executable, "-m", "pytexmk", *argv],
