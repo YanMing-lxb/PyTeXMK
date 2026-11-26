@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,5 +23,9 @@ msgstr ""
 
 #, python-format
 msgid "未找到子项目: %(name)s"
+msgstr ""
+
+#, python-format
+msgid "子项目 %(name)s 匹配多个目标，请指定完整别名: %(matches)s"
 msgstr ""
 

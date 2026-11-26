@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,6 +19,14 @@ msgstr ""
 
 #, python-format
 msgid "执行函数 %(args)s 时出错: "
+msgstr ""
+
+#, python-format
+msgid "%(args)s (pythontex 后)"
+msgstr ""
+
+#, python-format
+msgid "%(args)s 编译"
 msgstr ""
 
 msgid "LaTeX 编译时长"
@@ -40,9 +48,5 @@ msgid "运行时长"
 msgstr ""
 
 msgid "PyTeXMK 运行时长: "
-msgstr ""
-
-#, python-format
-msgid "外部工具调用 %(total)s 次（%(detail)s）"
 msgstr ""
 

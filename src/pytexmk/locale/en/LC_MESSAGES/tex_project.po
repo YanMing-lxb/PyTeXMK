@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -49,9 +49,6 @@ msgstr "Current terminal path: "
 msgid "文件搜索失败: "
 msgstr "File search failed: "
 
-msgid "文件搜索正则错误: "
-msgstr "File search regex error: "
-
 msgid "通过特征命令检索到主文件: "
 msgstr "Main file detected via characteristic commands: "
 
@@ -65,6 +62,9 @@ msgid "终端路径下不存在主文件! 请检查终端显示路径是否是�
 msgstr ""
 "No main file found in the terminal directory! Please verify that the "
 "terminal path is the project directory!"
+
+msgid "未发现主文件；本次只按后缀清理辅助产物"
+msgstr ""
 
 msgid "通过命令行命令指定待编译主文件为: "
 msgstr "Main file to compile specified via command line: "
@@ -119,27 +119,24 @@ msgid ""
 msgstr ""
 "Please rename the main file to compile to the default name "
 "\"%(args)s.tex\", add the magic comment \"%% !TEX root = \\[main file "
-"name]\" to the file, run \"pytexmk \\[main file name]\" in the terminal to "
-"compile, or remove the extra tex files from the current root directory"
+"name]\" to the file, run \"pytexmk \\[main file name]\" in the terminal "
+"to compile, or remove the extra tex files from the current root directory"
 
 msgid "当前根目录是: "
 msgstr "Current root directory: "
 
-msgid "草稿模式未启用, 跳过处理."
-msgstr "Draft mode not enabled, skipping processing."
+msgid "写入草稿标记失败，崩溃后可能无法自动恢复: "
+msgstr ""
+
+msgid "未匹配到内容, 文件未修改."
+msgstr "No matching content found, file not modified."
 
 msgid "启用草稿模式"
 msgstr "Draft mode enabled"
 
-msgid "关闭草稿模式"
-msgstr "Draft mode disabled"
-
 #, python-format
 msgid "处理文件: %(args)s, 文件大小: %(size).3f MB"
 msgstr "Processing file: %(args)s, file size: %(size).3f MB"
-
-msgid "未匹配到内容, 文件未修改."
-msgstr "No matching content found, file not modified."
 
 msgid "文件未找到: "
 msgstr "File not found: "
@@ -147,9 +144,41 @@ msgstr "File not found: "
 msgid "权限错误: 无法读取或写入文件: "
 msgstr "Permission error: cannot read or write file: "
 
+msgid "草稿模式需要 UTF-8 源文件（请另存为 UTF-8）: "
+msgstr ""
+
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
 
 msgid "草稿模式正则匹配出错: "
 msgstr "Error matching draft mode regex: "
+
+msgid "关闭草稿模式"
+msgstr "Draft mode disabled"
+
+msgid "关闭草稿模式失败：源文件不是有效 UTF-8（请另存为 UTF-8）: "
+msgstr ""
+
+msgid "关闭草稿模式失败: "
+msgstr ""
+
+msgid "读取草稿标记失败: "
+msgstr ""
+
+#, python-format
+msgid "恢复草稿模式失败：源文件不是有效 UTF-8（请手动检查 %(f)s）: %(e)s"
+msgstr ""
+
+#, python-format
+msgid "恢复草稿模式失败（请手动检查 %(f)s）: %(e)s"
+msgstr ""
+
+msgid "删除草稿标记失败: "
+msgstr ""
+
+#~ msgid "文件搜索正则错误: "
+#~ msgstr "File search regex error: "
+
+#~ msgid "草稿模式未启用, 跳过处理."
+#~ msgstr "Draft mode not enabled, skipping processing."
 

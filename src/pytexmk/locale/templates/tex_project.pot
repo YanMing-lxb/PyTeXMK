@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,9 +46,6 @@ msgstr ""
 msgid "文件搜索失败: "
 msgstr ""
 
-msgid "文件搜索正则错误: "
-msgstr ""
-
 msgid "通过特征命令检索到主文件: "
 msgstr ""
 
@@ -59,6 +56,9 @@ msgid "发现主文件数量: "
 msgstr ""
 
 msgid "终端路径下不存在主文件! 请检查终端显示路径是否是项目路径!"
+msgstr ""
+
+msgid "未发现主文件；本次只按后缀清理辅助产物"
 msgstr ""
 
 msgid "通过命令行命令指定待编译主文件为: "
@@ -105,20 +105,17 @@ msgstr ""
 msgid "当前根目录是: "
 msgstr ""
 
-msgid "草稿模式未启用, 跳过处理."
+msgid "写入草稿标记失败，崩溃后可能无法自动恢复: "
+msgstr ""
+
+msgid "未匹配到内容, 文件未修改."
 msgstr ""
 
 msgid "启用草稿模式"
 msgstr ""
 
-msgid "关闭草稿模式"
-msgstr ""
-
 #, python-format
 msgid "处理文件: %(args)s, 文件大小: %(size).3f MB"
-msgstr ""
-
-msgid "未匹配到内容, 文件未修改."
 msgstr ""
 
 msgid "文件未找到: "
@@ -127,9 +124,35 @@ msgstr ""
 msgid "权限错误: 无法读取或写入文件: "
 msgstr ""
 
+msgid "草稿模式需要 UTF-8 源文件（请另存为 UTF-8）: "
+msgstr ""
+
 msgid "更新草稿模式时出错: "
 msgstr ""
 
 msgid "草稿模式正则匹配出错: "
+msgstr ""
+
+msgid "关闭草稿模式"
+msgstr ""
+
+msgid "关闭草稿模式失败：源文件不是有效 UTF-8（请另存为 UTF-8）: "
+msgstr ""
+
+msgid "关闭草稿模式失败: "
+msgstr ""
+
+msgid "读取草稿标记失败: "
+msgstr ""
+
+#, python-format
+msgid "恢复草稿模式失败：源文件不是有效 UTF-8（请手动检查 %(f)s）: %(e)s"
+msgstr ""
+
+#, python-format
+msgid "恢复草稿模式失败（请手动检查 %(f)s）: %(e)s"
+msgstr ""
+
+msgid "删除草稿标记失败: "
 msgstr ""
 

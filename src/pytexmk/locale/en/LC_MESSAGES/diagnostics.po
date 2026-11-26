@@ -1,0 +1,51 @@
+# English translations for PyTeXMK.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PyTeXMK project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PyTeXMK 1.2.18\n"
+"Report-Msgid-Bugs-To: dev@example.com\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"PO-Revision-Date: 2026-11-26 21:31+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+msgid "无法生成失败诊断，请直接查看日志: "
+msgstr ""
+
+#, python-format
+msgid "编译失败，发现 %(n)s 个错误"
+msgstr ""
+
+#, python-format
+msgid "… 还有 %(n)s 个错误（用 %(cmd)s 查看全部）"
+msgstr ""
+
+msgid "编译失败，但日志里没有解析出 error 条目"
+msgstr ""
+
+msgid "日志在写出 PDF 前就结束了，编译进程可能被中断（临时目录不可写、PDF 被占用或进程被结束）"
+msgstr ""
+
+msgid "完整日志: "
+msgstr ""
+
+msgid "排查入口: "
+msgstr ""
+
+#, python-format
+msgid "完整摘要: %(cmd)s"
+msgstr ""
+
+#, python-format
+msgid "另有 %(n)s 条排版提示（多为 Overfull/Underfull box）"
+msgstr ""
+

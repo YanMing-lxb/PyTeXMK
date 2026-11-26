@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -24,9 +24,18 @@ msgstr "Delete successful: "
 msgid "删除失败: "
 msgstr "Delete failed: "
 
-msgid "移动成功: "
-msgstr "Move successful: "
+msgid "源目录不存在，跳过搬移: "
+msgstr ""
+
+msgid "源与目标为同一文件，跳过搬移: "
+msgstr ""
 
 msgid "移动失败: "
 msgstr "Move failed: "
+
+msgid "回滚失败，请手动检查: "
+msgstr ""
+
+msgid "移动成功: "
+msgstr "Move successful: "
 

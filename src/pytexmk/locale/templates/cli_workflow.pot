@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-24 16:10+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -93,6 +93,9 @@ msgstr ""
 msgid "已移动 %(n)s 个辅助文件到项目根目录"
 msgstr ""
 
+msgid "无法读取编译产物: "
+msgstr ""
+
 msgid "PDF / synctex"
 msgstr ""
 
@@ -107,8 +110,14 @@ msgstr ""
 msgid "移动辅助文件到辅助目录..."
 msgstr ""
 
+msgid "编译产物未能完整归档: "
+msgstr ""
+
 #, python-format
 msgid "编译产物归档失败：%(p)s 仍留在 %(s)s（可能被占用或目录不可写）"
+msgstr ""
+
+msgid "本轮编译没有生成新 PDF: "
 msgstr ""
 
 msgid "输出目录里没有 PDF（编译可能未产出页面）"
@@ -136,18 +145,8 @@ msgstr ""
 msgid "编译产物校验失败: %(p)s（%(r)s）"
 msgstr ""
 
-msgid "无法读取 PDF 时间戳: "
-msgstr ""
-
-msgid "输出目录里的 PDF 是上一轮产物（本轮编译没有生成新 PDF）: "
-msgstr ""
-
 #, python-format
 msgid "提示：输出目录里缺少 SyncTeX 定位文件（%(n)s.synctex 或 .synctex.gz），编辑器将无法反向跳转"
-msgstr ""
-
-#, python-format
-msgid "提示：%(p)s 是上次编译留下的旧文件（本次已关闭 SyncTeX），如需彻底停用编辑器跳转请手动删除"
 msgstr ""
 
 #, python-format
@@ -164,6 +163,9 @@ msgid "确认无误时可在配置中设 [preflight] enabled = false 跳过检�
 msgstr ""
 
 msgid "SyncTeX 已关闭：本次不生成 .synctex.gz，编辑器将无法正/反向跳转"
+msgstr ""
+
+msgid "无法清除旧 SyncTeX: "
 msgstr ""
 
 #, python-format
@@ -339,13 +341,6 @@ msgstr ""
 msgid "通过配置文件设置 glossaries 工具为: "
 msgstr ""
 
-#, python-format
-msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
-msgstr ""
-
-msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
-msgstr ""
-
 msgid "[bold green]已生成根项目配置文件 [/bold green]"
 msgstr ""
 
@@ -362,9 +357,6 @@ msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects] 段[/bold green]"
 msgstr ""
 
 msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行中有效[/yellow]"
-msgstr ""
-
-msgid "移动结果文件到输出目录..."
 msgstr ""
 
 msgid "无法确定主文件，不能定位最近一次编译日志"

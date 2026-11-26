@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,19 +18,25 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-msgid "检测辅助文件"
-msgstr "Detecting auxiliary files"
+msgid "DVIPDFMX 编译"
+msgstr "DVIPDFMX compile"
+
+msgid "pythontex 处理代码块"
+msgstr ""
+
+msgid "pythontex 后重新编译 LaTeX"
+msgstr ""
 
 #, python-format
 msgid "1 次 %(args)s 编译"
 msgstr "1 %(args)s pass"
 
-msgid "编译状态检测"
-msgstr "Compile status"
-
 #, python-format
 msgid "%(args)s 编译文献"
 msgstr "%(args)s compile bib"
+
+msgid "bib2gls 编译术语表"
+msgstr ""
 
 #, python-format
 msgid "%(args)s 编译"
@@ -40,17 +46,22 @@ msgstr "%(args)s compile"
 msgid "%(args1)s 次 %(args2)s 编译"
 msgstr "%(args1)s %(args2)s passes"
 
-msgid "DVIPDFMX 编译"
-msgstr "DVIPDFMX compile"
+msgid "未检测到编译输出的 PDF，请检查日志"
+msgstr ""
 
 msgid "完成所有编译"
 msgstr "Compilation finished"
 
 #, python-format
-msgid "2 次 %(args1)s 编译"
-msgstr "2 %(args1)s passes"
-
-#, python-format
 msgid "未能消除：%(args)s"
 msgstr "Unresolved: %(args)s"
+
+#~ msgid "检测辅助文件"
+#~ msgstr "Detecting auxiliary files"
+
+#~ msgid "编译状态检测"
+#~ msgstr "Compile status"
+
+#~ msgid "2 次 %(args1)s 编译"
+#~ msgstr "2 %(args1)s passes"
 

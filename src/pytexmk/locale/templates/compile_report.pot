@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,6 +71,28 @@ msgstr ""
 msgid "日志检测到重编译警告，要求多次迭代编译"
 msgstr ""
 
+#, python-format
+msgid "无需额外执行 %(prog)s 编译。"
+msgstr ""
+
+msgid "辅助文件与日志信号均已稳定，继续编译不会再改变结果，已提前停止。"
+msgstr ""
+
+msgid "本轮编译未改变任何辅助文件（已到达不动点），继续编译不会产生新结果，已提前停止。"
+msgstr ""
+
+msgid "检测到辅助文件在两种状态之间循环震荡，继续编译无法收敛，已提前停止。"
+msgstr ""
+
+msgid "日志中只剩未定义引用/重复标签这类必须改源码才能消除的信号，再编译不会改变结果，已提前停止。"
+msgstr ""
+
+msgid "外部工具（BibTeX/索引等）刚生成了新的辅助文件，但额外编译预算已用尽；TeX 尚未把这些结果读进 PDF，构建未完全收敛。"
+msgstr ""
+
+msgid "已达额外编译安全上限，停止调度。"
+msgstr ""
+
 msgid "检测报告"
 msgstr ""
 
@@ -81,10 +103,6 @@ msgid "轮"
 msgstr ""
 
 msgid "结论："
-msgstr ""
-
-#, python-format
-msgid "无需额外执行 %(prog)s 编译。"
 msgstr ""
 
 #, python-format
@@ -99,24 +117,3 @@ msgstr ""
 msgid "已达 %(max_extra)s 次额外编译安全上限，停止调度。"
 msgstr ""
 
-msgid "辅助文件已稳定，但日志仍存在重编译警告（常见于未定义引用或标签缺失），继续编译无法消除，已提前停止。"
-msgstr ""
-
-msgid "已达额外编译安全上限，停止调度。"
-msgstr ""
-
-msgid "提示："
-msgstr ""
-
-msgid "本轮编译未改变任何辅助文件（已到达不动点），继续编译不会产生新结果，已提前停止。"
-msgstr ""
-
-msgid "检测到辅助文件在两种状态之间循环震荡，继续编译无法收敛，已提前停止。"
-msgstr ""
-
-msgid "辅助文件与日志信号均已稳定，继续编译不会再改变结果，已提前停止。"
-msgstr ""
-
-#: src/pytexmk/compile_report.py
-msgid "日志中只剩未定义引用/重复标签这类必须改源码才能消除的信号，再编译不会改变结果，已提前停止。"
-msgstr "Only source-level warnings (undefined references / duplicate labels) remain; recompiling cannot change the result, stopped early."

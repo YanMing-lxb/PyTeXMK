@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,11 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-msgid "[bold]运行命令: [/bold]"
+#, python-format
+msgid "正在%(prog)s…"
 msgstr ""
 
 #, python-format
-msgid "[yellow]收到中断信号，正在终止 %(prog)s...[/yellow]"
+msgid "系统临时目录不可写，本次编译改用 %(dir)s"
 msgstr ""
 
 #, python-format
@@ -29,18 +30,10 @@ msgid "[√] 运行 %(prog)s 成功 [time](耗时: %(dur)s)[/]"
 msgstr ""
 
 #, python-format
-msgid "%(prog)s 编译失败, 请查看日志文件以获取详细信息: %(log)s"
+msgid "%(prog)s 无法启动: %(err)s"
 msgstr ""
 
-#, python-format
-msgid "%(prog)s 执行超时: "
-msgstr ""
-
-msgid "执行超时"
-msgstr ""
-
-#, python-format
-msgid "正在%(prog)s…"
+msgid "无法发布重定向输出: "
 msgstr ""
 
 #, python-format
@@ -48,12 +41,18 @@ msgid "已 %(sec)d 秒没有输出，%(prog)s 仍在运行（加 -nq 可看实�
 msgstr ""
 
 #, python-format
-msgid ""
-"%(prog)s 已结束，但输出管道仍未关闭（可能派生了后台进程），"
-"已停止等待；后续输出可能未收集"
+msgid "%(prog)s 已结束，但输出管道仍未关闭（可能派生了后台进程），已停止等待；后续输出可能未收集"
 msgstr ""
 
 #, python-format
-msgid "%(prog)s 无法启动: %(err)s"
+msgid "[yellow]收到中断信号，正在终止 %(prog)s...[/yellow]"
+msgstr ""
+
+#, python-format
+msgid "%(prog)s 编译失败, 请查看日志文件以获取详细信息: %(log)s"
+msgstr ""
+
+#, python-format
+msgid "%(prog)s 执行失败 (退出码 %(code)s)"
 msgstr ""
 

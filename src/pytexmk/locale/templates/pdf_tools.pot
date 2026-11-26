@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,22 +23,43 @@ msgstr ""
 msgid "设置 PDF 查看器: "
 msgstr ""
 
+msgid "自定义查看器启动失败，回退系统默认程序: "
+msgstr ""
+
+msgid "PDF 不存在: "
+msgstr ""
+
 msgid "文件路径: "
 msgstr ""
 
 msgid "打开文件失败: "
 msgstr ""
 
-msgid "当前路径下没有 PDF 文件"
-msgstr ""
-
-msgid "找到 PDF 文件数目: "
-msgstr ""
-
 msgid "修复成功: "
 msgstr ""
 
-msgid "修复失败: "
+msgid "修复失败（原文件未改动）: "
+msgstr ""
+
+msgid "跳过非 PDF 或不存在: "
+msgstr ""
+
+msgid "跳过项目外的文件: "
+msgstr ""
+
+msgid "跳过主输出 PDF: "
+msgstr ""
+
+msgid "未找到可信的 .fls recorder，未执行任何修复。"
+msgstr ""
+
+msgid "以下 PDF 是潜在候选（只读列出，可用 -rp 显式指定要修复的文件）:"
+msgstr ""
+
+msgid "当前路径下没有被引用的 PDF 文件"
+msgstr ""
+
+msgid "找到 PDF 文件数目: "
 msgstr ""
 
 msgid "[bold green]修复 PDF 结束[/bold green]"

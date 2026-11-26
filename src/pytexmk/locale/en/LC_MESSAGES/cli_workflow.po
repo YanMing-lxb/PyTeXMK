@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-24 16:10+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -102,6 +102,9 @@ msgstr "No migratable auxiliary files detected"
 msgid "已移动 %(n)s 个辅助文件到项目根目录"
 msgstr "Moved %(n)s auxiliary files to project root directory"
 
+msgid "无法读取编译产物: "
+msgstr ""
+
 msgid "PDF / synctex"
 msgstr "PDF / synctex"
 
@@ -118,11 +121,17 @@ msgstr "Archiving %(p)s to the output directory..."
 msgid "移动辅助文件到辅助目录..."
 msgstr "Moving auxiliary files to auxiliary directory..."
 
+msgid "编译产物未能完整归档: "
+msgstr ""
+
 #, python-format
 msgid "编译产物归档失败：%(p)s 仍留在 %(s)s（可能被占用或目录不可写）"
 msgstr ""
 "Failed to archive build output: %(p)s remains in %(s)s (possibly in use "
 "or directory not writable)"
+
+msgid "本轮编译没有生成新 PDF: "
+msgstr ""
 
 msgid "输出目录里没有 PDF（编译可能未产出页面）"
 msgstr "No PDF in the output directory (the build may not have produced pages)"
@@ -151,14 +160,6 @@ msgstr "PDF verification failed"
 msgid "编译产物校验失败: %(p)s（%(r)s）"
 msgstr "Build output verification failed: %(p)s (%(r)s)"
 
-msgid "无法读取 PDF 时间戳: "
-msgstr "Cannot read the PDF timestamp: "
-
-msgid "输出目录里的 PDF 是上一轮产物（本轮编译没有生成新 PDF）: "
-msgstr ""
-"The PDF in the output directory is from an earlier run (this run produced"
-" no new PDF): "
-
 #, python-format
 msgid "提示：输出目录里缺少 SyncTeX 定位文件（%(n)s.synctex 或 .synctex.gz），编辑器将无法反向跳转"
 msgstr ""
@@ -166,15 +167,8 @@ msgstr ""
 ".synctex.gz); editors cannot jump backwards"
 
 #, python-format
-msgid "提示：%(p)s 是上次编译留下的旧文件（本次已关闭 SyncTeX），如需彻底停用编辑器跳转请手动删除"
-msgstr ""
-"Note: %(p)s is left over from a previous build (SyncTeX is off this run);"
-" delete it manually to disable editor navigation entirely"
-
-#, python-format
 msgid "检测到 %(e)s 个错误，详见编译日志中的 ERROR 条目。"
-msgstr ""
-"Found %(e)s error(s); see the ERROR entries in the compile log."
+msgstr "Found %(e)s error(s); see the ERROR entries in the compile log."
 
 msgid "编译前检查提示"
 msgstr "Preflight notices"
@@ -184,13 +178,16 @@ msgstr "Preflight found blocking problems; compilation stopped"
 
 msgid "确认无误时可在配置中设 [preflight] enabled = false 跳过检查"
 msgstr ""
-"If these are expected, set \\[preflight] enabled = false in the config to "
-"skip the checks"
+"If these are expected, set \\[preflight] enabled = false in the config to"
+" skip the checks"
 
 msgid "SyncTeX 已关闭：本次不生成 .synctex.gz，编辑器将无法正/反向跳转"
 msgstr ""
 "SyncTeX is off: no .synctex.gz this run; editors cannot jump forwards or "
 "backwards"
+
+msgid "无法清除旧 SyncTeX: "
+msgstr ""
 
 #, python-format
 msgid "根目录 %(f)s 与辅助目录同名但内容不同，已保留（疑似手写样式文件）"
@@ -382,15 +379,6 @@ msgstr "Index style file set by config: "
 msgid "通过配置文件设置 glossaries 工具为: "
 msgstr "Glossaries tool set by config: "
 
-#, python-format
-msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
-msgstr "%(flag)s expects 0 (use config) or exactly 2 file names, got %(n)s"
-
-msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
-msgstr ""
-"Please specify both the old and new TeX files via the command line or "
-"config file"
-
 msgid "[bold green]已生成根项目配置文件 [/bold green]"
 msgstr "[bold green]Root project config file generated [/bold green]"
 
@@ -402,8 +390,8 @@ msgstr "[bold red]Cannot create root config .pytexmkrc[/bold red]"
 
 msgid "[bold green].pytexmkrc 中的 \\[subprojects] 段已是当前清单，未改动[/bold green]"
 msgstr ""
-"[bold green]The \\[subprojects] section in .pytexmkrc already matches the "
-"current list; unchanged[/bold green]"
+"[bold green]The \\[subprojects] section in .pytexmkrc already matches the"
+" current list; unchanged[/bold green]"
 
 msgid "[bold green]已更新 .pytexmkrc 中的 \\[subprojects] 段[/bold green]"
 msgstr "[bold green]Updated the \\[subprojects] section in .pytexmkrc[/bold green]"
@@ -412,9 +400,6 @@ msgid "[yellow]无法写入根 .pytexmkrc ，子项目清单仅在本次运行�
 msgstr ""
 "[yellow]Cannot write the root .pytexmkrc; the subproject list is valid "
 "only for this run[/yellow]"
-
-msgid "移动结果文件到输出目录..."
-msgstr "Moving result files to output directory..."
 
 msgid "无法确定主文件，不能定位最近一次编译日志"
 msgstr "Cannot determine the main file, so the latest build log cannot be located"
@@ -475,3 +460,32 @@ msgstr "Exit code"
 
 msgid "失败子项目: "
 msgstr "Failed subprojects: "
+
+#~ msgid "无法读取 PDF 时间戳: "
+#~ msgstr "Cannot read the PDF timestamp: "
+
+#~ msgid "输出目录里的 PDF 是上一轮产物（本轮编译没有生成新 PDF）: "
+#~ msgstr ""
+#~ "The PDF in the output directory is"
+#~ " from an earlier run (this run "
+#~ "produced no new PDF): "
+
+#~ msgid "提示：%(p)s 是上次编译留下的旧文件（本次已关闭 SyncTeX），如需彻底停用编辑器跳转请手动删除"
+#~ msgstr ""
+#~ "Note: %(p)s is left over from a"
+#~ " previous build (SyncTeX is off this"
+#~ " run); delete it manually to disable"
+#~ " editor navigation entirely"
+
+#~ msgid "%(flag)s 需 0 个（取配置）或恰好 2 个文件名，当前收到 %(n)s 个"
+#~ msgstr "%(flag)s expects 0 (use config) or exactly 2 file names, got %(n)s"
+
+#~ msgid "请在命令行或配置文件中指定新旧两个 TeX 文件"
+#~ msgstr ""
+#~ "Please specify both the old and "
+#~ "new TeX files via the command line"
+#~ " or config file"
+
+#~ msgid "移动结果文件到输出目录..."
+#~ msgstr "Moving result files to output directory..."
+

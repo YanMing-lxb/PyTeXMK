@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -24,24 +24,51 @@ msgstr "No PDF viewer set, using default PDF viewer"
 msgid "设置 PDF 查看器: "
 msgstr "PDF viewer set: "
 
+msgid "自定义查看器启动失败，回退系统默认程序: "
+msgstr ""
+
+msgid "PDF 不存在: "
+msgstr ""
+
 msgid "文件路径: "
 msgstr "File path: "
 
 msgid "打开文件失败: "
 msgstr "Failed to open file: "
 
-msgid "当前路径下没有 PDF 文件"
-msgstr "No PDF file found in current directory"
+msgid "修复成功: "
+msgstr "Repair successful: "
+
+msgid "修复失败（原文件未改动）: "
+msgstr ""
+
+msgid "跳过非 PDF 或不存在: "
+msgstr ""
+
+msgid "跳过项目外的文件: "
+msgstr ""
+
+msgid "跳过主输出 PDF: "
+msgstr ""
+
+msgid "未找到可信的 .fls recorder，未执行任何修复。"
+msgstr ""
+
+msgid "以下 PDF 是潜在候选（只读列出，可用 -rp 显式指定要修复的文件）:"
+msgstr ""
+
+msgid "当前路径下没有被引用的 PDF 文件"
+msgstr ""
 
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "
 
-msgid "修复成功: "
-msgstr "Repair successful: "
-
-msgid "修复失败: "
-msgstr "Repair failed: "
-
 msgid "[bold green]修复 PDF 结束[/bold green]"
 msgstr "[bold green]PDF repair finished[/bold green]"
+
+#~ msgid "当前路径下没有 PDF 文件"
+#~ msgstr "No PDF file found in current directory"
+
+#~ msgid "修复失败: "
+#~ msgstr "Repair failed: "
 

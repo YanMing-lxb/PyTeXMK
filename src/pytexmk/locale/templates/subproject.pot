@@ -6,9 +6,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PyTeXMK 1.2.6\n"
+"Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-09-25 21:59+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "project_scan.exclude 只接受目录名，已按 basename 处理: "
+msgstr ""
+
+msgid "写入子项目清单失败: "
+msgstr ""
+
 msgid "扫描到的子项目清单"
 msgstr ""
 
@@ -24,8 +30,5 @@ msgid "名称"
 msgstr ""
 
 msgid "相对路径"
-msgstr ""
-
-msgid "写入子项目清单失败: "
 msgstr ""
 

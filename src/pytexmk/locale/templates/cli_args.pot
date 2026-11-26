@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-24 15:42+0800\n"
+"POT-Creation-Date: 2026-11-26 21:31+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,13 +67,10 @@ msgstr ""
 msgid "向引擎追加一个参数，可重复（如 -pa=-8bit）"
 msgstr ""
 
-msgid "生成期刊投稿包 zip（按 .fls 收集依赖，并处理 Unicode）"
+msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"
 msgstr ""
 
 msgid "监视源文件并自动重编（Ctrl+C 退出）"
-msgstr ""
-
-msgid "打包后用 pdflatex 试编译一次做验证"
 msgstr ""
 
 msgid "只显示本次编译配置，不编译"
@@ -83,9 +80,6 @@ msgid "显示合并后的配置（默认 < 用户 < 项目）"
 msgstr ""
 
 msgid "编译根配置 \\[subprojects] 中的全部子项目"
-msgstr ""
-
-msgid "投稿包同时包含 .bib 源文件（默认只带 .bbl）"
 msgstr ""
 
 msgid "显示详细运行信息"
@@ -118,3 +112,4 @@ msgstr ""
 #, python-format
 msgid "不支持把短开关合并写成 %(token)s，请分开书写（如 -d -c）"
 msgstr ""
+
