@@ -65,6 +65,9 @@ jobs:
 
   build-binary:
     strategy:
+      # 单平台失败不再取消其余平台：避免一台机器挂掉后，另外两台被连带取消、
+      # 看不到真实的跨平台结果。
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         include:
