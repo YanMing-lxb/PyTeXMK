@@ -14,7 +14,7 @@
 
 # 这些目标是命令而非同名文件/目录；尤其 `build` 与 PyInstaller 的 build/ 目录同名，
 # 不声明 .PHONY 时 `make build` 可能被目录时间戳误判为“已是最新”。
-.PHONY: help build icon whl inswhl clean pot add-lang update mo dryrun upload
+.PHONY: help build icon whl inswhl clean pot add-lang update mo dryrun actions upload
 
 # 当前 dist 下的 wheel；inswhl 直接交给外层 uv，避免 uv run 嵌套 uv tool 时的锁冲突
 WHL = $(wildcard dist/*.whl)
@@ -40,6 +40,7 @@ help:
 	@echo   update   重新提取 POT，合并更新到所有已有语言的 .po 文件
 	@echo   mo       将所有语言的 .po 文件编译为二进制 .mo 文件
 	@echo   dryrun   触发 GitHub Actions 打包 dry_run（只构建不发布，默认跟踪结果）
+	@echo   actions  检查 CI 引用的 action 是否有新版本（ARGS=--apply 可直接更新）
 	@echo   upload   上传包至 PyPI
 	@echo   help     显示本帮助信息
 
@@ -146,6 +147,12 @@ upload:
 #   make dryrun ARGS=--no-watch 触发后立即返回，只打印运行地址
 dryrun:
 	@uv run --no-project python ./tools/ci_dryrun.py $(ARGS)
+
+# 检查 .github/workflows 与 .github/actions 引用的 action 版本
+#   make actions              只读检查；有过期引用时退出码 1
+#   make actions ARGS=--apply 把可升级的 semver 引用改写为最新标签（主版本标签不动）
+actions:
+	@uv run --no-project python ./tools/check_actions.py $(ARGS)
 
 # 注意：winget 发布不提供本地/Make 入口。
 # 发布完全在 GitHub Action（Release.yml 的 publish-to-winget job）中，

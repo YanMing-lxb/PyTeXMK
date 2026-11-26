@@ -164,7 +164,7 @@ jobs:
         run: uv run python tools/zip_release.py linux --arch x64
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: pytexmk-binary-linux
           path: pytexmk-*.zip
@@ -232,12 +232,12 @@ jobs:
         uses: ./.github/actions/set-utf8
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           enable-cache: true
 
       - name: Set up Python 3.15
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.15"
           allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
@@ -309,7 +309,7 @@ jobs:
       # 上传 zip 为 artifact，供 publish-to-github-release 汇总发布，
       # 也便于 winget job 之后的阶段按需取用。
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: pytexmk-binary-${{ matrix.os }}
           path: pytexmk-*.zip
@@ -325,12 +325,12 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           enable-cache: true
 
       - name: Set up Python 3.15
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.15"
           allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
@@ -343,7 +343,7 @@ jobs:
         run: uv build
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: python-package-distributions
           path: dist/
@@ -445,7 +445,7 @@ jobs:
           path: dist/
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.14.1
+        uses: pypa/gh-action-pypi-publish@v1.14.3
         with:
           packages-dir: dist/
 
@@ -502,7 +502,7 @@ jobs:
 
       # 创建 GitHub Release：上传 sdist+wheel+三平台 zip，附上文/更新说明。
       - name: Publish to GitHub Release
-        uses: softprops/action-gh-release@v3.0.0
+        uses: softprops/action-gh-release@v3
         with:
           body_path: CHANGELOG.txt
           token: ${{ secrets.PUBLISH_PYTEXMK }}

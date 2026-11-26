@@ -19,18 +19,30 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install TeX Live
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            texlive-xetex texlive-latex-extra texlive-fonts-recommended biber
+        # 现成 action 安装 TeX Live 并把引擎加入 PATH；包名为 tlmgr 名称，
+        # 覆盖 XeLaTeX/PdfLaTeX 引擎、文档基础宏包与目录/参考文献工具。
+        uses: zauguin/install-texlive@v4
+        with:
+          packages: >
+            latex-bin
+            xetex
+            amsmath
+            amsfonts
+            lmodern
+            textcomp
+            biber
+            bibtex
+            makeindex
+            latexmk
+            collection-fontsrecommended
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           enable-cache: true
 
       - name: Set up Python 3.15
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.15"
           allow-prereleases: true
@@ -108,13 +120,13 @@ jobs:
           echo "PYTHONIOENCODING=$env:PYTHONIOENCODING"
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v9.0.0
+        uses: astral-sh/setup-uv@v10.4.0
         with:
           enable-cache: true
 
       - name: Set up Python 3.15
         # requires-python = ">=3.15"：显式钉住 3.15，避免解释器解析漂到更新的小版本
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.15"
           allow-prereleases: true   # 3.15 若仍是预发布版，setup-python 需要这一项才能装
@@ -153,7 +165,7 @@ jobs:
         run: uv run python tools/zip_release.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v7
         with:
           name: pytexmk-binary-${{ matrix.os }}
           path: pytexmk-*.zip
