@@ -28,8 +28,7 @@ jobs:
             xetex
             amsmath
             amsfonts
-            lmodern
-            textcomp
+            lm
             biber
             bibtex
             makeindex
