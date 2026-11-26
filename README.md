@@ -502,7 +502,7 @@ make mo
 make pot
 ```
 
-> 工作流基于 Babel（`pybabel extract/init/update/compile`，封装在 `tools/lang_tool.py`）；`.mo` 在运行时由标准库 gettext 加载。
+> 工作流基于 Babel（`pybabel extract/init/update/compile`，封装在 `tools/i18n/babel.py`）；`.mo` 在运行时由标准库 gettext 加载。
 
 ---
 

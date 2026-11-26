@@ -9,8 +9,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import ICNS_PATH, ICO_PATH, LOGO_SOURCE, PNG_PATH
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from shared.config import ICNS_PATH, ICO_PATH, LOGO_SOURCE, PNG_PATH
 
 ICNS_SIZES = (16, 32, 64, 128, 256, 512)
 ICO_SIZES = (16, 32, 48, 64, 128, 256)

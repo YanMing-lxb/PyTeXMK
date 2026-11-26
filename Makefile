@@ -51,7 +51,7 @@ help:
 # 构建源码模式可执行程序（onedir 目录模式） - 产物：dist/pytexmk/
 # 依赖 mo：保证打包进二进制的 .mo 与当前 .po 一致，避免发布旧译文。
 build: mo
-	@uv run python ./tools/pack.py pack
+	@uv run python ./tools/build/pack_binary.py pack
 
 # 从项目 logo 生成各平台特定的图标文件
 # - 输入: imgs/pytexmk-logo.png
@@ -61,7 +61,7 @@ build: mo
 #   - tools/icon.png  - Linux 256x256 PNG 图标
 # - 需要 Pillow 库（已在 dev 依赖中）
 icon:
-	@uv run python ./tools/generate_icon.py
+	@uv run python ./tools/build/generate_icon.py
 
 # 清理后构建 Python 分发包（wheel + sdist）
 # - 先执行 clean 清理旧产物
@@ -90,13 +90,13 @@ inswhl:
 # - 删除 staging/ (CI 打包临时目录)
 # - 删除根目录下所有 .spec 文件 (PyInstaller 规格文件)
 clean:
-	@uv run python ./tools/pack.py clean
+	@uv run python ./tools/build/pack_binary.py clean
 
 # ------------------------------------------------------------------------------
 # 文档相关目标
 # ------------------------------------------------------------------------------
-# docs/ 目前是 Markdown 源，没有 RST/Sphinx 构建链；旧 all/rst 目标调用
-# tools/make.py 的未注册子命令并直接退出 1，已移除，避免误导。
+# docs/ 目前是 Markdown 源，没有 RST/Sphinx 构建链；旧 all/rst 目标调用的
+# 未注册子命令已直接退出 1，相关目标已移除，避免误导。
 
 # ------------------------------------------------------------------------------
 # 国际化 (i18n) 相关目标 —— 严格遵循 pybabel 官方 4 命令工作流
@@ -107,25 +107,25 @@ clean:
 #    · 仅扫 src/pytexmk/**/*.py
 #    · 输出到 src/pytexmk/locale/templates/<domain>.pot（Babel/gettext 目录规范：模板单独存放，不隶属于具体 locale）
 pot:
-	@uv run python ./tools/lang_tool.py pot
+	@uv run python ./tools/i18n/babel.py pot
 
 # 2) add-lang：交互式新增一种语言 —— 终端询问 locale code（如 en_US / ja_JP / fr_FR / zh_Hans）
 #    · 先确保 pot 最新；为所有 domain 生成对应的 .po 翻译文件
 #    · 若该语言已存在则不覆盖，改为提示使用 update
 add-lang:
-	@uv run python ./tools/lang_tool.py add-lang
+	@uv run python ./tools/i18n/babel.py add-lang
 
 # 3) update：重新抽取 POT 模板，然后将新 msgid 合并到所有已存在 locale 的 .po 文件
 #    · 自动扫所有 locale（只要 locale/<x>/LC_MESSAGES/ 存在即视为一种语言）
 #    · 使用 pybabel update 合并，保留已填的 msgstr，不会被覆盖；缺的 domain 自动补 init
 #    · 合并完成后人工补空 msgstr，再跑 mo 编译
 update:
-	@uv run python ./tools/lang_tool.py update
+	@uv run python ./tools/i18n/babel.py update
 
 # 4) mo：将所有已存在 locale 的 .po 翻译文件编译为二进制 .mo（pybabel compile；运行时由标准库 gettext 加载）
 #    · 某个 .po 缺只会 warning 跳过，不会抛错阻塞其他语言
 mo:
-	@uv run python ./tools/lang_tool.py mo
+	@uv run python ./tools/i18n/babel.py mo
 
 # ------------------------------------------------------------------------------
 # 发布相关目标
@@ -135,7 +135,7 @@ mo:
 # - 需先配置 PyPI API token
 # - 上传前请确保已运行 make whl 构建产物
 upload:
-	@uv run python ./tools/make.py upload
+	@uv run python ./tools/release/upload.py upload
 
 # 触发 GitHub Actions 的 Release 工作流做一次 dry_run：只构建、不发布
 # - 用于在打 tag 前验证打包链路（Linux manylinux_2_28 容器、macOS arm64、glibc 门禁、环境探针）
@@ -146,15 +146,14 @@ upload:
 #   make dryrun ARGS=--check    只校验 token 与目标，不真的触发
 #   make dryrun ARGS=--no-watch 触发后立即返回，只打印运行地址
 dryrun:
-	@uv run --no-project python ./tools/ci_dryrun.py $(ARGS)
+	@uv run --no-project python ./tools/release/ci_dryrun.py $(ARGS)
 
 # 检查 .github/workflows 与 .github/actions 引用的 action 版本
 #   make actions              只读检查；有过期引用时退出码 1
 #   make actions ARGS=--apply 把可升级的 semver 引用改写为最新标签（主版本标签不动）
 actions:
-	@uv run --no-project python ./tools/check_actions.py $(ARGS)
+	@uv run --no-project python ./tools/release/check_actions.py $(ARGS)
 
 # 注意：winget 发布不提供本地/Make 入口。
-# 发布完全在 GitHub Action（Release.yml 的 publish-to-winget job）中，
-# 由 tools/winget/publish.py（基于官方 wingetcreate）自动执行；
-# 版本号自动取 config.__version__（src/pytexmk/version.py）。
+# 发布完全在 GitHub Action（Release.yml 的 publish-to-winget job）内联调用
+# 官方 wingetcreate 完成；版本号取 src/pytexmk/version.py 的 __version__。

@@ -11,10 +11,10 @@ dry_run 模式下工作流只构建和上传 artifact，不会往 PyPI / GitHub 
     写成纯标准库脚本 + `uv run --no-project`，两边都稳定可跑。
 
 用法：
-    python tools/ci_dryrun.py                 触发并跟踪到结束（失败时退出码 1）
-    python tools/ci_dryrun.py --check         只校验 token 与目标，不真的触发
-    python tools/ci_dryrun.py --no-watch      触发后立即返回，只打印运行地址
-    python tools/ci_dryrun.py --ref <分支>    指定分支（默认当前分支）
+    python tools/release/ci_dryrun.py                 触发并跟踪到结束（失败时退出码 1）
+    python tools/release/ci_dryrun.py --check         只校验 token 与目标，不真的触发
+    python tools/release/ci_dryrun.py --no-watch      触发后立即返回，只打印运行地址
+    python tools/release/ci_dryrun.py --ref <分支>    指定分支（默认当前分支）
 
 需要 token：环境变量 GH_TOKEN 或 GITHUB_TOKEN，或者已登录的 gh CLI。
 token 需要 actions:write（经典 token 勾选 workflow 即可）。

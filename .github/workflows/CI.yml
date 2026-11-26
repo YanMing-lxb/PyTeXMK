@@ -142,7 +142,7 @@ jobs:
         run: uv run pytest -q -W default
 
       - name: Pack binary (onedir, source mode)
-        run: uv run python tools/pack.py pack
+        run: uv run python tools/build/pack_binary.py pack
 
       - name: Test binary
         if: runner.os != 'Windows'
@@ -162,7 +162,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "Binary smoke test failed, exit=$LASTEXITCODE" }
 
       - name: Prepare release zip
-        run: uv run python tools/zip_release.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
+        run: uv run python tools/build/pack_zip.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7

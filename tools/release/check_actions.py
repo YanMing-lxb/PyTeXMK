@@ -12,9 +12,9 @@
       脚本在有新 release 时提示，并可 ``--apply`` 升级。
 
 用法：
-    python tools/check_actions.py            # 只读检查，输出报告；有过期则退出码 1
-    python tools/check_actions.py --apply   # 把可升级的 semver 引用改写为最新标签
-    python tools/check_actions.py --json     # 机器可读输出
+    python tools/release/check_actions.py            # 只读检查，输出报告；有过期则退出码 1
+    python tools/release/check_actions.py --apply   # 把可升级的 semver 引用改写为最新标签
+    python tools/release/check_actions.py --json     # 机器可读输出
 
 只依赖标准库；token 可选（``GH_TOKEN`` / ``GITHUB_TOKEN``），未登录走匿名 API 限流。
 """

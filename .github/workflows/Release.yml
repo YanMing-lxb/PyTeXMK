@@ -116,12 +116,12 @@ jobs:
       - name: Pack binary (onedir, source mode)
         shell: bash
         timeout-minutes: 120
-        run: uv run python tools/pack.py pack
+        run: uv run python tools/build/pack_binary.py pack
 
       # 水位门禁：产物要求高于 glibc 2.28 就直接失败，不把问题留给用户。
       - name: Assert glibc floor <= 2.28
         shell: bash
-        run: uv run python tools/check_glibc.py 2.28 dist/pytexmk
+        run: uv run python tools/build/check_glibc.py 2.28 dist/pytexmk
 
       - name: Test binary
         shell: bash
@@ -161,7 +161,7 @@ jobs:
       - name: Prepare release zip
         shell: bash
         timeout-minutes: 10
-        run: uv run python tools/zip_release.py linux --arch x64
+        run: uv run python tools/build/pack_zip.py linux --arch x64
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v7
@@ -268,7 +268,7 @@ jobs:
       # 唯一的二进制编译入口：PyInstaller onedir 模式 → dist/pytexmk/。
       - name: Pack binary (onedir, source mode)
         timeout-minutes: 120
-        run: uv run python tools/pack.py pack
+        run: uv run python tools/build/pack_binary.py pack
 
       # 非 Windows：二进制冒烟测试（--version / --help）。
       - name: Test binary
@@ -304,7 +304,7 @@ jobs:
       - name: Prepare release zip
         shell: bash
         timeout-minutes: 10
-        run: uv run python tools/zip_release.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
+        run: uv run python tools/build/pack_zip.py ${{ matrix.platform }} --arch ${{ matrix.arch }}
 
       # 上传 zip 为 artifact，供 publish-to-github-release 汇总发布，
       # 也便于 winget job 之后的阶段按需取用。

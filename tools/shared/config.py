@@ -8,7 +8,7 @@ from pathlib import Path
 
 __team__ = "YanMing"
 PROJECT_NAME = "pytexmk"
-ROOT_DIR = Path(__file__).parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 SRC_DIR = ROOT_DIR / "src" / "pytexmk"
 TOOLS_DIR = ROOT_DIR / "tools"
 SRC_ENTRY_POINT = SRC_DIR / "__main__.py"

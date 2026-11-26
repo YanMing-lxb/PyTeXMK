@@ -1,9 +1,12 @@
 import re
 import subprocess
 import sys
+from pathlib import Path
 
-from config import BABEL_CFG_PATH, POT_DIR, SRC_DIR, SRC_LOCALE_DIR, __version__
-from utils import console, run_command
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from shared.config import BABEL_CFG_PATH, POT_DIR, SRC_DIR, SRC_LOCALE_DIR, __version__
+from shared.utils import console, run_command
 
 if sys.stdout.encoding != "UTF-8":
     sys.stdout.reconfigure(encoding="utf-8")

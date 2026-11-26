@@ -4,7 +4,7 @@ CI 用它在构建完成后做"水位门禁"：any 产物里出现超过基线�
 该产物就无法在基线及更老的 glibc 上启动，必须让构建失败而不是等用户报错。
 
 用法：
-    python tools/check_glibc.py 2.28 dist/pytexmk
+    python tools/build/check_glibc.py 2.28 dist/pytexmk
 """
 
 import argparse

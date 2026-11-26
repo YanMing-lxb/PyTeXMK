@@ -18,7 +18,7 @@ Author       : 焱铭
 Date         : 2025-07-16 20:53:22 +0800
 LastEditTime : 2025-07-16 20:53:53 +0800
 Github       : https://github.com/YanMing-lxb/
-FilePath     : /PyTeXMK/tools/make1.py
+FilePath     : /PyTeXMK/tools/release/upload.py
 Description  :
  -----------------------------------------------------------------------
 """
@@ -28,7 +28,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from utils import console, run_command
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from shared.utils import console, run_command
 
 
 def _get_version():
@@ -44,28 +46,6 @@ def _get_version():
         raise ValueError(f"无法在 {version_file} 中找到 __version__ 变量")
 
     return version_match.group(1)
-
-
-def inswhl():
-    console.print("📦 开始安装测试 PyTeXMK", style="status")
-
-    uninstall_success = run_command(
-        command=["uv", "tool", "uninstall", "pytexmk"],
-        success_msg="旧版 PyTeXMK 卸载完成",
-        error_msg="旧版 PyTeXMK 卸载失败",
-        process_name="卸载旧版 PyTeXMK",
-    )
-
-    whl_files = list(Path("dist").glob("*.whl"))
-    if not whl_files:
-        raise FileNotFoundError("dist 目录中没有找到 .whl 文件")
-    install_success = run_command(
-        command=["uv", "tool", "install", str(whl_files[0])],
-        success_msg="测试 PyTeXMK 安装完成",
-        error_msg="测试 PyTeXMK 安装失败",
-        process_name="安装测试版 PyTeXMK",
-    )
-    return uninstall_success and install_success
 
 
 def upload():
@@ -139,7 +119,6 @@ def upload():
 def main():
     targets = {
         "upload": upload,
-        "inswhl": inswhl,
     }
 
     if len(sys.argv) < 2 or sys.argv[1] not in targets:

@@ -170,7 +170,7 @@ winget validate "manifests/y/YanMing-lxb/PyTeXMK/<ver>"
   ```
 - 预期顶层目录为 `pytexmk/`，内部存在 `pytexmk.exe`，即完整路径为 `pytexmk/pytexmk.exe`
 - 检查 wingetcreate 生成的清单中 `RelativeFilePath: pytexmk/pytexmk.exe` 是否与实际 zip 结构一致
-- 若 `zip_release.py` 的 staging 目录结构有变更（如去掉顶层目录或改名为 `PyTeXMK`），需同步调整 Release 资产或提交时的清单
+- 若 `pack_zip.py` 的 staging 目录结构有变更（如去掉顶层目录或改名为 `PyTeXMK`），需同步调整 Release 资产或提交时的清单
 
 ### 3. NestedInstallerType=portable 不支持 scope=machine
 

@@ -4,10 +4,10 @@ import sys
 import zipfile
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import PROJECT_NAME, ROOT_DIR, __version__
-from utils import console
+from shared.config import PROJECT_NAME, ROOT_DIR, __version__
+from shared.utils import console
 
 
 def get_executable_name(platform: str) -> str:

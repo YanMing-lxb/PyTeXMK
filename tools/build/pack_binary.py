@@ -4,9 +4,9 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import (
+from shared.config import (
     ICON_FILE,
     PROJECT_NAME,
     ROOT_DIR,
@@ -16,7 +16,7 @@ from config import (
     __team__,
     __version__,
 )
-from utils import PerformanceTracker, console, delete_folder, run_command
+from shared.utils import PerformanceTracker, console, delete_folder, run_command
 
 tracker = PerformanceTracker()
 
