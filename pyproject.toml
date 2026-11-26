@@ -98,7 +98,7 @@ namespaces = false
 
 [tool.setuptools.package-data]
 # 运行时需要的非 Python 资源：
-#   · locale/**/*.mo —— gettext 编译产物；
+#   · locale/**/*.mo —— Babel（pybabel compile）编译产物；
 #   · locale/**/*.pot —— 翻译模板（随 sdist 分发给译者）；
 #   · data/*.toml —— 默认用户 / 项目配置模板。
 # 模式以包目录为根，故 "pytexmk" 一条即可覆盖 data 子包，无需再列 "pytexmk.data"。

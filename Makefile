@@ -104,7 +104,7 @@ clean:
 
 # 1) pot：从 Python 源码的 _() 标记中提取 msgid，生成 POT 翻译模板（语言无关）
 #    · 仅扫 src/pytexmk/**/*.py
-#    · 输出到 src/pytexmk/locale/templates/<domain>.pot（gettext 标准：模板单独存放，不隶属于具体 locale）
+#    · 输出到 src/pytexmk/locale/templates/<domain>.pot（Babel/gettext 目录规范：模板单独存放，不隶属于具体 locale）
 pot:
 	@uv run python ./tools/lang_tool.py pot
 
@@ -121,7 +121,7 @@ add-lang:
 update:
 	@uv run python ./tools/lang_tool.py update
 
-# 4) mo：将所有已存在 locale 的 .po 翻译文件编译为二进制 .mo（程序运行时 gettext 加载）
+# 4) mo：将所有已存在 locale 的 .po 翻译文件编译为二进制 .mo（pybabel compile；运行时由标准库 gettext 加载）
 #    · 某个 .po 缺只会 warning 跳过，不会抛错阻塞其他语言
 mo:
 	@uv run python ./tools/lang_tool.py mo

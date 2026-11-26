@@ -15,6 +15,10 @@
   `--input-directory` 必须指向 `auxdir`；`--version` 不经过惰性导入开关。
 - **不要为清单造使用点**：`Path.info` 已因缓存语义否决，`uuid.uuid7` 当前无场景。
 - **PEP 758** 只用于不带 `as` 的处理器；`except A, B as e` 仍非法。
+- **i18n 工具链是 Babel，不是 gettext**：`.pot/.po/.mo` 的抽取、init、update、编译均走
+  `pybabel`（封装在 `tools/lang_tool.py`，配置 `babel.cfg`，依赖 `babel>=2.18.0`）；只有
+  **运行时加载** `.mo` 才用 Python 标准库 `gettext`（`language.py`）。文档、注释、对外表述
+  不要把整套 i18n 笼统称作 gettext 工具链；提到 gettext 时仅限运行时加载器。
 - **不修改系统环境变量或 MiKTeX 本体，不联网，不提交**，除非用户明确要求。
 
 ## 验证

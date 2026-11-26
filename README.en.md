@@ -503,6 +503,8 @@ make mo
 make pot
 ```
 
+> The workflow is Babel-based (`pybabel extract/init/update/compile`, wrapped in `tools/lang_tool.py`); `.mo` files are loaded at runtime by the stdlib gettext loader.
+
 ---
 
 ## 📄 License

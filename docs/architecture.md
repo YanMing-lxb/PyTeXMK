@@ -130,7 +130,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 | 23 | `lifecycle.py` | 9 | `exit_pytexmk`, `EXIT_OK`, `EXIT_ERROR`, `EXIT_PROJECT_NOT_FOUND` | 生命周期退出：统一退出钩子（打印再见横幅、刷新缓冲、`sys.exit`），禁止零散 `sys.exit` |
 | 24 | `logger_config.py` | 65 | `setup_logger`, `AlignedRichHandler` | 日志配置：Rich handler 按最多 100 列折行、续行 9 空格对齐；`-vb` 控制 INFO 级 |
 | 25 | `config.py` | 172 | `ConfigManager`, `load_user_config`, `merge_project_config`, `DEFAULT_CONFIG_TOML` | TOML 配置：三层合并（默认 default → 用户 `~/.config/pytexmk/` → 项目 `.pytexmk.toml`） + 键校验 |
-| 26 | `language.py` | 49 | `set_language`, `gettext`, `_current_domain` | i18n Hub：`gettext.translation` 封装，所有模块调用 `set_language("<domain>")` 取翻译器 `_` |
+| 26 | `language.py` | 49 | `set_language`, `gettext`, `_current_domain` | i18n Hub：标准库 `gettext.translation` 封装，加载 Babel（pybabel）编译的 `.mo`；所有模块调用 `set_language("<domain>")` 取翻译器 `_` |
 | 27 | `timing.py` | 133 | `time_count`, `time_print`, `total_len`, `get_text_len` | 计时统计：装饰器式编译耗时累计、中英文双宽字符对齐 `get_text_len`、统计段格式化 |
 | 28 | `compile_report.py` | 63 | `print_compile_report`, `print_compile_separator`, `DIVIDER_STYLE`, `WARNING_STYLE` | 编译检测报告：Rerun 原因 6 维汇总表 + 分隔线（-×80）+ 三色样式标签（warning/stable/conclusion） |
 | 29 | `ui_messages.py` | 76 | `print_message`, `magic_comment_desc_table` | UI 通用横幅：启动 / 成功 / 失败 Rich 三色大横幅、`--help` 中魔法注释说明表文本 |
@@ -263,7 +263,7 @@ PyTeXMK 的 import 规则与分层架构严格对应。违反以下 3 条会直�
 | **Core-Run（L2）** | L3 / L4 / L5 | L0 / L1（禁止引 CLI） | `compile_engine.py` 可以 `from .language import set_language`（L2→L5），但不得 `from .cli.cli_workflow import X`（L2→L1 ❌） |
 | **Domain-Ops（L3）** | L4 / L5 | L0 / L1 / L2 | `tex_project.py` 可以 `from .config import ConfigManager`（L3→L4），但不得引 L2 run/compile |
 | **Infra（L4）** | 仅允许 L5 | L0 / L1 / L2 / L3（禁止引任何上层/业务层） | `paths.py` 可以 `from .language import _`（L4→L5），但不得 `from .config import X`（L4→L4 允许同层，L4→L3 ❌） |
-| **I18N/UI（L5）** | 无（除 language 自己） | L0/L1/L2/L3/L4（最底层） | `language.py` 只依赖标准库 gettext，不得 import 任何业务层；`timing.py` 可引同层 L5 `language.py`（同层允许） |
+| **I18N/UI（L5）** | 无（除 language 自己） | L0/L1/L2/L3/L4（最底层） | `language.py` 运行时只依赖标准库 gettext（`.mo` 由 Babel/pybabel 工具链生成），不得 import 任何业务层；`timing.py` 可引同层 L5 `language.py`（同层允许） |
 
 > 同层 import 允许（例如 `compile.py` L2 可以引 `detection.py` L2），不违反纪律（a）。
 
