@@ -186,7 +186,7 @@ def RUN(
     non_quiet,
     draft,
     *,
-    shell_escape="auto",
+    shell_escape="true",
     synctex=True,
     native=False,
     extra_args=None,

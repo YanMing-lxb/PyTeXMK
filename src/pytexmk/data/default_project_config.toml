@@ -34,8 +34,6 @@ glossaries_tool = "makeindex"     # makeindex | makeglossaries（多 glossary �
 
 # ---- 投稿打包（pytexmk -sp）------------------------------------
 [submission]
-unicode_to_latex = true  # 生成 pdflatex 可编译的 Unicode 转换副本
-include_bbl = false      # 附带已编译的 .bbl（默认 false：投稿包只带 .bib）
 reproducible = true      # 固定时间戳/排序，保证可复现（便于投稿系统校验）
 output_dir = "./Submission/"  # 投稿包输出目录
 keep_preamble = false    # true = 保留原导言区（默认注释 fontspec/unicode-math/ctex）
@@ -47,7 +45,7 @@ enabled = true           # 编译前检查缺失的 \end{document}、.bib、图�
 # ---- 构建行为 --------------------------------------------------
 [build]
 native = "auto"            # auto | true | false：是否用 -output-directory 原生构建
-shell_escape = "auto"      # auto | true | false：minted/pythontex/\write18 才自动开启
+shell_escape = "true"      # true | false | auto：默认开启；auto 只在 minted/pythontex/\write18 时开
 synctex = true             # 是否生成 .synctex.gz（关闭后编辑器无法正/反向跳转）
 interaction = ""           # batchmode | nonstopmode | errorstopmode（留空 = nonstopmode，与安静模式无关）
 max_extra_compilations = 8 # 额外编译轮次上限

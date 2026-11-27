@@ -21,16 +21,15 @@ DEFAULT_CONFIG: dict[str, Any] = {
     # 构建行为：原生目录构建 / shell-escape / SyncTeX / 轮次上限 / 引擎参数
     "build": {
         "native": "auto",
-        "shell_escape": "auto",
+        # 默认放开 shell-escape（minted/svg 等不写死时也能过）；需要收紧时设 "auto"/"false"
+        "shell_escape": "true",
         "synctex": True,          # 是否让引擎写 .synctex.gz（投稿版可关掉省体积）
         "interaction": "",
         "extra_args": [],
         "max_extra_compilations": 8,
     },
-    # 投稿打包：按 .fls 收依赖；遇到 pdflatex 不兼容的 Unicode 时生成转换副本
+    # 投稿打包：按 .fls 收依赖；只报告 pdflatex 处理不了的字符，不改写正文
     "submission": {
-        "unicode_to_latex": True,
-        "include_bbl": False,     # 默认只带 .bib；期刊要求预编译 .bbl 时再开
         "reproducible": True,
         "output_dir": "./Submission/",
         "keep_preamble": False,

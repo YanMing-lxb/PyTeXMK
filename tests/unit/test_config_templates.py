@@ -37,3 +37,16 @@ def test_templates_use_quiet_mode_not_legacy_non_quiet():
         data = tomllib.loads((DATA_DIR / file_name).read_text(encoding="utf-8"))
         assert data.get("quiet_mode") is True
         assert "non_quiet" not in data
+
+
+def test_shell_escape_defaults_to_on():
+    """shell-escape 默认开启：模板、运行时默认值、引擎默认参数三处必须一致。"""
+    from dataclasses import fields
+
+    from pytexmk.cli.cli_state import WorkflowState
+
+    assert DEFAULT_CONFIG["build"]["shell_escape"] == "true"
+    assert {f.name: f.default for f in fields(WorkflowState)}["shell_escape"] == "true"
+    for file_name in ("default_project_config.toml", "default_user_config.toml"):
+        data = tomllib.loads((DATA_DIR / file_name).read_text(encoding="utf-8"))
+        assert data["build"]["shell_escape"] == "true"
