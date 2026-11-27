@@ -277,7 +277,7 @@ def test_compat_scan_ignores_commented_package(tmp_path):
         "\\begin{document}x\\end{document}\n",
         encoding="utf-8",
     )
-    report = scan_compat(tmp_path, "main")
+    report = scan_compat(tmp_path, [tmp_path / "main.tex"])
     assert report.incompatible_packages == {}
 
 

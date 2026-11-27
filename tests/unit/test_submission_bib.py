@@ -16,9 +16,7 @@ def _stager(tmp_path: Path) -> _SubmissionStager:
     (root / "chapters" / "extra.bib").write_text("@book{b}", encoding="utf-8")
     staging = tmp_path / "stage"
     staging.mkdir()
-    return _SubmissionStager(
-        root=root, staging=staging, convert_unicode=False, sanitize=False
-    )
+    return _SubmissionStager(root=root, staging=staging, sanitize=False)
 
 
 def test_stage_bib_collects_all_bib_files(tmp_path):

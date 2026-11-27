@@ -1,4 +1,4 @@
-"""2026-11 审查整改的回归测试：PDF 零残留、Unicode→LaTeX、投稿包、构建参数。"""
+"""2026-11 审查整改的回归测试：PDF 零残留、非 ASCII 字符只报告、投稿包、构建参数。"""
 
 import zipfile
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 from pytexmk.build_state import BuildState
 from pytexmk.compile import CompileLaTeX, detect_shell_escape
 from pytexmk.pdf_tools import TMP_SUFFIX, PdfFileOperation
-from pytexmk.submission import build_pack, convert_text, scan_compat
+from pytexmk.submission import build_pack, scan_compat
 from pytexmk.tex_project import MainFileOperation
 
 
@@ -109,20 +109,7 @@ def test_pdf_repair_ignores_pdf_outside_project(tmp_path):
     assert PdfFileOperation._referenced_pdfs(project, project / "main.fls") == set()
 
 
-# -------------------------------------------------------- 3.9 Unicode → LaTeX
-
-
-def test_convert_unicode_symbols():
-    text = "α ≤ β, 25°C, “quoted”— x² ½ café"
-    converted, _ = convert_text(text)
-    assert r"\ensuremath{\alpha}" in converted
-    assert r"\ensuremath{\leq}" in converted
-    assert r"\textdegree" in converted
-    assert "``" in converted and "''" in converted
-    assert "---" in converted
-    assert r"\ensuremath{^{2}}" in converted
-    assert r"\'{e}" in converted
-    assert all(ord(ch) < 128 for ch in converted)
+# ------------------------------------------------------ 3.9 非 ASCII 字符只报告
 
 
 def test_scan_compat_reports_packages_and_chars(tmp_path):
@@ -130,13 +117,13 @@ def test_scan_compat_reports_packages_and_chars(tmp_path):
         "\\documentclass{article}\n\\usepackage{fontspec}\n正文 α 和 ☃\n% 注释里的 α 不算\n",
         encoding="utf-8",
     )
-    report = scan_compat(tmp_path, "main")
+    report = scan_compat(tmp_path, [tmp_path / "main.tex"])
     assert "fontspec" in report.incompatible_packages
-    assert "α" not in report.unsupported_chars  # 有映射，能转换
-    assert "☃" in report.unsupported_chars       # 无法转换，必须暴露
+    assert report.non_ascii_chars == {"正": 1, "文": 1, "α": 1, "和": 1, "☃": 1}
+    assert report.char_locations["α"] == ["main.tex:3"]
 
 
-def test_build_pack_collects_fls_deps_and_bbl(tmp_path):
+def test_build_pack_collects_fls_deps_but_not_bbl(tmp_path):
     root = tmp_path
     (root / "figs").mkdir()
     (root / "figs" / "fig1.pdf").write_bytes(b"%PDF-1.4 fake")
@@ -146,11 +133,13 @@ def test_build_pack_collects_fls_deps_and_bbl(tmp_path):
     aux = root / "Auxiliary"
     aux.mkdir()
     (aux / "main.bbl").write_text("% bbl content", encoding="utf-8")
+    (root / "main.bbl").write_text("% hand-written root bbl", encoding="utf-8")
     (aux / "main.fls").write_text(
         "\n".join([
             f"INPUT {root / 'main.tex'}",
             f"INPUT {root / 'figs' / 'fig1.pdf'}",
             f"INPUT {root / 'Auxiliary' / 'main.aux'}",
+            f"INPUT {root / 'main.bbl'}",
         ]),
         encoding="utf-8",
     )
@@ -158,7 +147,7 @@ def test_build_pack_collects_fls_deps_and_bbl(tmp_path):
     out.mkdir()
     _blank_pdf(out / "main.pdf")
 
-    result = build_pack(root, "main", out, aux, submit_dir=root / "Submission", include_bbl=True)
+    result = build_pack(root, "main", out, aux, submit_dir=root / "Submission")
 
     assert result.zip_path.exists()
     assert list((root / "Submission").glob("*.tmp")) == []
@@ -166,13 +155,14 @@ def test_build_pack_collects_fls_deps_and_bbl(tmp_path):
         names = set(zf.namelist())
         assert "main.tex" in names
         assert "figs/fig1.pdf" in names
-        assert "main.bbl" in names
+        assert "main.bbl" not in names
         assert "pytexmk-submission-notes.txt" in names
         main_tex = zf.read("main.tex").decode("utf-8")
-        assert "\\ensuremath{\\alpha}" in main_tex
+        assert "\\ensuremath{\\alpha}" not in main_tex  # 正文保持原样
+        assert "α" in main_tex
         info = zf.getinfo("main.tex")
         assert info.date_time == (1980, 1, 1, 0, 0, 0)  # 可复现
-    assert result.conversions and result.conversions[0].char == "α"
+    assert result.compat.non_ascii_chars == {"α": 1}
     assert result.pdf_pages == 1
     assert not list(root.glob("pytexmk_submission_*"))
 

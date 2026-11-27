@@ -528,13 +528,11 @@ def test_submission_and_preflight_config_are_applied():
             "submission": {
                 "output_dir": "./Submit/",
                 "keep_preamble": True,
-                "unicode_to_latex": False,
             },
             "preflight": {"enabled": False},
         },
         submission_output_dir="./Submission/",
         submission_keep_preamble=False,
-        submission_unicode_to_latex=True,
         preflight_enabled=True,
         logger=_Logger(),
     )
@@ -543,7 +541,6 @@ def test_submission_and_preflight_config_are_applied():
 
     assert state.submission_output_dir == "./Submit/"
     assert state.submission_keep_preamble is True
-    assert state.submission_unicode_to_latex is False
     assert state.preflight_enabled is False
 
 
@@ -660,7 +657,6 @@ def test_submission_pack_always_contains_main_entry_and_all_bibs(tmp_path):
         "Build",
         "Auxiliary",
         submit_dir="Submission",
-        convert_unicode=False,
     )
     import zipfile
 
@@ -682,12 +678,11 @@ def test_submission_pack_fails_without_main_entry(tmp_path):
             "Build",
             "Auxiliary",
             submit_dir="Submission",
-            convert_unicode=False,
         )
 
 
 def test_submission_original_mode_preserves_crlf_bytes(tmp_path):
-    """`convert_unicode=False` 必须按字节复制，不能把 CRLF 归一成 LF。"""
+    """不做导言区净化时必须按字节复制，不能把 CRLF 归一成 LF。"""
     import zipfile
 
     from pytexmk.submission import build_pack
@@ -705,7 +700,7 @@ def test_submission_original_mode_preserves_crlf_bytes(tmp_path):
         "Build",
         "Auxiliary",
         submit_dir="Submission",
-        convert_unicode=False,
+        sanitize=False,
     )
     with zipfile.ZipFile(result.zip_path) as archive:
         assert archive.read("main.tex") == original

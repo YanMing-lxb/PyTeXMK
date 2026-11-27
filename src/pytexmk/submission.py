@@ -5,15 +5,14 @@ fontspec/unicode-math/ctex，正文里还散落着 α、≤、→、°、µ、�
 字符。直接把这些源文件丢给 pdflatex，会得到 ``Unicode character ... not set up
 for use with LaTeX`` 之类的报错。
 
-本模块做四件事：
+本模块做三件事：
 
-1. **兼容性体检**：扫描源码，报出 pdflatex 不认识的宏包与字符；
-2. **Unicode → LaTeX 转换副本**：把字符换成 ``\\ensuremath{\\alpha}``、
-   ``\\textdegree``、``` `` '' ``` 等纯 ASCII 等价写法；
-3. **导言区净化**：注释掉 fontspec/unicode-math/ctex 等只能 Xe/Lua 的宏包，
-   补上 ``fontenc``/``inputenc``/``textcomp``，让转换副本能真的被 pdflatex 吃下；
-4. **打包**：按 ``.fls`` 的 INPUT 记录收集真实依赖（图片、bib、bst、cls…），
-   连同源 ``.bib`` 打成 zip（``include_bbl`` 时再附 ``.bbl``），并给出 PDF
+1. **兼容性体检**：只扫描即将打包的 ``.tex``，报出 pdflatex 处理不了的字符
+   与宏包及其 ``文件:行号``；**不自动改写正文**，由用户自己决定怎么改；
+2. **导言区净化**：注释掉 fontspec/unicode-math/ctex 等只能 Xe/Lua 的宏包，
+   补上 ``fontenc``/``inputenc``/``textcomp``；
+3. **打包**：按 ``.fls`` 的 INPUT 记录收集真实依赖（图片、bib、bst、cls…），
+   连同源 ``.bib`` 打成 zip（始终不含编译产物 ``.bbl``），并给出 PDF
    页数/体积/编译轮数摘要。
 """
 
@@ -23,19 +22,19 @@ import re
 import shutil
 import tempfile
 import time
-import unicodedata
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .fls import iter_fls_inputs
 from .layout import FLS_IGNORED_SUFFIXES, SUBMISSION_EXCLUDED_DIRS, SUBMISSION_FALLBACK_SUFFIXES
-from .tex_source import first_comment_index, mask_tex_noncode
+from .tex_source import mask_tex_noncode
 
 #: pdflatex 无法直接使用的宏包/机制（命中即需要在提交副本里处理）
 PDFLATEX_INCOMPATIBLE = {
-    "fontspec": "pdflatex 不支持 fontspec；已注释该宏包并补上 fontenc/inputenc，字体回落到 Computer Modern",
-    "unicode-math": "pdflatex 不支持 unicode-math；已注释该宏包，数学符号转为 \\ensuremath",
+    "fontspec": "pdflatex 不支持 fontspec（只能用 Xe/LuaLaTeX）；注释该宏包后字体回落到 Computer Modern",
+    "unicode-math": "pdflatex 不支持 unicode-math；注释该宏包后数学符号需改成 ASCII 写法",
     "ctex": "ctex 依赖 xeCJK/fontspec，只能 XeLaTeX/LuaLaTeX 编译；中文正文无法用 pdflatex 处理",
     "xeCJK": "xeCJK 只能 XeLaTeX 编译；中文正文无法用 pdflatex 处理",
     "luacode": "luacode 只能 LuaLaTeX 编译；相关代码块需手工改写",
@@ -47,8 +46,8 @@ PDFLATEX_INCOMPATIBLE = {
 
 _PACKAGE_RE = re.compile(r"\\(?:usepackage|RequirePackage)(?:\[[^\]]*\])?\{([^}]*)\}")
 
-#: 投稿说明里"首次出现位置"最多列 40 条，避免清单本身变成垃圾
-_MAX_LOCATION_SAMPLES = 40
+#: 诊断日志里每个字符最多记录多少处 ``文件:行号``
+_MAX_CHAR_LOCATIONS = 10
 
 _PACKAGE_LINE_RE = re.compile(
     r"^\s*\\(?:usepackage|RequirePackage)(?:\[[^\]]*\])?\{([^}]*)\}(?P<rest>.*)$"
@@ -70,122 +69,21 @@ _FONT_SETUP_REAL_PREFIXES = (
     "\\ctexset",
 )
 
-#: Unicode → LaTeX 映射（覆盖论文里高频的希腊字母、数学符号、单位、标点）
-UNICODE_MAP: dict[str, str] = {
-    # 希腊字母（小写）
-    "α": r"\ensuremath{\alpha}", "β": r"\ensuremath{\beta}", "γ": r"\ensuremath{\gamma}",
-    "δ": r"\ensuremath{\delta}", "ε": r"\ensuremath{\epsilon}", "ζ": r"\ensuremath{\zeta}",
-    "η": r"\ensuremath{\eta}", "θ": r"\ensuremath{\theta}", "ι": r"\ensuremath{\iota}",
-    "κ": r"\ensuremath{\kappa}", "λ": r"\ensuremath{\lambda}", "μ": r"\ensuremath{\mu}",
-    "ν": r"\ensuremath{\nu}", "ξ": r"\ensuremath{\xi}", "ο": "o",
-    "π": r"\ensuremath{\pi}", "ρ": r"\ensuremath{\rho}", "ς": r"\ensuremath{\varsigma}",
-    "σ": r"\ensuremath{\sigma}", "τ": r"\ensuremath{\tau}", "υ": r"\ensuremath{\upsilon}",
-    "φ": r"\ensuremath{\phi}", "χ": r"\ensuremath{\chi}", "ψ": r"\ensuremath{\psi}",
-    "ω": r"\ensuremath{\omega}", "ϑ": r"\ensuremath{\vartheta}", "ϕ": r"\ensuremath{\varphi}",
-    # 希腊字母（大写）
-    "Α": "A", "Β": "B", "Γ": r"\ensuremath{\Gamma}", "Δ": r"\ensuremath{\Delta}",
-    "Ε": "E", "Ζ": "Z", "Η": "H", "Θ": r"\ensuremath{\Theta}", "Ι": "I",
-    "Κ": "K", "Λ": r"\ensuremath{\Lambda}", "Μ": "M", "Ν": "N",
-    "Ξ": r"\ensuremath{\Xi}", "Ο": "O", "Π": r"\ensuremath{\Pi}", "Ρ": "P",
-    "Σ": r"\ensuremath{\Sigma}", "Τ": "T", "Υ": r"\ensuremath{\Upsilon}",
-    "Φ": r"\ensuremath{\Phi}", "Χ": "X", "Ψ": r"\ensuremath{\Psi}",
-    "Ω": r"\ensuremath{\Omega}",
-    # 比较 / 集合 / 逻辑
-    "≤": r"\ensuremath{\leq}", "≥": r"\ensuremath{\geq}", "≠": r"\ensuremath{\neq}",
-    "≈": r"\ensuremath{\approx}", "≡": r"\ensuremath{\equiv}", "≃": r"\ensuremath{\simeq}",
-    "≅": r"\ensuremath{\cong}", "∝": r"\ensuremath{\propto}", "≪": r"\ensuremath{\ll}",
-    "≫": r"\ensuremath{\gg}", "∈": r"\ensuremath{\in}", "∉": r"\ensuremath{\notin}",
-    "⊂": r"\ensuremath{\subset}", "⊃": r"\ensuremath{\supset}",
-    "⊆": r"\ensuremath{\subseteq}", "⊇": r"\ensuremath{\supseteq}",
-    "∪": r"\ensuremath{\cup}", "∩": r"\ensuremath{\cap}",
-    "∖": r"\ensuremath{\setminus}", "∅": r"\ensuremath{\emptyset}",
-    "∀": r"\ensuremath{\forall}", "∃": r"\ensuremath{\exists}",
-    "∧": r"\ensuremath{\wedge}", "∨": r"\ensuremath{\vee}",
-    "¬": r"\ensuremath{\neg}", "⊢": r"\ensuremath{\vdash}",
-    "⊨": r"\ensuremath{\models}", "⊥": r"\ensuremath{\perp}",
-    "∥": r"\ensuremath{\parallel}", "∼": r"\ensuremath{\sim}",
-    # 运算
-    "±": r"\ensuremath{\pm}", "∓": r"\ensuremath{\mp}", "×": r"\ensuremath{\times}",
-    "÷": r"\ensuremath{\div}", "·": r"\ensuremath{\cdot}", "⋅": r"\ensuremath{\cdot}",
-    "∘": r"\ensuremath{\circ}", "⊕": r"\ensuremath{\oplus}", "⊗": r"\ensuremath{\otimes}",
-    "⊙": r"\ensuremath{\odot}", "∞": r"\ensuremath{\infty}",
-    "∑": r"\ensuremath{\sum}", "∏": r"\ensuremath{\prod}", "∫": r"\ensuremath{\int}",
-    "∬": r"\ensuremath{\iint}", "∮": r"\ensuremath{\oint}",
-    "∂": r"\ensuremath{\partial}", "∇": r"\ensuremath{\nabla}",
-    "√": r"\ensuremath{\sqrt{\ }}", "ℓ": r"\ensuremath{\ell}", "ℏ": r"\ensuremath{\hbar}",
-    "ℜ": r"\ensuremath{\Re}", "ℑ": r"\ensuremath{\Im}",
-    # 箭头
-    "→": r"\ensuremath{\rightarrow}", "←": r"\ensuremath{\leftarrow}",
-    "↑": r"\ensuremath{\uparrow}", "↓": r"\ensuremath{\downarrow}",
-    "⇒": r"\ensuremath{\Rightarrow}", "⇐": r"\ensuremath{\Leftarrow}",
-    "⇔": r"\ensuremath{\Leftrightarrow}", "↔": r"\ensuremath{\leftrightarrow}",
-    "↦": r"\ensuremath{\mapsto}", "↗": r"\ensuremath{\nearrow}",
-    "↘": r"\ensuremath{\searrow}", "⟶": r"\ensuremath{\longrightarrow}",
-    # 单位 / 特殊符号（尽量用 LaTeX 内核就有、不依赖 textcomp 的写法）
-    "°": r"\textdegree{}", "℃": r"\textdegree{}C",
-    "µ": r"\ensuremath{\mu}", "‰": r"\textperthousand{}", "§": r"\S{}",
-    "©": r"\copyright{}", "®": r"\textregistered{}", "™": r"\texttrademark{}",
-    "€": r"\texteuro{}", "£": r"\pounds{}", "¥": r"\textyen{}",
-    "Å": r"\AA{}", "Å": r"\AA{}", "•": r"\textbullet{}",
-    # 标点 / 排版
-    "–": "--", "—": "---", "‐": "-", "‑": "-", "…": r"\ldots{}",
-    "‘": "`", "’": "'", "“": "``", "”": "''",
-    "′": r"\ensuremath{'}", "″": r"\ensuremath{''}",
-    "«": r"\guillemotleft{}", "»": r"\guillemotright{}",
-    "，": ",", "。": ".", "；": ";", "：": ":", "？": "?", "！": "!",
-    "（": "(", "）": ")", "【": "[", "】": "]", "、": ",", "《": r"\guillemotleft{}",
-    "》": r"\guillemotright{}", "「": "`", "」": "'", "『": "``", "』": "''",
-    # 分数 / 上标 / 下标
-    "½": r"\ensuremath{\frac{1}{2}}", "¼": r"\ensuremath{\frac{1}{4}}",
-    "¾": r"\ensuremath{\frac{3}{4}}",
-    "²": r"\ensuremath{^{2}}", "³": r"\ensuremath{^{3}}", "¹": r"\ensuremath{^{1}}",
-    "⁰": r"\ensuremath{^{0}}", "⁴": r"\ensuremath{^{4}}", "⁵": r"\ensuremath{^{5}}",
-    "⁶": r"\ensuremath{^{6}}", "⁷": r"\ensuremath{^{7}}", "⁸": r"\ensuremath{^{8}}",
-    "⁹": r"\ensuremath{^{9}}", "⁺": r"\ensuremath{^{+}}", "⁻": r"\ensuremath{^{-}}",
-    "₀": r"\ensuremath{_{0}}", "₁": r"\ensuremath{_{1}}", "₂": r"\ensuremath{_{2}}",
-    "₃": r"\ensuremath{_{3}}", "₄": r"\ensuremath{_{4}}", "₅": r"\ensuremath{_{5}}",
-    "₆": r"\ensuremath{_{6}}", "₇": r"\ensuremath{_{7}}", "₈": r"\ensuremath{_{8}}",
-    "₉": r"\ensuremath{_{9}}", "₊": r"\ensuremath{_{+}}", "₋": r"\ensuremath{_{-}}",
-    # 连字（NFKD 不会拆）
-    "ﬁ": "fi", "ﬂ": "fl", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl",
-    # 不可见字符
-    "\u00a0": "~", "\u2009": r"\,", "\u202f": r"\,", "\u200b": "", "\ufeff": "",
-    "\u2002": r"\enspace{}", "\u2003": r"\quad{}",
-}
-
-_COMBINING_ACCENTS = {
-    "\u0301": "'", "\u0300": "`", "\u0302": "^", "\u0303": "~", "\u0308": '"',
-    "\u030a": "r", "\u030c": "v", "\u0327": "c", "\u0306": "u", "\u0304": "=",
-    "\u0307": ".", "\u030b": "H", "\u0328": "k", "\u0331": "b",
-}
-
-_VERBATIM_ENVS = ("verbatim", "Verbatim", "lstlisting", "minted", "alltt", "filecontents")
-_VERB_RE = re.compile(r"\\(verb\*?)([^\s])(.*?)\2")
-_PLACEHOLDER = "\x00PYTEXMK{}\x00"
-
-
-@dataclass
-class ConversionRecord:
-    """一条 Unicode → LaTeX 转换记录（写进清单）。"""
-
-    file: str
-    line: int
-    char: str
-    codepoint: str
-    replacement: str
-
 
 @dataclass
 class CompatReport:
-    """pdflatex 兼容性体检结果。"""
+    """pdflatex 兼容性体检结果：只报问题，不做任何改写。"""
 
-    unsupported_chars: dict[str, int] = field(default_factory=dict)  # 字符 → 出现次数
+    #: 非 ASCII 字符 → 出现次数（提交副本原样保留，需用户自己改成 ASCII 写法）
+    non_ascii_chars: dict[str, int] = field(default_factory=dict)
     incompatible_packages: dict[str, str] = field(default_factory=dict)  # 宏包 → 原因
     tex_files: list[Path] = field(default_factory=list)
+    #: 字符 → 前若干处 ``文件:行号``，写进诊断日志供排查
+    char_locations: dict[str, list[str]] = field(default_factory=dict)
 
     @property
     def ok(self) -> bool:
-        return not self.unsupported_chars and not self.incompatible_packages
+        return not self.non_ascii_chars and not self.incompatible_packages
 
 
 @dataclass
@@ -194,39 +92,23 @@ class PackResult:
 
     zip_path: Path
     files: list[str]
-    conversions: list[ConversionRecord]
     compat: CompatReport
     pdf_pages: int | None = None
     pdf_bytes: int | None = None
     sha256: str = ""
     rounds: int | None = None
-    #: 转换后仍残留的非 ASCII 字符（pdflatex 必炸）
-    remaining_chars: dict[str, int] = field(default_factory=dict)
-    #: 残留字符位置，最多记录前 20 条
-    remaining_locations: list[str] = field(default_factory=list)
+    #: 本次是否对导言区做净化（决定“不兼容宏包”算已处理还是需手改）
+    sanitize: bool = False
     #: 导言区被注释/补丁的命令
     sanitized: list[str] = field(default_factory=list)
-
-
-def _iter_tex_sources(root: Path, project_name: str) -> list[Path]:
-    """项目内的 .tex（跳过产物目录与隐藏目录）。"""
-    result: list[Path] = []
-    for path in root.rglob("*.tex"):
-        parts = path.relative_to(root).parts[:-1]
-        if any(p.startswith(".") or p in {"Build", "Auxiliary", "Submission"} for p in parts):
-            continue
-        if (path.parent / ".pytexmkrc").exists() and path.parent != root:
-            continue
-        result.append(path)
-    main = root / f"{project_name}.tex"
-    if main.exists() and main not in result:
-        result.insert(0, main)
-    return result
-
-
-def _strip_comments(line: str) -> str:
-    """去掉行内注释（不做完整 TeX 词法，只为兼容性扫描降噪）。"""
-    return line[: first_comment_index(line)]
+    #: 应存在的 ``.fls`` 路径（``used_fls=False`` 时用来点名缺失的那份）
+    fls_path: Path | None = None
+    #: 依赖是否来自 ``.fls``；False 表示按后缀白名单兜底，包内可能混入未引用文件
+    used_fls: bool = True
+    #: 比 PDF 新的入包源文件（相对项目根）；空表示 PDF 不旧于源码
+    stale_sources: list[str] = field(default_factory=list)
+    #: 详细信息日志（与 zip 同目录，不进包）
+    log_path: Path | None = None
 
 
 def _package_names(text: str) -> set[str]:
@@ -244,120 +126,40 @@ def _package_names(text: str) -> set[str]:
     return names
 
 
-def scan_compat(root: Path, project_name: str) -> CompatReport:
-    """扫描项目，报告 pdflatex 不兼容的字符与宏包。"""
+def scan_compat(root: Path, sources: Iterable[Path]) -> CompatReport:
+    """扫描**即将打包**的 ``.tex``：只报告 pdflatex 处理不了的内容，不改写任何字符。
+
+    调用方（``build_pack``）传入实际 staged 的文件；没有“扫整个项目”的模式，
+    否则没进包的稿件（如另一语种版本）会把无关字符算进告警。
+    """
     root = Path(root)
     report = CompatReport()
-    for tex in _iter_tex_sources(root, project_name):
+    for tex in sources:
+        if tex.suffix.lower() != ".tex" or not tex.is_file():
+            continue
         report.tex_files.append(tex)
         try:
             text = tex.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        # 注释里的 \usepackage 是说明，不是加载；verbatim 里的内容也只是示例。
-        for name in _package_names(mask_tex_noncode(text)):
+        try:
+            relative = tex.relative_to(root).as_posix()
+        except ValueError:
+            relative = tex.name
+        # 注释里的 \usepackage 是说明，不是加载；verbatim/comment 里的内容也只是示例。
+        masked = mask_tex_noncode(text)
+        for name in _package_names(masked):
             if PDFLATEX_INCOMPATIBLE.get(name):
                 report.incompatible_packages[name] = PDFLATEX_INCOMPATIBLE[name]
-        for line in text.splitlines():
-            code = _strip_comments(line)
-            for char in code:
-                if ord(char) > 127 and not _convert_char(char):
-                    report.unsupported_chars[char] = report.unsupported_chars.get(char, 0) + 1
+        for line_no, line in enumerate(masked.splitlines(), 1):
+            for char in line:
+                if ord(char) <= 127:
+                    continue
+                report.non_ascii_chars[char] = report.non_ascii_chars.get(char, 0) + 1
+                slots = report.char_locations.setdefault(char, [])
+                if len(slots) < _MAX_CHAR_LOCATIONS:
+                    slots.append(f"{relative}:{line_no}")
     return report
-
-
-def _decompose(char: str) -> str | None:
-    """把带音符的拉丁字母分解成 ``\\'{e}`` 形式；失败返回 None。"""
-    decomposed = unicodedata.normalize("NFKD", char)
-    if len(decomposed) < 2:
-        return None
-    base = decomposed[0]
-    accents = decomposed[1:]
-    if not base.isascii() or not base.isalpha():
-        return None
-    if len(accents) != 1:
-        return None
-    command = _COMBINING_ACCENTS.get(accents[0])
-    if command is None:
-        return None
-    return f"\\{command}{{{base}}}"
-
-
-def _nfkd_ascii(char: str) -> str | None:
-    """全角/兼容字符的兜底：NFKD 后全部落在 ASCII 就直接用。"""
-    decomposed = unicodedata.normalize("NFKD", char)
-    if decomposed == char or not decomposed:
-        return None
-    if all(ord(item) < 128 for item in decomposed):
-        return decomposed
-    # ``℃`` NFKD 成 ``°C``：继续递归转换，直到收敛
-    result = []
-    for item in decomposed:
-        converted = UNICODE_MAP.get(item) or _decompose(item) or _nfkd_ascii(item)
-        if converted is None:
-            return None
-        result.append(converted)
-    return "".join(result)
-
-
-def _convert_char(char: str) -> str | None:
-    """单个字符 → LaTeX 替换串；无法转换返回 None。"""
-    if ord(char) < 128:
-        return char
-    if char in UNICODE_MAP:
-        return UNICODE_MAP[char]
-    accent = _decompose(char)
-    if accent is not None:
-        return accent
-    return _nfkd_ascii(char)
-
-
-def _protect_verbatim(text: str) -> tuple[str, list[str]]:
-    """把 ``\\verb`` 与 verbatim 环境替换成占位符，避免把代码里的字符也转换。"""
-    stored: list[str] = []
-
-    def keep(payload: str) -> str:
-        stored.append(payload)
-        return _PLACEHOLDER.format(len(stored) - 1)
-
-    # 环境（跨行）先整体保护
-    for env in _VERBATIM_ENVS:
-        pattern = re.compile(
-            rf"(\\begin\{{{env}\}}.*?\\end\{{{env}\}})", re.DOTALL
-        )
-        text = pattern.sub(lambda m: keep(m.group(1)), text)
-
-    # 行内 \verb|...|（分隔符可以是任意非空白字符）
-    text = _VERB_RE.sub(lambda m: keep(m.group(0)), text)
-    return text, stored
-
-
-def _restore_verbatim(text: str, stored: list[str]) -> str:
-    """还原被 :func:`_protect_verbatim` 保护的内容。"""
-    for index, payload in enumerate(stored):
-        text = text.replace(_PLACEHOLDER.format(index), payload)
-    return text
-
-
-def convert_text(text: str) -> tuple[str, list[tuple[str, str]]]:
-    """把文本中的非 ASCII 字符转成 LaTeX 等价写法。
-
-    返回 ``(转换后文本, [(原字符, 替换串), ...])``；无法转换的字符原样保留，
-    由 :func:`scan_compat` 报告给用户手工处理。``\\verb``/verbatim 环境内
-    的内容不转换。
-    """
-    protected, stored = _protect_verbatim(text)
-    converted: list[str] = []
-    replacements: list[tuple[str, str]] = []
-    for char in protected:
-        replacement = _convert_char(char)
-        if replacement is None:
-            converted.append(char)
-            continue
-        if replacement != char:
-            replacements.append((char, replacement))
-        converted.append(replacement)
-    return _restore_verbatim("".join(converted), stored), replacements
 
 
 def sanitize_preamble(text: str) -> tuple[str, list[str]]:
@@ -376,12 +178,19 @@ def sanitize_preamble(text: str) -> tuple[str, list[str]]:
         return text, []
     preamble, body = text[:index], text[index:]
     notes: list[str] = []
+    masked = mask_tex_noncode(text)
+    masked_preamble, masked_body = masked[:index], masked[index:]
 
-    def rewrite_line(line: str) -> str:
+    def rewrite_line(line: str, masked: str) -> str:
+        ending = line[len(line.rstrip("\r\n")):]
         stripped = line.lstrip()
         if stripped.startswith("%"):
             return line
-        match = _PACKAGE_LINE_RE.match(line)
+        start = len(line) - len(stripped)
+        if start < len(masked) and masked[start] != line[start]:
+            # 行首命令落在被屏蔽的区块（verbatim/comment 环境）内，不是真实加载。
+            return line
+        match = _PACKAGE_LINE_RE.match(stripped)
         if match:
             names = [n.strip() for n in match.group(1).split(",") if n.strip()]
             bad = [n for n in names if PDFLATEX_INCOMPATIBLE.get(n)]
@@ -391,34 +200,49 @@ def sanitize_preamble(text: str) -> tuple[str, list[str]]:
                     f"注释不兼容宏包 \\usepackage{{{name}}}" for name in bad
                 )
                 if good:
-                    return f"\\usepackage{{{','.join(good)}}}{match.group('rest')}"
-                return f"% [pytexmk] {line.lstrip().rstrip()}\n"
+                    rest = match.group("rest").rstrip("\r\n")
+                    return f"\\usepackage{{{','.join(good)}}}{rest}" + ending
+                return f"% [pytexmk] {stripped.rstrip()}" + ending
             return line
         if any(stripped.startswith(prefix) for prefix in _FONT_SETUP_REAL_PREFIXES):
             notes.append(f"注释字体设置 {stripped.split('{')[0].strip()}")
-            return f"% [pytexmk] {line.lstrip().rstrip()}\n"
+            return f"% [pytexmk] {stripped.rstrip()}" + ending
         return line
 
-    preamble = "".join(rewrite_line(line) for line in preamble.splitlines(keepends=True))
+    line_pairs = zip(
+        preamble.splitlines(keepends=True),
+        masked_preamble.splitlines(keepends=True),
+        strict=True,
+    )
+    preamble = "".join(rewrite_line(line, masked) for line, masked in line_pairs)
 
+    # 「已存在」的判断只看真实加载/真实用法，注释里提到的宏包或命令不算。
     additions: list[str] = []
-    if "fontenc" not in preamble:
+    if "fontenc" not in masked_preamble:
         additions.append("\\usepackage[T1]{fontenc}")
         notes.append("补 \\usepackage[T1]{fontenc}")
-    if "inputenc" not in preamble:
+    if "inputenc" not in masked_preamble:
         additions.append("\\usepackage[utf8]{inputenc}")
         notes.append("补 \\usepackage[utf8]{inputenc}")
-    if "textcomp" not in preamble and any(
-        cmd in preamble + body for cmd in ("\\textregistered", "\\texttrademark", "\\textperthousand", "\\texteuro", "\\textyen", "\\textdegree", "\\textmu", "\\textbullet")
+    if "textcomp" not in masked_preamble and any(
+        cmd in masked_preamble + masked_body
+        for cmd in (
+            "\\textregistered", "\\texttrademark", "\\textperthousand",
+            "\\texteuro", "\\textyen", "\\textdegree", "\\textmu", "\\textbullet",
+        )
     ):
         additions.append("\\usepackage{textcomp}")
         notes.append("补 \\usepackage{textcomp}")
 
     if additions:
-        block = "% [pytexmk] pdflatex compatibility patch\n" + "\n".join(additions) + "\n"
+        newline = "\r\n" if "\r\n" in text else "\n"
+        block = (
+            "% [pytexmk] pdflatex compatibility patch" + newline
+            + newline.join(additions) + newline
+        )
         doc = re.search(r"\\documentclass(?:\[[^\]]*\])?\{[^}]*\}", preamble)
         preamble = (
-            preamble[: doc.end()] + "\n" + block + preamble[doc.end():]
+            preamble[: doc.end()] + newline + block + preamble[doc.end():]
             if doc
             else block + preamble
         )
@@ -441,6 +265,10 @@ def _fls_files(root: Path, fls: Path) -> list[Path]:
     root_resolved = root.resolve()
     for raw in iter_fls_inputs(fls):
         path = Path(raw)
+        if not path.is_absolute():
+            # ``.fls`` 里的相对路径本来就相对 PWD（即项目根），不能依赖调用方的
+            # 工作目录：从别处调用 CLI 时 CWD 不是项目根，会整批解析失败。
+            path = root_resolved / path
         try:
             resolved = path.resolve()
             relative = resolved.relative_to(root_resolved)
@@ -484,85 +312,6 @@ def _pdf_summary(pdf: Path | None) -> tuple[int | None, int | None]:
     return pages, size
 
 
-def _scan_remaining(text: str, relative: str) -> tuple[dict[str, int], list[str]]:
-    """统计文本中残留的非 ASCII 字符及其首次出现位置。"""
-    counts: dict[str, int] = {}
-    locations: list[str] = []
-    for line_no, line in enumerate(text.splitlines(), start=1):
-        code = _strip_comments(line)  # 注释里的 Unicode 不会让 pdflatex 报错
-        for char in code:
-            if ord(char) <= 127:
-                continue
-            counts[char] = counts.get(char, 0) + 1
-            if len(locations) < 60 and not any(
-                item.startswith(f"{relative}:{line_no}  {char} ") for item in locations
-            ):
-                locations.append(f"{relative}:{line_no}  {char} (U+{ord(char):04X})")
-    return counts, locations
-
-
-def _convert_staged_file(
-    source: Path, target: Path, relative: str, *, do_convert: bool,
-) -> tuple[list[ConversionRecord], str, dict[str, int], list[str]]:
-    """复制/转换单个文本文件，返回（转换记录、最终文本、残留字符计数、残留位置）。
-
-    ``do_convert=False``（用户要求原样打包）必须**按字节复制**：用
-    ``read_text`` + ``write_text`` 会走 Python 的换行解码，把 CRLF 归一成 LF，
-    即使没做任何 Unicode 转换也会改变源文件哈希。
-    """
-    target.parent.mkdir(parents=True, exist_ok=True)
-    if not do_convert:
-        target.write_bytes(source.read_bytes())
-        text = source.read_text(encoding="utf-8", errors="replace")
-        counts, locations = _scan_remaining(text, relative)
-        return [], text, counts, locations
-
-    text = source.read_text(encoding="utf-8", errors="replace")
-    records: list[ConversionRecord] = []
-    in_verbatim = False
-    converted_lines: list[str] = []
-    seen: set[tuple[int, str]] = set()
-    for line_no, line in enumerate(text.splitlines(keepends=True), start=1):
-        if any(f"\\begin{{{env}}}" in line for env in _VERBATIM_ENVS):
-            in_verbatim = True
-        if in_verbatim:
-            converted_lines.append(line)
-            if any(f"\\end{{{env}}}" in line for env in _VERBATIM_ENVS):
-                in_verbatim = False
-            continue
-        new_line, repl = convert_text(line)
-        for char, replacement in repl:
-            if (line_no, char) in seen:
-                continue
-            seen.add((line_no, char))
-            records.append(
-                ConversionRecord(
-                    file=relative, line=line_no, char=char,
-                    codepoint=f"U+{ord(char):04X}", replacement=replacement,
-                )
-            )
-        converted_lines.append(new_line)
-    text = "".join(converted_lines)
-
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(text, encoding="utf-8")
-    counts, locations = _scan_remaining(text, relative)
-    return records, text, counts, locations
-
-
-def _accumulate_remaining(
-    counts: dict[str, int],
-    locations: list[str],
-    acc_chars: dict[str, int],
-    acc_locations: list[str],
-) -> None:
-    """把单个文件的"未转换字符/首现位置"并入总账（去重，位置上限 40）。"""
-    for char, count in counts.items():
-        acc_chars[char] = acc_chars.get(char, 0) + count
-    for item in locations:
-        if item not in acc_locations and len(acc_locations) < _MAX_LOCATION_SAMPLES:
-            acc_locations.append(item)
-
 
 def _read_rounds(auxdir: Path) -> int | None:
     """从共享状态文件读上一次构建的轮数；缺失/损坏时返回 None。"""
@@ -573,60 +322,52 @@ def _read_rounds(auxdir: Path) -> int | None:
         return None
 
 
+def _stale_sources(pdf: Path, sources: Iterable[Path], root: Path) -> list[str]:
+    """返回比 ``pdf`` 新的源文件（相对项目根的 POSIX 路径）。
+
+    源比 PDF 新意味着用户核对过的 PDF 与包内源码不是同一版；留 1 秒容差，
+    避免同一秒内编译写入的时间戳抖动造成误报。
+    """
+    try:
+        pdf_mtime = pdf.stat().st_mtime
+    except OSError:
+        return []
+    stale: list[str] = []
+    for source in sources:
+        try:
+            if Path(source).stat().st_mtime > pdf_mtime + 1.0:
+                stale.append(Path(source).relative_to(root).as_posix())
+        except (OSError, ValueError):
+            continue
+    return sorted(set(stale))
+
+
 def _build_manifest(
     *,
     project_name: str,
-    convert_unicode: bool,
     sanitize: bool,
-    conversions: list[ConversionRecord],
     sanitized: list[str],
-    remaining_chars: dict[str, int],
-    remaining_locations: list[str],
     compat: CompatReport,
-    include_bbl: bool,
 ) -> str:
     """生成包内 ``pytexmk-submission-notes.txt`` 的全文。"""
-    lines = _manifest_header(project_name, convert_unicode, sanitize)
-    if conversions:
-        lines.extend(_conversion_manifest_lines(conversions))
+    lines = _manifest_header(project_name, sanitize)
     if sanitized:
         lines.extend(_sanitize_manifest_lines(sanitized))
-    if remaining_chars:
-        lines.extend(_remaining_manifest_lines(remaining_chars, remaining_locations))
     if not compat.ok:
-        lines.extend(_compat_manifest_lines(compat))
-    lines.extend(_manifest_checklist(include_bbl))
+        lines.extend(_compat_manifest_lines(compat, sanitize))
+    lines.extend(_manifest_checklist())
     return "\n".join(lines) + "\n"
 
 
-def _manifest_header(
-    project_name: str, convert_unicode: bool, sanitize: bool
-) -> list[str]:
-    """说明文件的前 4 行与空行。"""
+def _manifest_header(project_name: str, sanitize: bool) -> list[str]:
+    """说明文件的表头。"""
     return [
         "# PyTeXMK 投稿包说明",
         f"# 项目: {project_name}",
-        f"# 转换 Unicode: {'是' if convert_unicode else '否'}",
-        f"# 导言区净化: {'是' if sanitize and convert_unicode else '否'}",
+        "# 字符处理: 仅报告，未自动转换（正文保持原样）",
+        f"# 导言区净化: {'是' if sanitize else '否'}",
         "",
     ]
-
-
-def _conversion_manifest_lines(conversions: list[ConversionRecord]) -> list[str]:
-    """Unicode → LaTeX 转换清单：先按文件计数，再列逐处记录。"""
-    lines = ["## Unicode → LaTeX 转换清单"]
-    per_file: dict[str, int] = {}
-    for record in conversions:
-        per_file[record.file] = per_file.get(record.file, 0) + 1
-    for name, count in sorted(per_file.items()):
-        lines.append(f"- {name}: {count} 处")
-    lines.append("")
-    lines.extend(
-        f"{record.file}:{record.line}  {record.char} ({record.codepoint}) -> {record.replacement}"
-        for record in conversions
-    )
-    lines.append("")
-    return lines
 
 
 def _sanitize_manifest_lines(sanitized: list[str]) -> list[str]:
@@ -634,53 +375,142 @@ def _sanitize_manifest_lines(sanitized: list[str]) -> list[str]:
     return ["## 导言区净化", *(f"- {note}" for note in sanitized), ""]
 
 
-def _remaining_manifest_lines(
-    remaining_chars: dict[str, int], remaining_locations: list[str]
-) -> list[str]:
-    """pdflatex 仍无法处理字符的警告与首次出现位置。"""
-    lines = ["## ⚠ 仍无法用 pdflatex 处理的字符（必须手工处理）"]
-    for char, count in sorted(remaining_chars.items(), key=lambda kv: -kv[1]):
-        lines.append(f"- {char} (U+{ord(char):04X}) × {count}")
-    lines.extend(
-        [
-            "",
-            "首次出现位置：",
-            *(f"- {item}" for item in remaining_locations),
-            "",
-            "中文/日文/俄文等非拉丁正文需要 ctex/xeCJK/babel 等方案；",
-            "期刊只收 pdflatex 时需改为英文稿或与编辑确认。",
-            "",
-        ]
-    )
-    return lines
+def _compat_manifest_lines(compat: CompatReport, sanitize: bool) -> list[str]:
+    """pdflatex 兼容性警告：非 ASCII 字符与不兼容宏包（包内不附逐处位置，位置在本地日志）。
 
-
-def _compat_manifest_lines(compat: CompatReport) -> list[str]:
-    """pdflatex 兼容性警告：未转换字符与不兼容宏包。"""
+    ``sanitize=True`` 时宏包已由导言区净化注释，只需说明、不需手改。
+    """
     lines = ["## pdflatex 兼容性警告"]
-    for char, count in sorted(compat.unsupported_chars.items(), key=lambda kv: -kv[1]):
-        lines.append(f"- 未转换字符 {char} (U+{ord(char):04X}) × {count}")
-    for package, reason in compat.incompatible_packages.items():
-        lines.append(f"- 不兼容宏包 {package}: {reason}")
+    if compat.non_ascii_chars:
+        lines.append("- 以下非 ASCII 字符在提交副本里保持原样，pdflatex 无法处理，需手工改：")
+        for char, count in sorted(compat.non_ascii_chars.items(), key=lambda kv: -kv[1]):
+            lines.append(f"- 非 ASCII 字符 {char} (U+{ord(char):04X}) × {count}")
+    if compat.incompatible_packages:
+        if sanitize:
+            lines.append("- 以下不兼容宏包已在提交副本中注释，无需手工处理：")
+        else:
+            lines.append("- 以下不兼容宏包仍留在提交副本里，pdflatex 无法编译，需手工处理：")
+        for package, reason in compat.incompatible_packages.items():
+            lines.append(f"- 不兼容宏包 {package}: {reason}")
     lines.append("")
     return lines
 
 
-def _manifest_checklist(include_bbl: bool) -> list[str]:
-    """提交前检查清单；是否附 ``.bbl`` 决定参考文献由谁编译。"""
-    reference_line = (
-        "- [ ] 若包内含 .bbl，不要删除或重命名；参考文献以 .bbl 为准"
-        if include_bbl
-        else "- [ ] 包内未附 .bbl：期刊端需运行 bibtex/biber 后重新编译参考文献"
-    )
+def _manifest_checklist() -> list[str]:
+    """提交前检查清单；投稿包不附 ``.bbl``，参考文献由期刊端编译。"""
     return [
         "## 提交前检查清单",
         "- [ ] 在期刊系统允许的 pdflatex 版本上完整编译一次",
         "- [ ] 确认图片路径/文件名大小写与包内一致",
-        reference_line,
+        "- [ ] 包内未附 .bbl：期刊端需运行 bibtex/biber 后重新编译参考文献",
         "- [ ] 检查版权/基金信息是否随投稿系统要求单独填写",
         "",
     ]
+
+
+def _compat_log_lines(compat: CompatReport, sanitize: bool) -> list[str]:
+    """日志用的兼容性明细：宏包原因 + 每个字符的计数与出现位置。
+
+    ``sanitize=True`` 时宏包已被净化注释，标注为“无需手改”，与正文字符分开写。
+    """
+    if not compat.incompatible_packages and not compat.non_ascii_chars:
+        return []
+    lines = ["## pdflatex 兼容性（正文仅报告；导言区按需净化；注释已跳过）", ""]
+    if compat.incompatible_packages:
+        state = "提交副本已注释，无需手改" if sanitize else "未自动处理，需手改"
+        lines.append(
+            f"### 不兼容宏包（{len(compat.incompatible_packages)} 个，{state}）"
+        )
+        lines.extend(f"- {package}: {reason}" for package, reason in compat.incompatible_packages.items())
+        lines.append("")
+    if compat.non_ascii_chars:
+        total = sum(compat.non_ascii_chars.values())
+        lines.append(f"### 非 ASCII 字符（{len(compat.non_ascii_chars)} 种，共 {total} 次）")
+        for char, count in sorted(compat.non_ascii_chars.items(), key=lambda kv: (-kv[1], kv[0])):
+            spots = compat.char_locations.get(char, [])
+            where = f"：{', '.join(spots)}" if spots else ""
+            lines.append(f"- {char} (U+{ord(char):04X}) × {count}{where}")
+        lines.append("")
+        lines.append(f"每个字符最多列 {_MAX_CHAR_LOCATIONS} 处位置；完整计数见上。")
+        lines.append(
+            "说明：注释（行首/行尾）、verbatim/comment 环境、\\url/\\lstinline 参数里的"
+            "字符不参与统计；条件块（\\iffalse）内的内容按正文统计。"
+        )
+        lines.append("")
+        lines.append("这些字符在提交副本里保持原样，需手工改成 ASCII 写法或删除；")
+        lines.append("中文/日文/俄文等非拉丁正文需要 ctex/xeCJK/babel 等方案，pdflatex 无法处理。")
+        lines.append("")
+    return lines
+
+
+def _diagnostic_log_text(result: PackResult) -> str:
+    """汇总投稿包的全部诊断信息；终端只提示日志位置。"""
+    try:
+        zip_bytes = result.zip_path.stat().st_size
+    except OSError:
+        zip_bytes = 0
+    lines = [
+        "# PyTeXMK 投稿包诊断日志",
+        f"# 生成时间: {time.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"# 包文件: {result.zip_path}",
+        f"# 包内文件: {len(result.files)} 个",
+        f"# 体积: {zip_bytes} 字节（{zip_bytes / 1024 / 1024:.2f} MB）",
+        f"# PDF 页数: {result.pdf_pages if result.pdf_pages is not None else '未知'}",
+        f"# 编译轮数: {result.rounds if result.rounds is not None else '未知'}",
+        f"# SHA-256: {result.sha256}",
+        "",
+        "## 结论",
+    ]
+    if result.compat.ok:
+        lines.append("- 未发现 pdflatex 处理不了的非 ASCII 字符或不兼容宏包。")
+    else:
+        if result.compat.incompatible_packages:
+            count = len(result.compat.incompatible_packages)
+            if result.sanitize:
+                lines.append(
+                    f"- 不兼容宏包 {count} 个，已在提交副本中注释，无需手工处理。"
+                )
+            else:
+                lines.append(
+                    f"- 不兼容宏包 {count} 个，仍留在提交副本里（keep_preamble 保留了导言区），需手工处理。"
+                )
+        if result.compat.non_ascii_chars:
+            lines.append(
+                f"- 非 ASCII 字符 {len(result.compat.non_ascii_chars)} 种，"
+                f"共 {sum(result.compat.non_ascii_chars.values())} 次，提交副本未做转换。"
+            )
+            lines.append("- 若期刊只接受 pdflatex：把这些字符改成 ASCII 写法或删除，再重新打包。")
+    lines.extend(["", "## 产物检查"])
+    if result.used_fls:
+        where = result.fls_path.as_posix() if result.fls_path is not None else ".fls"
+        lines.append(f"- 依赖清单来自 {where}。")
+    else:
+        where = result.fls_path.as_posix() if result.fls_path is not None else ".fls"
+        lines.append(
+            f"- 未用上 {where}：依赖按后缀白名单兜底收集，包内可能混入未被引用的文件；"
+            "建议先编译一次再打包。"
+        )
+    if result.pdf_bytes is None:
+        lines.append("- 未找到构建 PDF，页数未知，无法判断源码与 PDF 是否同版。")
+    elif result.stale_sources:
+        names = "、".join(result.stale_sources[:3])
+        more = f" 等 {len(result.stale_sources)} 个" if len(result.stale_sources) > 3 else ""
+        lines.append(f"- PDF 早于 {names}{more}：建议重新编译后再提交。")
+    else:
+        lines.append("- PDF 不旧于任何入包源文件。")
+    lines.extend(["", "## 包内文件", *(f"- {name}" for name in result.files), ""])
+    if result.sanitized:
+        lines.extend(_sanitize_manifest_lines(result.sanitized))
+    lines.extend(_compat_log_lines(result.compat, result.sanitize))
+    lines.extend(_manifest_checklist())
+    return "\n".join(lines) + "\n"
+
+
+def _write_diagnostic_log(result: PackResult, path: Path) -> Path:
+    """把诊断日志写到 ``<包名>.log``（与 zip 同目录，不进包）。"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_diagnostic_log_text(result), encoding="utf-8")
+    return path
 
 
 def _write_zip(staging: Path, staged: list[str], zip_path: Path, *, reproducible: bool) -> None:
@@ -725,83 +555,47 @@ def _zip_date_time(path: Path) -> tuple[int, int, int, int, int, int]:
 
 @dataclass
 class _SubmissionStager:
-    """把候选文件转换并写入 staging，同时累计说明文件所需的统计。
+    """把候选文件写入 staging，并按配置净化导言区。
 
-    原先这些状态散落在 ``build_pack`` 的局部变量里，导致函数同时负责候选过滤、
-    Unicode 转换、导言区净化和 .bbl/.bib 补充；拆出来后每个分支只做一件事。
+    字符一律原样复制：``-sp`` 只负责报告 pdflatex 处理不了的内容，
+    不再自动改写正文。
     """
 
     root: Path
     staging: Path
-    convert_unicode: bool
     sanitize: bool
-    conversions: list[ConversionRecord] = field(default_factory=list)
     staged: list[str] = field(default_factory=list)
     sanitized: list[str] = field(default_factory=list)
-    remaining_chars: dict[str, int] = field(default_factory=dict)
-    remaining_locations: list[str] = field(default_factory=list)
 
     def stage_candidate(self, source: Path) -> None:
-        """按后缀处理一个 ``.fls``/fallback 候选。"""
+        """按后缀处理一个 ``.fls``/fallback 候选；``.bbl`` 是编译产物，一律不打包。"""
         try:
             relative = source.relative_to(self.root)
         except ValueError:
             return
         suffix = source.suffix.lower()
+        if suffix == ".bbl":
+            return
 
         target = self.staging / relative
-        counts: dict[str, int] = {}
-        locations: list[str] = []
-        if suffix == ".tex":
-            counts, locations = self._stage_tex(source, target, relative.as_posix())
-        elif suffix == ".bbl" and self.convert_unicode:
-            counts, locations = self._stage_text(source, target, relative.as_posix())
+        if suffix == ".tex" and self.sanitize:
+            self._stage_tex(source, target, relative.as_posix())
         else:
             target.parent.mkdir(parents=True, exist_ok=True)
             source.copy(target, preserve_metadata=True)
-        if suffix in {".tex", ".bbl"}:
-            _accumulate_remaining(counts, locations, self.remaining_chars, self.remaining_locations)
         self.staged.append(relative.as_posix())
 
-    def _stage_tex(self, source: Path, target: Path, relative: str) -> tuple[dict[str, int], list[str]]:
-        """转换 TeX 文件，并按需净化导言区。"""
-        records, text, counts, locations = _convert_staged_file(
-            source, target, relative, do_convert=self.convert_unicode
-        )
-        self.conversions.extend(records)
-        if not (self.sanitize and self.convert_unicode):
-            return counts, locations
-
+    def _stage_tex(self, source: Path, target: Path, relative: str) -> None:
+        """按需净化导言区；没有改动就按字节复制，避免 CRLF/编码被顺手改掉。"""
+        text = source.read_text(encoding="utf-8", errors="replace")
         cleaned, notes = sanitize_preamble(text)
         if not notes:
-            return counts, locations
-        self.sanitized.extend(f"{relative}: {note}" for note in notes)
-        target.write_text(cleaned, encoding="utf-8")
-        return _scan_remaining(cleaned, relative)
-
-    def _stage_text(self, source: Path, target: Path, relative: str) -> tuple[dict[str, int], list[str]]:
-        """转换 .bbl 等纯文本文件，并记录转换清单。"""
-        records, _text, counts, locations = _convert_staged_file(
-            source, target, relative, do_convert=True
-        )
-        self.conversions.extend(records)
-        return counts, locations
-
-    def stage_bbl(self, auxdir: Path, build_name: str, project_name: str) -> None:
-        """补入与源主文件同名的 .bbl；已有同名文件时不重复。"""
-        bbl = auxdir / f"{build_name}.bbl"
-        target_name = Path(f"{project_name}.bbl").as_posix()
-        if not bbl.exists() or target_name in {Path(n).as_posix() for n in self.staged}:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            source.copy(target, preserve_metadata=True)
             return
-
-        target = self.staging / target_name
         target.parent.mkdir(parents=True, exist_ok=True)
-        if self.convert_unicode:
-            counts, locations = self._stage_text(bbl, target, target_name)
-            _accumulate_remaining(counts, locations, self.remaining_chars, self.remaining_locations)
-        else:
-            bbl.copy(target, preserve_metadata=True)
-        self.staged.append(target_name)
+        target.write_text(cleaned, encoding="utf-8")
+        self.sanitized.extend(f"{relative}: {note}" for note in notes)
 
     def stage_bib(self, project_name: str) -> None:
         """补入项目内**所有** .bib（不依赖 ``--include-bib``，始终执行）。
@@ -836,15 +630,13 @@ def build_pack(
     *,
     pdf_name: str | None = None,
     submit_dir: str | Path = "./Submission",
-    convert_unicode: bool = True,
-    include_bbl: bool = False,
     sanitize: bool = True,
     reproducible: bool = True,
 ) -> PackResult:
-    """生成投稿 zip；``convert_unicode`` 时输出 pdflatex 可编译的转换副本。
+    """生成投稿 zip：正文原样复制，只做导言区净化与兼容性报告。
 
-    ``include_bbl=False``（默认）只带源 ``.bib``；期刊明确要求预编译好的
-    ``.bbl`` 时由配置层打开。
+    包内只带源 ``.bib``，始终不附编译产物 ``.bbl``：参考文献由期刊端
+    运行 bibtex/biber 后重新编译。
     """
     root = Path(root).resolve()
     outdir = Path(outdir)
@@ -856,17 +648,14 @@ def build_pack(
     staging.mkdir(parents=True)
 
     fls = auxdir / f"{build_name}.fls"
-    candidates = _fls_files(root, fls) if fls.exists() else _fallback_files(root)
+    used_fls = fls.exists()
+    candidates = _fls_files(root, fls) if used_fls else _fallback_files(root)
     if not candidates:
         candidates = _fallback_files(root)
+        # .fls 里没有一条项目内 INPUT 时同样只能兜底，按“未用上”报出来。
+        used_fls = False
 
-    compat = scan_compat(root, project_name)
-    stager = _SubmissionStager(
-        root=root,
-        staging=staging,
-        convert_unicode=convert_unicode,
-        sanitize=sanitize,
-    )
+    stager = _SubmissionStager(root=root, staging=staging, sanitize=sanitize)
 
     try:
         for source in sorted(set(candidates)):
@@ -880,26 +669,28 @@ def build_pack(
         main_entry = Path(f"{project_name}.tex").as_posix()
         if main_entry not in {Path(name).as_posix() for name in stager.staged}:
             stager.stage_candidate(main_source)
-        if include_bbl:
-            stager.stage_bbl(auxdir, build_name, project_name)
         stager.stage_bib(project_name)
+
+        # 只体检真正进包的 .tex：没被这次编译引用、也没打进去的稿件（如另一语种
+        # 版本）不该出现在报告里，否则告警数量会被无关文件稀释。
+        packed_tex = sorted(
+            root / Path(name) for name in stager.staged if name.lower().endswith(".tex")
+        )
+        compat = scan_compat(root, packed_tex)
 
         manifest = _build_manifest(
             project_name=project_name,
-            convert_unicode=convert_unicode,
             sanitize=sanitize,
-            conversions=stager.conversions,
             sanitized=stager.sanitized,
-            remaining_chars=stager.remaining_chars,
-            remaining_locations=stager.remaining_locations,
             compat=compat,
-            include_bbl=include_bbl,
         )
         (staging / "pytexmk-submission-notes.txt").write_text(manifest, encoding="utf-8")
         stager.staged.append("pytexmk-submission-notes.txt")
 
         pdf_path = outdir / f"{build_name}.pdf"
         pages, pdf_bytes = _pdf_summary(pdf_path)
+        # 入包源文件比 PDF 新 → 用户核对的 PDF 与包内源码不是同一版。
+        stale = _stale_sources(pdf_path, packed_tex, root)
 
         submit = Path(submit_dir)
         if not submit.is_absolute():
@@ -911,19 +702,27 @@ def build_pack(
         with zip_path.open("rb") as fh:
             digest = hashlib.file_digest(fh, "sha256").hexdigest()
         rounds = _read_rounds(auxdir)
+        try:
+            fls_display: Path = fls.resolve().relative_to(root)
+        except (OSError, ValueError):
+            fls_display = fls
 
-        return PackResult(
+        result = PackResult(
             zip_path=zip_path,
             files=sorted(set(stager.staged)),
-            conversions=stager.conversions,
             compat=compat,
             pdf_pages=pages,
             pdf_bytes=pdf_bytes,
             sha256=digest,
             rounds=rounds,
-            remaining_chars=stager.remaining_chars,
-            remaining_locations=stager.remaining_locations,
+            sanitize=sanitize,
             sanitized=stager.sanitized,
+            fls_path=fls_display,
+            used_fls=used_fls,
+            stale_sources=stale,
         )
+        # 与 zip 同目录的 <包名>.log：终端只提示路径，明细全部落盘。
+        result.log_path = _write_diagnostic_log(result, zip_path.with_suffix(".log"))
+        return result
     finally:
         shutil.rmtree(staging_parent, ignore_errors=True)
