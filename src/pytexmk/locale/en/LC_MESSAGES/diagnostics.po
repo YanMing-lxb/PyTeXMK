@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-11-26 21:31+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -19,33 +19,36 @@ msgstr ""
 "Generated-By: Babel 2.18.0\n"
 
 msgid "无法生成失败诊断，请直接查看日志: "
-msgstr ""
+msgstr "Could not generate failure diagnostics; see the log directly: "
 
 #, python-format
 msgid "编译失败，发现 %(n)s 个错误"
-msgstr ""
+msgstr "Compilation failed, %(n)s error(s) found"
 
 #, python-format
 msgid "… 还有 %(n)s 个错误（用 %(cmd)s 查看全部）"
-msgstr ""
+msgstr "… %(n)s more error(s) (use %(cmd)s to see all)"
 
 msgid "编译失败，但日志里没有解析出 error 条目"
-msgstr ""
+msgstr "Compilation failed, but no error entries were parsed from the log"
 
 msgid "日志在写出 PDF 前就结束了，编译进程可能被中断（临时目录不可写、PDF 被占用或进程被结束）"
 msgstr ""
+"The log ended before the PDF was written; the build process may have been"
+" interrupted (temp directory not writable, PDF in use, or process "
+"terminated)"
 
 msgid "完整日志: "
-msgstr ""
+msgstr "Full log: "
 
 msgid "排查入口: "
-msgstr ""
+msgstr "Where to look: "
 
 #, python-format
 msgid "完整摘要: %(cmd)s"
-msgstr ""
+msgstr "Full summary: %(cmd)s"
 
 #, python-format
 msgid "另有 %(n)s 条排版提示（多为 Overfull/Underfull box）"
-msgstr ""
+msgstr "%(n)s additional typesetting notice(s) (mostly Overfull/Underfull boxes)"
 

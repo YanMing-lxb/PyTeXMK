@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.18\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,6 +26,30 @@ msgid "[i]LaTeX 辅助编译程序  ---- 焱铭[/]"
 msgstr ""
 
 msgid "提示：运行出错时会直接说明原因与下一步；问题反馈：https://github.com/YanMing-lxb/PyTeXMK/issues"
+msgstr ""
+
+msgid "编译主文件"
+msgstr ""
+
+msgid "编译引擎"
+msgstr ""
+
+msgid "编译行为"
+msgstr ""
+
+msgid "清理辅助文件"
+msgstr ""
+
+msgid "报告与配置"
+msgstr ""
+
+msgid "子项目"
+msgstr ""
+
+msgid "投稿与预览"
+msgstr ""
+
+msgid "通用"
 msgstr ""
 
 msgid "显示版本并退出"
@@ -67,7 +91,7 @@ msgstr ""
 msgid "向引擎追加一个参数，可重复（如 -pa=-8bit）"
 msgstr ""
 
-msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"
+msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，不含 .bbl）；单独使用时只打包不编译"
 msgstr ""
 
 msgid "监视源文件并自动重编（Ctrl+C 退出）"
@@ -111,5 +135,11 @@ msgstr ""
 
 #, python-format
 msgid "不支持把短开关合并写成 %(token)s，请分开书写（如 -d -c）"
+msgstr ""
+
+msgid "只能选择一个编译引擎：-p/--pdflatex、-x/--xelatex、-l/--lualatex 互斥"
+msgstr ""
+
+msgid "只能选择一种清理方式：-c/--clean、-C/--clean-out、-ca/--clean-recursive、-Ca/--clean-recursive-out 互斥"
 msgstr ""
 

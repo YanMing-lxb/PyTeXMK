@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -64,7 +64,7 @@ msgstr ""
 "terminal path is the project directory!"
 
 msgid "未发现主文件；本次只按后缀清理辅助产物"
-msgstr ""
+msgstr "No main file found; this run only cleans auxiliary artifacts by suffix"
 
 msgid "通过命令行命令指定待编译主文件为: "
 msgstr "Main file to compile specified via command line: "
@@ -127,6 +127,8 @@ msgstr "Current root directory: "
 
 msgid "写入草稿标记失败，崩溃后可能无法自动恢复: "
 msgstr ""
+"Failed to write the draft marker; automatic recovery after a crash may be"
+" unavailable: "
 
 msgid "未匹配到内容, 文件未修改."
 msgstr "No matching content found, file not modified."
@@ -145,7 +147,7 @@ msgid "权限错误: 无法读取或写入文件: "
 msgstr "Permission error: cannot read or write file: "
 
 msgid "草稿模式需要 UTF-8 源文件（请另存为 UTF-8）: "
-msgstr ""
+msgstr "Draft mode requires a UTF-8 source file (save as UTF-8): "
 
 msgid "更新草稿模式时出错: "
 msgstr "Error updating draft mode: "
@@ -158,23 +160,27 @@ msgstr "Draft mode disabled"
 
 msgid "关闭草稿模式失败：源文件不是有效 UTF-8（请另存为 UTF-8）: "
 msgstr ""
+"Failed to disable draft mode: the source is not valid UTF-8 (save as "
+"UTF-8): "
 
 msgid "关闭草稿模式失败: "
-msgstr ""
+msgstr "Failed to disable draft mode: "
 
 msgid "读取草稿标记失败: "
-msgstr ""
+msgstr "Failed to read the draft marker: "
 
 #, python-format
 msgid "恢复草稿模式失败：源文件不是有效 UTF-8（请手动检查 %(f)s）: %(e)s"
 msgstr ""
+"Failed to restore draft mode: the source is not valid UTF-8 (check %(f)s "
+"manually): %(e)s"
 
 #, python-format
 msgid "恢复草稿模式失败（请手动检查 %(f)s）: %(e)s"
-msgstr ""
+msgstr "Failed to restore draft mode (check %(f)s manually): %(e)s"
 
 msgid "删除草稿标记失败: "
-msgstr ""
+msgstr "Failed to delete the draft marker: "
 
 #~ msgid "文件搜索正则错误: "
 #~ msgstr "File search regex error: "

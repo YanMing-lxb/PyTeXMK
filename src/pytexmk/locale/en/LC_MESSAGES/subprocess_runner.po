@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -24,7 +24,7 @@ msgstr "Running %(prog)s..."
 
 #, python-format
 msgid "系统临时目录不可写，本次编译改用 %(dir)s"
-msgstr ""
+msgstr "The system temp directory is not writable; using %(dir)s for this build"
 
 #, python-format
 msgid "[√] 运行 %(prog)s 成功 [time](耗时: %(dur)s)[/]"
@@ -35,7 +35,7 @@ msgid "%(prog)s 无法启动: %(err)s"
 msgstr "%(prog)s failed to start: %(err)s"
 
 msgid "无法发布重定向输出: "
-msgstr ""
+msgstr "Failed to redirect output: "
 
 #, python-format
 msgid "已 %(sec)d 秒没有输出，%(prog)s 仍在运行（加 -nq 可看实时日志）"
@@ -59,7 +59,7 @@ msgstr "%(prog)s compilation failed, see the log file for details: %(log)s"
 
 #, python-format
 msgid "%(prog)s 执行失败 (退出码 %(code)s)"
-msgstr ""
+msgstr "%(prog)s failed (exit code %(code)s)"
 
 #~ msgid "[bold]运行命令: [/bold]"
 #~ msgstr "[bold]Running command: [/bold]"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -22,10 +22,10 @@ msgid "DVIPDFMX 编译"
 msgstr "DVIPDFMX compile"
 
 msgid "pythontex 处理代码块"
-msgstr ""
+msgstr "pythontex code block"
 
 msgid "pythontex 后重新编译 LaTeX"
-msgstr ""
+msgstr "Recompile LaTeX after pythontex"
 
 #, python-format
 msgid "1 次 %(args)s 编译"
@@ -36,7 +36,7 @@ msgid "%(args)s 编译文献"
 msgstr "%(args)s compile bib"
 
 msgid "bib2gls 编译术语表"
-msgstr ""
+msgstr "bib2gls glossary"
 
 #, python-format
 msgid "%(args)s 编译"
@@ -47,7 +47,7 @@ msgid "%(args1)s 次 %(args2)s 编译"
 msgstr "%(args1)s %(args2)s passes"
 
 msgid "未检测到编译输出的 PDF，请检查日志"
-msgstr ""
+msgstr "No output PDF detected; check the log"
 
 msgid "完成所有编译"
 msgstr "Compilation finished"

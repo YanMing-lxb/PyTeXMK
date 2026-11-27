@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -25,10 +25,10 @@ msgid "设置 PDF 查看器: "
 msgstr "PDF viewer set: "
 
 msgid "自定义查看器启动失败，回退系统默认程序: "
-msgstr ""
+msgstr "Failed to launch the custom viewer; falling back to the system default: "
 
 msgid "PDF 不存在: "
-msgstr ""
+msgstr "PDF does not exist: "
 
 msgid "文件路径: "
 msgstr "File path: "
@@ -40,25 +40,27 @@ msgid "修复成功: "
 msgstr "Repair successful: "
 
 msgid "修复失败（原文件未改动）: "
-msgstr ""
+msgstr "Repair failed (original file unchanged): "
 
 msgid "跳过非 PDF 或不存在: "
-msgstr ""
+msgstr "Skipping non-PDF or missing file: "
 
 msgid "跳过项目外的文件: "
-msgstr ""
+msgstr "Skipping a file outside the project: "
 
 msgid "跳过主输出 PDF: "
-msgstr ""
+msgstr "Skipping the main output PDF: "
 
 msgid "未找到可信的 .fls recorder，未执行任何修复。"
-msgstr ""
+msgstr "No trusted .fls recorder found; no repair was performed."
 
 msgid "以下 PDF 是潜在候选（只读列出，可用 -rp 显式指定要修复的文件）:"
 msgstr ""
+"The following PDFs are potential candidates (listed read-only; use -rp to"
+" specify files to repair explicitly):"
 
 msgid "当前路径下没有被引用的 PDF 文件"
-msgstr ""
+msgstr "No referenced PDF files in the current path"
 
 msgid "找到 PDF 文件数目: "
 msgstr "Number of PDF files found: "

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -24,11 +24,11 @@ msgstr "Error executing function %(args)s: "
 
 #, python-format
 msgid "%(args)s (pythontex 后)"
-msgstr ""
+msgstr "%(args)s (after pythontex)"
 
 #, python-format
 msgid "%(args)s 编译"
-msgstr ""
+msgstr "%(args)s compile"
 
 msgid "LaTeX 编译时长"
 msgstr "LaTeX time"

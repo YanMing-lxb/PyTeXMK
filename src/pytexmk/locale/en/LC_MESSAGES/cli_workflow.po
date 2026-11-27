@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -18,65 +18,142 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+msgid "全项目辅助文件 + 输出"
+msgstr "All auxiliary files (recursive) + output"
+
+msgid "全项目辅助文件"
+msgstr "All auxiliary files (recursive)"
+
+msgid "辅助文件 + 输出"
+msgstr "Auxiliary files + output"
+
+msgid "辅助文件"
+msgstr "Auxiliary files"
+
+msgid "清理完成"
+msgstr "Clean finished"
+
+msgid "方式"
+msgstr "Mode"
+
+msgid "已删除文件"
+msgstr "Deleted files"
+
 #, python-format
-msgid "有 %(n)s 个文件未能删除（可能被占用）："
-msgstr "%(n)s file(s) could not be deleted (possibly in use):"
+msgid "%(n)s 个"
+msgstr "%(n)s"
 
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]"
-msgstr ""
-"[bold green]Finished cleaning all auxiliary-extension files and main file"
-" outputs[/bold green]"
+msgid "对应文件夹"
+msgstr "Folders"
 
-msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]"
-msgstr "[bold green]Finished cleaning all auxiliary-extension files[/bold green]"
+#, python-format
+msgid "%(n)s 个（%(names)s）"
+msgstr "%(n)s (%(names)s)"
+
+msgid "用时"
+msgstr "Elapsed"
+
+msgid "失败"
+msgstr "Failures"
+
+#, python-format
+msgid "（%(n)s 种）"
+msgstr " (%(n)s kinds)"
 
 msgid "投稿包已生成"
 msgstr "Submission package created"
 
-msgid "文件数"
-msgstr "Files"
+msgid "包路径"
+msgstr "Package path"
 
-msgid "体积"
-msgstr "Size"
+#, python-format
+msgid "%(n)s 个文件"
+msgstr "%(n)s files"
 
-msgid "页数"
-msgstr "Pages"
+#, python-format
+msgid "PDF %(n)s 页"
+msgstr "%(n)s pages"
 
-msgid "编译轮数"
-msgstr "Compile passes"
+#, python-format
+msgid "编译 %(n)s 轮"
+msgstr "%(n)s pass(es)"
 
-msgid "Unicode 转换"
-msgstr "Unicode conversion"
+msgid "包信息"
+msgstr "Pack"
 
-msgid "导言区净化"
-msgstr "Preamble sanitization"
+#, python-format
+msgid "体积 %(size)s MB (%(detail)s)"
+msgstr "%(size)s MB (%(detail)s)"
 
-msgid "仍有 "
-msgstr "Still "
+msgid "，"
+msgstr ", "
 
-msgid " 个非 ASCII 字符无法转换，pdflatex 会失败"
-msgstr " non-ASCII character(s) could not be converted; pdflatex will fail"
+msgid "导言区"
+msgstr "Preamble"
 
-msgid "中文/日文等正文需 ctex/xeCJK，pdflatex 无法处理"
-msgstr "CJK body text needs ctex/xeCJK; pdflatex cannot handle it"
+#, python-format
+msgid "%(n)s 项（已自动处理）"
+msgstr "%(n)s item(s) (handled automatically)"
 
-msgid "原稿使用了 Xe/Lua 专属宏包，提交副本中已自动处理（详见包内说明）"
+msgid "诊断日志"
+msgstr "Diagnostic log"
+
+msgid "…（完整值见日志）"
+msgstr "… (full value in the log)"
+
+msgid "打包耗时"
+msgstr "Pack time"
+
+msgid "依赖清单"
+msgstr "Dependency list"
+
+#, python-format
+msgid ""
+"缺少 %(p)s\n"
+"按后缀兜底收集（可能混入未引用文件），建议先编译一次"
 msgstr ""
-"The source uses Xe/Lua-only packages; the submission copy handles them "
-"automatically (see the package notes)"
+"Missing %(p)s\n"
+"Dependencies come from a suffix scan (unreferenced files may sneak in); "
+"compile once first"
 
-msgid "仍有 pdflatex 无法处理的项，请查看包内说明文件"
-msgstr "Some items still cannot be handled by pdflatex; see the package notes"
+msgid "PDF 一致性"
+msgstr "PDF freshness"
 
-msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]"
+#, python-format
+msgid "PDF 早于 %(n)s 个源文件（如 %(f)s），建议重编译后再重新打包。"
 msgstr ""
-"[bold green]Finished cleaning auxiliary and output files of all main "
-"files[/bold green]"
+"PDF is older than %(n)s source file(s) (e.g. %(f)); recompile, then "
+"repack."
 
-msgid "[bold green]已完成清除所有主文件的辅助文件的指令[/bold green]"
+msgid "PDF 产物"
+msgstr "PDF output"
+
+#, python-format
+msgid "未找到 %(p)s，包内不带 PDF；建议先编译再打包"
 msgstr ""
-"[bold green]Finished cleaning auxiliary files of all main files[/bold "
-"green]"
+"No %(p)s found; the pack has no PDF — compile once, then repack"
+
+msgid "产物检查"
+msgstr "Artifacts"
+
+msgid "通过：.fls 齐全，PDF 不旧于入包源码"
+msgstr "OK: .fls present, PDF not older than packed sources"
+
+msgid "宏包"
+msgstr "Packages"
+
+msgid "扫描解析"
+msgstr "Scan"
+
+msgid "计数：c 字符 / f 文件 / p 宏包"
+msgstr "Counts: c chars / f files / p packages"
+
+msgid "pdflatex 无法处理以下内容（逐字位置与全部计数见诊断日志）"
+msgstr "pdflatex cannot handle the following (positions and counts in the log)"
+
+#, python-format
+msgid "其余 %(n)s 项见诊断日志"
+msgstr "See the diagnostic log for the remaining %(n)s item(s)"
 
 msgid "开始预处理"
 msgstr "Starting preprocessing"
@@ -103,7 +180,7 @@ msgid "已移动 %(n)s 个辅助文件到项目根目录"
 msgstr "Moved %(n)s auxiliary files to project root directory"
 
 msgid "无法读取编译产物: "
-msgstr ""
+msgstr "Cannot read build output: "
 
 msgid "PDF / synctex"
 msgstr "PDF / synctex"
@@ -122,7 +199,7 @@ msgid "移动辅助文件到辅助目录..."
 msgstr "Moving auxiliary files to auxiliary directory..."
 
 msgid "编译产物未能完整归档: "
-msgstr ""
+msgstr "Build output could not be fully archived: "
 
 #, python-format
 msgid "编译产物归档失败：%(p)s 仍留在 %(s)s（可能被占用或目录不可写）"
@@ -131,7 +208,7 @@ msgstr ""
 "or directory not writable)"
 
 msgid "本轮编译没有生成新 PDF: "
-msgstr ""
+msgstr "No new PDF produced in this pass: "
 
 msgid "输出目录里没有 PDF（编译可能未产出页面）"
 msgstr "No PDF in the output directory (the build may not have produced pages)"
@@ -187,7 +264,7 @@ msgstr ""
 "backwards"
 
 msgid "无法清除旧 SyncTeX: "
-msgstr ""
+msgstr "Failed to remove the old SyncTeX file: "
 
 #, python-format
 msgid "根目录 %(f)s 与辅助目录同名但内容不同，已保留（疑似手写样式文件）"
@@ -488,4 +565,97 @@ msgstr "Failed subprojects: "
 
 #~ msgid "移动结果文件到输出目录..."
 #~ msgstr "Moving result files to output directory..."
+
+#~ msgid "Unicode 转换"
+#~ msgstr "Unicode conversion"
+
+#~ msgid "存在 pdflatex 兼容性问题：%(chars)s 个非 ASCII 字符、%(packages)s 个不兼容宏包，详见诊断日志"
+#~ msgstr ""
+#~ "pdflatex compatibility issues: %(chars)s "
+#~ "non-ASCII character(s), %(packages)s incompatible"
+#~ " package(s); see the diagnostic log"
+
+#~ msgid ".fls"
+#~ msgstr ""
+
+#~ msgid "缺少 %(p)s：已按后缀兜底收集（可能混入未引用文件），建议先编译一次"
+#~ msgstr ""
+#~ "Missing %(p)s: dependencies fall back to"
+#~ " a suffix scan (unreferenced files "
+#~ "may sneak in); compile once first"
+
+#~ msgid "缺少 %(p)s：按后缀兜底收集（可能混入未引用文件），建议先编译一次"
+#~ msgstr ""
+#~ "Missing %(p)s: dependencies fall back to"
+#~ " a suffix scan (unreferenced files "
+#~ "may sneak in); compile once first"
+
+#~ msgid "文件数"
+#~ msgstr "Files"
+
+#~ msgid "体积"
+#~ msgstr "Size"
+
+#~ msgid "页数"
+#~ msgstr "Pages"
+
+#~ msgid "编译轮数"
+#~ msgstr "Compile passes"
+
+#~ msgid "PDF 早于 %(n)s 个源文件（如 %(f)s），建议重编译后再提交"
+#~ msgstr ""
+#~ "%(n)s source file(s) newer than the "
+#~ "PDF (e.g. %(f)s); rebuild before "
+#~ "submitting"
+
+#~ msgid "导言区净化"
+#~ msgstr "Preamble sanitization"
+
+#~ msgid "不兼容宏包"
+#~ msgstr "Incompatible packages"
+
+#~ msgid "提示"
+#~ msgstr "Note"
+
+#~ msgid "逐字位置与全部计数见诊断日志"
+#~ msgstr "Per-character locations and counts are in the diagnostics log"
+
+#~ msgid "%(n)s 个字符，来自 %(f)s 个文件"
+#~ msgstr "%(n)s character(s) across %(f)s file(s)"
+
+#~ msgid "%(n)s 个宏包"
+#~ msgstr "%(n)s package(s)"
+
+#~ msgid "待手改"
+#~ msgstr "To fix by hand"
+
+#~ msgid "pdflatex 无法处理以下内容（未自动转换，需人工修改）"
+#~ msgstr ""
+#~ "pdflatex cannot handle the following "
+#~ "content (not converted; edit by hand)"
+
+#~ msgid "有 %(n)s 个文件未能删除（可能被占用）："
+#~ msgstr "%(n)s file(s) could not be deleted (possibly in use):"
+
+#~ msgid "[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]"
+#~ msgstr ""
+#~ "[bold green]Finished cleaning all "
+#~ "auxiliary-extension files and main file "
+#~ "outputs[/bold green]"
+
+#~ msgid "[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]"
+#~ msgstr ""
+#~ "[bold green]Finished cleaning all "
+#~ "auxiliary-extension files[/bold green]"
+
+#~ msgid "[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]"
+#~ msgstr ""
+#~ "[bold green]Finished cleaning auxiliary and"
+#~ " output files of all main files[/bold"
+#~ " green]"
+
+#~ msgid "[bold green]已完成清除所有主文件的辅助文件的指令[/bold green]"
+#~ msgstr ""
+#~ "[bold green]Finished cleaning auxiliary files"
+#~ " of all main files[/bold green]"
 

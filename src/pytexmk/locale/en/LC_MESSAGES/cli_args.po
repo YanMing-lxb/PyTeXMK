@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PyTeXMK 1.2.0\n"
 "Report-Msgid-Bugs-To: dev@example.com\n"
-"POT-Creation-Date: 2026-11-26 21:31+0800\n"
+"POT-Creation-Date: 2026-11-28 01:33+0800\n"
 "PO-Revision-Date: 2026-08-03 10:32+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -34,6 +34,30 @@ msgid "提示：运行出错时会直接说明原因与下一步；问题反馈�
 msgstr ""
 "Note: on failure PyTeXMK states the reason and the next step; report "
 "issues at https://github.com/YanMing-lxb/PyTeXMK/issues"
+
+msgid "编译主文件"
+msgstr "Main file"
+
+msgid "编译引擎"
+msgstr "Compiler engine"
+
+msgid "编译行为"
+msgstr "Build options"
+
+msgid "清理辅助文件"
+msgstr "Clean auxiliary files"
+
+msgid "报告与配置"
+msgstr "Report and config"
+
+msgid "子项目"
+msgstr "Subprojects"
+
+msgid "投稿与预览"
+msgstr "Submission and preview"
+
+msgid "通用"
+msgstr "General"
 
 msgid "显示版本并退出"
 msgstr "Show version and exit"
@@ -80,8 +104,10 @@ msgstr ""
 msgid "向引擎追加一个参数，可重复（如 -pa=-8bit）"
 msgstr "Pass an extra argument to the engine; repeatable (e.g. -pa=-8bit)"
 
-msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"
+msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，不含 .bbl）；单独使用时只打包不编译"
 msgstr ""
+"Build the journal submission zip (dependencies from .fls, all .bib, no "
+".bbl); on its own it packs without compiling"
 
 msgid "监视源文件并自动重编（Ctrl+C 退出）"
 msgstr "Watch sources and recompile automatically (Ctrl+C to quit)"
@@ -138,6 +164,18 @@ msgstr ""
 "Short flags cannot be combined as %(token)s; write them separately (e.g. "
 "-d -c)"
 
+msgid "只能选择一个编译引擎：-p/--pdflatex、-x/--xelatex、-l/--lualatex 互斥"
+msgstr ""
+"Only one compiler engine may be chosen: -p/--pdflatex, -x/--xelatex, "
+"-l/--lualatex are mutually exclusive"
+
+msgid ""
+"只能选择一种清理方式：-c/--clean、-C/--clean-out、-ca/--clean-recursive、-Ca/--clean-"
+"recursive-out 互斥"
+msgstr ""
+"Only one clean mode may be chosen: -c/--clean, -C/--clean-out, -ca"
+"/--clean-recursive, -Ca/--clean-recursive-out are mutually exclusive"
+
 #~ msgid "生成期刊投稿包 zip（按 .fls 收集依赖，并处理 Unicode）"
 #~ msgstr ""
 #~ "Build a journal submission zip (collects"
@@ -149,4 +187,12 @@ msgstr ""
 
 #~ msgid "投稿包同时包含 .bib 源文件（默认只带 .bbl）"
 #~ msgstr "Include .bib sources in the submission package (default: only .bbl)"
+
+#~ msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"
+#~ msgstr ""
+
+#~ msgid "生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，不含 .bbl）"
+#~ msgstr ""
+#~ "Build submission zip (collects deps via"
+#~ " .fls, includes all .bib, no .bbl)"
 
