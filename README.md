@@ -262,13 +262,15 @@ pytexmk -c
 > TeX 的 `-interaction` 只由配置 `[build] interaction` 决定，命令行不再提供该开关。
 >
 > 短开关以单字符为主；只有语义需要时才保留两字符（`-nq`/`-ca`/`-Ca`/`-pa`/`-sp`/`-vb`/`-pv`/`-iu`/`-ls`/`-sc`/`-ap`/`-rp`）。短开关不能合并书写（`-dc` 这类会退出 `2`）。
+>
+> `-p`/`-x`/`-l` 编译引擎三选一，同时给出多个时报参数错误并退出 `2`。
 
 构建类开关只放在配置文件里，命令行不再重复提供：
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
 | `[build] native` | `"auto"` | 原生命名目录构建（辅助文件直接写进 `Auxiliary/`） |
-| `[build] shell_escape` | `"auto"` | 是否允许 `\write18`（按 minted/pythontex 等自动判断） |
+| `[build] shell_escape` | `"true"` | 是否允许 `\write18`（默认开启；`"auto"` 按 minted/pythontex 等判断） |
 | `[build] synctex` | `true` | 是否生成 `.synctex.gz`；关闭后编辑器无法跳转 |
 | `[build] max_extra_compilations` | `8` | 首轮之后的额外编译轮次上限 |
 | `[preflight] enabled` | `true` | 编译前静态检查（缺 `\end{document}`、`.bib`、图片等） |
@@ -297,21 +299,24 @@ CI 建议直接使用退出码：编译成功为 `0`，编译失败为 `5`；需
 
 | 选项 | 说明 |
 | --- | --- |
-| `-sp`, `--submission-pack` | 生成 `Submission/<项目>-submission.zip`：`.fls` 依赖 + **全部 `.bib`** + 转换后的纯 ASCII 源文件 + 说明文件（默认不含 `.bbl`） |
+| `-sp`, `--submission-pack` | 生成 `Submission/<项目>-submission.zip`：`.fls` 依赖 + **全部 `.bib`** + 原样提交副本 + 说明文件（不含 `.bbl`）；同目录另写 `<项目>-submission.log` 诊断日志（不进包）。单独使用时**只打包、不编译**（直接用现有 `Build`/`Auxiliary`）；要连编带打用 `-f -sp`，清理后打包（`-c -sp` 等）也会先编译 |
 
 投稿包目录与导言区处理改由 `[submission]` 段控制：
 
 | 配置项 | 默认值 | 说明 |
 | --- | --- | --- |
 | `[submission] output_dir` | `"./Submission/"` | 投稿包输出目录 |
-| `[submission] include_bbl` | `false` | `true` = 另附编译好的 `.bbl`；默认只带 `.bib` |
 | `[submission] keep_preamble` | `false` | `true` = 保留原导言区（默认注释 fontspec/unicode-math/ctex） |
 
-> 期刊只支持 pdflatex 时，`-sp` 会把希腊字母、`°℃µ‰`、`–—…`、智能引号、上下标
-> 等 Unicode 转成纯 ASCII 的 LaTeX 命令，自动注释 fontspec/unicode-math/ctex
-> 并补 `fontenc`/`inputenc`/`textcomp`；说明文件里列出每一处转换、仍不兼容的
-> 宏包以及**无法转换的字符位置**。包内始终带全部 `.bib`，投稿端自行跑
-> bibtex/biber；只有期刊明确要求预编译 `.bbl` 时才打开 `include_bbl`。
+> 期刊只支持 pdflatex 时，`-sp` 会注释 fontspec/unicode-math/ctex 等不兼容
+> 宏包并补 `fontenc`/`inputenc`/`textcomp`，但**不转换正文里的 Unicode 字符**：
+> 提交副本保持原样，希腊字母、`°`、中文等由工具报告出来，需要你自己改成
+> pdflatex 能吃的写法。终端在摘要面板最后一条分隔线下方列出前 5 项问题，更多
+> 项则提示去看诊断日志；已被净化注释的宏包只面板提示“无需手改”，不占用这几行；
+> 发现问题不会中断流程，退出码仍为 0。包内只带全部
+> `.bib`，不附编译产物 `.bbl`，参考文献由投稿端运行 bibtex/biber 后重新编译。
+> 逐字计数、`文件:行号` 明细和宏包原因写进同目录的 `<项目>-submission.log`。
+> 兼容性体检只针对**进包的文件**：没有被 `.fls` 引用、也没进 zip 的稿件（如另一语种版本）不参与统计。
 
 ### 清理
 
@@ -325,6 +330,7 @@ CI 建议直接使用退出码：编译成功为 `0`，编译失败为 `5`；需
 - `-c/-C` 需要唯一主文件；根目录有多个主文件又没有 `default_file` 时直接退出 `1`。
 - `-ca/-Ca` 按后缀递归清理，跳过 `tests/`、`examples/`、`dist/`、`docs/`、`.venv`
   等依赖/示例目录；`.bbl`、`.xdv`、`.xdy` 也按产物处理，不再保留“可能属于作者”的清单。
+- 四种清理方式互斥（与 `-p/-x/-l` 引擎三选一一致）；同时给出多个清理标志直接报参数错误、退出 `2`，不做范围合并。清理完成即结束本次运行，不再继续编译。
 
 ### PDF 工具
 

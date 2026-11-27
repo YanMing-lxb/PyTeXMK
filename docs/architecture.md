@@ -108,7 +108,7 @@ L0  --down-->  L1  --down-->  L2  --down-->  L3  --down-->  L4  --down-->  L5
 | 01 | `__init__.py` | 12 | `main`, `__getattr__` | 包对外 API：只做惰性转发，不导出版本号（版本在 `version.py`） |
 | 02 | `__main__.py` | 4 | `main`（薄转发） | 根包主入口：3 行薄转发 `from .cli.__main__ import main`，使 `python -m pytexmk` 可用 |
 | 03 | `cli/__main__.py [cli 子包]` | 87 | `main` | CLI 主骨架：Windows UTF-8 兜底 + set_language + parse_args + run_workflow |
-| 04 | `cli/cli_args.py [cli 子包]` | 197 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：35 个选项（构建类开关已下沉到配置）、CustomHelpFormatter 等宽帮助、清理互斥组 |
+| 04 | `cli/cli_args.py [cli 子包]` | 197 | `parse_args`, `CustomArgumentParser`, `CustomHelpFormatter` | 命令行参数解析：35 个选项（构建类开关已下沉到配置）、CustomHelpFormatter 等宽帮助、引擎多选校验、清理互斥校验 |
 | 05 | `cli/cli_workflow.py [cli 子包]` | 30 | `run_workflow` | CLI 流程薄入口：串接 早退出子命令 → 上下文解析 → 编译分派 → 收尾；全流程共享状态由 `cli_state.WorkflowState` 承载 |
 | 06 | `cli/cli_state.py [cli 子包]` | 65 | `WorkflowState`, `PREVIEW_AFTER_COMPILE`, `SUFFIXES_OUT`, `SUFFIXES_AUX`, `MAGIC_COMMENT_KEYS` | CLI 工作流共享状态容器（叶子模块，不 import 任何其他 cli_* 模块），定义 20+ 运行时变量 dataclass 与 4 组常量 |
 | 07 | `cli/cli_early.py [cli 子包]` | 61 | `handle` | 早退出子命令：`-i` 初始化 / `-iu` 用户配置 / `-ls` 扫描并写回 / `--show-config`，命中即退出；不再包含 `--doctor`、`--sync-subprojects` 与 README 打开逻辑 |

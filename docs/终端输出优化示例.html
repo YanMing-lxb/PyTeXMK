@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>PyTeXMK 终端输出优化示例</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --line: #30363d;
+    --white: #e6edf3;
+    --dim: #7d8590;
+    --cyan: #56d4dd;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --magenta: #bc8cff;
+    --orange: #d79921;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--white);
+    font-family: "Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;
+    font-size: 13.5px;
+    line-height: 1.55;
+    padding: 32px 28px 56px;
+  }
+  h1 { font-size: 20px; margin: 0 0 6px; letter-spacing: .3px; }
+  .sub { color: var(--dim); margin: 0 0 28px; font-size: 12.5px; }
+  section { margin-bottom: 30px; }
+  .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+  .idx { color: var(--orange); font-weight: 700; }
+  .title { font-size: 15px; font-weight: 700; }
+  .why { color: var(--dim); font-size: 12.5px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+  }
+  .tag { font-size: 11px; letter-spacing: .8px; color: var(--dim); margin-bottom: 8px; }
+  .tag.now { color: #8b949e; }
+  .tag.new { color: var(--green); }
+  pre { margin: 0; white-space: pre; font-family: inherit; }
+  .d { color: var(--dim); }
+  .w { color: var(--white); }
+  .c { color: var(--cyan); }
+  .g { color: var(--green); }
+  .y { color: var(--yellow); }
+  .r { color: var(--red); }
+  .m { color: var(--magenta); }
+  .o { color: var(--orange); }
+  .b { font-weight: 700; }
+  .box {
+    margin-top: 10px;
+    border-left: 3px solid var(--orange);
+    padding: 6px 10px;
+    background: #1c2128;
+    color: var(--dim);
+    font-size: 12.5px;
+  }
+  .box b { color: var(--white); font-weight: 600; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<h1>PyTeXMK 终端输出优化示例</h1>
+<p class="sub">以 <code>-sp</code> 的分区式面板为基准（<span class="g">78 列</span>、<span class="d">dim 分隔</span>、<span class="o">+-- 分类头</span>、<span class="g">✓/✗ 语义</span>），把编译主流程的打印也拉齐。</p>
+
+<section>
+  <div class="head"><span class="idx">01</span><span class="title">阶段横幅降噪</span><span class="why">一次 3 轮编译现在要铺 4~5 条 X 横幅</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="d">==============================================================================</span>
+<span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXX</span><span class="b">| 1 次 XeLaTeX 编译 |</span><span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+<span class="d">==============================================================================</span>
+
+<span class="d">==============================================================================</span>
+<span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span><span class="b">| 开始后处理 |</span><span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+<span class="d">==============================================================================</span>
+
+<span class="d">==============================================================================</span>
+<span class="w">▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</span><span class="b">| 完成所有编译 |</span><span class="w">▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</span>
+<span class="d">==============================================================================</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议</div>
+<pre><span class="d">==============================================================================</span>
+<span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span><span class="b">| 开始编译 |</span><span class="w">XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</span>
+<span class="d">==============================================================================</span>
+
+  <span class="c">第 1 轮</span>  <span class="d">XeLaTeX · Auxiliary/ · main.tex</span>        <span class="g b">✓</span> <span class="d">0.80 s</span>
+  <span class="c">第 2 轮</span>  <span class="d">XeLaTeX · Auxiliary/ · main.tex</span>        <span class="g b">✓</span> <span class="d">0.74 s</span>
+  <span class="d">└ 提前停止：交叉引用稳定、无重编译信号</span>
+
+  <span class="g b">✓</span> <span class="w">编译完成</span>  <span class="d">2 轮 · 1.54 s · PDF 3 页</span>
+
+<span class="d">------------------------------------------------------------------------------</span>
+<span class="g b">✓</span> <span class="w">后处理完成</span>  <span class="d">PDF → Build/main.pdf · synctex 已归档</span>
+<span class="d">==============================================================================</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：横幅只留给「阶段开始」（预处理 / 编译 / 后处理），阶段内每轮降为一行状态；<span class="c">轮次</span> cyan、细节 <span class="d">dim</span>、结果 <span class="g">绿 ✓</span> + 耗时 dim。`print_message` 的 `success` 分支顺手把 `bold red on white` 改成 <span class="g">绿底白字</span>，别让「成功」和「预处理」同色。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">02</span><span class="title">运行命令</span><span class="why">默认 5 行折行、参数与路径同色</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="w">运行命令: xelatex -shell-escape -recorder -file-line-error -halt-on-error</span>
+<span class="w">          -synctex=1 -interaction=nonstopmode -output-directory=Auxiliary</span>
+<span class="w">          -jobname=main main.tex</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议（默认）</div>
+<pre><span class="d">$</span> <span class="c b">xelatex</span> <span class="d">main.tex</span> <span class="d">→</span> <span class="m">Auxiliary/</span> <span class="d">·</span> <span class="d">6 个参数（-vb 展开）</span>
+
+<span class="d"># -vb</span>
+<span class="d">$</span> <span class="c b">xelatex</span> <span class="d">\</span>
+<span class="d">    </span><span class="g">-shell-escape</span> <span class="g">-recorder</span> <span class="g">-file-line-error</span> <span class="g">-halt-on-error</span> <span class="d">\</span>
+<span class="d">    </span><span class="c">-synctex=1</span> <span class="c">-interaction=nonstopmode</span> <span class="d">\</span>
+<span class="d">    </span><span class="m">-output-directory=Auxiliary</span> <span class="m">-jobname=main</span> <span class="d">\</span>
+<span class="d">    </span><span class="d">main.tex</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：默认一行摘要，<span class="d">$</span> 前缀 dim、可执行名 <span class="c">bold cyan</span>、目录/产物路径 <span class="m">magenta</span>、`-vb` 才逐行展开并反斜杠续行；<span class="g">影响排版的参数</span>与 <span class="c">调试参数</span>分色，扫一眼就知道这次开了什么。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">03</span><span class="title">检测报告块</span><span class="why">`[√] -->` 与 `+--` 分类头两套语法并存</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="d">------------------------------------------------------------------------------</span>
+<span class="w">[检测报告] (第 1 轮) </span>
+<span class="w"> 交叉引用    (aux) : [√] --> 交叉引用锚点未发生变更，引用解析稳定</span>
+<span class="w"> 日志信号    (log) : [√] --> 未检测到需要重编译的 LaTeX 警告信号，本次迭代稳定</span>
+
+<span class="w">结论： 辅助文件与日志信号均已稳定，继续编译不会再改变结果，已提前停止。</span>
+<span class="w">本次累计编译总次数：1 次</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议</div>
+<pre><span class="o b">+-- [检测报告] · 2/2</span><span class="o b"> -------------------------------------------------------</span>
+  <span class="g b">✓</span> <span class="w">交叉引用</span>  <span class="d">aux</span>  <span class="d">锚点未变，引用解析稳定</span>
+  <span class="g b">✓</span> <span class="w">日志信号</span>  <span class="d">log</span>  <span class="d">无重编译信号</span>
+
+  <span class="d">结论</span>  <span class="g">两项均已稳定，提前停止；累计 1 轮</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：复用 <code>-sp</code> 的 <span class="o">+-- [分类] · n</span> 头（同色 <code>#d79921</code>）；<span class="g">✓</span>/<span class="r">✗</span> 取代 `[√]`，`-->` 去掉；检查项名 <span class="w">bold</span>、来源 <span class="d">dim</span>、结论一句话 <span class="d">dim</span>+<span class="g">绿</span>。同一行的三项用固定列对齐，别再靠三个空格。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">04</span><span class="title">错误汇总的折行</span><span class="why">`↳` 建议折行后缩进 10 格，和正文错位</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="d">================================ 错误汇总 · 1 ================================</span>
+<span class="o">+-- [一般编译] · 1</span> <span class="d">-----------------------------------------------------------</span>
+<span class="r">    [E] main.tex:3 --> Undefined control sequence.</span>
+<span class="y">        ↳ 未定义命令</span>
+<span class="y">          `\undefinedmacro`：检查拼写/大小写；若是宏包提供的命令，确认对应</span>
+<span class="y">          \usepackage 已加载。</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议</div>
+<pre><span class="o b">+-- [错误汇总] · 1E</span><span class="o b"> ---------------------------------------------------------</span>
+  <span class="r b">✗</span> <span class="w b">main.tex:3</span>  <span class="r">Undefined control sequence</span>
+    <span class="y">↳</span> <span class="w">未定义命令</span> <span class="d">`\undefinedmacro`</span>
+      <span class="d">检查拼写/大小写；若是宏包提供的命令，确认对应</span>
+      <span class="d">\usepackage 已加载。</span>
+
+  <span class="d">日志  Auxiliary/main.log:76</span>
+  <span class="d">排查  pytexlogs check Auxiliary/main.log</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：`[E]` 改 <span class="r">✗</span>；`file:line` <span class="w">bold</span> 单独一列，消息 <span class="r">红</span>；`↳` 提示用 <span class="y">黄</span>，解释文字统一 <span class="d">dim</span> 且缩进对齐到“↳ 后一列”，折行不再出现悬空的 `\usepackage`。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">05</span><span class="title">运行时长表</span><span class="why">ASCII 双线框、4~8 位小数、两列竖读割裂</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="d">+-----+--------------------+----------+-----+------------------+----------+</span>
+<span class="d">| No. |      运行项目      | 运行时长 | No. |     运行项目     | 运行时长 |</span>
+<span class="d">+=====+====================+==========+=====+==================+==========+</span>
+<span class="d">|</span> 01  <span class="d">|</span> <span class="c">检测辅助文件       </span> <span class="d">|</span> <span class="g">0.0001 s</span> <span class="d">|</span> 05  <span class="d">|</span> <span class="c">LaTeX 编译时长     </span> <span class="d">|</span> <span class="g">0.8038 s</span> <span class="d">|</span>
+<span class="d">|</span> 02  <span class="d">|</span> <span class="c">XeLaTeX 1st        </span> <span class="d">|</span> <span class="g">0.8038 s</span> <span class="d">|</span> 06  <span class="d">|</span> <span class="c">Python 运行时长    </span> <span class="d">|</span> <span class="g">0.2603 s</span> <span class="d">|</span>
+<span class="d">| 03  <span class="d">|</span> <span class="c">编译状态检测       </span> <span class="d">|</span> <span class="g">0.0012 s</span> <span class="d">|</span> 07  <span class="d">|</span> <span class="c">PyTeXMK 运行时长   </span> <span class="d">|</span> <span class="g">1.0641 s</span> <span class="d">|</span>
+<span class="d">| 04  <span class="d">|</span> <span class="c">结果文件-&gt;输出目录 </span> <span class="d">|</span> <span class="g">0.0045 s</span> <span class="d">|</span>     <span class="d">|</span>                  <span class="d">|</span>          <span class="d">|</span>
+<span class="d">+-----+--------------------+----------+-----+------------------+----------+</span>
+<span class="w">PyTeXMK 运行时长: 0 h 0 min 1 s 64 ms (1.064 s total)</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议</div>
+<pre><span class="o b">+-- [耗时] · 1.06 s</span><span class="o b"> -------------------------------------------------------</span>
+  <span class="c">XeLaTeX 1st</span>            <span class="d">██████████████████   </span> <span class="g b">0.80 s</span>  <span class="d">75%</span>
+  <span class="c">pythontex</span>              <span class="d">█████               </span> <span class="g">0.26 s</span>  <span class="d">24%</span>
+  <span class="c">归档 → Build/</span>          <span class="d">                    </span> <span class="g">0.01 s</span>  <span class="d"> 1%</span>
+  <span class="c">编译状态检测</span>           <span class="d">                    </span> <span class="g">0.00 s</span>  <span class="d"> 0%</span>
+  <span class="d">… 另 2 项合计 0.00 s（-vb 全列）</span>
+
+  <span class="d">编译 0.80 s · Python 0.26 s · 等待 0.00 s</span>
+  <span class="w b">总计 1.06 s</span>  <span class="d">（单轮 0.80 s，2 轮 = 实际 1 轮）</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：去掉双线表与「No.」列，改成 <span class="o">+-- [耗时]</span> 分类头 + 单列按耗时降序；小数统一 2 位；条形 <span class="d">dim</span>、百分比 <span class="d">dim</span>、耗时 <span class="g">绿</span>，<span class="d">&lt;0.01 s</span> 的项折叠成一行。`0 h 0 min` 这种单位堆叠直接删。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">06</span><span class="title">首屏三行与清理回执</span><span class="why">「开始运行...」「指定待编译主文件为:」句式松散</span></div>
+  <div class="grid">
+    <div class="card">
+      <div class="tag now">现状</div>
+<pre><span class="w">PyTeXMK 版本: 1.2.18</span>
+<span class="w">PyTeXMK 开始运行...</span>
+<span class="w">通过根目录下唯一主文件指定待编译主文件为: main.tex</span>
+
+<span class="w">已完成清除所有主文件的辅助文件的指令</span></pre>
+    </div>
+    <div class="card">
+      <div class="tag new">建议</div>
+<pre><span class="w b">PyTeXMK</span> <span class="d">1.2.18</span>  <span class="d">·</span>  <span class="c">XeLaTeX</span>  <span class="d">·</span>  <span class="w">main.tex</span>
+<span class="d">  └ 主文件来自根目录唯一 .tex；引擎来自魔法注释</span>
+
+<span class="g b">✓</span> <span class="w">已清理</span> <span class="d">12 个辅助文件</span> <span class="d">·</span> <span class="m">Auxiliary/</span> <span class="d">·</span> <span class="d">0.02 s</span></pre>
+    </div>
+  </div>
+  <div class="box"><b>要点</b>：首屏压成一行信息条（版本 dim、引擎 cyan、主文件 bold），来源作为 <span class="d">dim</span> 尾注；清理回执从「…的指令」改成「✓ 已清理 N 个文件 · 目录 · 耗时」，数量 <span class="w">bold</span>、目录 <span class="m">magenta</span>。</div>
+</section>
+
+<section>
+  <div class="head"><span class="idx">07</span><span class="title">统一到同一套“词汇表”</span><span class="why">各模块现在各自造词、各自上色</span></div>
+  <div class="card">
+    <div class="tag new">建议（供新增打印参考）</div>
+<pre><span class="d">结构</span>   <span class="o b">+-- [分类] · 3</span><span class="d"> ----</span>     阶段 <span class="w">XXX| 标题 |XXX</span>     收尾 <span class="d">----</span> / <span class="w">====</span>
+<span class="d">语义</span>   <span class="g b">✓</span> 成功   <span class="r b">✗</span> 失败   <span class="y">!</span> 警告   <span class="d">·</span> 分隔   <span class="c">⏵</span> 进行中
+<span class="d">配色</span>   <span class="w">主文本</span>  <span class="d">明细/次要</span>  <span class="c">对象名·轮次</span>  <span class="m">路径·产物</span>  <span class="g">数值·成功</span>  <span class="y">提示·待办</span>  <span class="r">错误</span>
+<span class="d">数字</span>   耗时 2 位小数；计数写单位（<span class="d">3 轮 · 69 个文件 · 28 页</span>）；不写 <span class="d">?</span>
+<span class="d">宽度</span>   78 列；续行缩进按「标签后一列」对齐，不固定空格数</pre>
+  </div>
+  <div class="box"><b>要点</b>：把这条表写进 <code>ui_theme.py</code> 的注释 + 一个 <code>say()</code> 小封装（level=ok|warn|err|info，自动配 <span class="g">✓</span>/<span class="y">!</span>/<span class="r">✗</span>/<span class="c">·</span>），新代码只传语义、不手写颜色，避免下一轮又出现 `[√] -->` 这种方言。</div>
+</section>
+
+</body>
+</html>

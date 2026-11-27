@@ -263,13 +263,15 @@ pytexmk -c
 > TeX's `-interaction` is controlled only by `[build] interaction`; the CLI no longer offers this switch.
 >
 > Short options are single-character by default; two-character names remain only where the semantics need them (`-nq`/`-ca`/`-Ca`/`-pa`/`-sp`/`-vb`/`-pv`/`-iu`/`-ls`/`-sc`/`-ap`/`-rp`). Short options cannot be clustered (`-dc` and the like exit `2`).
+>
+> `-p`/`-x`/`-l` select one compiler engine; giving more than one exits `2` with an argument error.
 
 Build switches live in the config file; the CLI no longer duplicates them:
 
 | Key | Default | Description |
 | --- | --- | --- |
 | `[build] native` | `"auto"` | Native named-directory build (aux files go straight into `Auxiliary/`) |
-| `[build] shell_escape` | `"auto"` | Allow `\write18` (auto-detected for minted/pythontex/etc.) |
+| `[build] shell_escape` | `"true"` | Allow `\write18` (on by default; `"auto"` detects minted/pythontex/etc.) |
 | `[build] synctex` | `true` | Generate `.synctex.gz`; disabling breaks editor jumps |
 | `[build] max_extra_compilations` | `8` | Extra compilation passes after the first run |
 | `[preflight] enabled` | `true` | Pre-compile checks (missing `\end{document}`, `.bib`, graphics, etc.) |
@@ -300,22 +302,29 @@ need an archived diagnostic, append `pytexmk -r` after the build command.
 
 | Option | Description |
 | --- | --- |
-| `-sp`, `--submission-pack` | Build `Submission/<project>-submission.zip`: `.fls` dependencies + **all `.bib`** + ASCII-converted sources + notes (no `.bbl` by default) |
+| `-sp`, `--submission-pack` | Build `Submission/<project>-submission.zip`: `.fls` dependencies + **all `.bib`** + unmodified source copies + notes (no `.bbl`); a sibling `<project>-submission.log` holds the diagnostics (never packed). On its own it **packs only, no build** (reuses the existing `Build`/`Auxiliary`); use `-f -sp` to compile and pack, and any clean flag combined with `-sp` still compiles first |
 
 Submission directory and preamble handling moved to `[submission]`:
 
 | Key | Default | Description |
 | --- | --- | --- |
 | `[submission] output_dir` | `"./Submission/"` | Submission output directory |
-| `[submission] include_bbl` | `false` | `true` also ships the compiled `.bbl`; default ships `.bib` only |
 | `[submission] keep_preamble` | `false` | `true` keeps the original preamble (default comments out fontspec/unicode-math/ctex) |
 
-> If the journal only accepts pdflatex, `-sp` converts Greek letters, `°℃µ‰`, `–—…`,
-> smart quotes and sub/superscripts into pure ASCII LaTeX, comments out
-> fontspec/unicode-math/ctex, and lists every conversion plus the exact
-> `file:line` of characters it cannot convert (CJK, emoji, …). The pack always
-> carries every `.bib` so the journal can run bibtex/biber itself; enable
-> `include_bbl` only when a journal explicitly requires a pre-built `.bbl`.
+> If the journal only accepts pdflatex, `-sp` comments out
+> fontspec/unicode-math/ctex and adds `fontenc`/`inputenc`/`textcomp`, but it
+> does **not** convert Unicode characters in the body: the submission copy stays
+> byte-faithful, and Greek letters, `°`, CJK and the like are merely reported for
+> you to fix by hand. Up to five issues are listed below the last rule of the
+> summary panel; anything beyond that points to the diagnostic log, and packages
+> the sanitizer already commented out appear in the panel as “no manual edit
+> needed” instead of taking those five slots; findings
+> never abort the run (exit code stays 0). The pack carries only every `.bib`,
+> never the compiled `.bbl`; references are rebuilt on the journal side after
+> running bibtex/biber. Per-character counts, `file:line` details and package
+> reasons go to the sibling `<project>-submission.log`. Compatibility scanning
+> only covers files actually packed: drafts that no `.fls` entry references and
+> that never enter the zip (e.g. another language variant) are ignored.
 
 ### Cleanup
 
@@ -329,6 +338,7 @@ Submission directory and preamble handling moved to `[submission]`:
 - `-c/-C` need a unique main file; multiple candidates without `default_file` exit `1`.
 - `-ca/-Ca` match by suffix, skip `tests/`, `examples/`, `dist/`, `docs/`, `.venv`;
   `.bbl`, `.xdv` and `.xdy` are treated as artifacts, with no “possibly author-owned” list.
+- The four clean modes are mutually exclusive (like the `-p/-x/-l` engine choice); passing more than one clean flag exits with argument error `2` and no scope merge is performed. Cleaning finishes and the run exits; no follow-up build is performed.
 
 ### PDF Tools
 
