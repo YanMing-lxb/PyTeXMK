@@ -285,14 +285,6 @@ def _apply_submission_config(state: WorkflowState) -> None:
     submission_cfg = state.config_dict.get("submission") or {}
     if not submission_cfg:
         return
-    if submission_cfg.get("unicode_to_latex") is not None:
-        state.submission_unicode_to_latex = _as_bool(
-            submission_cfg.get("unicode_to_latex"), True
-        )
-    if submission_cfg.get("include_bbl") is not None:
-        state.submission_include_bbl = _as_bool(
-            submission_cfg.get("include_bbl"), False
-        )
     if submission_cfg.get("reproducible") is not None:
         state.submission_reproducible = _as_bool(
             submission_cfg.get("reproducible"), True

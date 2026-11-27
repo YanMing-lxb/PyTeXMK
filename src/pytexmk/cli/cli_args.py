@@ -66,14 +66,14 @@ class CustomArgumentParser(argparse.ArgumentParser):
 
 
 class CustomHelpFormatter(RichHelpFormatter):
-    """自定义 RichHelpFormatter：固定帮助页宽度，避免跟随超宽终端拉伸。"""
+    """自定义 RichHelpFormatter：固定帮助页宽度与帮助列宽，避免跟随超宽终端拉伸。"""
 
     def __init__(
         self,
         prog,
         indent_increment=2,
-        max_help_position=28,
-        width=96,
+        max_help_position=40,
+        width=100,
         **kwargs,
     ):
         super().__init__(
@@ -102,74 +102,79 @@ def build_parser():
         allow_abbrev=False,
     )
 
-    meg_clean = parser.add_mutually_exclusive_group()
-    meg_engine = parser.add_mutually_exclusive_group()
+    g_doc = parser.add_argument_group(_("编译主文件"))
+    g_engine = parser.add_argument_group(_("编译引擎"))
+    g_run = parser.add_argument_group(_("编译行为"))
+    g_clean = parser.add_argument_group(_("清理辅助文件"))
+    g_conf = parser.add_argument_group(_("报告与配置"))
+    g_sub = parser.add_argument_group(_("子项目"))
+    g_out = parser.add_argument_group(_("投稿与预览"))
+    g_common = parser.add_argument_group(_("通用"))
 
-    parser.add_argument(
+    g_common.add_argument(
         "-v",
         "--version",
         action="version",
         version=f"{script_name} {__version__}",
         help=_("显示版本并退出"),
     )
-    parser.add_argument(
-        "-h", "--help", action="help", help=_("显示本帮助并退出")
-    )
-    parser.add_argument(
+    g_common.add_argument("-h", "--help", action="help", help=_("显示本帮助并退出"))
+
+    g_conf.add_argument(
         "-r",
         "--report",
         dest="report",
         action="store_true",
         help=_("从最近一次编译日志生成报告（不触发编译）"),
     )
-    meg_engine.add_argument(
+
+    g_engine.add_argument(
         "-p", "--pdflatex", action="store_true", help=_("用 PdfLaTeX 编译")
     )
-    meg_engine.add_argument(
+    g_engine.add_argument(
         "-x", "--xelatex", action="store_true", help=_("用 XeLaTeX 编译")
     )
-    meg_engine.add_argument(
+    g_engine.add_argument(
         "-l", "--lualatex", action="store_true", help=_("用 LuaLaTeX 编译")
     )
-    parser.add_argument(
+
+    g_run.add_argument(
         "-d",
         "--draft",
         action="store_true",
         help=_("草稿模式：跳过图片加载，编译更快"),
     )
-    meg_clean.add_argument(
+    g_clean.add_argument(
         "-c",
         "--clean",
         action="store_true",
         help=_("清除当前主文件的辅助文件（仅辅助目录）"),
     )
-    meg_clean.add_argument(
+    g_clean.add_argument(
         "-C",
         "--clean-out",
         action="store_true",
         help=_("清除当前主文件的辅助文件与输出文件（辅助目录 + 根目录）"),
     )
-    meg_clean.add_argument(
+    g_clean.add_argument(
         "-ca",
         "--clean-recursive",
         action="store_true",
         help=_("递归清理全项目的辅助文件（不要求唯一主文件）"),
     )
-    meg_clean.add_argument(
+    g_clean.add_argument(
         "-Ca",
         "--clean-recursive-out",
         action="store_true",
         help=_("递归清理全项目的辅助文件与主文件输出"),
     )
-    parser.add_argument(
+    g_run.add_argument(
         "-nq",
         "--non-quiet",
         action="store_true",
-        help=_(
-            "实时显示 TeX/biber/makeindex 的输出"
-        ),
+        help=_("实时显示 TeX/biber/makeindex 的输出"),
     )
-    parser.add_argument(
+    g_run.add_argument(
         "-pa",
         "--pass-arg",
         dest="extra_args",
@@ -178,43 +183,43 @@ def build_parser():
         metavar="ARG",
         help=_("向引擎追加一个参数，可重复（如 -pa=-8bit）"),
     )
-    parser.add_argument(
+    g_out.add_argument(
         "-sp",
         "--submission-pack",
         action="store_true",
-        help=_("生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，默认不含 .bbl）"),
+        help=_("生成期刊投稿包 zip（按 .fls 收集依赖，附全部 .bib，不含 .bbl）；单独使用时只打包不编译"),
     )
-    parser.add_argument(
+    g_run.add_argument(
         "-w",
         "--watch",
         action="store_true",
         help=_("监视源文件并自动重编（Ctrl+C 退出）"),
     )
-    parser.add_argument(
+    g_conf.add_argument(
         "-e",
         "--explain",
         action="store_true",
         help=_("只显示本次编译配置，不编译"),
     )
-    parser.add_argument(
+    g_conf.add_argument(
         "-sc",
         "--show-config",
         action="store_true",
         help=_("显示合并后的配置（默认 < 用户 < 项目）"),
     )
-    parser.add_argument(
+    g_sub.add_argument(
         "-ap",
         "--all-subprojects",
         action="store_true",
         help=_("编译根配置 \\[subprojects] 中的全部子项目"),
     )
-    parser.add_argument(
+    g_run.add_argument(
         "-vb",
         "--verbose",
         action="store_true",
         help=_("显示详细运行信息"),
     )
-    parser.add_argument(
+    g_out.add_argument(
         "-rp",
         "--pdf-repair",
         nargs="*",
@@ -225,13 +230,13 @@ def build_parser():
             "不带文件名时只修复被引用的文件；可指定一个或多个 PDF"
         ),
     )
-    parser.add_argument(
+    g_run.add_argument(
         "-f",
         "--force-rebuild",
         action="store_true",
         help=_("忽略构建缓存，强制重新编译"),
     )
-    parser.add_argument(
+    g_out.add_argument(
         "-pv",
         "--pdf-preview",
         nargs="?",
@@ -242,28 +247,28 @@ def build_parser():
             "主文件名可写在 document 位置，如 pytexmk main -pv"
         ),
     )
-    parser.add_argument(
+    g_sub.add_argument(
         "-s",
         "--subproject",
         metavar="NAME",
         help=_("编译根配置 \\[subprojects] 中指定的子项目"),
     )
-    parser.add_argument(
+    g_sub.add_argument(
         "-ls",
         "--list-subprojects",
         action="store_true",
         help=_("列出并写回根配置的 \\[subprojects] 清单"),
     )
-    parser.add_argument(
+    g_conf.add_argument(
         "-i", "--init", action="store_true", help=_("生成项目配置 .pytexmkrc（覆盖已有文件）")
     )
-    parser.add_argument(
+    g_conf.add_argument(
         "-iu",
         "--init-user",
         action="store_true",
         help=_("生成用户配置 ~/.pytexmkrc（覆盖已有文件）"),
     )
-    parser.add_argument("document", nargs="?", help=_("待编译主文件名"))
+    g_doc.add_argument("document", nargs="?", help=_("待编译主文件名"))
 
     return parser
 
@@ -294,9 +299,41 @@ def _reject_clustered_short_flags(argv, parser):
             )
 
 
+def _reject_multiple_engines(args, parser) -> None:
+    """编译引擎三选一：同时给出多个引擎开关时报错，不做后写覆盖。"""
+    engines = [
+        name
+        for name in ("pdflatex", "xelatex", "lualatex")
+        if getattr(args, name, False)
+    ]
+    if len(engines) > 1:
+        parser.error(
+            _("只能选择一个编译引擎：-p/--pdflatex、-x/--xelatex、-l/--lualatex 互斥")
+        )
+
+
+def _reject_multiple_clean(args, parser) -> None:
+    """清理方式四选一：同时给出多个清理开关时报错，不做范围合并。"""
+    clean_flags = [
+        name
+        for name in ("clean", "clean_out", "clean_recursive", "clean_recursive_out")
+        if getattr(args, name, False)
+    ]
+    if len(clean_flags) > 1:
+        parser.error(
+            _(
+                "只能选择一种清理方式：-c/--clean、-C/--clean-out、"
+                "-ca/--clean-recursive、-Ca/--clean-recursive-out 互斥"
+            )
+        )
+
+
 def parse_args(argv=None):
     """解析命令行参数，返回 argparse.Namespace。"""
     argv = list(sys.argv[1:] if argv is None else argv)
     parser = build_parser()
     _reject_clustered_short_flags(argv, parser)
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    _reject_multiple_engines(args, parser)
+    _reject_multiple_clean(args, parser)
+    return args

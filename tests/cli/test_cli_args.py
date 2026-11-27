@@ -97,6 +97,44 @@ def test_report_and_pdflatex_do_not_collide_with_pdf_repair():
     assert not clustered_name.pdflatex
 
 
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["-p", "-x"],
+        ["-p", "-l"],
+        ["-x", "-l"],
+        ["--pdflatex", "--xelatex"],
+        ["-p", "--lualatex"],
+    ],
+)
+def test_multiple_engines_rejected(argv):
+    """编译引擎三选一：同时给出多个引擎开关时报参数错误（退出码 2）。"""
+    with pytest.raises(SystemExit) as exc:
+        parse_args(argv)
+    assert exc.value.code == 2
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["-c", "-C"],
+        ["-c", "-ca"],
+        ["-c", "-Ca"],
+        ["-C", "-ca"],
+        ["-C", "-Ca"],
+        ["-ca", "-Ca"],
+        ["--clean", "--clean-out"],
+        ["-c", "--clean-recursive"],
+        ["-C", "--clean-recursive-out"],
+    ],
+)
+def test_multiple_clean_rejected(argv):
+    """清理方式四选一：同时给出多个清理开关时报参数错误（退出码 2）。"""
+    with pytest.raises(SystemExit) as exc:
+        parse_args(argv)
+    assert exc.value.code == 2
+
+
 def test_long_options_are_not_abbreviated():
     """长名关闭缩写：``--draf`` 不能被当成 ``--draft``。"""
     with pytest.raises(SystemExit) as exc:

@@ -2,8 +2,11 @@
 
 import contextlib
 import filecmp
+import time
 from dataclasses import dataclass
 from pathlib import Path
+
+from rich.text import Text
 
 from .. import layout
 from ..aux_repair import repair_auxiliary_files
@@ -14,12 +17,114 @@ from ..file_ops import iter_matched_files
 from ..language import set_language
 from ..lifecycle import EXIT_COMPILE_FAILED, EXIT_ERROR, exit_pytexmk
 from ..pdf_tools import inspect_pdf
-from ..timing import time_count, time_print
+from ..timing import get_text_len, time_count, time_print, total_len
 from ..ui_messages import print_message
 from ..ui_theme import console
 from .cli_state import WorkflowState
 
 _ = set_language("cli_workflow")
+
+
+@dataclass
+class _CleanResult:
+    """清理结果：仍可按 ``removed, failed = ...`` 解包，另带分组计数。"""
+
+    removed: list[Path]
+    failed: list[tuple[Path, str]]
+    source_count: int
+    build_count: int
+    build_paths: list[Path]
+    folder_count: int = 0
+
+    def __iter__(self):
+        yield self.removed
+        yield self.failed
+
+
+def _clean_elapsed(state: WorkflowState) -> float:
+    """清理动作的墙钟耗时：优先单调时钟，退化为开始时间戳。"""
+    if state.start_perf is not None:
+        return max(time.perf_counter() - state.start_perf, 0.0)
+    return max((time.time() - state.start_time.timestamp()), 0.0)
+
+
+def _clean_mode_label(args) -> str:
+    """四个清理开关对应的“方式”文案。"""
+    recursive = getattr(args, "clean_recursive", False) or getattr(
+        args, "clean_recursive_out", False
+    )
+    with_output = getattr(args, "clean_out", False) or getattr(
+        args, "clean_recursive_out", False
+    )
+    if recursive:
+        return _("全项目辅助文件 + 输出") if with_output else _("全项目辅助文件")
+    return _("辅助文件 + 输出") if with_output else _("辅助文件")
+
+
+def _clean_reason(path: Path, reason: str) -> str:
+    """把删除失败原因压成一行，并去掉 Windows 消息尾部重复的路径。"""
+    text = " ".join(str(reason).split()).replace("\\\\", "\\")
+    for tail in (f": '{path}'", f': "{path}"', f": {path}"):
+        if text.endswith(tail):
+            text = text[: -len(tail)]
+            break
+    return text
+
+
+def _print_clean_failure(path: Path, reason: str) -> None:
+    """一条删除失败：``路径 --> 原因``，超宽时换行并对齐到原因列。
+
+    原因列深（路径过长）时退化为 8 空格续行，避免首行只剩几个字符。
+    """
+    head = f"{path} --> "
+    indent = 4 + get_text_len(head)
+    if indent > 40:
+        indent = 8
+    rows = _wrap_display(_clean_reason(path, reason), total_len - indent)
+    console.print(Text("    " + head + rows[0], style="red"))
+    for row in rows[1:]:
+        console.print(Text(" " * indent + row, style="red"))
+
+
+def _print_clean_report(args, result: _CleanResult, *, state: WorkflowState) -> None:
+    """清理完成面板：数量、分组、用时；失败逐条列出（只在有失败时出现）。
+
+    清理与编译互斥，原来那张“运行时长统计表”只剩下 0.0009 s 的删除步骤，
+    对用户没有信息量，因此不再打印；耗时压成一行 ``用时``。
+    """
+    print_message(_("清理完成"), "success")
+
+    _panel_kv(_("方式"), _clean_mode_label(args))
+    _panel_kv(_("已删除文件"), _("%(n)s 个") % {"n": len(result.removed)})
+    with_output = getattr(args, "clean_out", False) or getattr(
+        args, "clean_recursive_out", False
+    )
+    recursive = getattr(args, "clean_recursive", False) or getattr(
+        args, "clean_recursive_out", False
+    )
+    # 递归清理会横跨多个目录，才需要“命中几个文件夹”；-c/-C 的范围是固定的。
+    if recursive:
+        _panel_kv(_("对应文件夹"), _("%(n)s 个") % {"n": result.folder_count})
+    if with_output:
+        # 没有输出可删时只报数量，不要留下 `0 个（）` 这种空括号。
+        names = "、".join(sorted({path.name for path in result.build_paths}))
+        if len(names) > 40:
+            names = names[:37] + "…"
+        detail = _("%(n)s 个") % {"n": result.build_count}
+        if names:
+            detail = _("%(n)s 个（%(names)s）") % {
+                "n": result.build_count,
+                "names": names,
+            }
+        _panel_kv("Build", detail)
+    _panel_kv(_("用时"), f"{_clean_elapsed(state):.2f} s")
+
+    if result.failed:
+        console.print()
+        _category_header(_("失败"), f"{len(result.failed)}")
+        for path, reason in result.failed:
+            _print_clean_failure(path, reason)
+    _panel_rule("=", style="white")
 
 
 def clean_main(args, state: WorkflowState) -> None:
@@ -28,23 +133,10 @@ def clean_main(args, state: WorkflowState) -> None:
     两个入口都需要唯一主文件（由 resolve_target 保证），只按 ``aux_files``
     静态清单工作，不做递归扫描。
     """
-    cleaned, failed = _clean(args, state)
-    if failed:
-        console.print(
-            "[yellow]"
-            + _("有 %(n)s 个文件未能删除（可能被占用）：") % {"n": len(failed)}
-            + "[/yellow]"
-        )
-        for path, reason in failed:
-            console.print(f"  [dim]{path} --> {reason}[/dim]")
+    result = _clean(args, state)
+    _print_clean_report(args, result, state=state)
+    if result.failed:
         exit_pytexmk(EXIT_ERROR)
-    if state.runtime_dict:
-        time_print(
-            state.start_time,
-            state.runtime_dict,
-            program=state.compiled_program,
-            start_perf=state.start_perf,
-        )
 
 
 def clean_recursive(args, state: WorkflowState) -> None:
@@ -54,34 +146,27 @@ def clean_recursive(args, state: WorkflowState) -> None:
     永远只删辅助文件。不再保留“可能属于作者”的文件清单。
     """
     targets = _recursive_clean_targets(args, state)
+    build_paths = _recursive_build_targets(args, state)
+    build_set = set(build_paths)
     removed, failed = state.mro.remove_paths(targets)
     state.runtime_dict["clear_all_aux_auxdir"] = 0
 
-    if getattr(args, "clean_recursive_out", False):
-        console.print(
-            _("[bold green]已完成清除所有带辅助文件后缀的文件和主文件输出文件的指令[/bold green]")
-        )
-    else:
-        console.print(
-            _("[bold green]已完成清除所有带辅助文件后缀的文件的指令[/bold green]")
-        )
-    if failed:
-        console.print(
-            "[yellow]"
-            + _("有 %(n)s 个文件未能删除（可能被占用）：") % {"n": len(failed)}
-            + "[/yellow]"
-        )
-        for path, reason in failed:
-            console.print(f"  [dim]{path} --> {reason}[/dim]")
-        exit_pytexmk(EXIT_ERROR)
+    # Build 行是“实际删掉了哪些输出”：删失败的 PDF 只能留在失败块里，
+    # 不能再算进 Build 的数量与文件名，否则与 `已删除文件` 自相矛盾。
+    removed_set = set(removed)
+    deleted_build = [path for path in build_paths if path in removed_set]
 
-    if state.runtime_dict:
-        time_print(
-            state.start_time,
-            state.runtime_dict,
-            program=state.compiled_program,
-            start_perf=state.start_perf,
-        )
+    result = _CleanResult(
+        removed=removed,
+        failed=failed,
+        source_count=len([path for path in removed if path not in build_set]),
+        build_count=len(deleted_build),
+        build_paths=deleted_build,
+        folder_count=len({path.parent for path in removed if path not in build_set}),
+    )
+    _print_clean_report(args, result, state=state)
+    if failed:
+        exit_pytexmk(EXIT_ERROR)
 
 
 def _recursive_clean_targets(args, state: WorkflowState) -> list[Path]:
@@ -95,17 +180,44 @@ def _recursive_clean_targets(args, state: WorkflowState) -> list[Path]:
     for path in iter_matched_files(".", state.aux_regex_files):
         targets.append(path)
 
-    if getattr(args, "clean_recursive_out", False) and state.output_name:
-        outdir = Path(state.outdir)
-        for name in state.out_files:
-            candidate = outdir / name
-            if candidate.exists() and candidate not in targets:
-                targets.append(candidate)
+    for candidate in _recursive_build_targets(args, state):
+        if candidate not in targets:
+            targets.append(candidate)
     return targets
 
 
+def _recursive_build_targets(args, state: WorkflowState) -> list[Path]:
+    """``-Ca`` 额外要删的输出文件（PDF/SyncTeX 等）；``-ca`` 返回空清单。"""
+    if not getattr(args, "clean_recursive_out", False) or not state.output_name:
+        return []
+    outdir = Path(state.outdir)
+    return [
+        candidate
+        for name in state.out_files
+        if (candidate := outdir / name).exists()
+    ]
+
+
+def _pack_only(args) -> bool:
+    """``-sp`` 单独使用时只打包，不进预处理/预检/编译/警告汇总。
+
+    与 ``-f`` 或任一清理开关同时给出时仍先走完整编译：前者明确要求重编，
+    后者清完辅助文件后直接打包只会得到一份缺 ``.fls`` 的兜底包。
+    """
+    if not getattr(args, "submission_pack", False):
+        return False
+    if getattr(args, "force_rebuild", False):
+        return False
+    return not (
+        getattr(args, "clean", False)
+        or getattr(args, "clean_out", False)
+        or getattr(args, "clean_recursive", False)
+        or getattr(args, "clean_recursive_out", False)
+    )
+
+
 def run(args, state: WorkflowState) -> None:
-    """常规编译路径：修复 PDF / 完整编译二选一（清理在 workflow 中单独分派）。"""
+    """常规编译路径：修复 PDF / 只打包 / 完整编译（清理在 workflow 中单独分派）。"""
     if args.pdf_repair not in (None, False):
         repair = time_count(
             state.pfo.pdf_repair,
@@ -118,17 +230,163 @@ def run(args, state: WorkflowState) -> None:
         state.runtime_dict["repair_pdf"] = repair.seconds
         if not repair.value:
             exit_pytexmk(EXIT_ERROR)
-    else:
-        compiled = _compile(args, state)
-        if compiled and getattr(args, "submission_pack", False):
-            _submission_pack(args, state)
+        return
+    if _pack_only(args):
+        _submission_pack(args, state)
+        return
+    compiled = _compile(args, state)
+    if compiled and getattr(args, "submission_pack", False):
+        _submission_pack(args, state)
+
+
+#: 投稿包摘要面板：标签列宽（按终端显示宽度，中文宽字符算 2）与值列起点。
+#: 行式为 ``  <标签补空格> <三点> <值>``，值列起点 = 缩进 2 + 标签宽 + 两侧空格 + 三点。
+_PANEL_LABEL_W = 14
+_PANEL_DOTS = ":"
+_PANEL_VALUE_COL = 2 + _PANEL_LABEL_W + 1 + len(_PANEL_DOTS) + 1
+
+
+def _panel_rule(char: str = "=", *, style: str = "bold green") -> None:
+    """打印满宽分隔线；宽度固定 ``total_len``，不跟随终端拉伸。"""
+    console.print(char * total_len, style=style)
+
+
+def _wrap_display(text: str, width: int) -> list[str]:
+    """按终端显示宽度折行；``\\n`` 视为强制换行，长路径优先在 ``\\``/``/`` 处断。"""
+    rows: list[str] = []
+    for segment in text.split("\n"):
+        rows.extend(_wrap_segment(segment, width))
+    return rows
+
+
+def _wrap_segment(text: str, width: int) -> list[str]:
+    """单个段落的折行实现；调用方已处理 ``\\n`` 分段。"""
+    rows: list[str] = []
+    current = ""
+    current_w = 0
+    last_sep = -1
+    for ch in text:
+        ch_w = get_text_len(ch)
+        if current and current_w + ch_w > width:
+            if last_sep >= 0:
+                rows.append(current[: last_sep + 1])
+                current = current[last_sep + 1 :]
+                current_w = get_text_len(current)
+            else:
+                rows.append(current)
+                current = ""
+                current_w = 0
+            last_sep = -1
+        current += ch
+        current_w += ch_w
+        if ch in "\\/，。；：、！？":
+            last_sep = len(current) - 1
+    rows.append(current)
+    return rows
+
+
+def _panel_kv(
+    label: str,
+    value: str,
+    *,
+    value_style: str = "",
+    label_style: str = "bold cyan",
+) -> None:
+    """一行「标签 ······ 值」；值超宽时续行缩进到值列对齐。"""
+    label_pad = " " * max(0, _PANEL_LABEL_W - get_text_len(label))
+    value_width = total_len - _PANEL_VALUE_COL
+    rows = _wrap_display(value, value_width)
+
+    line = Text("  ")
+    line.append(label + label_pad, style=label_style)
+    line.append(" " + _PANEL_DOTS + " ", style="dim")
+    line.append(rows[0], style=value_style or None)
+    console.print(line)
+    for cont in rows[1:]:
+        console.print(Text(" " * _PANEL_VALUE_COL).append(cont, style=value_style or None))
+
+
+def _relative(path: Path, root: Path) -> str:
+    """面板里路径按项目根相对显示；不在项目内时退回原样。"""
+    try:
+        return path.resolve().relative_to(root).as_posix()
+    except (OSError, ValueError):
+        return str(path)
+
+
+def _char_file_count(compat) -> int:
+    """出现非 ASCII 字符的文件数（按 ``文件:行号`` 的冒号前一段去重）。"""
+    files = {
+        spot.rsplit(":", 1)[0]
+        for spots in compat.char_locations.values()
+        for spot in spots
+        if spot
+    }
+    return len(files)
+
+
+def _pack_issue_lines(compat, *, sanitize: bool, verbose: bool = False) -> list[str]:
+    """把兼容性问题压成“一处一行”，供终端只显示最前面的几条。
+
+    同一个 ``文件:行号`` 上的多个字符合并成一行（``文件:行号  字 字（N 种）``），
+    只有重复出现才写 ``×N``；``verbose`` 改为逐字符一行并列出全部位置。
+    ``sanitize=True`` 时不兼容宏包已被导言区净化注释，不算待办，不再进入错误清单。
+    """
+    issues: list[str] = []
+    if not sanitize:
+        for package, reason in compat.incompatible_packages.items():
+            width = max(20, total_len - 6 - get_text_len(package) - 2)
+            rows = _wrap_display(reason, width)
+            text = f"{package}: {rows[0]}"
+            issues.append(text + "…" if len(rows) > 1 else text)
+    if verbose:
+        for char, count in sorted(compat.non_ascii_chars.items(), key=lambda kv: (-kv[1], kv[0])):
+            spots = compat.char_locations.get(char) or [""]
+            suffix = f" ×{count}" if count > 1 else ""
+            issues.append(f"{', '.join(spots)}  {char} (U+{ord(char):04X}){suffix}")
+        return issues
+
+    groups: dict[str, list[str]] = {}
+    for char, count in sorted(compat.non_ascii_chars.items(), key=lambda kv: (-kv[1], kv[0])):
+        spots = compat.char_locations.get(char) or []
+        # 没有位置信息时不能拿空字符串当 key 合并，否则所有字符会挤成一行。
+        key = spots[0] if spots else f"~{char}"
+        groups.setdefault(key, []).append(f"{char}×{count}" if count > 1 else char)
+    for key, tokens in groups.items():
+        if key.startswith("~"):
+            issues.append(" ".join(tokens))
+        elif len(tokens) > 1:
+            issues.append(
+                f"{key}  {' '.join(tokens)}" + _("（%(n)s 种）") % {"n": len(tokens)}
+            )
+        else:
+            issues.append(f"{key}  {tokens[0]}")
+    return issues
+
+
+def _category_header(label: str, detail: str) -> None:
+    """``+-- [分类] · 计数`` 分类头，配色与 ``警告汇总`` 的分类行一致。"""
+    prefix = f"+-- [{label}] · {detail} "
+    dashes = max(0, total_len - get_text_len(prefix))
+    console.print(
+        Text.assemble(
+            ("+-- ", "bold #d79921"),
+            (f"[{label}]", "bold"),
+            (f" · {detail}", "dim"),
+            (" " + "-" * dashes, "bold #d79921"),
+        )
+    )
 
 
 def _submission_pack(args, state: WorkflowState) -> None:
-    """生成投稿 zip，并打印页数/体积/转换条数摘要。"""
+    """生成投稿 zip，打印摘要；正文不做自动转换，问题在面板下方逐条报出。"""
     from ..submission import build_pack
 
     submit_dir = state.submission_output_dir
+    sanitize = not state.submission_keep_preamble
+    root = Path().resolve()
+    verbose = bool(getattr(args, "verbose", False))
+    started = time.perf_counter()
     result = build_pack(
         Path(),
         state.project_name,
@@ -137,54 +395,125 @@ def _submission_pack(args, state: WorkflowState) -> None:
         pdf_name=state.output_name,
         submit_dir=submit_dir,
         # 开关全部来自配置文件 [submission]；命令行不再暴露 include-bib / pack-verify。
-        convert_unicode=state.submission_unicode_to_latex,
-        include_bbl=state.submission_include_bbl,
-        sanitize=not state.submission_keep_preamble,
+        sanitize=sanitize,
         reproducible=state.submission_reproducible,
     )
+    elapsed = time.perf_counter() - started
+
     size_mb = result.zip_path.stat().st_size / 1024 / 1024
-    console.print(_("投稿包已生成") + ": " + str(result.zip_path), style="bold green")
-    console.print(
-        f"  {_('文件数')}: {len(result.files)} | {_('体积')}: {size_mb:.2f} MB | "
-        f"PDF {_('页数')}: {result.pdf_pages if result.pdf_pages is not None else '?'} | "
-        f"{_('编译轮数')}: {result.rounds if result.rounds is not None else '?'}"
+
+    # 标题沿用“开始预处理”的 X 底纹横幅与配色（红底字 + 蓝色粗分隔线）。
+    print_message(_("投稿包已生成"), "additional")
+
+    _panel_kv(_("包路径"), _relative(result.zip_path, root))
+
+    # 体积/文件数/页数/轮数合成一行“包信息”，不再各占一行。
+    parts = [_("%(n)s 个文件") % {"n": len(result.files)}]
+    if result.pdf_pages is not None:
+        parts.append(_("PDF %(n)s 页") % {"n": result.pdf_pages})
+    if result.rounds is not None:
+        parts.append(_("编译 %(n)s 轮") % {"n": result.rounds})
+    _panel_kv(
+        _("包信息"),
+        _("体积 %(size)s MB (%(detail)s)")
+        % {"size": f"{size_mb:.2f}", "detail": _("，").join(parts)},
     )
-    if result.conversions:
-        console.print(
-            f"  [yellow]{_('Unicode 转换')}: {len(result.conversions)} 处"
-            f"（清单见包内 pytexmk-submission-notes.txt）[/yellow]"
-        )
     if result.sanitized:
-        console.print(
-            f"  [yellow]{_('导言区净化')}: {len(result.sanitized)} 项"
-            f"（fontspec/unicode-math 等已在提交副本中注释）[/yellow]"
+        _panel_kv(
+            _("导言区"),
+            _("%(n)s 项（已自动处理）") % {"n": len(result.sanitized)},
+            value_style="yellow",
         )
-    if result.remaining_chars:
-        total = sum(result.remaining_chars.values())
-        console.print(
-            f"  [bold red]{_('仍有 ')}{total}{_(' 个非 ASCII 字符无法转换，pdflatex 会失败')}[/bold red]"
-        )
-        for char, count in list(result.remaining_chars.items())[:8]:
-            console.print(f"    [red]{char} (U+{ord(char):04X}) × {count}[/red]")
-        for location in result.remaining_locations[:5]:
-            console.print(f"    [dim]{location}[/dim]")
-        console.print("    [dim]" + _("中文/日文等正文需 ctex/xeCJK，pdflatex 无法处理") + "[/dim]")
-    if not result.compat.ok:
-        handled = bool(result.sanitized)
-        if handled:
-            console.print(
-                "  [yellow]"
-                + _("原稿使用了 Xe/Lua 专属宏包，提交副本中已自动处理（详见包内说明）")
-                + "[/yellow]"
-            )
-        else:
-            console.print("  [yellow]" + _("仍有 pdflatex 无法处理的项，请查看包内说明文件") + "[/yellow]")
-        for package, reason in result.compat.incompatible_packages.items():
-            console.print(f"    [yellow]{package}[/]: {reason}")
-        for char, count in list(result.compat.unsupported_chars.items())[:10]:
-            console.print(f"    [yellow]{char} (U+{ord(char):04X})[/] × {count}")
+    if result.log_path is not None:
+        _panel_kv(_("诊断日志"), _relative(result.log_path, root), value_style="dim")
     if result.sha256:
-        console.print(f"  [dim]sha256: {result.sha256}[/dim]")
+        digest = result.sha256 if verbose else result.sha256[:16] + _("…（完整值见日志）")
+        _panel_kv("SHA-256", digest, value_style="dim")
+    if verbose:
+        _panel_kv(_("打包耗时"), f"{elapsed:.2f} s", value_style="dim")
+
+    # 产物检查只提示不拦截：缺 .fls 仍可打包，但包内容不再可信；PDF 旧于源码则
+    # 用户核对的版式与包内源码不同版。告警都同步落诊断日志。
+    console.print()
+    dirty = False
+    if not result.used_fls:
+        where = "Auxiliary" if result.fls_path is None else result.fls_path.as_posix()
+        _panel_kv(
+            _("依赖清单"),
+            _("缺少 %(p)s\n按后缀兜底收集（可能混入未引用文件），建议先编译一次")
+            % {"p": where},
+            value_style="yellow",
+        )
+        dirty = True
+    if result.stale_sources:
+        first = result.stale_sources[0]
+        _panel_kv(
+            _("PDF 一致性"),
+            _("PDF 早于 %(n)s 个源文件（如 %(f)s），建议重编译后再重新打包。")
+            % {"n": len(result.stale_sources), "f": first},
+            value_style="yellow",
+        )
+        dirty = True
+    if result.pdf_bytes is None:
+        # 没有 PDF 就没有“PDF 不旧于源码”这回事：诊断日志已写“未找到构建 PDF”，
+        # 面板不能再用绿色“通过”把这一项吞掉。
+        pdf_rel = _relative(
+            Path(state.outdir) / f"{state.output_name or state.project_name}.pdf",
+            root,
+        )
+        _panel_kv(
+            _("PDF 产物"),
+            _("未找到 %(p)s，包内不带 PDF；建议先编译再打包") % {"p": pdf_rel},
+            value_style="yellow",
+        )
+        dirty = True
+    if not dirty:
+        _panel_kv(
+            _("产物检查"),
+            _("通过：.fls 齐全，PDF 不旧于入包源码"),
+            value_style="green",
+        )
+
+    if sanitize and result.compat.incompatible_packages:
+        names = list(result.compat.incompatible_packages)
+        shown = "、".join(names[:3]) + ("等" if len(names) > 3 else "")
+        _panel_kv(
+            _("宏包"),
+            f"{shown}（已在提交副本中注释，无需手改）",
+            value_style="yellow",
+        )
+
+    issues = _pack_issue_lines(result.compat, sanitize=sanitize, verbose=verbose)
+    pkg_pending = 0 if sanitize else len(result.compat.incompatible_packages)
+
+    # 问题块：分类头给出“字符数/文件数”，条目只列前 5 项（-vb 时全列），
+    # 其余指向诊断日志；块内提示已并入标题，块尾用白线收尾。
+    if issues:
+        console.print()
+        chars = len(result.compat.non_ascii_chars)
+        counts = [f"{chars}c", f"{_char_file_count(result.compat)}f"]
+        if pkg_pending:
+            counts.append(f"{pkg_pending}p")
+        counts = [item for item in counts if item[:-1] != "0"]
+        _category_header(_("扫描解析"), "/".join(counts))
+        if verbose:
+            console.print(
+                Text("  " + _("计数：c 字符 / f 文件 / p 宏包"), style="dim")
+            )
+        console.print(
+            Text(
+                "  " + _("pdflatex 无法处理以下内容（逐字位置与全部计数见诊断日志）"),
+                style="bold red",
+            )
+        )
+        limit = len(issues) if verbose else 5
+        for line in issues[:limit]:
+            console.print(Text("    " + line, style="red"))
+        if len(issues) > limit:
+            console.print(
+                Text("    " + _("其余 %(n)s 项见诊断日志") % {"n": len(issues) - limit}, style="dim")
+            )
+    _panel_rule("=", style="white")
 
 
 def finalize(state: WorkflowState) -> None:
@@ -205,8 +534,8 @@ def finalize(state: WorkflowState) -> None:
 def _clean(args, state: WorkflowState) -> tuple[list[Path], list[tuple[Path, str]]]:
     """-c / -C：清理主文件的辅助文件（-C 额外清理输出文件）。
 
-    返回 ``(实际删除的路径, 删除失败列表)``；干跑返回空列表，因为没有任何
-    文件被真正删除。
+    返回 ``_CleanResult``（可按 ``removed, failed = ...`` 解包）；干跑不删除
+    任何文件，计数因此为 0。
     """
     # 命名索引（author.idx/ind）与多套 glossary 产物不在静态列表里，先补齐
     _collect_named_index_aux(state)
@@ -238,6 +567,7 @@ def _clean(args, state: WorkflowState) -> tuple[list[Path], list[tuple[Path, str
     # 构建基线必须同步作废：否则下次编译会把"已删除的产物"误判为"未变动"
     _discard_build_state(state)
 
+    build_paths: list[Path] = []
     if args.clean_out:
         out_targets: list[Path] = []
         if state.output_name:
@@ -248,16 +578,18 @@ def _clean(args, state: WorkflowState) -> tuple[list[Path], list[tuple[Path, str
         timed_out = time_count(state.mro.remove_paths, out_targets)
         removed.extend(timed_out.value[0])
         failed.extend(timed_out.value[1])
+        build_paths = list(timed_out.value[0])
         state.runtime_dict["clear_out_outdir"] = timed_out.seconds
-        console.print(
-            _("[bold green]已完成清除所有主文件的辅助文件和输出文件的指令[/bold green]")
-        )
-    else:
-        console.print(
-            _("[bold green]已完成清除所有主文件的辅助文件的指令[/bold green]")
-        )
 
-    return removed, failed
+    in_build = set(build_paths)
+    return _CleanResult(
+        removed=removed,
+        failed=failed,
+        source_count=len([path for path in removed if path not in in_build]),
+        build_count=len(build_paths),
+        build_paths=build_paths,
+        folder_count=len({path.parent for path in removed if path not in in_build}),
+    )
 
 
 def _compile(args, state: WorkflowState) -> bool:

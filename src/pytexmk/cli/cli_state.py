@@ -56,15 +56,13 @@ class WorkflowState:
 
     # ── 构建行为（配置文件 / 命令行可覆盖）──
     native_build: bool = True
-    shell_escape: str = "auto"        # auto | true | false
+    shell_escape: str = "true"       # true | false | auto（默认开启）
     synctex: bool = True              # 是否生成 .synctex.gz（编辑器跳转依赖）
     interaction: str = ""
     extra_args: list[str] = field(default_factory=list)
     max_extra_compilations: int = 8
 
     # ── 投稿打包（[submission] 段，`-sp` 使用）──
-    submission_unicode_to_latex: bool = True   # 生成 pdflatex 可编译的 Unicode 转换副本
-    submission_include_bbl: bool = False       # 附带已编译的 .bbl（默认只带 .bib）
     submission_reproducible: bool = True       # 打包时固定时间戳/排序，可复现
     submission_output_dir: str = "./Submission/"  # 投稿包输出目录
     submission_keep_preamble: bool = False     # 保留原导言区（不注释 fontspec 等）

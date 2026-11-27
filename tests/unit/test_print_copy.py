@@ -222,12 +222,12 @@ def test_epilog_explains_errors_without_exit_code_table():
 
 
 def test_help_width_is_fixed_and_moderate():
-    """帮助页固定为 96 列（按显示宽度，不随超宽终端拉伸）。"""
+    """帮助页固定为 100 列（按显示宽度，不随超宽终端拉伸）。"""
     from rich.cells import cell_len
 
     parser = cli_args.build_parser()
     lines = parser.format_help().splitlines()
-    assert max(cell_len(line) for line in lines) <= 96
+    assert max(cell_len(line) for line in lines) <= 100
 
 
 def test_workflow_state_has_attributes_used_by_explain():

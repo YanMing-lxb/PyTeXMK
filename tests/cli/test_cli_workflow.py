@@ -95,16 +95,42 @@ def test_watch_returns_before_context(wired, monkeypatch):
     assert calls == ["early", "watch"]
 
 
-def test_clean_main_stops_after_cleaning(wired):
+def test_clean_main_exits_before_compile(wired):
+    """``-c/-C`` 清理完成即退出，不再二次解析主文件、编译或收尾预览。"""
     calls, _ = wired
     cli_workflow.run_workflow(_args(clean=True))
-    assert calls == ["early", "build", "resolve_target", "magic", "clean_main"]
+    assert calls == [
+        "early",
+        "build",
+        "resolve_target",
+        "magic",
+        "clean_main",
+    ]
 
 
-def test_clean_recursive_uses_its_own_target_resolution(wired):
+def test_clean_recursive_exits_before_compile(wired):
     calls, _ = wired
     cli_workflow.run_workflow(_args(clean_recursive=True))
-    assert calls == ["early", "build", "resolve_clean", "magic", "clean_recursive"]
+    assert calls == [
+        "early",
+        "build",
+        "resolve_clean",
+        "magic",
+        "clean_recursive",
+    ]
+
+
+def test_clean_recursive_out_exits_before_compile(wired):
+    """``-Ca`` 同为递归清理：走不阻断的 resolve_clean，清理完直接退出。"""
+    calls, _ = wired
+    cli_workflow.run_workflow(_args(clean_recursive_out=True))
+    assert calls == [
+        "early",
+        "build",
+        "resolve_clean",
+        "magic",
+        "clean_recursive",
+    ]
 
 
 def test_report_stops_before_compile(wired):
@@ -134,3 +160,45 @@ def test_before_build_hook_runs_before_dispatch(wired):
 
     cli_workflow.run_workflow(_args(), before_build=hook)
     assert calls == ["early", "build", "resolve_target", "magic", "hook", "run", "finalize"]
+
+
+# ------------------------------------------------------------------ -sp 分派
+
+def _run_args(**overrides):
+    values = {
+        "pdf_repair": None,
+        "submission_pack": True,
+        "force_rebuild": False,
+    }
+    values.update(overrides)
+    return SimpleNamespace(**values)
+
+
+@pytest.fixture
+def pack_spy(monkeypatch):
+    from pytexmk.cli import cli_compile
+
+    calls: list[str] = []
+    monkeypatch.setattr(
+        cli_compile, "_compile", lambda a, s: calls.append("compile") or True
+    )
+    monkeypatch.setattr(
+        cli_compile, "_submission_pack", lambda a, s: calls.append("pack")
+    )
+    return calls
+
+
+def test_sp_alone_packs_without_entering_compile(pack_spy):
+    """``-sp`` 单独使用时只打包：不预处理、不预检、不汇总警告。"""
+    from pytexmk.cli import cli_compile
+
+    cli_compile.run(_run_args(), SimpleNamespace())
+    assert pack_spy == ["pack"]
+
+
+def test_sp_with_force_compiles_then_packs(pack_spy):
+    """``-f -sp`` 明确要求重编：先编译再打包。"""
+    from pytexmk.cli import cli_compile
+
+    cli_compile.run(_run_args(force_rebuild=True), SimpleNamespace())
+    assert pack_spy == ["compile", "pack"]

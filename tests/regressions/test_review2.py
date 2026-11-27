@@ -170,13 +170,21 @@ def test_submission_pack_uses_config_flags(tmp_path, monkeypatch):
         zip_path = pack
         files = ["main.tex"]
         pdf_pages = 3
+        pdf_bytes = 1024
         rounds = 1
-        conversions = []
         sanitized = []
-        remaining_chars: dict = {}
-        remaining_locations: list = []
         sha256 = ""
-        compat = SimpleNamespace(ok=True)
+        log_path = None
+        used_fls = True
+        fls_path = None
+        stale_sources: list[str] = []
+        sanitize = True
+        compat = SimpleNamespace(
+            ok=True,
+            non_ascii_chars={},
+            incompatible_packages={},
+            char_locations={},
+        )
 
     def fake_build_pack(*args, **kwargs):
         captured.update(kwargs)
@@ -190,8 +198,6 @@ def test_submission_pack_uses_config_flags(tmp_path, monkeypatch):
         outdir="Build",
         auxdir="Auxiliary",
         output_name="main",
-        submission_unicode_to_latex=False,
-        submission_include_bbl=False,
         submission_reproducible=False,
         submission_output_dir="./Out/",
         submission_keep_preamble=True,
@@ -199,8 +205,7 @@ def test_submission_pack_uses_config_flags(tmp_path, monkeypatch):
     args = SimpleNamespace()
     cli_compile._submission_pack(args, state)
 
-    assert captured["convert_unicode"] is False
-    assert captured["include_bbl"] is False
+    assert "convert_unicode" not in captured
     assert captured["reproducible"] is False
     assert captured["submit_dir"] == "./Out/"
     assert captured["sanitize"] is False
@@ -208,10 +213,7 @@ def test_submission_pack_uses_config_flags(tmp_path, monkeypatch):
 
 def test_templates_and_defaults_agree_on_submission_section():
     submission_keys = set(DEFAULT_CONFIG["submission"])
-    assert {
-        "unicode_to_latex", "include_bbl", "reproducible",
-        "output_dir", "keep_preamble",
-    } == submission_keys
+    assert {"reproducible", "output_dir", "keep_preamble"} == submission_keys
     # 输入/输出后缀由 detection 注册表管理，配置层不再暴露死键
     assert "input_suffix" not in DEFAULT_CONFIG["index"]
     assert "output_suffix" not in DEFAULT_CONFIG["index"]

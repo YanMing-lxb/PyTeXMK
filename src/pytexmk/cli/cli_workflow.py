@@ -50,24 +50,26 @@ def run_workflow(
 
     # -c/-C：只清当前主文件（-C 额外到根目录并删输出）；找不到唯一主文件时退出 1。
     # -ca/-Ca：递归全项目，不要求唯一主文件；-Ca 能确定主文件时才删输出。
+    # 四种清理方式互斥（parse_args 已拦截多选）；清理完成即收尾退出，不再继续编译。
     clean_requested = (
         args.clean
         or args.clean_out
         or args.clean_recursive
         or args.clean_recursive_out
     )
-    if clean_requested and not getattr(args, "explain", False):
-        if args.clean or args.clean_out:
-            cli_context.resolve_target(args, state)
-            cli_context.apply_magic_comments(state)
-            cli_compile.clean_main(args, state)
-        else:
+    recursive_clean = args.clean_recursive or args.clean_recursive_out
+    clean_only = clean_requested and not getattr(args, "explain", False)
+    if clean_only:
+        if recursive_clean:
             cli_context.resolve_clean_target(args, state)
             cli_context.apply_magic_comments(state)
             cli_compile.clean_recursive(args, state)
+        else:
+            cli_context.resolve_target(args, state)
+            cli_context.apply_magic_comments(state)
+            cli_compile.clean_main(args, state)
         return
 
-    # 决定本次要编译的主文件，再用魔法注释做最后一层覆盖
     cli_context.resolve_target(args, state)
     cli_context.apply_magic_comments(state)
 
